@@ -17,3 +17,8 @@ desktop.ini
 # Python (outils/)
 __pycache__/
 *.pyc
+
+# Reglages locaux de Claude Code : le serveur de dev est partage,
+# le reste est propre a la machine.
+.claude/*
+!.claude/launch.json
