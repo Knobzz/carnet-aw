@@ -4,6 +4,12 @@ Carnet d'entraînement bras de fer. Programmes composables, séances journalisé
 sparring, suivi des douleurs et de la charge tendineuse. Pour un téléphone, en salle,
 hors ligne, sans serveur.
 
+**→ https://knobzz.github.io/carnet-aw/**
+
+Sur le téléphone : ouvrir ce lien, puis *Ajouter à l'écran d'accueil*. L'app démarre
+ensuite sans réseau. Les données restent sur l'appareil — l'hébergement ne sert qu'à
+livrer les fichiers, et le carnet n'envoie rien nulle part.
+
 - Le modèle de données : [MODELE.md](MODELE.md)
 - La ligne de série, isolée : [maquette-ligne-serie.html](maquette-ligne-serie.html)
 
@@ -42,9 +48,13 @@ python -m http.server 8713
 Puis `http://localhost:8713`.
 
 **Sur le téléphone**, il faut une origine en **HTTPS** pour que la PWA s'installe.
-GitHub Pages, Netlify, Cloudflare Pages conviennent : on y dépose le dossier tel quel,
-sans étape de construction. Une fois la page ouverte, « Ajouter à l'écran d'accueil »
-l'installe ; ensuite elle démarre sans réseau.
+C'est le rôle de GitHub Pages ici : *Settings ▸ Pages ▸ Deploy from a branch ▸ `main` /
+`(root)`*, aucune étape de construction. Un `git push` sur `main` suffit à publier.
+
+Servie depuis un **sous-chemin** (`/carnet-aw/` et non la racine), l'app a été vérifiée
+sur l'URL réelle : aucun chemin absolu, `start_url` et `scope` en `./`, service worker
+enregistré avec la portée `https://knobzz.github.io/carnet-aw/` et 19 fichiers en cache,
+tous sous `/carnet-aw/`.
 
 Les données restent sur l'appareil, dans le stockage du navigateur de cette origine —
 elles ne montent nulle part, même hébergée. L'hébergement ne sert qu'à livrer les fichiers.
