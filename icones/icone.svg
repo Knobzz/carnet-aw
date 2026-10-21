@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Carnet AW">
+  <rect width="512" height="512" rx="104" fill="#1b2430"/>
+  <!-- la table : la ligne sur laquelle tout se joue -->
+  <rect x="78" y="386" width="356" height="18" rx="9" fill="#2b5d8a"/>
+  <!-- le bras : coude posé, avant-bras dressé, main engagée -->
+  <path d="M150 386 V232 C150 196 176 170 212 170 L330 148"
+        fill="none" stroke="#d9a445" stroke-width="54"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

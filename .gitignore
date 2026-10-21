@@ -1,0 +1,19 @@
+# Rien de secret ne vit dans ce dépôt : les données d'entraînement restent
+# sur le téléphone, et aucune clé n'est nécessaire pour faire tourner l'app.
+# Ce fichier n'existe que pour éviter d'embarquer du bruit local.
+
+# sauvegardes exportées depuis l'app — elles sont personnelles
+carnet-aw-*.json
+
+# scories d'éditeurs et de systèmes
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+.idea/
+.vscode/
+
+# Python (outils/)
+__pycache__/
+*.pyc

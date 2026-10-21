@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maquette — ligne de série</title>
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Cadre de 400 px pour juger la cible réelle, rien de plus. */
+  .cadre { width: 400px; max-width: 100%; margin: 0 auto 10px; border: 1px solid var(--trait-fort); border-radius: 14px; padding: 8px; background: var(--fond); }
+  .cadre-lab { width: 400px; max-width: 100%; margin: 0 auto 6px; font-size: .72rem; color: var(--texte-3); letter-spacing: .04em; text-transform: uppercase; font-weight: 700; }
+</style>
+</head>
+<body class="maquette-fond">
+
+<div class="app" style="padding-bottom:40px">
+  <h1 style="margin-bottom:6px">Ligne de série</h1>
+  <p class="annot">
+    Le gabarit réel, à 400&nbsp;px, avec la feuille de style de production.
+    Cinq colonnes&nbsp;: <b>SÉRIE · PRÉCÉDENT · CHARGE · REPS · ✓</b>.
+    Le ✓ fait 44×44 à droite, sous le pouce. Le bord gauche laiton est le seul
+    marqueur d'une série faite — il n'y a pas de second signal à décoder.
+  </p>
+
+  <div class="cadre-lab">Exercice chiffré, 3<sup>e</sup> série en cours</div>
+  <div class="cadre">
+    <div class="exo">
+      <div class="exo-entete">
+        <div>
+          <div class="exo-titre">
+            <h3>Curl marteau fat grip</h3>
+            <span class="jeton">AW</span>
+          </div>
+        </div>
+        <button class="bt-icone" aria-label="Options de l'exercice">⋯</button>
+      </div>
+
+      <div class="consigne">Tenue 3&nbsp;s en haut, excentrique 4&nbsp;s. Poignet en cupping, coude collé.</div>
+
+      <div class="exo-meta">
+        <span>Repos 150&nbsp;s</span>
+        <span>Rising · Cupping</span>
+      </div>
+
+      <div class="series">
+        <div class="serie-entete">
+          <span>Série</span><span>Précédent</span><span>Charge</span><span>Reps</span><span></span>
+        </div>
+
+        <div class="serie faite">
+          <button class="serie-num" data-type="echauffement" title="Échauffement">É</button>
+          <button class="serie-prec">15 × 30</button>
+          <input class="serie-saisie" value="15" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" value="30" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="true" aria-label="Série faite">
+            <svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg>
+          </button>
+        </div>
+
+        <div class="serie faite">
+          <button class="serie-num" data-type="normale">2</button>
+          <button class="serie-prec">17,5 × 20</button>
+          <input class="serie-saisie" value="17,5" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" value="20" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="true" aria-label="Série faite">
+            <svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg>
+          </button>
+        </div>
+
+        <div class="serie">
+          <button class="serie-num" data-type="normale">3</button>
+          <button class="serie-prec">25 × 14</button>
+          <input class="serie-saisie" value="25" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" placeholder="14" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série">
+            <svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg>
+          </button>
+        </div>
+
+        <div class="serie">
+          <button class="serie-num" data-type="degressive" title="Dégressive">D</button>
+          <button class="serie-prec">35 × 12</button>
+          <input class="serie-saisie" placeholder="35" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" placeholder="12" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série">
+            <svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg>
+          </button>
+        </div>
+
+        <div class="serie-actions">
+          <button class="bt bt-petit bt-fantome">+ Série</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="annot">
+    Les champs vides portent la <b>cible du programme en placeholder</b> (gris, 35 / 12) :
+    on voit la consigne sans qu'elle soit déjà une valeur saisie. Un chiffre tapé devient
+    du texte noir. La colonne PRÉCÉDENT reste ce que j'ai fait la dernière fois —
+    un appui la recopie dans les deux champs.
+  </p>
+
+  <hr>
+
+  <div class="cadre-lab">Charge non chiffrée : gripper, élastique, isométrie</div>
+  <div class="cadre">
+    <div class="exo">
+      <div class="exo-entete">
+        <div><div class="exo-titre"><h3>Gripper — ouverture excentrique</h3><span class="jeton">AW</span></div></div>
+        <button class="bt-icone" aria-label="Options de l'exercice">⋯</button>
+      </div>
+      <div class="consigne">Fermeture assistée main libre, puis <b>ouverture freinée 5&nbsp;s</b>. Arrêter net si ça tire côté médial.</div>
+      <div class="exo-meta"><span>Repos 120&nbsp;s</span><span>Cupping</span></div>
+
+      <div class="series">
+        <div class="serie-entete">
+          <span>Série</span><span>Précédent</span><span>Charge</span><span>Reps</span><span></span>
+        </div>
+        <div class="serie faite">
+          <button class="serie-num" data-type="normale">1</button>
+          <button class="serie-prec">N3 × 6</button>
+          <input class="serie-saisie" value="N3" inputmode="text" aria-label="Charge">
+          <input class="serie-saisie" value="6" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="true" aria-label="Série faite"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+        <div class="serie">
+          <button class="serie-num" data-type="normale">2</button>
+          <button class="serie-prec">N3 × 5</button>
+          <input class="serie-saisie" value="N3" inputmode="text" aria-label="Charge">
+          <input class="serie-saisie" placeholder="5" inputmode="numeric" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+        <div class="serie">
+          <button class="serie-num" data-type="echec" title="À l'échec">E</button>
+          <button class="serie-prec" data-vide>—</button>
+          <input class="serie-saisie" placeholder="N4" inputmode="text" aria-label="Charge">
+          <input class="serie-saisie" placeholder="max" inputmode="text" aria-label="Reps">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <dl class="totaux">
+      <div><dt>Séries</dt><dd class="chiffre">7</dd></div>
+      <div><dt>Volume</dt><dd class="chiffre">1 842<span style="font-size:.7em;font-weight:500"> kg</span></dd></div>
+      <div class="aw"><dt>dont AW</dt><dd class="chiffre">1 310<span style="font-size:.7em;font-weight:500"> kg</span></dd></div>
+    </dl>
+    <p class="note-exclus">3 séries hors tonnage (N3, N4) — comptées en séries, pas en kilos.</p>
+  </div>
+
+  <p class="annot">
+    <code>N3</code> est une charge valide&nbsp;: le champ est du texte libre.
+    Le tonnage l'ignore et le <b>dit</b> — « 3 séries hors tonnage » — au lieu
+    d'afficher un zéro qui ferait croire à une séance vide. <code>PRÉCÉDENT</code>
+    affiche <code>—</code> et devient inerte quand il n'y a rien à recopier.
+  </p>
+
+  <hr>
+
+  <div class="cadre-lab">Le ✓ déclenche le repos</div>
+  <div class="cadre" style="min-height:120px;position:relative;overflow:hidden">
+    <div class="chrono visible" style="position:static;transform:none;margin:28px 0 0">
+      <div class="chrono-corps" style="margin:0">
+        <div class="chrono-jauge"><i style="width:62%"></i></div>
+        <div class="chrono-rangee">
+          <div class="chrono-temps">1:33</div>
+          <div class="chrono-quoi">Curl marteau fat grip · série 3</div>
+          <button class="bt bt-petit">+30&nbsp;s</button>
+          <button class="bt bt-petit bt-fantome">Passer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="annot">
+    La seule animation non déclenchée de l'app&nbsp;: la jauge qui se vide.
+    Le reste est immobile. Le chrono se superpose au-dessus de la barre d'onglets,
+    il ne pousse rien et ne fait pas sauter la page sous le doigt.
+  </p>
+</div>
+
+</body>
+</html>

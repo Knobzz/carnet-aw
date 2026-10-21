@@ -1,0 +1,851 @@
+/* ============================================================
+   Carnet AW — feuille unique
+   Palette : ardoise / craie froide / bleu de table / laiton / tendon
+   Le laiton ne signifie qu'une chose : « fait ».
+   Le tendon ne signifie qu'une chose : « douleur / charge trop proche ».
+   Aucune des deux ne décore.
+   ============================================================ */
+
+:root {
+  --fond:        #eef1f3;
+  --fond-2:      #ffffff;
+  --fond-3:      #e3e8ec;
+  --fond-creux:  #dfe5ea;
+  --trait:       #c9d3da;
+  --trait-fort:  #a9b7c1;
+  --texte:       #16202b;
+  --texte-2:     #5d6a78;
+  --texte-3:     #8795a2;
+
+  --bleu:        #2b5d8a;
+  --bleu-vif:    #37719f;
+  --bleu-doux:   #dbe8f3;
+
+  --laiton:      #9a6c14;
+  --laiton-vif:  #b8841f;
+  --laiton-doux: #f5e9cd;
+
+  --tendon:      #a53720;
+  --tendon-doux: #f8ddd6;
+
+  --r:   10px;
+  --r-s: 6px;
+  --tap: 44px;
+  --barre: 54px;   /* hauteur reelle de la barre d'onglets */
+
+  --ombre: 0 1px 2px rgba(22, 32, 43, .07), 0 2px 10px rgba(22, 32, 43, .05);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    --fond:        #141c25;
+    --fond-2:      #1c2733;
+    --fond-3:      #24323f;
+    --fond-creux:  #111921;
+    --trait:       #32424f;
+    --trait-fort:  #49596a;
+    --texte:       #e6edf3;
+    --texte-2:     #96a4b2;
+    --texte-3:     #74828f;
+
+    --bleu:        #6fa8d8;
+    --bleu-vif:    #8bbce6;
+    --bleu-doux:   #1e3448;
+
+    --laiton:      #d9a445;
+    --laiton-vif:  #e8b85f;
+    --laiton-doux: #3a2e15;
+
+    --tendon:      #e38068;
+    --tendon-doux: #3d1f18;
+
+    --ombre: 0 1px 2px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="sombre"] {
+  --fond:        #141c25;
+  --fond-2:      #1c2733;
+  --fond-3:      #24323f;
+  --fond-creux:  #111921;
+  --trait:       #32424f;
+  --trait-fort:  #49596a;
+  --texte:       #e6edf3;
+  --texte-2:     #96a4b2;
+  --texte-3:     #74828f;
+
+  --bleu:        #6fa8d8;
+  --bleu-vif:    #8bbce6;
+  --bleu-doux:   #1e3448;
+
+  --laiton:      #d9a445;
+  --laiton-vif:  #e8b85f;
+  --laiton-doux: #3a2e15;
+
+  --tendon:      #e38068;
+  --tendon-doux: #3d1f18;
+
+  --ombre: 0 1px 2px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+
+  /* Un tirage vers le bas en haut de liste rechargeait la page au milieu
+     d'une serie. En salle, c'est le geste qu'on fait sans y penser. */
+  overscroll-behavior-y: contain;
+}
+
+/* Les champs restent a 16 px : en dessous, iOS zoome a chaque focus et
+   la page ne revient jamais a sa largeur. */
+input, textarea, select { font-size: 16px; }
+
+/* Un appui long sur un bouton ne doit pas ouvrir la selection de texte ni
+   le menu contextuel : on veut l'action, pas un surlignage. */
+button, .puce, .onglet, .serie-ok, .serie-num, .serie-prec, .item {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+/* Les chiffres sont la matière de cette app : ils sont tabulaires partout. */
+input, output, .chiffre, .tab-num { font-variant-numeric: tabular-nums; }
+
+h1, h2, h3 { margin: 0; font-weight: 650; letter-spacing: -.011em; line-height: 1.25; }
+h1 { font-size: 1.3rem; }
+h2 { font-size: 1.05rem; }
+h3 { font-size: .95rem; }
+p  { margin: 0 0 .6em; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--bleu); }
+
+:focus-visible {
+  outline: 2px solid var(--bleu);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- squelette ---------- */
+
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 12px calc(var(--barre) + 38px + env(safe-area-inset-bottom));
+}
+
+.entete {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0 -12px 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+  background: color-mix(in srgb, var(--fond) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--trait);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+}
+.entete h1 { flex: 1; min-width: 0; }
+.entete .sous { color: var(--texte-2); font-size: .8rem; font-weight: 400; display: block; }
+
+.vue { display: none; }
+.vue.active { display: block; }
+
+/* ---------- barre d'onglets ---------- */
+
+.onglets {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: color-mix(in srgb, var(--fond-2) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--trait);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.onglet {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--texte-3);
+  font: inherit;
+  font-size: .66rem;
+  min-height: var(--tap);
+  padding: 7px 2px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  position: relative;
+}
+.onglet svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.onglet[aria-selected="true"] { color: var(--bleu); }
+.onglet[aria-selected="true"]::before {
+  content: "";
+  position: absolute; top: 0; left: 50%;
+  width: 26px; height: 2px;
+  transform: translateX(-50%);
+  background: var(--bleu);
+}
+.onglet .pastille {
+  position: absolute; top: 6px; right: calc(50% - 18px);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--laiton);
+}
+
+/* ---------- blocs ---------- */
+
+.carte {
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.carte-corps { padding: 12px; }
+
+.vide {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--texte-2);
+  border: 1px dashed var(--trait-fort);
+  border-radius: var(--r);
+  background: var(--fond-2);
+}
+.vide strong { display: block; color: var(--texte); font-size: 1.02rem; margin-bottom: 5px; font-weight: 650; }
+
+.rangee { display: flex; align-items: center; gap: 8px; }
+.rangee > .pousse { margin-left: auto; }
+.pile { display: flex; flex-direction: column; gap: 8px; }
+.enrobe { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- boutons ---------- */
+
+.bt {
+  appearance: none;
+  font: inherit;
+  font-weight: 550;
+  min-height: var(--tap);
+  padding: 0 15px;
+  border-radius: var(--r-s);
+  border: 1px solid var(--trait-fort);
+  background: var(--fond-2);
+  color: var(--texte);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.bt:active { transform: translateY(1px); }
+.bt[disabled] { opacity: .45; cursor: default; transform: none; }
+
+.bt-primaire { background: var(--bleu); border-color: var(--bleu); color: #fff; }
+:root[data-theme="sombre"] .bt-primaire,
+.bt-primaire { color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="clair"]) .bt-primaire { color: #0d1620; } }
+:root[data-theme="sombre"] .bt-primaire { color: #0d1620; }
+
+.bt-large { width: 100%; }
+/* Meme les boutons secondaires tiennent la cible de 44 px : ils se touchent
+   en salle, main moite, sans regarder. */
+.bt-petit { min-height: var(--tap); padding: 0 12px; font-size: .84rem; }
+.bt-fantome { background: none; border-color: transparent; color: var(--bleu); }
+.bt-danger { color: var(--tendon); border-color: var(--tendon); background: none; }
+.bt-danger.arme { background: var(--tendon); border-color: var(--tendon); color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="clair"]) .bt-danger.arme { color: #2a100b; } }
+:root[data-theme="sombre"] .bt-danger.arme { color: #2a100b; }
+
+.bt-icone {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  color: var(--texte-2);
+  font-size: 1.05rem;
+}
+.bt-icone:hover { color: var(--texte); }
+
+/* ---------- champs ---------- */
+
+label { display: block; font-size: .78rem; color: var(--texte-2); margin-bottom: 4px; font-weight: 550; }
+
+.champ {
+  width: 100%;
+  font: inherit;
+  min-height: var(--tap);
+  padding: 9px 11px;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s);
+  background: var(--fond-2);
+  color: var(--texte);
+}
+.champ::placeholder { color: var(--texte-3); }
+textarea.champ { min-height: 72px; resize: vertical; line-height: 1.4; }
+select.champ { appearance: none; background-image: none; }
+
+.groupe { margin-bottom: 12px; }
+.grille-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* interrupteur / puces de choix */
+.puce {
+  appearance: none;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 550;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--trait-fort);
+  background: var(--fond-2);
+  color: var(--texte-2);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.puce[aria-pressed="true"] { background: var(--bleu-doux); border-color: var(--bleu); color: var(--bleu); }
+.puce.puce-aw[aria-pressed="true"] { background: var(--laiton-doux); border-color: var(--laiton); color: var(--laiton); }
+.puce.puce-douleur[aria-pressed="true"] { background: var(--tendon-doux); border-color: var(--tendon); color: var(--tendon); }
+
+.jeton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .68rem;
+  font-weight: 650;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--laiton);
+  color: var(--laiton);
+  background: var(--laiton-doux);
+  white-space: nowrap;
+}
+.jeton-neutre { border-color: var(--trait-fort); color: var(--texte-2); background: var(--fond-3); }
+.jeton-douleur { border-color: var(--tendon); color: var(--tendon); background: var(--tendon-doux); }
+.jeton-bleu { border-color: var(--bleu); color: var(--bleu); background: var(--bleu-doux); }
+
+/* ============================================================
+   L'EXERCICE ET SES SÉRIES — le cœur
+   ============================================================ */
+
+.exo { background: var(--fond-2); border: 1px solid var(--trait); border-radius: var(--r); margin-bottom: 10px; }
+
+.exo-entete {
+  display: grid;
+  grid-template-columns: 1fr var(--tap);
+  align-items: start;
+  gap: 2px;
+  padding: 10px 4px 8px 12px;
+}
+.exo-titre { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.exo-titre h3 { font-size: 1rem; }
+
+/* La consigne est une instruction d'exécution, pas un commentaire :
+   fond laiton pâle, bord gauche épais, jamais en italique grisée. */
+.consigne {
+  margin: 0 12px 9px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--bleu);
+  border-radius: 0 var(--r-s) var(--r-s) 0;
+  background: var(--bleu-doux);
+  color: var(--texte);
+  font-size: .88rem;
+  line-height: 1.38;
+  white-space: pre-wrap;
+}
+
+.exo-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 12px 8px;
+  color: var(--texte-2);
+  font-size: .76rem;
+}
+
+/* --- la grille de séries --- */
+
+.series { padding: 0 6px 6px; }
+
+.serie-entete,
+.serie {
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+  align-items: center;
+  gap: 5px;
+}
+
+.serie-entete {
+  padding: 4px 6px 5px;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .055em;
+  color: var(--texte-3);
+  text-transform: uppercase;
+}
+.serie-entete span { text-align: center; }
+.serie-entete span:first-child { text-align: left; padding-left: 2px; }
+
+.serie {
+  position: relative;
+  padding: 3px 6px 3px 6px;
+  border-radius: var(--r-s);
+}
+/* Le bord gauche encode l'état : rien = à faire, laiton = fait. */
+.serie::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+.serie.faite { background: var(--laiton-doux); }
+.serie.faite::before { background: var(--laiton); }
+
+/* 1. numéro / type — appui pour changer le type */
+.serie-num {
+  appearance: none;
+  font: inherit;
+  font-weight: 700;
+  font-size: .92rem;
+  min-height: var(--tap);
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--texte-2);
+  cursor: pointer;
+  border-radius: var(--r-s);
+  touch-action: manipulation;
+}
+.serie-num[data-type="echauffement"] { color: var(--bleu); }
+.serie-num[data-type="degressive"]   { color: var(--laiton); }
+.serie-num[data-type="echec"]        { color: var(--tendon); }
+
+/* 2. précédent — appui pour recopier */
+.serie-prec {
+  appearance: none;
+  font: inherit;
+  font-size: .84rem;
+  font-variant-numeric: tabular-nums;
+  min-height: var(--tap);
+  width: 100%;
+  border: 0;
+  border-radius: var(--r-s);
+  background: none;
+  color: var(--texte-3);
+  cursor: pointer;
+  text-align: center;
+  padding: 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.serie-prec:not([data-vide])    { color: var(--texte-2); }
+.serie-prec:not([data-vide]):active { background: var(--bleu-doux); color: var(--bleu); }
+.serie-prec[data-vide] { cursor: default; }
+
+/* 3–4. charge et reps */
+.serie-saisie {
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  min-height: var(--tap);
+  padding: 0 4px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r-s);
+  background: var(--fond-3);
+  color: var(--texte);
+}
+.serie-saisie::placeholder { color: var(--texte-3); font-weight: 400; }
+.serie-saisie:focus { background: var(--fond-2); border-color: var(--bleu); }
+.serie.faite .serie-saisie { background: transparent; border-color: transparent; }
+.serie.faite .serie-saisie:focus { background: var(--fond-2); border-color: var(--bleu); }
+
+/* 5. le ✓ */
+.serie-ok {
+  appearance: none;
+  width: var(--tap);
+  height: var(--tap);
+  min-width: var(--tap);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s);
+  background: var(--fond-3);
+  color: var(--texte-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.serie-ok svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.serie.faite .serie-ok { background: var(--laiton); border-color: var(--laiton); color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="clair"]) .serie.faite .serie-ok { color: #241a06; } }
+:root[data-theme="sombre"] .serie.faite .serie-ok { color: #241a06; }
+
+.serie-actions {
+  display: flex;
+  gap: 4px;
+  padding: 2px 6px 0;
+  justify-content: flex-end;
+}
+
+/* choix du type de série, en surcouche */
+.popo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(10, 16, 22, .45);
+  display: grid;
+  place-items: end center;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+.popo-feuille {
+  width: 100%;
+  max-width: 420px;
+  max-height: 86vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  padding: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
+}
+.popo-feuille h3 { padding: 4px 6px 8px; }
+.popo-feuille .bt-large { justify-content: flex-start; margin-bottom: 6px; }
+.popo-feuille .bt-large:last-child { margin-bottom: 0; }
+.popo-lettre {
+  display: inline-grid;
+  place-items: center;
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  background: var(--fond-3);
+  font-weight: 700;
+  font-size: .85rem;
+}
+
+/* ---------- totaux de séance ---------- */
+
+.totaux {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--trait);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.totaux div { background: var(--fond-2); padding: 9px 8px; text-align: center; }
+.totaux dt { font-size: .66rem; letter-spacing: .04em; color: var(--texte-3); text-transform: uppercase; margin: 0 0 2px; }
+.totaux dd { margin: 0; font-size: 1.12rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.totaux .aw dd { color: var(--laiton); }
+.note-exclus { font-size: .74rem; color: var(--texte-2); margin: -6px 0 10px; padding: 0 2px; }
+.note-exclus:empty { display: none; margin: 0; }
+
+/* ---------- chronomètre de repos ---------- */
+
+.chrono {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(var(--barre) + 10px + env(safe-area-inset-bottom));
+  z-index: 40;
+  transform: translateY(140%);
+  transition: transform .26s cubic-bezier(.2, .9, .3, 1);
+}
+.chrono.visible { transform: translateY(0); }
+
+/* Tant que le repos tourne, la page rend la hauteur du bandeau : sinon il
+   masque la derniere carte de l'ecran, et on ne peut plus l'atteindre. */
+body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-area-inset-bottom)); }
+@media (prefers-reduced-motion: reduce) { .chrono { transition: none; } }
+
+.chrono-corps {
+  max-width: 536px;
+  margin: 0 12px;
+  background: var(--fond-2);
+  border: 1px solid var(--laiton);
+  border-radius: var(--r);
+  box-shadow: 0 6px 26px rgba(0, 0, 0, .22);
+  overflow: hidden;
+}
+@media (min-width: 560px) { .chrono-corps { margin: 0 auto; } }
+
+.chrono-jauge { height: 3px; background: var(--laiton-doux); }
+.chrono-jauge i { display: block; height: 100%; background: var(--laiton); width: 100%; }
+.chrono-rangee { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 13px; }
+.chrono-temps { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; min-width: 3.6em; }
+.chrono-quoi { flex: 1; min-width: 0; font-size: .76rem; color: var(--texte-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- listes (programmes, journal) ---------- */
+
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  color: inherit;
+  cursor: pointer;
+}
+.item-titre { display: flex; align-items: baseline; gap: 8px; }
+.item-titre h3 { flex: 1; min-width: 0; }
+.item-date { font-size: .76rem; color: var(--texte-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.item-resume { font-size: .82rem; color: var(--texte-2); margin-top: 3px; }
+.item-lignes { margin-top: 7px; font-size: .84rem; }
+.item-ligne { display: flex; gap: 8px; padding: 1.5px 0; }
+.item-ligne b { font-weight: 550; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-ligne span { color: var(--texte-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.item.archive { opacity: .62; border-style: dashed; }
+
+.filtres { display: flex; gap: 6px; margin-bottom: 10px; }
+.filtres .puce { flex: 1; }
+
+/* ---------- autocomplétion ---------- */
+
+.auto { position: relative; }
+.auto-liste {
+  position: absolute;
+  left: 0; right: 0; top: calc(100% + 3px);
+  z-index: 50;
+  background: var(--fond-2);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  max-height: 46vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.auto-liste:empty, .auto-liste[hidden] { display: none; }
+.auto-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  min-height: var(--tap);
+  padding: 6px 11px;
+  border: 0;
+  border-bottom: 1px solid var(--trait);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.auto-opt:last-child { border-bottom: 0; }
+.auto-opt[aria-selected="true"], .auto-opt:hover { background: var(--bleu-doux); }
+.auto-opt b { flex: 1; font-weight: 500; }
+
+/* ---------- suivi ---------- */
+
+.barres { display: flex; flex-direction: column; gap: 7px; }
+.barre { display: grid; grid-template-columns: 4.2rem 1fr auto; align-items: center; gap: 8px; font-size: .8rem; }
+.barre-piste { height: 16px; background: var(--fond-3); border-radius: 3px; overflow: hidden; display: flex; }
+.barre-piste i { display: block; height: 100%; }
+.barre-piste .aw { background: var(--laiton); }
+.barre-piste .gen { background: var(--bleu); }
+.barre-val { font-variant-numeric: tabular-nums; color: var(--texte-2); min-width: 4.2em; text-align: right; }
+
+.legende { display: flex; gap: 12px; font-size: .74rem; color: var(--texte-2); margin-top: 9px; }
+.legende span { display: flex; align-items: center; gap: 5px; }
+.legende i { width: 11px; height: 11px; border-radius: 2px; display: block; }
+
+/* le délai depuis la dernière sollicitation encode le risque tendineux */
+.delai { font-variant-numeric: tabular-nums; font-weight: 650; font-size: .8rem; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.delai[data-zone="chaud"] { background: var(--tendon-doux); color: var(--tendon); }
+.delai[data-zone="tiede"] { background: var(--laiton-doux); color: var(--laiton); }
+.delai[data-zone="froid"] { background: var(--fond-3); color: var(--texte-2); }
+
+.episode { border-left: 3px solid var(--tendon); padding-left: 10px; margin-bottom: 12px; }
+.episode-tete { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.fenetre72 { margin-top: 6px; font-size: .83rem; color: var(--texte-2); }
+.fenetre72 li { margin-bottom: 3px; }
+.fenetre72 ul { margin: 2px 0 0; padding-left: 18px; }
+
+/* ---------- bandeau d'alerte persistance ---------- */
+
+.alerte {
+  background: var(--tendon-doux);
+  border: 1px solid var(--tendon);
+  color: var(--tendon);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  font-size: .85rem;
+  margin-bottom: 10px;
+}
+.alerte strong { display: block; }
+
+/* ---------- toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: calc(var(--barre) + 76px + env(safe-area-inset-bottom));
+  z-index: 70;
+  max-width: 400px;
+  margin: 0 auto;
+  background: var(--texte);
+  color: var(--fond);
+  padding: 10px 14px;
+  border-radius: var(--r-s);
+  font-size: .88rem;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .18s, transform .18s;
+  pointer-events: none;
+}
+.toast.visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+
+/* ---------- maquette autonome ---------- */
+
+.maquette-fond { padding: 18px 12px 40px; }
+.maquette-fond .annot { font-size: .8rem; color: var(--texte-2); margin: 0 2px 14px; max-width: 46em; }
+.maquette-fond hr { border: 0; border-top: 1px solid var(--trait); margin: 26px 0; }
+
+/* ---------- panneau plein écran (édition) ---------- */
+
+.panneau {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--fond);
+  display: flex;
+  flex-direction: column;
+}
+.panneau-entete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top)) 8px 8px;
+  border-bottom: 1px solid var(--trait);
+  background: var(--fond-2);
+}
+.panneau-entete h2 { flex: 1; min-width: 0; font-size: 1.02rem; }
+.panneau-corps {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 12px;
+}
+.panneau-corps > .interieur { max-width: 536px; margin: 0 auto; }
+.panneau-pied {
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--trait);
+  background: var(--fond-2);
+}
+.panneau-pied .bt { flex: 1; }
+
+/* séries planifiées, dans l'éditeur de programme */
+.plan-entete,
+.plan-ligne {
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+  align-items: center;
+  gap: 5px;
+}
+.plan-entete {
+  padding: 2px 4px 5px;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  color: var(--texte-3);
+}
+.plan-entete span { text-align: center; }
+.plan-entete span:first-child { text-align: left; padding-left: 2px; }
+.plan-ligne { padding: 2px 4px; }
+
+.sous-titre {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--texte-3);
+  margin: 16px 2px 7px;
+}
+.sous-titre:first-child { margin-top: 0; }
+
+/* ---------- champ multi-valeurs (outils) ---------- */
+
+.multi {
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s);
+  background: var(--fond-2);
+  padding: 7px;
+}
+.multi:focus-within { border-color: var(--bleu); }
+.multi-jetons { display: flex; flex-wrap: wrap; gap: 6px; }
+.multi-jetons:empty { display: none; }
+.multi-jeton {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 0 2px 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--bleu);
+  background: var(--bleu-doux);
+  color: var(--bleu);
+  font-size: .86rem;
+  font-weight: 550;
+}
+.multi-jeton button {
+  appearance: none;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+.multi-jeton button:hover { background: color-mix(in srgb, var(--bleu) 18%, transparent); }
+.multi .auto { margin-top: 6px; }
+.multi .auto:first-child { margin-top: 0; }
+.multi .champ { border: 0; background: none; padding-left: 6px; min-height: var(--tap); }
+.multi .champ:focus { outline: none; }
+
+/* l'outil se lit dans l'en-tête d'exercice, pas seulement dans sa fiche */
+.jeton-outil { border-color: var(--trait-fort); color: var(--texte-2); background: var(--fond-3); font-weight: 550; }

@@ -1,0 +1,15 @@
+# Les fins de ligne sont normalisées en LF DANS le dépôt, quelle que soit la
+# machine et quel que soit core.autocrlf. GitHub Pages sert ce que le dépôt
+# contient : il ne doit pas dépendre d'un réglage local.
+#
+# (Rien à voir avec la règle CRLF des pages HARI, qui vaut pour les fichiers
+#  embarqués dans un .deb — ce projet-ci n'est pas concerné.)
+
+* text=auto eol=lf
+
+# Binaires : jamais touchés.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff  binary
+*.woff2 binary
