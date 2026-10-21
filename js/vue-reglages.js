@@ -43,7 +43,16 @@
       try {
         brut = JSON.parse(String(fr.result));
       } catch (err) {
-        A.ui.toast('Ce fichier n’est pas un JSON valide.');
+        /* Ne pas confondre « le fichier est mauvais » avec « le code est
+           mauvais ». Un SyntaxError vient du fichier ; tout le reste est un
+           defaut de l'app, et le dire evite de chercher des heures du cote
+           du fichier. */
+        if (err instanceof SyntaxError) {
+          A.ui.toast('Ce fichier n’est pas un JSON valide.');
+        } else {
+          A.ui.toast('Erreur interne à la lecture (' + (err && err.name) + '). Le fichier n’est pas en cause.');
+          throw err;
+        }
         return;
       }
       if (!brut || typeof brut !== 'object' || !Array.isArray(brut.seances) || !Array.isArray(brut.programmes)) {
@@ -52,19 +61,55 @@
       }
       var e = etat();
       var resume = brut.programmes.length + ' programme(s), ' + brut.seances.length + ' séance(s)';
-      var perdu = e.programmes.length + ' programme(s) et ' + e.seances.length + ' séance(s)';
-      A.ui.feuille('Remplacer tout le carnet ?', [
-        { nom: 'Oui — importer ' + resume, classe: 'bt-danger arme', action: function () {
-            if (A.store.remplacer(brut)) {
-              A.ui.toast('Sauvegarde importée.');
-              A.app.appliquerTheme();
-              apres && apres();
-            } else {
-              A.ui.toast('L’import a échoué à l’écriture. Rien n’a été remplacé en mémoire.');
-            }
+      /* Surtout pas « fr » ici : ce nom est deja celui du FileReader, et le var
+         hoiste le rendait indefini au debut de ce gestionnaire. */
+      var fraicheur = A.store.compareFraicheur(brut);
+
+      /* Remplacer est previsible mais destructeur. Fusionner garde les deux
+         cotes. Les deux restent offerts — mais la fusion vient en premier, et
+         le remplacement dit CE QU'IL EFFACE, chiffre, avant d'etre choisi. */
+      var options = [
+        { nom: 'Fusionner — garder les deux', classe: 'bt-primaire', action: function () {
+            var b = A.store.fusionner(brut);
+            if (!b.ecrit) { A.ui.toast('La fusion a échoué à l’écriture.'); return; }
+            A.app.appliquerTheme();
+            apres && apres();
+            A.ui.toast(b.seancesAjoutees + ' séance(s) et ' + b.programmesAjoutes
+                     + ' programme(s) ajoutés · ' + b.seancesGardees + ' déjà présentes, inchangées.');
           } },
-        { nom: 'Non — garder ' + perdu, action: function () {} }
-      ]);
+        { nom: 'Remplacer — effacer ' + e.seances.length + ' séance(s) d’ici',
+          classe: 'bt-danger', action: function () {
+            A.ui.feuille(fraicheur.courantPlusRecent
+              ? 'Ce carnet a du plus récent que la sauvegarde'
+              : 'Effacer tout et remettre la sauvegarde ?', [
+              { nom: 'Oui, remplacer par ' + resume, classe: 'bt-danger arme', action: function () {
+                  if (A.store.remplacer(brut)) {
+                    A.ui.toast('Sauvegarde importée. Le carnet précédent est effacé.');
+                    A.app.appliquerTheme();
+                    apres && apres();
+                  } else {
+                    A.ui.toast('L’import a échoué à l’écriture. Rien n’a été remplacé en mémoire.');
+                  }
+                } },
+              { nom: 'Annuler', action: function () {} }
+            ]);
+          } },
+        { nom: 'Ne rien faire', action: function () {} }
+      ];
+
+      var titre = 'Sauvegarde : ' + resume;
+      if (fraicheur.courantPlusRecent) {
+        titre = 'Attention — ce carnet est plus récent';
+        options.unshift(null);
+      }
+      A.ui.feuille(titre, options);
+      if (fraicheur.courantPlusRecent) {
+        var f = document.querySelector('.popo-feuille');
+        if (f) f.insertBefore(h('div', { class: 'alerte',
+          text: 'Ici : séances jusqu’au ' + A.m.dateCourte(fraicheur.courant)
+              + '. Dans la sauvegarde : jusqu’au ' + (fraicheur.importe ? A.m.dateCourte(fraicheur.importe) : 'aucune')
+              + '. Remplacer perdrait ce qui est plus récent.' }), f.children[1]);
+      }
     };
     fr.readAsText(fichier);
   }
@@ -208,14 +253,56 @@
       A.ui.garderEcranAllume(e.reglages.ecranAllume && !!e.seanceEnCoursId);
     });
     hote.appendChild(btEcran);
-    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 0',
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 12px',
       text: 'Pendant une séance seulement, et relâché dès que tu quittes l’app. Évite d’avoir à réveiller le téléphone entre deux séries — au prix d’un peu de batterie.'
           + ('wakeLock' in navigator ? '' : ' Ce navigateur ne le permet pas : le réglage reste sans effet.') }));
+
+    /* Notification de fin de repos. A l'arret par defaut : elle demande une
+       permission, et elle ne sert que si l'ecran est eteint ou l'app derriere.
+       Avec l'ecran maintenu allume, la vibration suffit. */
+    var dispo = A.ui.notificationsPossibles();
+    var btNotif = h('button', { type: 'button', class: 'puce', text: 'Notifier la fin du repos',
+                                'aria-pressed': e.reglages.notifierRepos ? 'true' : 'false' });
+    var etatNotif = h('div', { class: 'item-resume', style: 'margin:8px 2px 0' });
+
+    function direEtatNotif() {
+      if (!dispo) { etatNotif.textContent = 'Ce navigateur ne gère pas les notifications : le réglage reste sans effet.'; return; }
+      var p = Notification.permission;
+      etatNotif.textContent =
+        (p === 'granted' ? 'Permission accordée. ' :
+         p === 'denied'  ? 'Permission refusée par le navigateur — à rouvrir dans ses réglages de site. ' :
+                           'La permission sera demandée à l’activation. ')
+        + 'N’est envoyée que si l’app est en arrière-plan : te notifier pendant que tu regardes l’écran serait du bruit.';
+    }
+    direEtatNotif();
+
+    btNotif.addEventListener('click', function () {
+      var veut = !e.reglages.notifierRepos;
+      if (!veut) {
+        e.reglages.notifierRepos = false;
+        btNotif.setAttribute('aria-pressed', 'false');
+        A.store.sauver(true);
+        direEtatNotif();
+        return;
+      }
+      A.ui.demanderNotifications().then(function (p) {
+        e.reglages.notifierRepos = (p === 'granted');
+        btNotif.setAttribute('aria-pressed', e.reglages.notifierRepos ? 'true' : 'false');
+        A.store.sauver(true);
+        direEtatNotif();
+        if (p !== 'granted') A.ui.toast('Notification non autorisée : le réglage reste à l’arrêt.');
+      });
+    });
+
+    hote.appendChild(btNotif);
+    hote.appendChild(etatNotif);
 
     /* --- sauvegarde --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde' }));
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Tout vit sur ce téléphone, dans le stockage du navigateur. Rien ne part sur un serveur. Un export régulier est le seul filet si tu changes d’appareil ou si tu effaces les données du site.' }));
+      text: 'Tout vit sur ce téléphone, dans le stockage du navigateur. Rien ne part sur un serveur. '
+          + 'Un export régulier est le seul filet si tu changes d’appareil ou si tu effaces les données du site. '
+          + 'À l’import, tu choisis : fusionner (rien n’est perdu) ou remplacer.' }));
 
     var btExp = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px', text: 'Exporter une sauvegarde (.json)' });
     btExp.addEventListener('click', exporter);

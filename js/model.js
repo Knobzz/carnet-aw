@@ -25,6 +25,20 @@
     { id: 'pronation',  nom: 'Pronation' }
   ];
 
+  /* Structures anatomiques qu'un exercice charge. Les cinq premieres sont
+     EXACTEMENT les zones de douleur : c'est ce qui permet a Suivi de croiser
+     « quand ai-je charge lourd le medial » avec « quand le medial a fait mal ».
+     Les deux dernieres n'ont pas de douleur correspondante, et c'est assume. */
+  var STRUCTURES = [
+    { id: 'poignet',       nom: 'Poignet' },
+    { id: 'coude_medial',  nom: 'Coude médial' },
+    { id: 'coude_lateral', nom: 'Coude latéral' },
+    { id: 'avant_bras',    nom: 'Avant-bras' },
+    { id: 'epaule',        nom: 'Épaule' },
+    { id: 'main_doigts',   nom: 'Main et doigts' },
+    { id: 'biceps',        nom: 'Biceps' }
+  ];
+
   var ZONES = [
     { id: 'coude_medial',  nom: 'Coude médial' },
     { id: 'coude_lateral', nom: 'Coude latéral' },
@@ -83,6 +97,51 @@
     for (var i = 0; i < ZONES.length; i++) if (ZONES[i].id === id) return ZONES[i].nom;
     return id;
   }
+  function nomStructure(id) {
+    for (var i = 0; i < STRUCTURES.length; i++) if (STRUCTURES[i].id === id) return STRUCTURES[i].nom;
+    return id;
+  }
+
+  /* ---------- douleurs : zone ET intensite ----------
+     Une tendinopathie ne se suit pas en oui/non : ce qui compte est si elle
+     monte ou descend. On stocke donc { zone, intensite 0-10 | null }.
+
+     Les carnets d'avant stockaient une simple chaine. normaliserDouleurs()
+     accepte les deux formes : une sauvegarde ancienne se relit sans perte,
+     avec une intensite inconnue (null) plutot qu'inventee. */
+
+  function normaliserDouleurs(liste) {
+    if (!Array.isArray(liste)) return [];
+    var sortie = [];
+    liste.forEach(function (d) {
+      if (typeof d === 'string') { sortie.push({ zone: d, intensite: null }); return; }
+      if (d && typeof d === 'object' && typeof d.zone === 'string') {
+        var i = d.intensite;
+        i = (typeof i === 'number' && isFinite(i)) ? Math.min(10, Math.max(0, Math.round(i))) : null;
+        sortie.push({ zone: d.zone, intensite: i });
+      }
+    });
+    return sortie;
+  }
+
+  function zonesDe(douleurs) {
+    return normaliserDouleurs(douleurs).map(function (d) { return d.zone; });
+  }
+
+  /* Les zones reellement douloureuses : « aucune » est une reponse, pas une zone. */
+  function zonesVives(douleurs) {
+    return normaliserDouleurs(douleurs).filter(function (d) { return d.zone !== 'aucune'; });
+  }
+
+  function intensiteDe(douleurs, zone) {
+    var l = normaliserDouleurs(douleurs);
+    for (var i = 0; i < l.length; i++) if (l[i].zone === zone) return l[i].intensite;
+    return null;
+  }
+
+  function texteDouleur(d) {
+    return nomZone(d.zone) + (d.intensite == null ? '' : ' ' + d.intensite + '/10');
+  }
   function nomForce(id) {
     for (var i = 0; i < FORCES.length; i++) if (FORCES[i].id === id) return FORCES[i].nom;
     return id;
@@ -131,6 +190,7 @@
     if (!e) {
       e = { id: uid('ex'), nom: exo.nom, slug: s, aw: !!exo.aw,
             typeCharge: exo.typeCharge || 'kg', forces: (exo.forces || []).slice(),
+            structures: (exo.structures || []).slice(),
             outils: (exo.outils || []).slice(), vuLe: aujourdHui() };
       etat.exercices.push(e);
     } else {
@@ -138,6 +198,7 @@
       e.aw = !!exo.aw;
       if (exo.typeCharge) e.typeCharge = exo.typeCharge;
       if (exo.forces) e.forces = exo.forces.slice();
+      if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
       e.vuLe = aujourdHui();
     }
@@ -248,6 +309,7 @@
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
       forces: (modele.forces || []).slice(),
+      structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
       consigne: modele.consigne || '',
       reposSecondes: modele.reposSecondes == null ? 120 : modele.reposSecondes,
@@ -278,6 +340,7 @@
       nom: ep.nom, slug: ep.slug || slug(ep.nom),
       aw: !!ep.aw, typeCharge: ep.typeCharge || 'kg',
       forces: (ep.forces || []).slice(),
+      structures: (ep.structures || []).slice(),
       outils: (ep.outils || []).slice(),
       consigne: ep.consigne || '',
       reposSecondes: ep.reposSecondes == null ? 120 : ep.reposSecondes,
@@ -299,6 +362,7 @@
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
       forces: (modele.forces || []).slice(),
+      structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
       consigne: modele.consigne || '',
       reposSecondes: modele.reposSecondes == null ? 120 : modele.reposSecondes,
@@ -331,7 +395,8 @@
     p.exercices = renumeroter((seance.exercices || []).map(function (es) {
       return exerciceProgramme({
         nom: es.nom, aw: es.aw, typeCharge: es.typeCharge, forces: es.forces,
-        outils: es.outils, consigne: es.consigne, reposSecondes: es.reposSecondes,
+        structures: es.structures, outils: es.outils,
+        consigne: es.consigne, reposSecondes: es.reposSecondes,
         series: (es.series || []).map(function (ss) {
           return { type: ss.type,
                    repsCible: (ss.repsReel || '').trim() || ss.repsCible || '',
@@ -359,6 +424,25 @@
 
      Une série non chiffrée (N3, élastique, poids du corps) n'est pas du zéro :
      elle est comptée à part et l'écran le dit. */
+  /* Duree reelle d'une seance, deduite des horodatages de validation.
+     C'est l'emploi de faiteA, qui etait ecrit sans jamais etre lu.
+     Rend null tant qu'il n'y a pas DEUX series validees : une seule ne borne
+     aucun intervalle, et un zero serait un mensonge. */
+  function dureeReelle(seance) {
+    var t = [];
+    (seance.exercices || []).forEach(function (ex) {
+      (ex.series || []).forEach(function (s) {
+        if (s.faite && s.faiteA) {
+          var d = Date.parse(s.faiteA);
+          if (isFinite(d)) t.push(d);
+        }
+      });
+    });
+    if (t.length < 2) return null;
+    t.sort(function (a, b) { return a - b; });
+    return Math.max(1, Math.round((t[t.length - 1] - t[0]) / 60000));
+  }
+
   function volumeSeance(seance) {
     var r = { series: 0, seriesFaites: 0, tonnage: 0, tonnageAw: 0, tonnageGeneral: 0,
               seriesNonChiffrees: 0, seriesIncompletes: 0, seriesAw: 0, repsTotal: 0 };
@@ -418,11 +502,36 @@
       });
   }
 
+  /* Rang d'une serie PARMI CELLES DE SON TYPE : la 2e serie de travail reste la
+     2e serie de travail, qu'il y ait eu zero ou trois echauffements avant elle.
+
+     C'est la correction d'un defaut mesure : l'indexation par rang brut faisait
+     glisser TOUTE la colonne d'un cran des qu'un echauffement etait ajoute, et
+     affichait des valeurs fausses mais plausibles — donc suivies. */
+  function rangParType(series, index) {
+    var s = series[index];
+    if (!s) return -1;
+    var n = 0;
+    for (var i = 0; i < index; i++) if (series[i].type === s.type) n += 1;
+    return n;
+  }
+
+  function serieAuRangParType(series, type, rang) {
+    var n = 0;
+    for (var i = 0; i < series.length; i++) {
+      if (series[i].type !== type) continue;
+      if (n === rang) return series[i];
+      n += 1;
+    }
+    return null;
+  }
+
   /* Ce que j'ai fait sur CETTE série de CET exercice la dernière fois, quel que soit
      le programme. On prend la séance la plus récente (hors celle-ci) qui contient
-     l'exercice ; on y lit la série de même rang. Pas de remontée plus loin :
-     la colonne doit être prévisible, pas « la meilleure valeur trouvée ». */
-  function dernierePerf(etat, exoSlug, rang, exclureSeanceId) {
+     l'exercice ; on y lit la série de même TYPE et de même rang dans son type.
+     Pas de remontée plus loin : la colonne doit être prévisible, pas « la
+     meilleure valeur trouvée ». */
+  function dernierePerf(etat, exoSlug, type, rangDansType, exclureSeanceId) {
     if (!exoSlug) return null;
     var liste = seancesMuscuTriees(etat);
     for (var i = 0; i < liste.length; i++) {
@@ -431,11 +540,11 @@
       for (var j = 0; j < se.exercices.length; j++) {
         var ex = se.exercices[j];
         if (ex.slug !== exoSlug) continue;
-        var s = ex.series[rang];
+        var s = serieAuRangParType(ex.series || [], type, rangDansType);
         if (!s) return null;
         var c = (s.chargeReel || '').trim(), r = (s.repsReel || '').trim();
         if (!c && !r) return null;
-        return { charge: c, reps: r, date: se.date, typeCharge: ex.typeCharge };
+        return { charge: c, reps: r, date: se.date, typeCharge: ex.typeCharge, rpe: s.rpe };
       }
     }
     return null;
@@ -477,6 +586,52 @@
     }).sort(function (a, b) { return a.jours - b.jours; });
   }
 
+  /* Derniere fois que chaque STRUCTURE a ete chargee, et combien de series.
+     Repond a la question que la liste par exercice ne sait pas traiter :
+     « quand ai-je charge lourd le medial », toutes origines confondues. */
+  function derniereSollicitationStructure(etat) {
+    var par = {};
+    seancesMuscuTriees(etat).forEach(function (se) {
+      (se.exercices || []).forEach(function (ex) {
+        var faites = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!faites) return;
+        (ex.structures || []).forEach(function (st) {
+          if (!par[st]) par[st] = { structure: st, date: se.date, series: 0, exercices: [] };
+          if (se.date > par[st].date) { par[st].date = se.date; }
+          if (se.date === par[st].date) {
+            par[st].series += faites;
+            if (par[st].exercices.indexOf(ex.nom) < 0) par[st].exercices.push(ex.nom);
+          }
+        });
+      });
+    });
+    return STRUCTURES.map(function (s) {
+      var e = par[s.id];
+      return { structure: s.id, nom: s.nom,
+               date: e ? e.date : null,
+               jours: e ? joursDepuis(e.date) : null,
+               series: e ? e.series : 0,
+               exercices: e ? e.exercices : [] };
+    });
+  }
+
+  /* Series validees par structure sur une fenetre, pour voir la repartition. */
+  function chargeParStructure(etat, depuisJours) {
+    var c = {}, total = 0;
+    STRUCTURES.forEach(function (s) { c[s.id] = 0; });
+    seancesMuscuTriees(etat).forEach(function (se) {
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!n) return;
+        (ex.structures || []).forEach(function (st) {
+          if (c[st] != null) { c[st] += n; total += n; }
+        });
+      });
+    });
+    return { parStructure: c, total: total };
+  }
+
   function zoneDelai(jours) {
     if (jours < 2) return 'chaud';   // < 48 h
     if (jours < 3) return 'tiede';   // 48–72 h
@@ -496,8 +651,91 @@
 
   function episodesDouleur(etat) {
     return toutesSeancesTriees(etat).filter(function (s) {
-      return (s.douleurs || []).some(function (z) { return z !== 'aucune'; });
+      return zonesVives(s.douleurs).length > 0;
     });
+  }
+
+  /* Evolution d'une zone dans le temps : c'est la pente qui renseigne, pas un
+     releve isole. Rendu du plus ancien au plus recent pour se lire comme une
+     courbe. Une intensite inconnue (carnet d'avant) est gardee a null et
+     signalee, jamais remplacee par un chiffre invente. */
+  function suiviZone(etat, zone, nbMax) {
+    var l = [];
+    toutesSeancesTriees(etat).forEach(function (se) {
+      var d = zonesVives(se.douleurs).filter(function (x) { return x.zone === zone; })[0];
+      if (!d) return;
+      l.push({ date: se.date, intensite: d.intensite, type: se.type,
+               quoi: se.type === 'sparring' ? 'sparring' : (se.programmeNom || 'séance libre') });
+    });
+    l.reverse();
+    return nbMax ? l.slice(-nbMax) : l;
+  }
+
+  /* Toutes les zones ayant fait mal au moins une fois, la plus recente d'abord. */
+  function zonesRencontrees(etat) {
+    var vues = {}, ordre = [];
+    toutesSeancesTriees(etat).forEach(function (se) {
+      zonesVives(se.douleurs).forEach(function (d) {
+        if (!vues[d.zone]) { vues[d.zone] = 1; ordre.push(d.zone); }
+      });
+    });
+    return ordre;
+  }
+
+  /* Tout ce qu'un exercice a donne, seance par seance, du plus recent au plus
+     ancien. PRECEDENT ne montre que la fois d'avant ; ceci montre la pente. */
+  function historiqueExercice(etat, exoSlug) {
+    var sorties = [];
+    seancesMuscuTriees(etat).forEach(function (se) {
+      (se.exercices || []).forEach(function (ex) {
+        if (ex.slug !== exoSlug) return;
+        var faites = (ex.series || []).filter(function (s) { return s.faite; });
+        if (!faites.length) return;
+        var tc = typeCharge(ex.typeCharge);
+        var tonnage = 0, chiffrees = 0, meilleure = null, repsTotal = 0;
+        faites.forEach(function (s) {
+          var ch = nombre(s.chargeReel), rp = nombre(s.repsReel);
+          if (rp != null) repsTotal += rp;
+          if (tc.tonnage && ch != null && rp != null) {
+            tonnage += ch * rp;
+            chiffrees += 1;
+            if (!meilleure || ch > meilleure.charge || (ch === meilleure.charge && rp > meilleure.reps)) {
+              meilleure = { charge: ch, reps: rp };
+            }
+          }
+        });
+        sorties.push({
+          seanceId: se.id, date: se.date,
+          programme: se.programmeNom || 'séance libre',
+          series: faites.length, repsTotal: repsTotal,
+          tonnage: chiffrees ? tonnage : null,
+          meilleure: meilleure,
+          typeCharge: ex.typeCharge,
+          detail: faites.map(function (s) {
+            return { type: s.type, charge: s.chargeReel, reps: s.repsReel, rpe: s.rpe };
+          })
+        });
+      });
+    });
+    return sorties;
+  }
+
+  /* Exercices connus par l'historique, le plus recemment pratique d'abord. */
+  function exercicesPratiques(etat) {
+    var par = {}, ordre = [];
+    seancesMuscuTriees(etat).forEach(function (se) {
+      (se.exercices || []).forEach(function (ex) {
+        if (!ex.slug) return;
+        if (!(ex.series || []).some(function (s) { return s.faite; })) return;
+        if (!par[ex.slug]) {
+          par[ex.slug] = { slug: ex.slug, nom: ex.nom, aw: ex.aw, typeCharge: ex.typeCharge,
+                           derniere: se.date, seances: 0 };
+          ordre.push(ex.slug);
+        }
+        par[ex.slug].seances += 1;
+      });
+    });
+    return ordre.map(function (s) { return par[s]; });
   }
 
   function semaineDe(iso) {
@@ -541,9 +779,18 @@
 
   A.m = {
     TYPES_SERIE: TYPES_SERIE, ORDRE_TYPES: ORDRE_TYPES, TYPES_CHARGE: TYPES_CHARGE,
-    FORCES: FORCES, ZONES: ZONES, STYLES: STYLES,
+    FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
     uid: uid, slug: slug, nombre: nombre, fmt: fmt,
     typeCharge: typeCharge, nomZone: nomZone, nomForce: nomForce, nomStyle: nomStyle,
+    nomStructure: nomStructure,
+    normaliserDouleurs: normaliserDouleurs, zonesDe: zonesDe, zonesVives: zonesVives,
+    intensiteDe: intensiteDe, texteDouleur: texteDouleur,
+    suiviZone: suiviZone, zonesRencontrees: zonesRencontrees,
+    rangParType: rangParType, serieAuRangParType: serieAuRangParType,
+    dureeReelle: dureeReelle,
+    derniereSollicitationStructure: derniereSollicitationStructure,
+    chargeParStructure: chargeParStructure,
+    historiqueExercice: historiqueExercice, exercicesPratiques: exercicesPratiques,
     aujourdHui: aujourdHui, dateCourte: dateCourte, jourSemaine: jourSemaine,
     joursDepuis: joursDepuis, joursEntre: joursEntre, semaineDe: semaineDe,
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,

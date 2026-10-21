@@ -24,13 +24,46 @@
     var v = A.m.volumeSeance(seance);
     refs.nbSeries.textContent = v.seriesFaites + ' / ' + v.series;
     refs.tonnage.textContent = A.m.fmt(Math.round(v.tonnage));
-    refs.tonnageAw.textContent = A.m.fmt(Math.round(v.tonnageAw));
+
+    /* Une seance 100 % gripper a un tonnage nul mais n'est pas vide : la case
+       AW bascule alors sur le compte de series, qui lui est parlant. */
+    if (v.tonnageAw > 0 || !v.seriesAw) {
+      refs.tonnageAw.textContent = A.m.fmt(Math.round(v.tonnageAw));
+      refs.etiquetteAw.textContent = 'dont AW';
+    } else {
+      refs.tonnageAw.textContent = String(v.seriesAw);
+      refs.etiquetteAw.textContent = 'séries AW';
+    }
+    refs.reps.textContent = v.repsTotal ? A.m.fmt(v.repsTotal) + ' reps au total' : '';
     refs.exclus.textContent = A.m.texteHorsTonnage(v);
   }
 
   /* ------------------------------------------------------------------
      numérotation des séries d'un exercice : on n'écrit que le libellé
      ------------------------------------------------------------------ */
+  /* Relit la colonne PRECEDENT de toutes les lignes d'un exercice, sans
+     reconstruire le moindre champ de saisie : on ne touche qu'au texte du
+     bouton et a son gestionnaire. Necessaire des qu'un type de serie change,
+     puisque le type decide du rang. */
+  function rafraichirPrecedents(exo, listeNoeud) {
+    Array.prototype.forEach.call(listeNoeud.children, function (ligne, i) {
+      var s = exo.series[i];
+      if (!s) return;
+      var bt = ligne.querySelector('.serie-prec');
+      var prec = A.m.dernierePerf(etat(), exo.slug, s.type, A.m.rangParType(exo.series, i), seance.id);
+      var txt = A.m.texteDernierePerf(prec);
+      bt.textContent = txt || '—';
+      if (txt) {
+        delete bt.dataset.vide;
+        bt.title = 'Séance du ' + A.m.dateCourte(prec.date) + ' — appuyer pour recopier';
+      } else {
+        bt.dataset.vide = '1';
+        bt.removeAttribute('title');
+      }
+      bt._prec = prec;
+    });
+  }
+
   function renumeroter(exo, listeNoeud) {
     var n = 0;
     Array.prototype.forEach.call(listeNoeud.children, function (ligne, i) {
@@ -55,19 +88,32 @@
     /* 1. numéro / type */
     var num = h('button', { type: 'button', class: 'serie-num' });
     num.addEventListener('click', function () {
-      A.ui.feuille('Type de série', A.m.ORDRE_TYPES.map(function (t) {
+      /* Le RPE est ici AUSSI : l'appui long sur le ✓ est rapide mais ne
+         s'invente pas. Un geste qui n'existe qu'en appui long est introuvable. */
+      A.ui.feuille('Série ' + (exo.series.indexOf(serie) + 1), A.m.ORDRE_TYPES.map(function (t) {
         return { lettre: A.m.TYPES_SERIE[t].lettre || '#', nom: A.m.TYPES_SERIE[t].nom,
                  action: function () {
                    serie.type = t;
                    renumeroter(exo, listeNoeud);
+                   /* Le type decide du rang : la colonne PRECEDENT de tout
+                      l'exercice doit etre relue, pas seulement cette ligne. */
+                   rafraichirPrecedents(exo, listeNoeud);
                    sauver();
                  } };
-      }));
+      }).concat([
+        { lettre: 'R', nom: serie.rpe == null ? 'Noter le RPE' : 'RPE : ' + serie.rpe,
+          action: ouvrirRpe }
+      ]));
     });
 
-    /* 2. précédent — la raison d'être d'un carnet */
+    /* 2. précédent — la raison d'être d'un carnet.
+       Le rang est celui de la serie DANS SON TYPE : la 2e serie de travail
+       reste la 2e serie de travail, qu'on ait fait zero ou trois echauffements
+       avant elle. Indexer par rang brut faisait glisser toute la colonne d'un
+       cran des qu'un echauffement etait ajoute. */
     var rang = exo.series.indexOf(serie);
-    var prec = A.m.dernierePerf(etat(), exo.slug, rang, seance.id);
+    var rangType = A.m.rangParType(exo.series, rang);
+    var prec = A.m.dernierePerf(etat(), exo.slug, serie.type, rangType, seance.id);
     var txtPrec = A.m.texteDernierePerf(prec);
     var btPrec = h('button', { type: 'button', class: 'serie-prec', text: txtPrec || '—' });
     if (!txtPrec) btPrec.dataset.vide = '1';
@@ -103,21 +149,59 @@
       if (!serie.faite) ok.click();
     });
 
-    if (txtPrec) {
-      btPrec.addEventListener('click', function () {
-        chargeIn.value = prec.charge; serie.chargeReel = prec.charge;
-        repsIn.value   = prec.reps;   serie.repsReel   = prec.reps;
-        majTotaux(); sauver();
-        A.ui.toast('Recopié : ' + txtPrec);
-      });
-    }
+    /* Le gestionnaire lit btPrec._prec et non la valeur figee a la
+       construction : changer le type d'une serie change ce qui sera recopie. */
+    btPrec._prec = prec;
+    btPrec.addEventListener('click', function () {
+      var p = btPrec._prec;
+      if (!p) return;
+      chargeIn.value = p.charge; serie.chargeReel = p.charge;
+      repsIn.value   = p.reps;   serie.repsReel   = p.reps;
+      majTotaux(); sauver();
+      A.ui.toast('Recopié : ' + A.m.texteDernierePerf(p));
+    });
 
     /* 5. le ✓ — valide ET lance le repos */
     var ok = h('button', { type: 'button', class: 'serie-ok',
                            'aria-pressed': serie.faite ? 'true' : 'false',
-                           'aria-label': 'Valider la série' });
+                           'aria-label': 'Valider la série. Appui long : noter le RPE.' });
     ok.appendChild(A.ui.svg(A.ui.CHEMIN_OK));
+
+    /* Le RPE de la serie s'affiche en pastille sur le ✓ : il ne prend pas de
+       colonne, et la ligne reste a cinq champs comme prevu. */
+    var pastilleRpe = null;
+    function majRpe() {
+      if (serie.rpe == null) {
+        if (pastilleRpe) { pastilleRpe.remove(); pastilleRpe = null; }
+        return;
+      }
+      if (!pastilleRpe) { pastilleRpe = h('span', { class: 'serie-rpe' }); ligne.appendChild(pastilleRpe); }
+      pastilleRpe.textContent = serie.rpe;
+    }
+
+    function ouvrirRpe() {
+      A.ui.feuille('RPE — série ' + (exo.series.indexOf(serie) + 1), [6, 7, 8, 9, 10].map(function (v) {
+        return { lettre: String(v),
+                 nom: ({ 6: 'il restait 4 reps', 7: 'il restait 3 reps', 8: 'il restait 2 reps',
+                         9: 'il restait 1 rep', 10: 'rien de plus' })[v],
+                 action: function () { serie.rpe = v; majRpe(); sauver(true); } };
+      }).concat([
+        { nom: 'Effacer le RPE', action: function () { serie.rpe = null; majRpe(); sauver(true); } }
+      ]));
+    }
+
+    /* Appui long : chemin rapide, sans quitter la ligne. */
+    var minuteurLong = null, longFait = false;
+    ok.addEventListener('pointerdown', function () {
+      longFait = false;
+      clearTimeout(minuteurLong);
+      minuteurLong = setTimeout(function () { longFait = true; ouvrirRpe(); }, 550);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+      ok.addEventListener(ev, function () { clearTimeout(minuteurLong); });
+    });
     ok.addEventListener('click', function () {
+      if (longFait) { longFait = false; return; }   // l'appui long a deja agi
       serie.faite = !serie.faite;
       ok.setAttribute('aria-pressed', serie.faite ? 'true' : 'false');
       ligne.classList.toggle('faite', serie.faite);
@@ -141,6 +225,7 @@
     ligne.appendChild(chargeIn);
     ligne.appendChild(repsIn);
     ligne.appendChild(ok);
+    majRpe();
     return ligne;
   }
 
@@ -174,6 +259,9 @@
       (exo.outils || []).forEach(function (o) {
         meta.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
       });
+      if ((exo.structures || []).length) {
+        meta.appendChild(h('span', { text: exo.structures.map(A.m.nomStructure).join(' · ') }));
+      }
       if ((exo.forces || []).length) {
         meta.appendChild(h('span', { text: exo.forces.map(A.m.nomForce).join(' · ') }));
       }
@@ -198,6 +286,7 @@
       exo.series.push(s);
       liste.appendChild(ligneSerie(exo, s, liste));   // UN nœud ajouté
       renumeroter(exo, liste);
+      rafraichirPrecedents(exo, liste);
       majTotaux(); sauver();
     });
 
@@ -207,6 +296,7 @@
       exo.series.pop();
       liste.removeChild(liste.lastChild);             // UN nœud retiré
       renumeroter(exo, liste);
+      rafraichirPrecedents(exo, liste);
       majTotaux(); sauver();
     });
 
@@ -218,6 +308,9 @@
     menu.addEventListener('click', function () {
       var i = seance.exercices.indexOf(exo);
       A.ui.feuille(exo.nom, [
+        { nom: 'Voir l’historique', action: function () {
+            A.vues.exercice.ouvrir(exo.slug, exo.nom);
+          } },
         { nom: 'Modifier l’exercice', action: function () {
             A.panneau.editerExercice(exo, {}, function () {
               titre.textContent = exo.nom;
@@ -236,7 +329,8 @@
         { nom: 'Dupliquer dans la séance', action: function () {
             var copie = A.m.exerciceSeanceVierge({
               nom: exo.nom, aw: exo.aw, typeCharge: exo.typeCharge, forces: exo.forces,
-              outils: exo.outils, consigne: exo.consigne, reposSecondes: exo.reposSecondes,
+              structures: exo.structures, outils: exo.outils,
+              consigne: exo.consigne, reposSecondes: exo.reposSecondes,
               series: exo.series.map(function (s) {
                 return { type: s.type, repsCible: s.repsCible, chargeCible: s.chargeCible };
               })
@@ -283,6 +377,8 @@
     A.ui.vider(hote);
     refs = null;
     A.ui.garderEcranAllume(etat().reglages.ecranAllume !== false);
+    /* Un repos lance avant une fermeture de l'app doit se retrouver au retour. */
+    A.ui.chrono.reprendre();
 
     var e = etat();
     seance = null;
@@ -301,12 +397,15 @@
     refs.nbSeries = h('dd', { class: 'chiffre', text: '0 / 0' });
     refs.tonnage = h('dd', { class: 'chiffre', text: '0' });
     refs.tonnageAw = h('dd', { class: 'chiffre', text: '0' });
+    refs.etiquetteAw = h('dt', { text: 'dont AW' });
     refs.exclus = h('p', { class: 'note-exclus' });
+    refs.reps = h('p', { class: 'note-exclus' });
     hote.appendChild(h('dl', { class: 'totaux' },
       h('div', {}, h('dt', { text: 'Séries faites' }), refs.nbSeries),
       h('div', {}, h('dt', { text: 'Volume' }), refs.tonnage),
-      h('div', { class: 'aw' }, h('dt', { text: 'dont AW' }), refs.tonnageAw)));
+      h('div', { class: 'aw' }, refs.etiquetteAw, refs.tonnageAw)));
     hote.appendChild(refs.exclus);
+    hote.appendChild(refs.reps);
 
     /* exercices */
     refs.exos = h('div');
@@ -339,8 +438,10 @@
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
+    var deduite = A.m.dureeReelle(seance);
     var duree = h('input', { class: 'champ', type: 'number', min: '0', inputmode: 'numeric',
-                             value: seance.dureeMin == null ? '' : seance.dureeMin, placeholder: '60' });
+                             value: seance.dureeMin == null ? '' : seance.dureeMin,
+                             placeholder: deduite == null ? '60' : String(deduite) });
     duree.addEventListener('input', function () {
       var n = parseInt(duree.value, 10);
       seance.dureeMin = isFinite(n) ? n : null; sauver();
@@ -353,13 +454,20 @@
     });
     corps.appendChild(h('div', { class: 'grille-2' },
       A.ui.groupe('Durée (min)', duree), A.ui.groupe('RPE global', rpe)));
+    if (deduite != null) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin:-6px 0 12px',
+        text: 'Déduite des validations : ' + deduite + ' min, du premier ✓ au dernier. '
+            + 'Laissée en gris tant que tu ne saisis rien — c\u2019est une mesure, pas une décision.' }));
+    }
 
     corps.appendChild(h('label', { text: 'Douleurs ressenties' }));
     corps.appendChild(A.ui.selecteurDouleurs(seance.douleurs, function (v) {
       seance.douleurs = v; sauver(true);
     }));
     corps.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 0 12px',
-      text: 'Renseigné sur chaque séance. Suivi recoupe ensuite ce que tu as fait dans les 72 h qui précèdent.' }));
+      text: 'Un appui pose la zone. Un second ouvre l’intensité 0–10 — facultative, '
+          + 'mais c’est elle qui dit si ça monte ou si ça descend. '
+          + 'Suivi recoupe ensuite avec ce que tu as fait dans les 72 h précédentes.' }));
 
     var note = h('textarea', { class: 'champ', placeholder: 'Ce qui a tiré, ce qui a bien pris, le matériel employé…' });
     note.value = seance.note || '';
@@ -373,6 +481,12 @@
     btFin.addEventListener('click', function () {
       var v = A.m.volumeSeance(seance);
       var finir = function () {
+        /* Si rien n'a ete saisi, on inscrit la duree mesuree plutot que de
+           laisser un vide : l'information existe, autant la garder. */
+        if (seance.dureeMin == null) {
+          var d = A.m.dureeReelle(seance);
+          if (d != null) seance.dureeMin = d;
+        }
         etat().seanceEnCoursId = null;
         A.ui.chrono.arreter();
         A.ui.garderEcranAllume(false);

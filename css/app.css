@@ -849,3 +849,80 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 
 /* l'outil se lit dans l'en-tête d'exercice, pas seulement dans sa fiche */
 .jeton-outil { border-color: var(--trait-fort); color: var(--texte-2); background: var(--fond-3); font-weight: 550; }
+
+/* ---------- échelle d'intensité de douleur ---------- */
+
+.popo-echelle {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  padding: 2px;
+}
+.echelon {
+  appearance: none;
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-height: var(--tap);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s);
+  background: var(--fond-2);
+  color: var(--texte-2);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+/* Le chiffre porte sa gravité : on la lit sans relire l'échelle. */
+.echelon[data-niveau="bas"]   { border-color: var(--trait-fort); }
+.echelon[data-niveau="moyen"] { border-color: var(--laiton); color: var(--laiton); }
+.echelon[data-niveau="haut"]  { border-color: var(--tendon); color: var(--tendon); }
+.echelon[aria-pressed="true"] { background: var(--bleu-doux); border-color: var(--bleu); color: var(--bleu); }
+
+/* une zone douloureuse renseignée se teinte de sa gravité */
+.puce-douleur[aria-pressed="true"][data-niveau="moyen"] { border-color: var(--laiton); color: var(--laiton); background: var(--laiton-doux); }
+.puce-douleur[aria-pressed="true"][data-niveau="haut"]  { border-color: var(--tendon); color: var(--tendon); background: var(--tendon-doux); }
+
+/* ---------- historique d'un exercice ---------- */
+
+.serie-rpe {
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  font-size: .58rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: var(--bleu);
+  color: var(--fond-2);
+  pointer-events: none;
+}
+.serie { position: relative; }
+
+.histo-ligne {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--trait);
+  font-size: .86rem;
+}
+.histo-ligne:last-child { border-bottom: 0; }
+.histo-date { color: var(--texte-2); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.histo-series { font-variant-numeric: tabular-nums; }
+.histo-total { color: var(--texte-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.histo-record { color: var(--laiton); font-weight: 700; }
+
+/* la pente d'une douleur, en petit */
+.pente { display: flex; align-items: flex-end; gap: 3px; height: 34px; }
+.pente i {
+  display: block;
+  width: 9px;
+  border-radius: 2px 2px 0 0;
+  background: var(--trait-fort);
+  min-height: 2px;
+}
+.pente i[data-niveau="bas"]   { background: var(--bleu); }
+.pente i[data-niveau="moyen"] { background: var(--laiton); }
+.pente i[data-niveau="haut"]  { background: var(--tendon); }
+.pente i[data-niveau="inconnu"] { background: repeating-linear-gradient(45deg, var(--trait-fort) 0 2px, transparent 2px 4px); }

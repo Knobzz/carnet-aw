@@ -120,11 +120,46 @@ js/
   vue-programmes.js        composition des programmes
   vue-sparring.js          formulaire de sparring
   vue-journal.js           journal daté, muscu et sparring mêlés
-  vue-suivi.js             sollicitation, douleurs et leurs 72 h, volume, forces
+  vue-exercice.js          historique d'un exercice : la pente, les records
+  vue-suivi.js             sollicitation, structures, douleurs et leurs 72 h, pentes, volume
   vue-reglages.js          thème, sauvegarde, catalogues, équipement
 outils/faire-icones.py     régénère les PNG depuis le même dessin que l'icône SVG
-outils/version.py          pose la version aux 3 endroits et compte les 14 occurrences
+outils/version.py          pose la version aux 4 endroits et compte les 17 occurrences
+banc/                      le banc de recette — une page à ouvrir
 ```
+
+---
+
+## Le banc de recette
+
+```bash
+python -m http.server 8713
+```
+puis **http://localhost:8713/banc/** — ou l'ouvrir après un `git pull`, c'est une page comme
+une autre. **116 contrôles, 11 blocs.** Il ne touche jamais au carnet : les cas travaillent
+sur des états fabriqués, et les deux blocs qui écrivent remettent l'état d'origine en place.
+
+Ce qu'il mesure : lecture des nombres et des slugs · la colonne PRÉCÉDENT · le volume
+(fait vs prévu, charge non chiffrée, saisie incomplète) · l'indépendance programme/séance ·
+les douleurs et leur compatibilité descendante · structures et fenêtre 72 h · la durée
+déduite · l'historique · la fusion à l'import · le chrono persistant · les catalogues vides
+au départ.
+
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Trois blocs ont été vus rougir, en
+réintroduisant volontairement le défaut qu'ils surveillent :
+
+| défaut réintroduit | ce que le banc a dit |
+|---|---|
+| PRÉCÉDENT indexé par rang brut | `attendu "20 × 12", obtenu "22 × 10"` — 4 contrôles rouges |
+| volume recomptant les cibles | `une séance pas commencée pèse ZÉRO — attendu 0, obtenu 240` |
+| intensité inconnue remplacée par 5 | `devient inconnue plutôt que fausse — attendu null, obtenu 5` |
+
+Les cas marqués `[temoin]` mesurent un invariant du décor et tiennent des deux côtés —
+leur libellé dit pourquoi.
+
+> Le banc chargeait d'abord ses scripts avec un simple `?v=<version>` et restait **vert sur
+> du code cassé**, le navigateur resservant sa copie. Il ajoute désormais un horodatage à
+> chaque chargement. Ce faux vert n'a été vu que parce qu'on a exigé de le faire tomber.
 
 ---
 

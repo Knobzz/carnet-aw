@@ -131,6 +131,9 @@
           (ep.outils || []).forEach(function (o) {
             meta.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
           });
+          if ((ep.structures || []).length) {
+            meta.appendChild(h('span', { text: ep.structures.map(A.m.nomStructure).join(' · ') }));
+          }
           if ((ep.forces || []).length) meta.appendChild(h('span', { text: ep.forces.map(A.m.nomForce).join(' · ') }));
         }
         majMeta();

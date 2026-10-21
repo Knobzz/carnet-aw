@@ -12,8 +12,9 @@ Etat
   outils         : [ Outil ]           // idem, pour l'équipement
   programmes     : [ Programme ]
   seances        : [ Seance | SeanceSparring ]
-  reglages       : { theme: 'auto'|'clair'|'sombre' }
+  reglages       : { theme, ecranAllume, notifierRepos }
   seanceEnCoursId: string | null
+  chrono         : { finA, duree, libelle } | null   // le repos survit à la fermeture
 ```
 
 ## Catalogue (implicite)
@@ -30,6 +31,7 @@ Exercice
   aw         : bool
   typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps' | 'duree'
   forces     : [ 'rising' | 'supination' | 'cupping' | 'pronation' ]
+  structures : [ string ]              // ce que l'exercice charge, voir plus bas
   outils     : [ string ]              // noms d'outils, voir plus bas
   vuLe       : ISO date                // dernière fois que le nom a été employé
 ```
@@ -148,13 +150,63 @@ SeanceSparring
 Les deux portent `type`, `date`, `heure` et `douleurs` aux mêmes noms : c'est ce qui permet
 au journal et au recoupement 72 h de les traiter dans une seule liste.
 
-## Zones de douleur
+## Structures chargées
 
-`'coude_medial' | 'coude_lateral' | 'poignet' | 'avant_bras' | 'epaule' | 'aucune'`
+```
+'poignet' | 'coude_medial' | 'coude_lateral' | 'avant_bras' | 'epaule'
+          | 'main_doigts' | 'biceps'
+```
 
-Stockées par identifiant, affichées en toutes lettres. `'aucune'` est **enregistré**, pas
-déduit d'une liste vide : une séance sans douleur cochée et une séance non renseignée ne
-disent pas la même chose, et le recoupement a besoin de la différence.
+Les **cinq premières sont exactement les zones de douleur**. Ce n'est pas une coïncidence :
+c'est ce qui permet à Suivi de répondre à « quand ai-je chargé lourd le médial », puis de la
+croiser avec « quand le médial a fait mal ». Les deux dernières n'ont pas de douleur
+correspondante, et c'est assumé.
+
+Portées par l'exercice (catalogue, programme et séance), facultatives, copiées comme le
+reste — jamais référencées.
+
+## Zones de douleur, et leur intensité
+
+```
+Douleur
+  zone      : 'coude_medial' | 'coude_lateral' | 'poignet' | 'avant_bras'
+            | 'epaule' | 'aucune'
+  intensite : 0–10 | null
+```
+
+`'aucune'` est **enregistré**, pas déduit d'une liste vide : une séance sans douleur cochée
+et une séance non renseignée ne disent pas la même chose, et le recoupement a besoin de la
+différence. Elle ne porte jamais d'intensité.
+
+**`intensite` vaut `null` quand elle n'est pas renseignée, jamais une valeur par défaut.**
+Une tendinopathie ne se suit pas en oui/non : ce qui renseigne est la pente. Mais un relevé
+absent ne doit pas être inventé, sous peine de fabriquer une pente qui n'existe pas.
+
+**Compatibilité descendante.** Les carnets antérieurs stockaient `douleurs: ['coude_medial']`,
+une simple liste de chaînes. `normaliserDouleurs()` accepte les deux formes et convertit **à
+la lecture** : une sauvegarde ancienne se relit intégralement, avec une intensité inconnue.
+
+## Le repos survit à la fermeture
+
+`chrono` porte `finA` en **horodatage absolu**. Sur téléphone, basculer vers un autre app peut
+faire tuer la page entre deux séries : au retour, le temps restant est recalculé depuis `finA`,
+et reste juste même après dix minutes de page morte. Un chrono déjà écoulé ne se rouvre pas.
+
+## L'import : fusionner ou remplacer
+
+Remplacer est prévisible mais destructeur — importer depuis un vieux téléphone effaçait des
+séances plus récentes, en silence. **Fusionner** est désormais le premier choix proposé :
+
+- l'identité est l'`id` ;
+- un élément présent des deux côtés est gardé **dans sa version courante** — ce qui est sous
+  les doigts fait foi, l'import ne défait pas une saisie du jour ;
+- un élément absent du courant est ajouté ;
+- **rien n'est jamais supprimé par un import.**
+
+Les catalogues fusionnent par `slug` : ce sont des aides à la saisie, pas des données. Le
+compte de ce qui a été ajouté et gardé est affiché — une fusion muette serait pire qu'un
+remplacement. Avant un remplacement, l'écran compare les dates et **avertit** si le carnet
+courant contient du plus récent que la sauvegarde.
 
 ## Charge non numérique
 
@@ -179,6 +231,20 @@ Ce qui sort du tonnage sort pour une raison, et l'écran la dit :
 
 Jamais un zéro muet.
 
+## Ce qui a changé après coup
+
+Trois champs étaient **déclarés sans être employés** — le piège n° 5 appliqué au modèle
+lui-même. Ils sont maintenant branchés :
+
+| champ | état précédent | aujourd'hui |
+|---|---|---|
+| `rpe` par série | déclaré, aucun chemin de saisie | appui long sur le ✓, ou menu de la série |
+| `faiteA` | écrit, jamais lu | `dureeReelle()` en déduit la durée, du premier ✓ au dernier |
+| `repsTotal`, `seriesAw` | calculés, jamais affichés | totaux de séance et détail du journal |
+
+`dureeReelle()` rend `null` tant qu'il n'y a pas **deux** validations : une seule ne borne
+aucun intervalle, et un zéro serait un mensonge.
+
 ## Trois ajouts au modèle que tu as écrit
 
 1. **`forces`** sur l'exercice (catalogue, programme et séance) — les quatre forces de
@@ -186,6 +252,7 @@ Jamais un zéro muet.
    Suivi les compte pour montrer celle qu'un programme néglige.
 2. **`outils`** sur l'exercice, et le catalogue `outils` — demandé en cours de route,
    même principe que les exercices : rien de livré, tout vient de l'usage.
+   **`structures`** et l'intensité de douleur ont suivi, pour la même raison.
 3. **`slug`, `heure`, `faiteA`, `programmeNom`** — de la plomberie :
    `slug` fait l'identité d'un exercice entre programmes, `heure` trie deux séances du même
    jour, `faiteA` donne l'heure réelle d'une série (chrono, et ordre d'exécution),

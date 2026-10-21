@@ -5,17 +5,18 @@ Une mise à jour doit atteindre le téléphone. Trois endroits la gouvernent, et
 en oublier un donne le pire symptôme : l'app paraît inchangée alors que le
 correctif est bien livré.
 
-    index.html   le ?v= de la feuille et des 11 scripts   12 occurrences
-    sw.js        le nom du cache                           1
-    js/app.js    window.APP_VERSION, affiché dans Réglages 1
+    index.html       le ?v= de la feuille et des 12 scripts   13 occurrences
+    banc/index.html  le ?v= de la feuille et du chargeur        2
+    sw.js            le nom du cache                            1
+    js/app.js        window.APP_VERSION, affiché dans Réglages  1
 
-                                                    total 14
+                                                        total 17
 
 Usage :
     python outils/version.py            lit et vérifie la cohérence
     python outils/version.py 1.1.0      pose 1.1.0 partout
 
-Le compte est imprimé à chaque fois : un total qui n'est pas 14 veut dire
+Le compte est imprimé à chaque fois : un total qui n'est pas 17 veut dire
 qu'un fichier a bougé et que ce script doit être relu, pas contourné.
 """
 import io
@@ -23,7 +24,7 @@ import os
 import re
 import sys
 
-ATTENDU = 14
+ATTENDU = 17
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,6 +41,9 @@ def ecrire(rel, texte):
 
 MOTIFS = [
     ('index.html', re.compile(r'\?v=([0-9]+\.[0-9]+\.[0-9]+)'), lambda v: '?v=' + v),
+    # Le banc doit mesurer la version qu'il pretend mesurer : ses propres
+    # cache-busters sont gouvernes par le meme geste.
+    ('banc/index.html', re.compile(r'\?v=([0-9]+\.[0-9]+\.[0-9]+)'), lambda v: '?v=' + v),
     ('sw.js', re.compile(r"var CACHE = 'carnet-aw-v([0-9]+\.[0-9]+\.[0-9]+)';"),
      lambda v: "var CACHE = 'carnet-aw-v%s';" % v),
     ('js/app.js', re.compile(r"window\.APP_VERSION = '([0-9]+\.[0-9]+\.[0-9]+)';"),

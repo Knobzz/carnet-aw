@@ -16,23 +16,30 @@
     A.panneau.ouvrir(A.m.dateCourte(se.date), function (c, fermer) {
       var v = A.m.volumeSeance(se);
 
+      var dureeAffichee = se.dureeMin != null ? se.dureeMin : A.m.dureeReelle(se);
+      var mesuree = se.dureeMin == null && dureeAffichee != null;
       c.appendChild(h('div', { class: 'item-resume', style: 'margin:-4px 0 10px',
         text: A.m.jourSemaine(se.date) + (se.programmeNom ? ' · ' + se.programmeNom : ' · séance libre')
-            + (se.dureeMin ? ' · ' + se.dureeMin + ' min' : '')
+            + (dureeAffichee != null ? ' · ' + dureeAffichee + ' min' + (mesuree ? ' (mesurée)' : '') : '')
             + (se.rpeGlobal ? ' · RPE ' + se.rpeGlobal : '') }));
 
       c.appendChild(h('dl', { class: 'totaux' },
         h('div', {}, h('dt', { text: 'Séries faites' }), h('dd', { class: 'chiffre', text: v.seriesFaites + ' / ' + v.series })),
         h('div', {}, h('dt', { text: 'Volume' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnage)) })),
         h('div', { class: 'aw' }, h('dt', { text: 'dont AW' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnageAw)) }))));
+      if (v.repsTotal) {
+        c.appendChild(h('p', { class: 'note-exclus',
+          text: A.m.fmt(v.repsTotal) + ' reps au total'
+              + (v.seriesAw ? ' · ' + v.seriesAw + ' série(s) marquée(s) AW' : '') }));
+      }
       var hors = A.m.texteHorsTonnage(v);
       if (hors) c.appendChild(h('p', { class: 'note-exclus', text: hors }));
 
-      var douleurs = (se.douleurs || []).filter(function (z) { return z !== 'aucune'; });
+      var douleurs = A.m.zonesVives(se.douleurs);
       if (douleurs.length) {
         c.appendChild(h('div', { class: 'sous-titre', text: 'Douleurs' }));
-        c.appendChild(h('div', { class: 'enrobe' }, douleurs.map(function (z) {
-          return h('span', { class: 'jeton jeton-douleur', text: A.m.nomZone(z) });
+        c.appendChild(h('div', { class: 'enrobe' }, douleurs.map(function (d) {
+          return h('span', { class: 'jeton jeton-douleur', text: A.m.texteDouleur(d) });
         })));
       }
 
@@ -40,15 +47,24 @@
       (se.exercices || []).forEach(function (ex) {
         var tc = A.m.typeCharge(ex.typeCharge);
         var bloc = h('div', { class: 'exo' });
+        var btHisto = h('button', { class: 'bt-icone', text: '↗',
+                                    'aria-label': 'Historique de ' + ex.nom, title: 'Historique' });
+        btHisto.addEventListener('click', function () { A.vues.exercice.ouvrir(ex.slug, ex.nom); });
         bloc.appendChild(h('div', { class: 'exo-entete' },
           h('div', {}, h('div', { class: 'exo-titre' },
             h('h3', { text: ex.nom }),
-            ex.aw ? h('span', { class: 'jeton', text: 'AW' }) : null))));
+            ex.aw ? h('span', { class: 'jeton', text: 'AW' }) : null)),
+          btHisto));
         if (ex.consigne) bloc.appendChild(h('div', { class: 'consigne', text: ex.consigne }));
-        if ((ex.outils || []).length) {
-          bloc.appendChild(h('div', { class: 'exo-meta' }, ex.outils.map(function (o) {
-            return h('span', { class: 'jeton jeton-outil', text: o });
-          })));
+        if ((ex.outils || []).length || (ex.structures || []).length) {
+          var m2 = h('div', { class: 'exo-meta' });
+          (ex.outils || []).forEach(function (o) {
+            m2.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
+          });
+          if ((ex.structures || []).length) {
+            m2.appendChild(h('span', { text: ex.structures.map(A.m.nomStructure).join(' · ') }));
+          }
+          bloc.appendChild(m2);
         }
 
         var lignes = h('div', { class: 'item-lignes', style: 'padding:0 12px 10px' });
@@ -58,7 +74,8 @@
           if (s.type === 'normale') { n += 1; etiq = String(n); }
           else etiq = A.m.TYPES_SERIE[s.type].lettre;
           var val = [(s.chargeReel || '—'), (s.repsReel || '—')].join(' × ')
-                  + (tc.id === 'kg' && s.chargeReel ? ' kg' : '');
+                  + (tc.id === 'kg' && s.chargeReel ? ' kg' : '')
+                  + (s.rpe != null ? '  RPE ' + s.rpe : '');
           lignes.appendChild(h('div', { class: 'item-ligne' },
             h('b', { text: etiq + '. ' + (s.faite ? '' : '(non validée) ') }),
             h('span', { text: val })));
@@ -128,7 +145,8 @@
     var resume = [v.seriesFaites + '/' + v.series + ' séries'];
     if (v.tonnage) resume.push(A.m.fmt(Math.round(v.tonnage)) + ' kg');
     if (v.tonnageAw) resume.push(A.m.fmt(Math.round(v.tonnageAw)) + ' kg AW');
-    if (se.dureeMin) resume.push(se.dureeMin + ' min');
+    var dm = se.dureeMin != null ? se.dureeMin : A.m.dureeReelle(se);
+    if (dm != null) resume.push(dm + ' min');
     it.appendChild(h('div', { class: 'item-resume', text: resume.join(' · ') }));
 
     var lignes = h('div', { class: 'item-lignes' });

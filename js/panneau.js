@@ -94,10 +94,12 @@
         exo.typeCharge = it.typeCharge;
         exo.forces = (it.forces || []).slice();
         exo.outils = (it.outils || []).slice();
+        exo.structures = (it.structures || []).slice();
         btAw.setAttribute('aria-pressed', exo.aw ? 'true' : 'false');
         selCharge.value = exo.typeCharge;
         if (selForces) rafraichirForces();
         rafraichirOutils();
+        rafraichirStructures();
       });
 
       btAw.addEventListener('click', function () {
@@ -128,6 +130,20 @@
       rafraichirOutils();
       c.appendChild(A.ui.groupe('Outils', boiteOutils,
         'Autant qu’il en faut : « Titan Grip » et « Poulie haute » cohabitent sur le même exercice. La liste n’est pas imposée, elle retient ce que tu saisis.'));
+
+      /* Les structures chargees. Memes identifiants que les zones de douleur :
+         c'est ce qui permet a Suivi de repondre a « quand ai-je charge lourd le
+         medial », question a laquelle la liste par exercice ne sait pas repondre. */
+      var boiteStructures = h('div');
+      function rafraichirStructures() {
+        A.ui.vider(boiteStructures);
+        boiteStructures.appendChild(A.ui.selecteurStructures(exo.structures || [],
+          function (v) { exo.structures = v; }));
+      }
+      rafraichirStructures();
+      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures,
+        'Facultatif. Les cinq premières sont les zones de douleur : les renseigner '
+        + 'permet à Suivi de relier une douleur à ce qui l’a précédée.'));
 
       var boiteForces = h('div');
       function rafraichirForces() {
@@ -162,6 +178,7 @@
         exo.slug = A.m.slug(nom);
         exo.consigne = champConsigne.value;
         (exo.outils || []).forEach(function (o) { A.m.majCatalogueOutils(etat, o); });
+        if (!exo.structures) exo.structures = [];
         A.m.majCatalogue(etat, exo);
         return true;
       };

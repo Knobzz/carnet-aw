@@ -37,10 +37,14 @@
     function ligne(x) {
       var j = x.jours;
       var txt = j === 0 ? "aujourd’hui" : (j === 1 ? 'hier' : j + ' j');
-      return h('div', { class: 'item-ligne', style: 'padding:5px 0;align-items:center' },
+      var n = h('div', { class: 'item-ligne', style: 'padding:7px 0;align-items:center;cursor:pointer' },
         h('b', { text: x.nom }),
         x.aw ? h('span', { class: 'jeton', text: 'AW' }) : null,
         h('span', { class: 'delai', dataset: { zone: A.m.zoneDelai(j) }, text: txt }));
+      /* Un appui ouvre l'historique : l'anciennete dit quand, l'historique dit
+         comment ça évolue. Les deux questions s'enchaînent naturellement. */
+      n.addEventListener('click', function () { A.vues.exercice.ouvrir(x.slug, x.nom); });
+      return n;
     }
 
     montres.forEach(function (x) { corps.appendChild(ligne(x)); });
@@ -53,6 +57,55 @@
         bt.remove();
       });
       corps.appendChild(bt);
+    }
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
+     1 bis. par STRUCTURE — la question que la liste par exercice ne sait pas traiter
+     ------------------------------------------------------------------ */
+  function blocStructures(e) {
+    var f = document.createDocumentFragment();
+    var l = A.m.derniereSollicitationStructure(e).filter(function (s) { return s.date; });
+
+    f.appendChild(section('Par structure',
+      'Un exercice charge plusieurs structures, et une structure est chargée par plusieurs exercices. '
+      + 'C’est ici que se lit « quand ai-je chargé lourd le médial », toutes origines confondues.'));
+
+    if (!l.length) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune structure renseignée' }),
+        'Facultatif : ouvre la fiche d’un exercice et coche ce qu’il charge. Les cinq premières '
+        + 'structures sont les zones de douleur — c’est ce qui permet de relier les deux.'));
+      return f;
+    }
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps', style: 'padding:6px 12px 10px' });
+
+    l.sort(function (a, b) { return a.jours - b.jours; }).forEach(function (s) {
+      var j = s.jours;
+      var txt = j === 0 ? "aujourd’hui" : (j === 1 ? 'hier' : j + ' j');
+      corps.appendChild(h('div', { class: 'item-ligne', style: 'padding:7px 0;align-items:center' },
+        h('b', { text: s.nom }),
+        h('span', { style: 'font-size:.78rem', text: s.series + ' sér.' }),
+        h('span', { class: 'delai', dataset: { zone: A.m.zoneDelai(j) }, text: txt })));
+      if (s.exercices.length) {
+        corps.appendChild(h('div', { class: 'item-resume', style: 'margin:-4px 0 4px 0;font-size:.76rem',
+          text: s.exercices.join(', ') }));
+      }
+    });
+
+    /* Les structures jamais chargées sont une information, pas un vide. */
+    var jamais = A.m.derniereSollicitationStructure(e)
+      .filter(function (s) { return !s.date; })
+      .map(function (s) { return s.nom; });
+    if (jamais.length) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
+        text: 'Jamais chargée : ' + jamais.join(', ') + '.' }));
     }
 
     carte.appendChild(corps);
@@ -86,8 +139,8 @@
         h('span', { class: 'item-date',
                     text: se.type === 'sparring' ? 'sparring' : (se.programmeNom || 'séance libre') })));
       bloc.appendChild(h('div', { class: 'enrobe', style: 'margin:4px 0 2px' },
-        (se.douleurs || []).filter(function (z) { return z !== 'aucune'; }).map(function (z) {
-          return h('span', { class: 'jeton jeton-douleur', text: A.m.nomZone(z) });
+        A.m.zonesVives(se.douleurs).map(function (d) {
+          return h('span', { class: 'jeton jeton-douleur', text: A.m.texteDouleur(d) });
         })));
 
       var avant = A.m.fenetreAvant(e, se.date, 72, se.id);
@@ -124,6 +177,59 @@
       bloc.appendChild(bt);
       bloc.appendChild(zone);
       corps.appendChild(bloc);
+    });
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
+     2 bis. la PENTE de chaque zone — ce qu'un oui/non ne peut pas montrer
+     ------------------------------------------------------------------ */
+  function blocPentes(e) {
+    var zones = A.m.zonesRencontrees(e);
+    var f = document.createDocumentFragment();
+    if (!zones.length) return f;
+
+    f.appendChild(section('Évolution par zone',
+      'Chaque barre est un relevé, du plus ancien au plus récent. Une zone qui descend '
+      + 'et une zone qui monte ne demandent pas la même chose.'));
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+
+    zones.forEach(function (z) {
+      var pts = A.m.suiviZone(e, z, 16);
+      var connues = pts.filter(function (p) { return p.intensite != null; });
+
+      var pente = h('div', { class: 'pente' });
+      pts.forEach(function (p) {
+        var i = p.intensite;
+        var niveau = i == null ? 'inconnu' : (i < 4 ? 'bas' : (i < 7 ? 'moyen' : 'haut'));
+        var hauteur = i == null ? 10 : Math.max(2, i / 10 * 34);
+        pente.appendChild(h('i', { dataset: { niveau: niveau },
+                                   style: 'height:' + hauteur + 'px',
+                                   title: A.m.dateCourte(p.date) + (i == null ? ' — intensité non précisée' : ' — ' + i + '/10') }));
+      });
+
+      var resume;
+      if (connues.length >= 2) {
+        var d = connues[connues.length - 1].intensite - connues[0].intensite;
+        resume = d > 0 ? 'en hausse de ' + d : (d < 0 ? 'en baisse de ' + (-d) : 'stable');
+        resume += ' sur ' + connues.length + ' relevés';
+      } else if (connues.length === 1) {
+        resume = 'un seul relevé chiffré : ' + connues[0].intensite + '/10';
+      } else {
+        resume = 'aucune intensité renseignée — seule la présence est connue';
+      }
+
+      corps.appendChild(h('div', { style: 'margin-bottom:14px' },
+        h('div', { class: 'item-ligne', style: 'align-items:baseline' },
+          h('b', { text: A.m.nomZone(z) }),
+          h('span', { style: 'font-size:.78rem', text: pts.length + ' fois' })),
+        pente,
+        h('div', { class: 'item-resume', style: 'margin-top:4px', text: resume })));
     });
 
     carte.appendChild(corps);
@@ -215,8 +321,15 @@
       return;
     }
 
+    var btHisto = h('button', { class: 'bt bt-large', style: 'margin-bottom:12px',
+                                text: 'Historique par exercice' });
+    btHisto.addEventListener('click', function () { A.vues.exercice.choisir(); });
+    hote.appendChild(btHisto);
+
     hote.appendChild(blocSollicitation(e));
+    hote.appendChild(blocStructures(e));
     hote.appendChild(blocDouleurs(e));
+    hote.appendChild(blocPentes(e));
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocForces(e));
   }

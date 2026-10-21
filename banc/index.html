@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Banc de recette — Carnet AW</title>
+<link rel="stylesheet" href="../css/app.css?v=1.2.0">
+<style>
+  body { padding: 18px 12px 40px; }
+  .bilan { position: sticky; top: 0; z-index: 5; padding: 12px 0 10px; background: var(--fond); border-bottom: 1px solid var(--trait); margin-bottom: 14px; }
+  .bilan .chiffre { font-size: 2rem; font-weight: 700; }
+  .vert  { color: var(--bleu); }
+  .rouge { color: var(--tendon); }
+  .blocres { border: 1px solid var(--trait); border-radius: var(--r); background: var(--fond-2); margin-bottom: 8px; overflow: hidden; }
+  .blocres > h3 { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: .95rem; }
+  .blocres > h3 .compte { margin-left: auto; font-size: .8rem; font-variant-numeric: tabular-nums; color: var(--texte-2); }
+  .blocres.echoue { border-color: var(--tendon); }
+  .echec { border-top: 1px solid var(--trait); padding: 9px 12px; font-size: .85rem; }
+  .echec b { color: var(--tendon); display: block; }
+  .echec code { font-family: ui-monospace, monospace; font-size: .8rem; }
+  .avert { background: var(--laiton-doux); border: 1px solid var(--laiton); color: var(--texte); border-radius: var(--r); padding: 10px 12px; font-size: .85rem; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <h1>Banc de recette</h1>
+  <p class="item-resume" style="margin:4px 0 14px">
+    Mesure le modèle et la persistance, sans toucher à ton carnet : les cas
+    travaillent sur des états fabriqués, et les deux blocs qui écrivent
+    remettent l’état d’origine en place à la fin.
+  </p>
+
+  <div class="avert">
+    <b>Un contrôle qu’on n’a pas vu tomber ne prouve rien.</b>
+    Les cas marqués <code>[temoin]</code> mesurent un invariant du décor et
+    tiennent des deux côtés — c’est écrit dans leur libellé. Tous les autres
+    doivent pouvoir échouer : pour s’en assurer, casser volontairement une
+    fonction du modèle et vérifier que le bloc correspondant rougit.
+  </div>
+
+  <div class="bilan" id="bilan"></div>
+  <div id="sortie"></div>
+
+</div>
+
+<script>
+/* Le banc doit mesurer LES FICHIERS SUR LE DISQUE, jamais une copie en cache.
+
+   Avec de simples balises <script src="...?v=&lt;version&gt;">, le navigateur ressert sa
+   copie tant que la version ne bouge pas — c'est-a-dire precisement pendant
+   qu'on developpe. Le banc restait alors VERT sur du code casse : un faux vert,
+   constate pour de vrai en reintroduisant volontairement un defaut.
+
+   On ajoute donc un horodatage a chaque chargement. document.write parait
+   demode, mais c'est le seul moyen simple de garder l'ORDRE d'execution :
+   store.js, puis model.js qui s'y appuie, puis les cas. */
+(function () {
+  var q = '?v=1.2.0';            // gouverne par outils/version.py
+  var t = '&t=' + Date.now();    // et jamais de cache, ici
+  ['../js/store.js', '../js/model.js', 'banc.js'].forEach(function (f) {
+    document.write('<scr' + 'ipt src="' + f + q + t + '"></scr' + 'ipt>');
+  });
+})();
+</script>
+<script>
+(function () {
+  var A = window.App;
+  A.store.charger();
+
+  var res = A.banc.lancer();
+  var ok = 0, ko = 0;
+  res.forEach(function (r) { ok += r.ok; ko += r.ko.length; });
+
+  var bilan = document.getElementById('bilan');
+  bilan.innerHTML = '';
+  var t = document.createElement('div');
+  t.className = 'chiffre ' + (ko ? 'rouge' : 'vert');
+  t.textContent = ok + ' / ' + (ok + ko);
+  bilan.appendChild(t);
+  var s = document.createElement('div');
+  s.className = 'item-resume';
+  s.textContent = ko
+    ? ko + ' contrôle(s) en échec sur ' + res.length + ' blocs.'
+    : 'Tous les contrôles passent, sur ' + res.length + ' blocs.';
+  bilan.appendChild(s);
+  document.title = (ko ? '✗ ' : '✓ ') + ok + '/' + (ok + ko) + ' — Banc Carnet AW';
+
+  var sortie = document.getElementById('sortie');
+  res.forEach(function (r) {
+    var d = document.createElement('div');
+    d.className = 'blocres' + (r.ko.length ? ' echoue' : '');
+    var h = document.createElement('h3');
+    var p = document.createElement('span');
+    p.textContent = (r.ko.length ? '✗' : '✓') + ' ' + r.bloc;
+    h.appendChild(p);
+    var c = document.createElement('span');
+    c.className = 'compte';
+    c.textContent = r.ok + ' / ' + (r.ok + r.ko.length);
+    h.appendChild(c);
+    d.appendChild(h);
+    r.ko.forEach(function (e) {
+      var l = document.createElement('div');
+      l.className = 'echec';
+      var b = document.createElement('b');
+      b.textContent = e.quoi;
+      l.appendChild(b);
+      var code = document.createElement('code');
+      code.textContent = 'attendu ' + JSON.stringify(e.attendu) + ' · obtenu ' + JSON.stringify(e.obtenu);
+      l.appendChild(code);
+      d.appendChild(l);
+    });
+    sortie.appendChild(d);
+  });
+
+  // lisible depuis l'extérieur, pour une vérification automatisée
+  window.__banc = { ok: ok, ko: ko, blocs: res };
+})();
+</script>
+</body>
+</html>

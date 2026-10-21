@@ -13,8 +13,9 @@
       outils: [],
       programmes: [],
       seances: [],
-      reglages: { theme: 'auto', ecranAllume: true },
-      seanceEnCoursId: null
+      reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false },
+      seanceEnCoursId: null,
+      chrono: null          // { finA, duree, libelle } — survit a la fermeture
     };
   }
 
@@ -40,8 +41,24 @@
       d.reglages.theme = ['auto', 'clair', 'sombre'].indexOf(brut.reglages.theme) >= 0
         ? brut.reglages.theme : 'auto';
       d.reglages.ecranAllume = brut.reglages.ecranAllume !== false;
+      d.reglages.notifierRepos = brut.reglages.notifierRepos === true;
     }
     if (typeof brut.seanceEnCoursId === 'string') d.seanceEnCoursId = brut.seanceEnCoursId;
+
+    if (brut.chrono && typeof brut.chrono === 'object'
+        && typeof brut.chrono.finA === 'number' && isFinite(brut.chrono.finA)) {
+      d.chrono = { finA: brut.chrono.finA,
+                   duree: +brut.chrono.duree || 0,
+                   libelle: String(brut.chrono.libelle || '') };
+    }
+
+    /* Les douleurs etaient une liste de chaines ; elles portent maintenant une
+       intensite. On convertit a LA LECTURE, pour qu'une sauvegarde ancienne se
+       relise sans perte — intensite inconnue, jamais inventee. */
+    if (A.m && A.m.normaliserDouleurs) {
+      d.seances.forEach(function (s) { s.douleurs = A.m.normaliserDouleurs(s.douleurs); });
+    }
+
     d.versionDonnees = VERSION_DONNEES;
     return d;
   }
@@ -93,6 +110,20 @@
     return true;
   }
 
+  /* Le repos en cours est ecrit tout de suite : si le systeme tue la page
+     entre deux series — ce qui arrive des qu'on bascule vers un autre app —
+     il doit se retrouver au retour, pas disparaitre. */
+  function poserChrono(finA, duree, libelle) {
+    etat.chrono = finA ? { finA: finA, duree: duree || 0, libelle: libelle || '' } : null;
+    ecrire();
+  }
+
+  function chronoEnCours() {
+    var c = etat.chrono;
+    if (!c || c.finA <= Date.now()) return null;   // perime : rien a reprendre
+    return c;
+  }
+
   function vider() {
     etat = vide();
     try { window.localStorage.removeItem(CLE); } catch (e) {}
@@ -102,6 +133,87 @@
   function remplacer(nouvelEtat) {
     etat = normaliser(nouvelEtat);
     return ecrire();
+  }
+
+  /* Fusion d'une sauvegarde dans le carnet courant.
+
+     Remplacer est previsible mais destructeur : importer depuis un vieux
+     telephone effacait des seances plus recentes, en silence. Fusionner garde
+     les deux cotes.
+
+     Regles, ecrites ici pour qu'on puisse les contester :
+       - l'identite est l'id ;
+       - un element present des deux cotes est garde DANS SA VERSION COURANTE :
+         ce qui est sous les doigts fait foi, l'import ne doit pas defaire une
+         saisie du jour ;
+       - un element absent du courant est ajoute ;
+       - rien n'est jamais supprime par un import.
+     Le compte de ce qui a ete ajoute et de ce qui a ete garde est rendu, et
+     l'ecran l'affiche : une fusion muette serait pire qu'un remplacement. */
+  function fusionner(brut) {
+    var entrant = normaliser(brut);
+    var bilan = { seancesAjoutees: 0, seancesGardees: 0,
+                  programmesAjoutes: 0, programmesGardes: 0,
+                  exercicesAjoutes: 0, outilsAjoutes: 0 };
+
+    function parId(liste) {
+      var m = {};
+      liste.forEach(function (x) { if (x && x.id) m[x.id] = true; });
+      return m;
+    }
+
+    var vusSeances = parId(etat.seances);
+    entrant.seances.forEach(function (s) {
+      if (!s || !s.id) return;
+      if (vusSeances[s.id]) { bilan.seancesGardees += 1; return; }
+      etat.seances.push(s);
+      bilan.seancesAjoutees += 1;
+    });
+
+    var vusProgrammes = parId(etat.programmes);
+    entrant.programmes.forEach(function (p) {
+      if (!p || !p.id) return;
+      if (vusProgrammes[p.id]) { bilan.programmesGardes += 1; return; }
+      etat.programmes.push(p);
+      bilan.programmesAjoutes += 1;
+    });
+
+    /* Les catalogues se fusionnent par slug : ce sont des aides a la saisie,
+       pas des donnees. Un doublon n'y serait que du bruit. */
+    var vusExos = {};
+    etat.exercices.forEach(function (x) { vusExos[x.slug] = true; });
+    entrant.exercices.forEach(function (x) {
+      if (!x || !x.slug || vusExos[x.slug]) return;
+      etat.exercices.push(x);
+      vusExos[x.slug] = true;
+      bilan.exercicesAjoutes += 1;
+    });
+
+    var vusOutils = {};
+    etat.outils.forEach(function (o) { vusOutils[o.slug] = true; });
+    entrant.outils.forEach(function (o) {
+      if (!o || !o.slug || vusOutils[o.slug]) return;
+      etat.outils.push(o);
+      vusOutils[o.slug] = true;
+      bilan.outilsAjoutes += 1;
+    });
+
+    bilan.ecrit = ecrire();
+    return bilan;
+  }
+
+  /* De quand date la sauvegarde, et le carnet courant a-t-il du plus recent
+     qu'elle ? C'est ce qui permet d'avertir AVANT un remplacement. */
+  function compareFraicheur(brut) {
+    function derniere(seances) {
+      var d = '';
+      (seances || []).forEach(function (s) { if (s && s.date > d) d = s.date; });
+      return d || null;
+    }
+    var ici = derniere(etat.seances);
+    var la = derniere((brut && brut.seances) || []);
+    return { courant: ici, importe: la,
+             courantPlusRecent: !!(ici && (!la || ici > la)) };
   }
 
   /* Un navigateur de telephone EVINCE le stockage d'un site quand la place
@@ -155,7 +267,11 @@
     estPersistant: estPersistant,
     placeDisponible: placeDisponible,
     vider: vider,
+    poserChrono: poserChrono,
+    chronoEnCours: chronoEnCours,
     remplacer: remplacer,
+    fusionner: fusionner,
+    compareFraicheur: compareFraicheur,
     vide: vide,
     etat: function () { return etat; },
     panne: function () { return panne; },

@@ -248,6 +248,40 @@
     return enrobe;
   }
 
+  /* ---------- notification de fin de repos ----------
+     La vibration ne part que si la page est vivante. Quand le telephone est
+     verrouille ou l'app en arriere-plan, seule une notification passe.
+
+     Elle ne sert QUE si la page est cachee : notifier quelqu'un qui regarde
+     deja l'ecran est du bruit. Et elle n'est jamais demandee d'office — le
+     reglage est a l'arret par defaut. */
+
+  function notificationsPossibles() {
+    return typeof Notification !== 'undefined';
+  }
+
+  function demanderNotifications() {
+    if (!notificationsPossibles()) return Promise.resolve('indisponible');
+    if (Notification.permission !== 'default') return Promise.resolve(Notification.permission);
+    try { return Notification.requestPermission(); }
+    catch (e) { return Promise.resolve('denied'); }
+  }
+
+  function notifierFinRepos(libelle) {
+    if (!notificationsPossibles() || Notification.permission !== 'granted') return;
+    if (document.visibilityState === 'visible') return;   // il regarde deja
+    try {
+      var n = new Notification('Repos terminé', {
+        body: libelle || 'Série suivante.',
+        icon: 'icones/icone-192.png',
+        badge: 'icones/icone-192.png',
+        tag: 'carnet-aw-repos',
+        renotify: true
+      });
+      n.onclick = function () { try { window.focus(); n.close(); } catch (e) {} };
+    } catch (e) { /* une notification refusee ne doit jamais casser la seance */ }
+  }
+
   /* ---------- chronomètre de repos ----------
      Horodatage absolu : il reste juste même si l'onglet est resté en veille. */
   var chrono = (function () {
@@ -260,7 +294,9 @@
       temps = h('div', { class: 'chrono-temps', text: '0:00' });
       quoi = h('div', { class: 'chrono-quoi' });
       var plus = h('button', { class: 'bt bt-petit', text: '+30 s' });
-      plus.addEventListener('click', function () { finA += 30000; duree += 30000; rendre(); });
+      plus.addEventListener('click', function () {
+        finA += 30000; duree += 30000; rendre(); ecrireEtat();
+      });
       var passer = h('button', { class: 'bt bt-petit bt-fantome', text: 'Passer' });
       passer.addEventListener('click', arreter);
       noeud = h('div', { class: 'chrono', role: 'timer', 'aria-live': 'off' },
@@ -277,16 +313,17 @@
       temps.textContent = Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
       jauge.style.width = (duree ? Math.max(0, reste / duree) * 100 : 0) + '%';
       if (reste <= 0) {
+        var libelle = quoi ? quoi.textContent : '';
         arreter();
         vibrer([120, 70, 120]);   // fin du repos : on le sent sans regarder
+        if (A.store && A.store.etat().reglages.notifierRepos) notifierFinRepos(libelle);
       }
     }
 
-    function demarrer(secondes, libelle) {
-      if (!secondes || secondes <= 0) return;
+    function lancer(finMs, dureeMs, libelle) {
       monter();
-      duree = secondes * 1000;
-      finA = Date.now() + duree;
+      duree = dureeMs;
+      finA = finMs;
       quoi.textContent = libelle || '';
       actif = true;
       noeud.classList.add('visible');
@@ -296,14 +333,39 @@
       rendre();
     }
 
+    function demarrer(secondes, libelle) {
+      if (!secondes || secondes <= 0) return;
+      var d = secondes * 1000;
+      lancer(Date.now() + d, d, libelle);
+      ecrireEtat();
+    }
+
+    /* Reprise apres une fermeture de l'app : l'etat du repos est relu du
+       stockage, et l'horodatage etant absolu, le temps restant est juste
+       meme si la page est restee morte dix minutes. */
+    function reprendre() {
+      var c = A.store && A.store.chronoEnCours && A.store.chronoEnCours();
+      if (!c) return false;
+      lancer(c.finA, c.duree || (c.finA - Date.now()), c.libelle);
+      return true;
+    }
+
+    function ecrireEtat() {
+      if (A.store && A.store.poserChrono) {
+        A.store.poserChrono(actif ? finA : null, duree, quoi ? quoi.textContent : '');
+      }
+    }
+
     function arreter() {
       clearInterval(tick);
       actif = false;
       if (noeud) noeud.classList.remove('visible');
       document.body.classList.remove('chrono-ouvert');
+      if (A.store && A.store.poserChrono) A.store.poserChrono(null);
     }
 
-    return { demarrer: demarrer, arreter: arreter, actif: function () { return actif; } };
+    return { demarrer: demarrer, arreter: arreter, reprendre: reprendre,
+             actif: function () { return actif; } };
   })();
 
   /* ---------- garder l'écran allumé ----------
@@ -352,33 +414,141 @@
 
   /* ---------- petits rendus partagés ---------- */
 
-  function jetonsDouleur(zones) {
-    var vraies = (zones || []).filter(function (z) { return z !== 'aucune'; });
+  /* Echelle 0-10, en grille : onze boutons empiles seraient illisibles et
+     demanderaient un defilement pour atteindre les valeurs hautes. */
+  function choisirIntensite(nomZone, actuelle, onChoix) {
+    var fond = h('div', { class: 'popo', role: 'dialog', 'aria-modal': 'true',
+                          'aria-label': 'Intensité — ' + nomZone });
+    var boite = h('div', { class: 'popo-feuille' });
+    boite.appendChild(h('h3', { text: 'Intensité — ' + nomZone }));
+    boite.appendChild(h('div', { class: 'item-resume', style: 'padding:0 6px 8px',
+      text: '0 : rien. 3 : je la sens. 6 : elle gêne le geste. 9 : je dois arrêter.' }));
+
+    var grille = h('div', { class: 'popo-echelle' });
+    for (var i = 0; i <= 10; i++) {
+      (function (v) {
+        var b = h('button', { type: 'button', class: 'echelon',
+                              'aria-pressed': actuelle === v ? 'true' : 'false',
+                              dataset: { niveau: v < 4 ? 'bas' : (v < 7 ? 'moyen' : 'haut') },
+                              text: String(v) });
+        b.addEventListener('click', function () { fermer(); onChoix(v); });
+        grille.appendChild(b);
+      })(i);
+    }
+    boite.appendChild(grille);
+
+    var flou = h('button', { class: 'bt bt-large bt-fantome', style: 'margin-top:8px',
+                             text: 'Non précisée' });
+    flou.addEventListener('click', function () { fermer(); onChoix(null); });
+    boite.appendChild(flou);
+
+    var ote = h('button', { class: 'bt bt-large bt-danger', style: 'margin-top:6px',
+                            text: 'Retirer cette zone' });
+    ote.addEventListener('click', function () { fermer(); onChoix('retirer'); });
+    boite.appendChild(ote);
+
+    var annul = h('button', { class: 'bt bt-large bt-fantome', style: 'margin-top:6px', text: 'Annuler' });
+    annul.addEventListener('click', function () { fermer(); });
+    boite.appendChild(annul);
+
+    fond.appendChild(boite);
+    fond.addEventListener('click', function (e) { if (e.target === fond) fermer(); });
+    function esc(e) { if (e.key === 'Escape') fermer(); }
+    var detruit = false, entree = null;
+    function detruire() {
+      if (detruit) return;
+      detruit = true;
+      document.removeEventListener('keydown', esc);
+      if (fond.parentNode) fond.parentNode.removeChild(fond);
+    }
+    function fermer() { if (detruit) return; detruire(); depiler(entree); }
+    document.addEventListener('keydown', esc);
+    document.body.appendChild(fond);
+    entree = empiler(detruire);
+  }
+
+  function jetonsDouleur(douleurs) {
+    var vraies = A.m.zonesVives(douleurs);
     if (!vraies.length) return null;
-    return h('span', { class: 'enrobe' }, vraies.map(function (z) {
-      return h('span', { class: 'jeton jeton-douleur', text: A.m.nomZone(z) });
+    return h('span', { class: 'enrobe' }, vraies.map(function (d) {
+      return h('span', { class: 'jeton jeton-douleur', text: A.m.texteDouleur(d) });
     }));
   }
 
-  /* Ligne de sélection multiple des douleurs, présente sur CHAQUE séance.
-     « Aucune » est exclusive : la cocher vide les autres, et inversement. */
+  /* Ligne de sélection des douleurs, présente sur CHAQUE séance.
+
+     UN appui pose la zone — c'est le geste rapide, celui d'avant, et il n'a
+     pas bouge. UN SECOND appui sur une zone deja posee ouvre l'echelle 0-10.
+     L'intensite reste donc facultative : elle ne ralentit que celui qui la
+     veut. C'est elle qui dit si une tendinopathie monte ou descend, ce qu'un
+     oui/non ne peut pas montrer.
+
+     « Aucune » est exclusive et n'a jamais d'intensite. */
   function selecteurDouleurs(valeurs, onChange) {
-    var sel = (valeurs || []).slice();
+    var sel = A.m.normaliserDouleurs(valeurs);
     var boite = h('div', { class: 'enrobe' });
+
+    function trouve(zone) {
+      for (var i = 0; i < sel.length; i++) if (sel[i].zone === zone) return sel[i];
+      return null;
+    }
+
+    function rafraichir() {
+      Array.prototype.forEach.call(boite.children, function (n, i) {
+        var z = A.m.ZONES[i], d = trouve(z.id);
+        n.setAttribute('aria-pressed', d ? 'true' : 'false');
+        n.textContent = d ? A.m.texteDouleur(d) : z.nom;
+        if (d && d.intensite != null) n.dataset.niveau = d.intensite < 4 ? 'bas' : (d.intensite < 7 ? 'moyen' : 'haut');
+        else delete n.dataset.niveau;
+      });
+      onChange(sel.map(function (d) { return { zone: d.zone, intensite: d.intensite }; }));
+    }
+
     A.m.ZONES.forEach(function (z) {
       var b = h('button', { type: 'button', class: 'puce puce-douleur', text: z.nom,
-                            'aria-pressed': sel.indexOf(z.id) >= 0 ? 'true' : 'false' });
+                            'aria-pressed': 'false' });
       b.addEventListener('click', function () {
-        var dedans = sel.indexOf(z.id) >= 0;
-        if (z.id === 'aucune') sel = dedans ? [] : ['aucune'];
-        else {
-          sel = sel.filter(function (x) { return x !== 'aucune'; });
-          if (dedans) sel = sel.filter(function (x) { return x !== z.id; });
-          else sel.push(z.id);
+        var d = trouve(z.id);
+
+        if (z.id === 'aucune') {
+          sel = d ? [] : [{ zone: 'aucune', intensite: null }];
+          rafraichir();
+          return;
         }
-        Array.prototype.forEach.call(boite.children, function (n, i) {
-          n.setAttribute('aria-pressed', sel.indexOf(A.m.ZONES[i].id) >= 0 ? 'true' : 'false');
+
+        sel = sel.filter(function (x) { return x.zone !== 'aucune'; });
+
+        if (!d) {                       // premier appui : la zone, rien de plus
+          sel.push({ zone: z.id, intensite: null });
+          rafraichir();
+          return;
+        }
+
+        choisirIntensite(z.nom, d.intensite, function (v) {   // second appui
+          if (v === 'retirer') sel = sel.filter(function (x) { return x.zone !== z.id; });
+          else d.intensite = v;
+          rafraichir();
         });
+      });
+      boite.appendChild(b);
+    });
+
+    rafraichir();
+    return boite;
+  }
+
+  /* Structures chargees par un exercice. Memes identifiants que les zones de
+     douleur pour les cinq premieres : c'est ce qui rend le croisement possible. */
+  function selecteurStructures(valeurs, onChange) {
+    var sel = (valeurs || []).slice();
+    var boite = h('div', { class: 'enrobe' });
+    A.m.STRUCTURES.forEach(function (s) {
+      var b = h('button', { type: 'button', class: 'puce', text: s.nom,
+                            'aria-pressed': sel.indexOf(s.id) >= 0 ? 'true' : 'false' });
+      b.addEventListener('click', function () {
+        var i = sel.indexOf(s.id);
+        if (i >= 0) sel.splice(i, 1); else sel.push(s.id);
+        b.setAttribute('aria-pressed', i >= 0 ? 'false' : 'true');
         onChange(sel.slice());
       });
       boite.appendChild(b);
@@ -495,6 +665,10 @@
     autocomplete: autocomplete, chrono: chrono, champMulti: champMulti,
     empiler: empiler, depiler: depiler, garderEcranAllume: garderEcranAllume,
     jetonsDouleur: jetonsDouleur, selecteurDouleurs: selecteurDouleurs,
-    selecteurForces: selecteurForces, groupe: groupe, deplacer: deplacer
+    selecteurForces: selecteurForces, selecteurStructures: selecteurStructures,
+    choisirIntensite: choisirIntensite,
+    notificationsPossibles: notificationsPossibles,
+    demanderNotifications: demanderNotifications,
+    groupe: groupe, deplacer: deplacer
   };
 })(window.App || (window.App = {}));
