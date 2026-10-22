@@ -771,6 +771,45 @@ posait une question là où un en-tête doit nommer ; « Choisir par sensation �
 état d'esprit. Celui qui reste annonce la **méthode** — on va désigner un endroit du
 corps, pas un nom latin — et c'est tout ce qu'un en-tête a besoin de faire.
 
+### La période se choisit, et elle est la même partout
+
+Le Suivi comptait sur **deux fenêtres figées** : 12 semaines pour les régions, 28 jours
+pour les mouvements et les muscles. Elles se choisissent maintenant — 1, 2, 3 semaines,
+1 mois, 3 mois, 6 mois — depuis une **seule** bande en haut de l’onglet. Un filtre par
+bloc laisserait l’écran annoncer trois périodes à la fois.
+
+Les périodes se comptent en **semaines**, parce que tout l’écran dérive de
+`chargeParSemaine`. Les fonctions qui comptent en **jours** partent de
+`joursDeLaFenetre(N)`, et surtout pas de `N × 7` : les semaines démarrent un lundi, donc
+N semaines couvrent entre **7N−6 et 7N jours** selon le jour où l’on regarde. Deux unités
+produiraient deux totaux différents sur le même écran, sans que rien ne le dise.
+
+Le choix vit dans `reglages.periodeSuivi` et survit donc à la fermeture. Un id inconnu —
+carnet plus ancien, ou plus récent — **retombe sur le défaut** au lieu de casser l’écran.
+Sous quatre semaines, « semaine après semaine » n’est pas dessiné : une ou deux barres
+mimeraient une tendance au lieu de la dire, et l’écran explique pourquoi.
+
+### Toucher une région filtre les muscles
+
+Toucher une zone du buste ne fait plus seulement l’allumer : le bloc **Muscles** ne garde
+que les siens, se titre de son nom, et offre le moyen de revenir. Sans filtre, le buste
+ne sert qu’à regarder ; avec, il sert à chercher.
+
+### Un exercice porte souvent deux gestes, et ça doit se voir
+
+Le croisement mouvements × muscles s’intitulait « Chaque mouvement, ce qu’il fait
+travailler ». C’est une affirmation sur le **mouvement** — or le compte porte sur **tes
+exercices**. On pronate *et* on curle dans le même mouvement : `musclesParMouvement`
+crédite alors tous les muscles de l’exercice à chacun de ses gestes.
+
+Mesuré sur le cas réel : un exercice coché `pronation`, dont les muscles couvrent les
+deux gestes, fait afficher **cinq** muscles sous « Pronation » — biceps compris — alors
+que `musclesProposes(['pronation'])` n’en propose que **deux**, les deux pronateurs.
+
+Le calcul n’est pas faux : ces muscles ont travaillé. Le titre l’était. Il dit maintenant
+ce qu’il compte, et chaque muscle que le mouvement **ne produit pas** porte une étoile,
+avec sa légende. Le carnet tient les deux vérités ; il n’en fond plus une dans l’autre.
+
 ### Huit régions, et pourquoi le torse s’est coupé en deux
 
 Le torse ne faisait qu’un jusqu’au **2026-10-23**. La même mesure que pour l’épaule

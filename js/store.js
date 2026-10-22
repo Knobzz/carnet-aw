@@ -24,7 +24,11 @@
          que le lendemain d'une grosse seance est souvent un jour de repos. */
       releves: [],
       seances: [],
-      reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false },
+      reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false,
+                  /* La periode du Suivi. Un id, valide par le modele a la
+                     lecture : un carnet d'une autre version retombe sur le
+                     defaut au lieu de casser l'ecran. */
+                  periodeSuivi: '3m' },
       seanceEnCoursId: null,
       chrono: null          // { finA, duree, libelle } — survit a la fermeture
     };
@@ -55,6 +59,9 @@
         ? brut.reglages.theme : 'auto';
       d.reglages.ecranAllume = brut.reglages.ecranAllume !== false;
       d.reglages.notifierRepos = brut.reglages.notifierRepos === true;
+      if (typeof brut.reglages.periodeSuivi === 'string') {
+        d.reglages.periodeSuivi = brut.reglages.periodeSuivi;
+      }
     }
     if (typeof brut.seanceEnCoursId === 'string') d.seanceEnCoursId = brut.seanceEnCoursId;
 

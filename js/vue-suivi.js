@@ -6,6 +6,37 @@
 
   function etat() { return A.store.etat(); }
 
+  /* Ce que l'ecran retient entre deux rendus. La periode vit dans les
+     reglages, donc elle survit a la fermeture ; la region choisie non —
+     c'est un geste de lecture, pas un reglage, et la retrouver en rouvrant
+     l'app donnerait un ecran filtre sans qu'on se souvienne de l'avoir
+     demande. */
+  var regionChoisie = null;
+
+  function periodeDe(e) {
+    return A.m.periodeSuivi(e.reglages && e.reglages.periodeSuivi);
+  }
+
+  /* Le selecteur, partage par les trois blocs qui comptent une charge.
+     Un filtre par bloc laisserait l'ecran dire trois periodes a la fois. */
+  function selecteurPeriode(e, refaire) {
+    var active = periodeDe(e);
+    var bande = h('div', { class: 'periodes', role: 'group',
+                           'aria-label': 'Période du suivi' });
+    A.m.PERIODES_SUIVI.forEach(function (p) {
+      var bt = h('button', { type: 'button', class: 'periode-bt', text: p.nom,
+                             'aria-pressed': p.id === active.id ? 'true' : 'false' });
+      bt.addEventListener('click', function () {
+        if (p.id === active.id) return;
+        e.reglages.periodeSuivi = p.id;
+        A.store.sauver(true);
+        refaire();
+      });
+      bande.appendChild(bt);
+    });
+    return bande;
+  }
+
   function section(titre, aide) {
     var f = document.createDocumentFragment();
     f.appendChild(h('div', { class: 'sous-titre', text: titre }));
@@ -332,10 +363,10 @@
   /* ------------------------------------------------------------------
      4. mouvements — ce qu'un programme néglige
      ------------------------------------------------------------------ */
-  function blocForces(e) {
-    var r = A.m.repartitionForces(e, 28);
+  function blocForces(e, periode) {
+    var r = A.m.repartitionForces(e, A.m.joursDeLaFenetre(periode.semaines));
     var f = document.createDocumentFragment();
-    f.appendChild(section('Mouvements — 28 derniers jours',
+    f.appendChild(section('Mouvements — ' + periode.nom,
       'Séries validées sur les exercices que tu as associés à chaque mouvement. Un zéro est une information.'));
 
     if (!r.total) {
@@ -390,13 +421,35 @@
      chiffres dans les barres. Le détail d'un muscle s'ouvre par son nom.
      ------------------------------------------------------------------ */
 
-  function blocMuscles(e) {
+  function blocMuscles(e, periode, refaire) {
     var f = document.createDocumentFragment();
-    var c = A.m.chargeParMuscle(e, 28);
+    var jours = A.m.joursDeLaFenetre(periode.semaines);
+    var c = A.m.chargeParMuscle(e, jours);
 
-    f.appendChild(section('Muscles — 28 derniers jours',
-      'Ce qui tire, et combien. Les structures disent ce qui encaisse ; '
-    + 'les muscles disent ce qui travaille.'));
+    /* Une region choisie sur le buste ne garde que SES muscles. On nomme le
+       filtre et on donne le moyen de l'enlever : un ecran filtre sans le
+       dire se lit comme un ecran vide. */
+    var region = regionChoisie
+      ? A.m.REGIONS_MUSCLE.filter(function (r) { return r.id === regionChoisie; })[0]
+      : null;
+    f.appendChild(section('Muscles — ' + (region ? region.nom : periode.nom),
+      region
+        ? 'Filtré sur la région que tu as touchée, sur ' + periode.nom
+        + '. Touche-la de nouveau pour revoir tous les muscles.'
+        : 'Ce qui tire, et combien. Les structures disent ce qui encaisse ; '
+        + 'les muscles disent ce qui travaille.'));
+
+    if (region) {
+      var retirer = h('button', { type: 'button', class: 'bt bt-petit',
+                                  style: 'margin:0 0 10px',
+                                  text: '← tous les muscles' });
+      retirer.addEventListener('click', function () {
+        regionChoisie = null;
+        refaire();
+      });
+      f.appendChild(retirer);
+    }
+    function retenu(m) { return !regionChoisie || m.groupe === regionChoisie; }
 
     if (!c.total) {
       f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun muscle renseigné' }),
@@ -425,8 +478,12 @@
 
     var classes = A.m.MUSCLES.slice().sort(function (a, b) {
       return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
-    }).filter(function (m) { return (c.parMuscle[m.id] || 0) > 0; });
+    }).filter(function (m) { return (c.parMuscle[m.id] || 0) > 0 && retenu(m); });
 
+    if (regionChoisie && !classes.length) {
+      corps.appendChild(h('div', { class: 'item-resume',
+        text: 'Aucun muscle de cette région n’a travaillé sur ' + periode.nom + '.' }));
+    }
     if (classes.length) {
       var rang = 0;
       var vignette = h('img', { class: 'planche-fond' });
@@ -498,7 +555,7 @@
       return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
     }).forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
-      if (!n) return;
+      if (!n || !retenu(m)) return;
       /* Le libellé est un BOUTON : il ouvre la planche en grand, avec le nom
          latin, ce que le muscle fait et ce qu'il mobilise. C'est le seul
          chemin vers le détail depuis que les zones cliquables ont été
@@ -517,7 +574,7 @@
     /* L'insertion commune se compte, et se dit en une ligne. Elle est utile
        pour relier la carte à une douleur de coude — pas pour en faire le
        sujet de l'écran. */
-    var ep = A.m.chargeEpicondyle(e, 28);
+    var ep = A.m.chargeEpicondyle(e, jours);
     if (ep.medial || ep.lateral) {
       var dits = [];
       if (ep.medial) dits.push(ep.medial + ' sur l’insertion médiale');
@@ -538,7 +595,7 @@
        Un compte par muscle dit « lequel travaille » ; celui-ci dit « qu'est-ce
        que je fais travailler », qui est la question d'un programme. Un zéro y
        est une information : un poignet jamais sollicité se voit. */
-    var arts = A.m.chargeParArticulation(e, 28);
+    var arts = A.m.chargeParArticulation(e, jours);
     if (arts.some(function (x) { return x.series > 0; })) {
       var maxA = arts.reduce(function (m, x) { return Math.max(m, x.series); }, 0) || 1;
       corps.appendChild(h('div', { class: 'sous-titre', style: 'margin:16px 0 4px',
@@ -555,25 +612,49 @@
       corps.appendChild(barresA);
     }
 
-    /* --- le croisement mouvements × muscles --- */
-    var croise = A.m.musclesParMouvement(e, 28).filter(function (x) { return x.series > 0; });
+    /* --- le croisement mouvements × muscles ---
+       Un exercice porte souvent PLUSIEURS gestes : on pronate et on curle
+       dans le meme mouvement. Ses muscles comptent alors pour chacun de ses
+       gestes, et c'est juste — ils ont travaille. Ce qui ne l'etait pas,
+       c'est le titre : « ce qu'il fait travailler » se lit comme une
+       affirmation sur le MOUVEMENT, alors que le compte porte sur TES
+       EXERCICES. Le carnet connait les deux, et il tient la reponse
+       anatomique a cote (musclesProposes) : on marque donc les muscles que
+       le mouvement lui-meme ne produit PAS, au lieu de les fondre. */
+    var croise = A.m.musclesParMouvement(e, jours).filter(function (x) { return x.series > 0; });
     if (croise.length) {
-      f.appendChild(section('Chaque mouvement, ce qu’il fait travailler',
-        'D’après tes exercices tels qu’ils sont renseignés — pas d’après la proposition.'));
+      f.appendChild(section('Tes exercices de chaque mouvement, muscle par muscle',
+        'Un exercice qui porte plusieurs gestes compte ses muscles pour chacun. '
+      + 'Une étoile marque ceux que le mouvement lui-même ne produit pas : ils '
+      + 'viennent d’un autre geste du même exercice.'));
       var c2 = h('div', { class: 'carte' });
       var corps2 = h('div', { class: 'carte-corps', style: 'padding:8px 12px 10px' });
+      var aUneEtoile = false;
       croise.forEach(function (x) {
         var ids = Object.keys(x.parMuscle).sort(function (a, b) {
           return x.parMuscle[b] - x.parMuscle[a];
         });
+        /* Ce que le mouvement produit VRAIMENT, lu dans le modele et non
+           deduit de l'exercice. */
+        var duGeste = (A.m.musclesProposes([x.force], null, '', null) || {}).muscles || [];
         corps2.appendChild(h('div', { class: 'item-ligne', style: 'padding:6px 0' },
           h('b', { text: x.nom }),
           h('span', { text: x.series + ' sér.' })));
         corps2.appendChild(h('div', { class: 'item-resume', style: 'margin:-4px 0 4px;font-size:.76rem',
           text: ids.length
-            ? ids.map(function (id) { return A.m.nomMuscle(id) + ' ' + x.parMuscle[id]; }).join(', ')
+            ? ids.map(function (id) {
+                var etoile = duGeste.indexOf(id) < 0;
+                if (etoile) aUneEtoile = true;
+                return A.m.nomMuscle(id) + ' ' + x.parMuscle[id] + (etoile ? ' *' : '');
+              }).join(', ')
             : 'aucun muscle renseigné sur les exercices de ce mouvement' }));
       });
+      if (aUneEtoile) {
+        corps2.appendChild(h('div', { class: 'item-resume',
+          style: 'margin-top:6px;font-size:.72rem',
+          text: '* ce muscle ne vient pas de ce mouvement : il est sur un exercice '
+              + 'qui porte aussi un autre geste.' }));
+      }
       c2.appendChild(corps2);
       f.appendChild(c2);
     }
@@ -773,7 +854,6 @@
      en jours et une fenetre en semaines ISO ne couvrent deja pas les memes
      jours, et l'ecart est invisible a l'oeil.
      ------------------------------------------------------------------ */
-  var SEMAINES_REGION = 12;
   var NSVG = 'http://www.w3.org/2000/svg';
 
   function nsvg(nom, attrs, enfants) {
@@ -921,9 +1001,9 @@
     return PALIERS_REGION[Math.min(4, Math.floor(valeur / maxi * 5))];
   }
 
-  function blocRegions(e) {
+  function blocRegions(e, periode, refaire) {
     var f = document.createDocumentFragment();
-    var parSem = A.m.chargeParSemaine(e, 'region', SEMAINES_REGION);
+    var parSem = A.m.chargeParSemaine(e, 'region', periode.semaines);
     if (!parSem) return f;
 
     var totaux = {}, maxi = 0;
@@ -933,9 +1013,10 @@
     });
     parSem.cles.forEach(function (c) { maxi = Math.max(maxi, totaux[c.id]); });
 
-    f.appendChild(section('Régions — ' + SEMAINES_REGION + ' dernières semaines',
-      'Le rouge est le plus travaillé, le bleu le moins, le gris n’a jamais servi. '
-    + 'Touche une région ou une ligne : l’autre s’allume.'));
+    f.appendChild(section('Régions — ' + periode.nom,
+      'Du jaune au rouge foncé : le rouge foncé est le plus travaillé, le jaune '
+    + 'le moins. Le gris n’a jamais servi — ce n’est pas un palier, c’est une '
+    + 'troisième chose. Touche une région pour ne garder qu’elle dans les muscles.'));
 
     if (!maxi) {
       f.appendChild(h('div', { class: 'vide' },
@@ -1007,14 +1088,14 @@
       h('span', { text: 'le plus' })));
 
     /* ---- le tableau, du plus charge au moins ---- */
-    var compare = A.m.comparerDeuxPeriodes(e, 'region', SEMAINES_REGION) || [];
+    var compare = A.m.comparerDeuxPeriodes(e, 'region', periode.semaines) || [];
     var triees = parSem.cles.slice().sort(function (a, b) {
       return totaux[b.id] - totaux[a.id];
     });
     var table = h('table', { class: 'table-regions' });
     table.appendChild(h('tr', {},
       h('th', { text: 'région' }),
-      h('th', { class: 'col-n', text: SEMAINES_REGION + ' sem.' }),
+      h('th', { class: 'col-n', text: periode.nom }),
       h('th', { class: 'col-n', text: 'écart' })));
 
     triees.forEach(function (c) {
@@ -1044,6 +1125,17 @@
     corps.appendChild(table);
 
     /* ---- semaine apres semaine ---- */
+    if (periode.semaines < 4) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:12px',
+        text: 'Sur ' + periode.nom + ', il n’y a pas de semaine après semaine à '
+            + 'montrer : une ou deux barres mimeraient une tendance au lieu de '
+            + 'la dire. Choisis 1 mois ou plus.' }));
+      carte.appendChild(corps);
+      f.appendChild(carte);
+      brancherVedette(corps, refaire);
+      return f;
+    }
+
     corps.appendChild(h('div', { class: 'sous-titre', style: 'margin:16px 0 2px',
                                  text: 'Semaine après semaine' }));
     corps.appendChild(h('div', { class: 'item-resume', style: 'margin:0 0 8px',
@@ -1066,25 +1158,31 @@
         piste));
     });
     corps.appendChild(h('div', { class: 'bornes-semaines' },
-      h('span', { text: 'il y a ' + SEMAINES_REGION + ' sem.' }),
+      h('span', { text: 'il y a ' + periode.semaines + ' sem.' }),
       h('span', { text: 'cette semaine' })));
 
-    /* Le lien dans les deux sens. Sans lui, deux regions de teinte proche ne
-       se distinguent pas — et c'est exactement le cas du biceps et du
-       triceps, qui sont le meme bras vu des deux cotes. */
-    var courante = null;
-    function vedette(id) {
-      courante = id;
-      [].forEach.call(corps.querySelectorAll('[data-region]'), function (x) {
-        if (id && x.getAttribute('data-region') === id) x.classList.add('vedette');
-        else x.classList.remove('vedette');
-      });
-    }
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    brancherVedette(corps, refaire);
+    return f;
+  }
+
+  /* Toucher une region la met en vedette ET filtre le bloc Muscles sur ses
+     muscles. Sans le lien dans les deux sens, deux regions de teinte proche
+     ne se distinguent pas — c'est exactement le cas du biceps et du triceps,
+     qui sont le meme bras vu des deux cotes. */
+  function brancherVedette(corps, refaire) {
+    [].forEach.call(corps.querySelectorAll('[data-region]'), function (x) {
+      if (regionChoisie && x.getAttribute('data-region') === regionChoisie) {
+        x.classList.add('vedette');
+      }
+    });
     function basculer(ev) {
       var cible = ev.target.closest ? ev.target.closest('[data-region]') : null;
       if (!cible) return false;
       var id = cible.getAttribute('data-region');
-      vedette(id === courante ? null : id);
+      regionChoisie = (id === regionChoisie) ? null : id;
+      refaire();
       return true;
     }
     corps.addEventListener('click', basculer);
@@ -1092,10 +1190,6 @@
       if (ev.key !== 'Enter' && ev.key !== ' ') return;
       if (basculer(ev)) ev.preventDefault();
     });
-
-    carte.appendChild(corps);
-    f.appendChild(carte);
-    return f;
   }
 
   function rendre(hote) {
@@ -1114,6 +1208,17 @@
     btHisto.addEventListener('click', function () { A.vues.exercice.choisir(); });
     hote.appendChild(btHisto);
 
+    /* Refaire l'ecran sans le faire sauter : on repose la page ou elle
+       etait. Un filtre qui renvoie en haut de l'onglet fait perdre ce
+       qu'on etait en train de lire. */
+    var periode = periodeDe(e);
+    function refaire() {
+      var y = window.scrollY;
+      rendre(hote);
+      window.scrollTo(0, y);
+    }
+    hote.appendChild(selecteurPeriode(e, refaire));
+
     /* L'ordre répond à « qu'est-ce que je regarde en ouvrant l'onglet ».
        D'abord ce qui appelle une décision aujourd'hui — la question du
        lendemain, puis la dernière sollicitation par exercice. Ensuite ce
@@ -1124,9 +1229,9 @@
     hote.appendChild(blocSollicitation(e));
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocRecup(e));
-    hote.appendChild(blocForces(e));
-    hote.appendChild(blocRegions(e));
-    hote.appendChild(blocMuscles(e));
+    hote.appendChild(blocForces(e, periode));
+    hote.appendChild(blocRegions(e, periode, refaire));
+    hote.appendChild(blocMuscles(e, periode, refaire));
     hote.appendChild(blocPentes(e));
     hote.appendChild(blocStructures(e));
     hote.appendChild(blocDouleurs(e));

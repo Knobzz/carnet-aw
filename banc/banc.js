@@ -1445,6 +1445,38 @@
            'celle de la veille en est dehors : la bordure est nette');
 
     v.egal(A.m.chargeParSemaine(e, 'zzz', 8), null, 'un axe inconnu ne rend rien');
+
+    /* --- les periodes du Suivi ---
+       Elles se comptent en SEMAINES parce que tout l'ecran derive de
+       chargeParSemaine. Les fonctions qui comptent en jours doivent partir
+       du MEME nombre, sinon deux blocs du meme ecran affichent des totaux
+       differents sans que rien ne le dise. */
+    v.vrai(A.m.PERIODES_SUIVI.length >= 4, 'plusieurs périodes sont proposées');
+    var croissantes = A.m.PERIODES_SUIVI.every(function (p, i, t) {
+      return i === 0 || p.semaines > t[i - 1].semaines;
+    });
+    v.vrai(croissantes, 'et elles vont de la plus courte à la plus longue');
+    v.egal(A.m.periodeSuivi('1m').semaines, 4, '« 1 mois » vaut quatre semaines');
+    /* Un id inconnu — carnet plus vieux, ou plus recent — ne doit pas
+       casser l'ecran : il retombe sur le defaut. */
+    var horsTable = ['zzz', null, undefined, '', 0, '1 mois'].filter(function (x) {
+      return A.m.PERIODES_SUIVI.indexOf(A.m.periodeSuivi(x)) < 0;
+    }).length;
+    v.egal(horsTable, 0,
+           'quoi qu’on demande, on rend une période DE LA TABLE — un carnet '
+         + 'd’une autre version ne doit pas casser l’écran');
+
+    /* La valeur attendue se calcule SANS appeler la fonction : N x 7 moins
+       le rang du jour dans la semaine (lundi = 0). Un LUNDI, ce rang vaut
+       zero et la bonne formule donne le meme resultat que la fausse — le
+       controle est alors aveugle, et son libelle le dit. */
+    var rangDuJour = (new Date().getDay() + 6) % 7;
+    A.m.PERIODES_SUIVI.forEach(function (p) {
+      v.egal(A.m.joursDeLaFenetre(p.semaines), p.semaines * 7 - rangDuJour,
+             p.nom + ' couvre ' + (p.semaines * 7 - rangDuJour) + ' jours, pas '
+           + (p.semaines * 7) + ' : les semaines partent d’un lundi'
+           + (rangDuJour ? '' : ' — AVEUGLE aujourd’hui, on est lundi'));
+    });
   });
 
   /* ================================================================

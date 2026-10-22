@@ -2491,6 +2491,42 @@
     return l.sort();
   }
 
+  /* Les periodes qu'on peut demander au Suivi. Elles se comptent en
+     SEMAINES et non en jours, parce que tout l'ecran derive de
+     chargeParSemaine : deux unites finiraient par ne pas couvrir les memes
+     jours, et l'ecart est invisible a l'oeil. */
+  var PERIODES_SUIVI = [
+    { id: '1s', nom: '1 sem.', semaines: 1 },
+    { id: '2s', nom: '2 sem.', semaines: 2 },
+    { id: '3s', nom: '3 sem.', semaines: 3 },
+    { id: '1m', nom: '1 mois', semaines: 4 },
+    { id: '3m', nom: '3 mois', semaines: 13 },
+    { id: '6m', nom: '6 mois', semaines: 26 }
+  ];
+  var PERIODE_DEFAUT = '3m';
+
+  /* Un id inconnu — carnet plus ancien, ou plus recent — retombe sur le
+     defaut au lieu de casser l'ecran. */
+  function periodeSuivi(id) {
+    var p = PERIODES_SUIVI.filter(function (x) { return x.id === id; })[0];
+    if (p) return p;
+    return PERIODES_SUIVI.filter(function (x) { return x.id === PERIODE_DEFAUT; })[0];
+  }
+
+  /* Le nombre de JOURS que couvrent N semaines ISO. Ce n'est PAS N x 7 :
+     les semaines partent d'un lundi, donc elles couvrent entre 7N-6 et 7N
+     jours selon le jour ou l'on regarde. Les fonctions qui comptent en
+     jours doivent partir de CE nombre — sinon deux blocs du meme ecran
+     affichent des totaux differents sans que rien ne le dise. */
+  function joursDeLaFenetre(nbSemaines) {
+    var n = nbSemaines || 1;
+    var l = semainesRecentes(n);
+    if (!l.length) return n * 7;
+    var a = dateObjet(l[0]), b = new Date();
+    b.setHours(0, 0, 0, 0);
+    return Math.round((b - a) / 86400000) + 1;
+  }
+
   function chargeParSemaine(etat, axe, nbSemaines) {
     var def = AXES_SEMAINE[axe];
     if (!def) return null;
@@ -2728,6 +2764,8 @@
     fenetreAvant: fenetreAvant, episodesDouleur: episodesDouleur,
     volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
     chargeParSemaine: chargeParSemaine, comparerDeuxPeriodes: comparerDeuxPeriodes,
+    PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
+    joursDeLaFenetre: joursDeLaFenetre,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
     contexteTechnique: contexteTechnique, texteRetour: texteRetour,

@@ -1436,3 +1436,14 @@ tr.vedette td { background: var(--fond-2); }
 .piste-semaine i.semaine-vide { background: var(--trait); }
 .bornes-semaines { display: flex; justify-content: space-between;
                    font-size: 10px; color: var(--texte-3); margin-top: 2px; }
+
+/* ---------- Suivi : le choix de la période ----------
+   Une seule bande pour les trois blocs qui comptent une charge : un filtre
+   par bloc laisserait l'écran annoncer trois périodes à la fois. */
+.periodes { display: flex; gap: 4px; margin-bottom: 12px; }
+.periode-bt { flex: 1; min-height: 40px; padding: 0 2px; font-size: 12px;
+              font-weight: 600; color: var(--texte-2);
+              background: var(--fond-2); border: 1px solid var(--trait);
+              border-radius: var(--r); cursor: pointer; }
+.periode-bt[aria-pressed="true"] { color: var(--fond); background: var(--bleu);
+                                   border-color: var(--bleu); }

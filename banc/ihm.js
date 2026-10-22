@@ -674,8 +674,10 @@
     return attendre(80).then(function () {
       var titres = Array.prototype.map.call(doc.querySelectorAll('.sous-titre'),
         function (t) { return t.textContent; });
-      v.vrai(titres.indexOf('Mouvements — 28 derniers jours') >= 0,
-             'Suivi titre la section « Mouvements »');
+      v.vrai(titres.some(function (t) { return t.indexOf('Mouvements — ') === 0; }),
+             'Suivi titre la section « Mouvements » avec sa période');
+      v.egal(titres.filter(function (t) { return /28 derniers jours/.test(t); }).length, 0,
+             'et plus aucun titre n’annonce une fenêtre de 28 jours en dur');
       v.egal(titres.indexOf('Forces de Larratt — 28 derniers jours'), -1,
              '« Forces de Larratt » a disparu de Suivi aussi');
 
@@ -839,8 +841,10 @@
       v.vrai(titres.indexOf(nomAvb) >= 0, 'chaque région chargée a sa piste de semaines');
       var blocPiste = doc.querySelectorAll('.bloc-piste')[titres.indexOf(nomAvb)];
       var piste = blocPiste ? blocPiste.querySelector('.piste-semaine') : null;
-      v.egal(piste ? piste.children.length : 'piste absente', 12,
-             'douze semaines, pleines ou vides');
+      var semDefaut = fen.App.m.periodeSuivi(
+        fen.App.store.etat().reglages.periodeSuivi).semaines;
+      v.egal(piste ? piste.children.length : 'piste absente', semDefaut,
+             'autant de barres que la période compte de semaines, pleines ou vides');
       var vides = piste ? Array.prototype.filter.call(piste.children, function (b) {
         return b.classList.contains('semaine-vide');
       }).length : 0;
@@ -852,6 +856,8 @@
       var lBrasAr = ligne('bras_ar');
       v.vrai(!!lBrasAr, 'la ligne du bras arrière existe, avant de la toucher');
       if (lBrasAr) lBrasAr.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      /* Le clic refait l'ecran : tout ce qu'on tenait avant est detache. */
+      svg = doc.querySelector('.corps-regions');
       var allumees = svg.querySelectorAll('.zone-region.vedette');
       v.egal(allumees.length, 2, 'toucher une ligne allume les deux côtés du corps');
       var surDos = Array.prototype.every.call(allumees, function (p) {
@@ -859,8 +865,49 @@
         return t.indexOf('translate(92') === 0;
       });
       v.vrai(surDos, 'et le bras arrière ne s’allume QUE sur la vue de dos');
-      v.vrai(!!lBrasAr && lBrasAr.classList.contains('vedette'),
+      v.vrai(!!ligne('bras_ar') && ligne('bras_ar').classList.contains('vedette'),
              'la ligne touchée s’allume elle aussi');
+
+      /* --- LE FILTRE : toucher une region ne garde que SES muscles ---
+         Sans ca, le buste ne sert qu'a regarder ; avec, il sert a chercher. */
+      var titresM = Array.prototype.map.call(doc.querySelectorAll('.sous-titre'),
+        function (t) { return t.textContent; });
+      v.vrai(titresM.some(function (t) { return t === 'Muscles — Triceps'; }),
+             'le bloc Muscles se titre de la région touchée');
+      function nomsAffiches() {
+        return Array.prototype.map.call(
+          doc.querySelectorAll('.barres-muscles .barre-nom'),
+          function (b) { return b.textContent; });
+      }
+      /* Le triceps n'a RIEN recu dans ce decor : le filtrer doit donner une
+         liste vide ET le dire. Un cadre vide sans phrase se lit comme un
+         bogue. */
+      v.egal(nomsAffiches().length, 0,
+             'filtrer sur une région jamais travaillée ne montre aucun muscle');
+      v.vrai(/Aucun muscle de cette région/.test(doc.body.innerText),
+             'et l’écran le DIT, au lieu de laisser un cadre vide');
+
+      /* On enleve le filtre, puis on le repose sur une region CHARGEE :
+         c'est la qu'on verifie qu'il ne garde que les siens. */
+      ligne('bras_ar').dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      var tous = nomsAffiches();
+      v.vrai(tous.length > 0, 'sans filtre, tous les muscles chargés sont là');
+
+      ligne('avant_bras_av').dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      var filtres = nomsAffiches();
+      v.vrai(filtres.length > 0 && filtres.length < tous.length,
+             'filtrer sur les fléchisseurs en garde moins (' + filtres.length
+           + ' sur ' + tous.length + ')');
+      var duGroupe = fen.App.m.musclesDeLaRegion('avant_bras_av');
+      var intrus = filtres.filter(function (x) { return duGroupe.indexOf(x) < 0; });
+      v.egal(intrus.join(','), '',
+             'et AUCUN muscle d’une autre région n’y reste (intrus : '
+           + (intrus.join(', ') || 'aucun') + ')');
+
+      ligne('avant_bras_av').dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      v.egal(nomsAffiches().length, tous.length,
+             'toucher de nouveau la région rend TOUS les muscles');
+      svg = doc.querySelector('.corps-regions');
 
       /* --- le torse n'est PAS la meme region des deux cotes ---
          Le grand pectoral est sur le thorax, le grand dorsal sur le dos.
@@ -896,6 +943,7 @@
         }, 0)));
       }
       var grisJamais = null, teintes = {};
+      svg = doc.querySelector('.corps-regions');
       Array.prototype.forEach.call(svg.querySelectorAll('.zone-region'), function (p) {
         var c = versRgb(fen.getComputedStyle(p).fill);
         if (p.classList.contains('zone-muette')) grisJamais = c;
@@ -918,6 +966,96 @@
              'chaque teinte est CHAUDE — le rouge domine le bleu d’au moins 60. '
            + 'C’est ce critere-la qui tient quel que soit le theme : le banc '
            + 'tourne en sombre, ou l’ecart au gris ne voit rien');
+
+      /* --- un exercice a DEUX gestes ne doit pas faire mentir l'ecran ---
+         On pronate ET on curle dans le meme mouvement : les muscles du curl
+         comptent pour la pronation, ce qui est vrai, mais doit etre MARQUE.
+         Sans l'etoile, l'ecran affirme que la pronation fait travailler le
+         biceps. */
+      var gardees = e.seances;
+      e.seances = [{
+        id: 'melange', type: 'muscu', date: jourIlYA(1), heure: '',
+        programmeId: null, programmeNom: 'M', dureeMin: 40, rpeGlobal: null,
+        note: '', douleurs: [],
+        exercices: [exoM('Pronation + curl',
+                         ['rond_pronateur', 'carre_pronateur', 'biceps'], 3)]
+      }];
+      e.seances[0].exercices[0].forces = ['pronation'];
+      fen.App.vues.suivi.rendre(vue);
+      var txt = doc.body.innerText;
+      v.vrai(txt.indexOf('Rond pronateur 3') >= 0,
+             'le croisement mouvements × muscles est bien rendu, AVANT de '
+           + 'mesurer ce qu’il dit');
+      var titresCroise = Array.prototype.map.call(doc.querySelectorAll('.sous-titre'),
+        function (t) { return t.textContent; });
+      v.egal(titresCroise.filter(function (t) {
+        return t.indexOf('ce qu’il fait travailler') >= 0;
+      }).length, 0,
+             'le croisement n’affirme plus « ce qu’il fait travailler » : '
+           + 'il compte TES EXERCICES, pas le mouvement — lu par textContent, '
+           + 'parce que innerText rend le titre en MAJUSCULES');
+      v.vrai(titresCroise.some(function (t) {
+        return t.indexOf('Tes exercices de chaque mouvement') === 0;
+      }), 'et il dit ce qu’il compte vraiment');
+      v.vrai(/Biceps brachial 3 \*/.test(txt),
+             'le biceps crédité à la pronation porte une étoile');
+      v.vrai(/Rond pronateur 3(?! \*)/.test(txt),
+             'et le rond pronateur, qui vient bien du geste, n’en porte pas');
+      v.vrai(/ne vient pas de ce mouvement/.test(txt),
+             'et la légende dit ce que l’étoile veut dire');
+      e.seances = gardees;
+      fen.App.vues.suivi.rendre(vue);
+      svg = doc.querySelector('.corps-regions');
+
+      /* --- le selecteur de periode ---
+         Une seule bande pour les trois blocs qui comptent une charge : un
+         filtre par bloc laisserait l'ecran annoncer trois periodes a la
+         fois. */
+      var bts = doc.querySelectorAll('.periodes .periode-bt');
+      v.egal(bts.length, fen.App.m.PERIODES_SUIVI.length,
+             'une touche par période proposée');
+      var actives = Array.prototype.filter.call(bts, function (b) {
+        return b.getAttribute('aria-pressed') === 'true';
+      });
+      v.egal(actives.length, 1, 'une seule est active à la fois');
+      var hauteurMini = Math.min.apply(null, Array.prototype.map.call(bts, function (b) {
+        return b.getBoundingClientRect().height;
+      }));
+      v.vrai(hauteurMini >= 40, 'et chacune fait au moins 40 px de haut (mesuré : '
+                              + Math.round(hauteurMini) + ')');
+
+      /* Choisir « 1 sem. » doit changer CE QUI EST COMPTE, pas seulement
+         l'etiquette : on mesure le nombre de barres de semaines. */
+      function titreRegions() {
+        var t = Array.prototype.filter.call(doc.querySelectorAll('.sous-titre'),
+          function (x) { return x.textContent.indexOf('Régions — ') === 0; })[0];
+        return t ? t.textContent : 'absent';
+      }
+      var avant = titreRegions();
+      bts[0].dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      v.vrai(titreRegions() !== avant,
+             'choisir une période change le titre des Régions ('
+           + avant + ' → ' + titreRegions() + ')');
+      v.egal(fen.App.store.etat().reglages.periodeSuivi,
+             fen.App.m.PERIODES_SUIVI[0].id,
+             'et le choix est ÉCRIT dans les réglages, donc il survivra');
+      /* Sous quatre semaines, « semaine apres semaine » n'a rien a dire :
+         une ou deux barres mimeraient une tendance. */
+      v.egal(doc.querySelectorAll('.piste-semaine').length, 0,
+             'sur une semaine, aucune piste hebdomadaire n’est dessinée');
+      v.vrai(/pas de semaine après semaine/.test(doc.body.innerText),
+             'et l’écran DIT pourquoi, au lieu de laisser un trou');
+
+      /* On repose le defaut pour ne pas laisser l'etat aux blocs suivants. */
+      var iDefaut = 0;
+      fen.App.m.PERIODES_SUIVI.forEach(function (p, i) {
+        if (p.id === '3m') iDefaut = i;
+      });
+      bts = doc.querySelectorAll('.periodes .periode-bt');
+      bts[iDefaut].dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      v.vrai(doc.querySelectorAll('.piste-semaine').length > 0,
+             'et revenir à 3 mois les fait revenir');
+      svg = doc.querySelector('.corps-regions');
 
       /* --- la place a 320 px --- */
       var debordants = [];
