@@ -497,6 +497,12 @@ autre série. Le carré pronateur et le coraco-brachial l'ont accompagnée un mo
 d'avoir leur bonne planche ; elles sont arrivées depuis, et leur muscle est désormais
 désigné — la bande distale entre radius et ulna, et le creux de l'aisselle.
 
+Le grand pectoral **reste comme ça, et c'est une décision**, pas un trou en attente : sa
+gravure est lisible, le muscle y occupe presque toute l'image, et le marquage ne lui
+apprendrait rien qu'on ne voie déjà. Inutile donc de « réparer » ce qui suit d'un futur
+passage — `SANS_MARQUAGE` le nomme, le contrôle l'attend, et le compte dit « 34 marquées,
+1 muette » sans que ce soit un échec.
+
 ### Les planches de Gray
 
 Le schéma répond à *combien*. Il ne répondra jamais à *à quoi ça ressemble, et où est-ce
