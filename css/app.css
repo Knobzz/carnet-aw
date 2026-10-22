@@ -844,6 +844,15 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    on ne voit plus les barres. En vignette, le rouge reste parfaitement
    lisible — c'est lui qu'on regarde — et l'appui ouvre l'image en grand. */
 .planche-bouton .planche-fond { max-height: 400px; width: auto; margin: 0 auto; }
+/* On fait defiler les muscles au doigt sur cette zone : le navigateur ne
+   doit pas y voir un geste de defilement HORIZONTAL de la page. `pan-y` lui
+   laisse le vertical — la page continue de defiler normalement — et nous
+   garde l'horizontal. */
+.planche-bouton { position: relative; touch-action: pan-y; }
+.planche-rang { position: absolute; right: 6px; bottom: 6px;
+                background: rgba(20, 28, 37, .62); color: #fff;
+                font-size: .7rem; font-variant-numeric: tabular-nums;
+                padding: 2px 7px; border-radius: 10px; }
 .planche-bouton:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
 .planche-fond { display: block; width: 100%; height: auto; }
 .bt-planche { font-size: .74rem; padding: 4px 9px; }

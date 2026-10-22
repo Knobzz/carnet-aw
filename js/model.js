@@ -192,10 +192,10 @@
   var MUSCLES = [
     /* --- épaule et tronc --- */
     { id: 'grand_pectoral', nom: 'Grand pectoral', court: 'Pectoral', aussi: 'pectoral',
-      latin: 'Pectoralis major', planche: 'bras_av', groupe: 'tronc',
+      latin: 'Pectoralis major', image: 'icones/muscle-grand_pectoral.png', planche: 'bras_av', groupe: 'tronc',
       quoi: 'ramène le bras vers soi', articulation: 'epaule' },
     { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
-      latin: 'Latissimus dorsi', planche: 'dos', groupe: 'tronc',
+      latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', planche: 'dos', groupe: 'tronc',
       quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
     { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde',
       latin: 'Deltoideus', image: 'icones/muscle-deltoide.png', planche: 'bras_av', groupe: 'tronc',
@@ -213,7 +213,7 @@
       quoi: 'fléchit le coude, quelle que soit la prise',
       articulation: 'coude', profond: true },
     { id: 'triceps', nom: 'Triceps brachial', court: 'Triceps', aussi: 'triceps',
-      latin: 'Triceps brachii', planche: 'bras_ar', groupe: 'bras_ar',
+      latin: 'Triceps brachii', image: 'icones/muscle-triceps.png', planche: 'bras_ar', groupe: 'bras_ar',
       quoi: 'tend le coude', articulation: 'coude' },
     { id: 'ancone', nom: 'Anconé', court: 'Anconé',
       latin: 'Anconeus', image: 'icones/muscle-ancone.png', planche: 'avb_ar', groupe: 'bras_ar',
@@ -358,10 +358,12 @@
 
      C'est ce que le decoupage essayait de fabriquer, et n'y arrivait pas :
      ici la forme est juste par construction, puisque c'est la planche
-     elle-meme qui porte la teinte. Trois muscles n'en ont pas encore — le
-     grand pectoral, le grand dorsal et le triceps — et retombent sur la
-     planche generale, ou ils sont nommes en latin. Le banc verifie que le
-     fichier annonce existe vraiment. */
+     elle-meme qui porte la teinte. Les vingt-deux en ont une.
+
+     Le repli sur la planche generale reste code : il a servi pour le
+     pectoral, le dorsal et le triceps avant qu'ils n'arrivent, et il
+     resservira si un muscle est ajoute au carnet avant son image. Le banc
+     verifie que chaque fichier annonce existe vraiment. */
   function imageDuMuscle(id) {
     var m = muscle(id);
     return (m && m.image) || null;

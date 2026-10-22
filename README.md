@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **752 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **768 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -149,7 +149,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **475 contrôles, 25 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **277 contrôles, 15 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **293 contrôles, 15 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -182,7 +182,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Soixante-quinze défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-deux défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -211,8 +211,15 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | une illustration annoncée mais absente du dépôt | `les 19 illustrations existent vraiment` — 2 contrôles rouges |
 | l'illustration qui n'est plus celle du muscle le plus chargé | `c'est l'illustration du muscle le PLUS sollicité` |
 | l'image qui ne s'ouvre plus en grand | `c'est un BOUTON — attendu "BUTTON", obtenu "DIV"` |
-| les muscles sans illustration passés sous silence | `trois muscles n'ont pas encore leur illustration, et on les NOMME` |
-| la planche générale retirée à un muscle sans illustration | `il garde sa planche générale : il y est, nommé en latin` |
+| les muscles sans illustration passés sous silence | `les vingt-deux muscles ont leur illustration propre` |
+| la planche générale retirée à un muscle | `chaque muscle garde AUSSI sa planche générale` |
+| un glissement qui ouvre aussi l'image | `un glissement n'OUVRE PAS l'image en grand : ce n'est pas un appui` |
+| aucun seuil : le moindre tremblement défile | `un petit mouvement ne fait pas défiler : c'est un appui qui a tremblé` |
+| un geste en diagonale pris pour un défilement | `le doigt partait vers le bas, c'est la page qu'il voulait bouger` |
+| un cul-de-sac au bout de la liste | `au-delà du dernier, ça BOUCLE — attendu "1 / 6", obtenu "6 / 6"` |
+| `touch-action` oublié sur la zone de glissement | `le geste horizontal nous revient (mesuré : auto)` |
+| les flèches du clavier retirées | `la flèche droite défile aussi — attendu "2 / 6", obtenu "1 / 6"` |
+| l'ordre qui n'est plus celui des barres | `on commence par le muscle le PLUS sollicité` |
 | un calque reposé sur l'illustration | `rien n'est posé dessus : l'image est le sujet, pas un fond` |
 | l'ancien `extenseurs_poignet` perdu au lieu d'être converti | `il devient les deux — attendu "ecrl,ecrb", obtenu ""` |
 | un muscle sans articulation déclarée | `chaque muscle dit ce qu'il mobilise (muets : Triceps brachial)` |

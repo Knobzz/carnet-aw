@@ -408,42 +408,92 @@
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
-    /* --- le muscle le plus sollicité, en image ---
+    /* --- les muscles sollicités, qu'on fait défiler au doigt ---
        Il y a eu ici un schéma dessiné à la main, puis des polygones
        cliquables posés sur les gravures : les deux ont échoué à suivre les
        contours réels. Le problème est résolu autrement — chaque muscle a
-       maintenant SON illustration, le membre entier avec lui seul en rouge.
-       La forme y est juste par construction, puisque c'est la planche qui
-       porte la teinte.
+       SON illustration, le membre entier avec lui seul en rouge, et la
+       forme y est juste par construction.
 
-       On montre donc celui qui travaille le plus, et les barres mènent aux
-       autres. */
+       On les fait défiler d'un glissement du doigt, dans l'ordre des barres
+       — du plus sollicité au moins. Appuyer sans glisser ouvre l'image en
+       grand. Les deux gestes sur la même zone, donc : il faut distinguer le
+       glissement de l'appui, et c'est la distance parcourue qui tranche. */
     var maxM = A.m.MUSCLES.reduce(function (m, x) {
       return Math.max(m, c.parMuscle[x.id] || 0);
     }, 0) || 1;
 
-    var tete = null;
-    A.m.MUSCLES.forEach(function (m) {
-      if ((c.parMuscle[m.id] || 0) === maxM && !tete) tete = m;
-    });
+    var classes = A.m.MUSCLES.slice().sort(function (a, b) {
+      return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
+    }).filter(function (m) { return (c.parMuscle[m.id] || 0) > 0; });
 
-    if (tete) {
-      var img = A.m.imageDuMuscle(tete.id);
-      var pl = A.m.plancheDuMuscle(tete.id);
-      var bt = h('button', { type: 'button', class: 'planche-carte planche-bouton',
-                             'aria-label': 'Voir ' + tete.nom + ' en grand' },
-        h('img', { class: 'planche-fond', src: img || pl.fichier,
-          alt: img ? tete.nom + ', teinté en rouge sur le membre supérieur'
-                   : 'Planche de Gray : ' + pl.nom }));
-      bt.addEventListener('click', function () { A.panneau.voirPlanche(tete.id); });
-      corps.appendChild(bt);
-      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:2px' },
-        h('b', { text: 'Le plus sollicité : ' + tete.nom }),
-        h('span', { text: ' — ' + maxM + ' série' + (maxM > 1 ? 's' : '') + '. '
-                        + (img ? 'En rouge sur le membre.' : 'Sur la planche générale.') })));
+    if (classes.length) {
+      var rang = 0;
+      var vignette = h('img', { class: 'planche-fond' });
+      var titre = h('div', { class: 'item-resume', style: 'margin-top:2px' });
+      var compteur = h('div', { class: 'planche-rang', 'aria-hidden': 'true' });
+      var cadre = h('button', { type: 'button', class: 'planche-carte planche-bouton' },
+        vignette, compteur);
+
+      function montrer(i) {
+        /* On boucle : arrivé au dernier, le geste suivant revient au
+           premier. Un cul-de-sac au bout d'une liste qu'on feuillette au
+           doigt donne l'impression que le geste ne marche plus. */
+        rang = ((i % classes.length) + classes.length) % classes.length;
+        var m = classes[rang];
+        var n = c.parMuscle[m.id] || 0;
+        var img = A.m.imageDuMuscle(m.id);
+        var pl = A.m.plancheDuMuscle(m.id);
+        vignette.setAttribute('src', img || pl.fichier);
+        vignette.setAttribute('alt', img
+          ? m.nom + ', teinté en rouge sur le membre supérieur'
+          : 'Planche de Gray : ' + pl.nom);
+        cadre.setAttribute('aria-label', m.nom + ', ' + n + ' séries — voir en grand');
+        compteur.textContent = (rang + 1) + ' / ' + classes.length;
+        A.ui.vider(titre);
+        titre.appendChild(h('b', { text: m.nom }));
+        titre.appendChild(h('span', { text: ' — ' + n + ' série' + (n > 1 ? 's' : '')
+                                          + ' · ' + m.quoi + '.' }));
+      }
+
+      /* Un glissement, ce n'est pas un appui : on mesure la distance. Sous
+         le seuil, c'est un appui et l'image s'ouvre ; au-dessus, c'est un
+         geste de défilement et l'appui ne doit PAS partir. */
+      var SEUIL = 36;
+      var departX = null, departY = null, aGlisse = false;
+      cadre.addEventListener('pointerdown', function (ev) {
+        departX = ev.clientX; departY = ev.clientY; aGlisse = false;
+      });
+      cadre.addEventListener('pointerup', function (ev) {
+        if (departX == null) return;
+        var dx = ev.clientX - departX, dy = ev.clientY - departY;
+        departX = null;
+        /* Horizontal ET franc : un doigt qui part en diagonale fait
+           défiler la page, pas la liste. */
+        if (Math.abs(dx) > SEUIL && Math.abs(dx) > Math.abs(dy)) {
+          aGlisse = true;
+          montrer(rang + (dx < 0 ? 1 : -1));
+        }
+      });
+      cadre.addEventListener('click', function (ev) {
+        if (aGlisse) { aGlisse = false; ev.preventDefault(); return; }
+        A.panneau.voirPlanche(classes[rang].id);
+      });
+      /* Au clavier, les flèches font la même chose : le glissement ne doit
+         pas être le SEUL chemin. */
+      cadre.addEventListener('keydown', function (ev) {
+        if (ev.key === 'ArrowRight') { ev.preventDefault(); montrer(rang + 1); }
+        else if (ev.key === 'ArrowLeft') { ev.preventDefault(); montrer(rang - 1); }
+      });
+
+      montrer(0);
+      corps.appendChild(cadre);
+      corps.appendChild(titre);
       corps.appendChild(h('div', { class: 'item-resume',
-        text: 'Appuie sur le nom d’un muscle, dans les barres, pour la même '
-            + 'image du sien.' }));
+        text: classes.length > 1
+          ? 'Glisse du doigt sur l’image pour passer d’un muscle à l’autre, '
+          + 'du plus sollicité au moins. Appuie pour la voir en grand.'
+          : 'Appuie sur l’image pour la voir en grand.' }));
     }
 
     /* --- les chiffres, muscle par muscle --- */

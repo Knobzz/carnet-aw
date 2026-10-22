@@ -758,51 +758,117 @@
       v.vrai(!!carte, 'la carte est dessinée');
       if (!carte) return;
 
-      /* --- l'illustration du muscle le plus sollicité ---
+      /* --- l'illustration, et le glissement du doigt ---
          Chaque muscle a la sienne : le membre entier, lui seul en rouge.
-         C'est ce que le découpage essayait de fabriquer sans y arriver. */
+         On les fait défiler au doigt, dans l'ordre des barres. */
       var img = carte.querySelector('img.planche-fond');
       v.vrai(!!img, 'une illustration est montrée');
       v.egal(carte.querySelectorAll('svg').length, 0,
              'et rien n’est posé dessus : l’image est le sujet, pas un fond');
       if (!img) return;
 
-      /* Le fléchisseur ulnaire est le plus chargé du jeu d'essai : c'est LUI
-         qui doit s'afficher, pas une planche générale ni le premier venu. */
       v.egal(img.getAttribute('src'), fen.App.m.imageDuMuscle('fcu'),
-             'c’est l’illustration du muscle le PLUS sollicité');
+             'on commence par le muscle le PLUS sollicité');
       v.vrai(carte.parentNode.textContent.indexOf('Fléchisseur ulnaire du carpe') >= 0,
              'et il est nommé dessous');
-      v.vrai(carte.parentNode.textContent.indexOf('9 séries') >= 0,
-             'avec son compte');
+      v.vrai(carte.parentNode.textContent.indexOf('9 séries') >= 0, 'avec son compte');
+      v.egal(carte.tagName, 'BUTTON', 'l’image s’ouvre d’un appui : c’est un BOUTON');
 
-      v.egal(carte.tagName, 'BUTTON',
-             'l’image s’ouvre en grand d’un appui : c’est un BOUTON');
-      v.vrai(carte.getBoundingClientRect().width <= LARGEUR,
-             'elle tient dans la largeur');
-      v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
-             'et ne provoque aucun défilement horizontal');
+      var rang = carte.querySelector('.planche-rang');
+      v.vrai(!!rang, 'un compteur dit où on en est');
+      v.egal(rang.textContent, '1 / 6', 'au premier des six muscles sollicités');
 
-      return new Promise(function (ok) {
-        if (img.complete) return ok();
-        img.addEventListener('load', function () { ok(); });
-        img.addEventListener('error', function () { ok(); });
-        fen.setTimeout(ok, 3000);
+      /* Le navigateur ne doit pas prendre le geste pour un défilement
+         horizontal de la page : `touch-action: pan-y` lui laisse le
+         vertical et nous garde l'horizontal. */
+      v.vrai(fen.getComputedStyle(carte).touchAction.indexOf('pan-y') >= 0,
+             'le geste horizontal nous revient, le défilement vertical reste au '
+           + 'navigateur (mesuré : ' + fen.getComputedStyle(carte).touchAction + ')');
+
+      function glisser(dx, dy) {
+        var r = carte.getBoundingClientRect();
+        var x0 = r.left + r.width / 2, y0 = r.top + r.height / 2;
+        var opt = function (x, y) {
+          return { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1 };
+        };
+        carte.dispatchEvent(new fen.PointerEvent('pointerdown', opt(x0, y0)));
+        carte.dispatchEvent(new fen.PointerEvent('pointerup', opt(x0 + dx, y0 + dy)));
+        carte.dispatchEvent(new fen.MouseEvent('click', { bubbles: true, cancelable: true }));
+      }
+
+      glisser(-90, 0);
+      v.egal(rang.textContent, '2 / 6', 'glisser de droite à gauche passe au suivant');
+      v.vrai(img.getAttribute('src') !== fen.App.m.imageDuMuscle('fcu'),
+             'et l’image change');
+      v.egal(doc.querySelectorAll('.panneau').length, 0,
+             'un glissement n’OUVRE PAS l’image en grand : ce n’est pas un appui');
+
+      glisser(90, 0);
+      v.egal(rang.textContent, '1 / 6', 'glisser dans l’autre sens revient en arrière');
+
+      glisser(-20, 0);
+      v.egal(rang.textContent, '1 / 6',
+             'un petit mouvement ne fait pas défiler : c’est un appui qui a tremblé');
+      return attendre(120).then(function () {
+        v.egal(doc.querySelectorAll('.panneau').length, 1,
+               'il ouvre l’image en grand, lui');
+        var f1 = doc.querySelector('.panneau .panneau-entete .bt-icone');
+        if (f1) f1.click();
+        return attendre(80);
       }).then(function () {
-        v.vrai(img.naturalWidth > 0, 'et l’image se charge pour de bon ('
-             + img.naturalWidth + ' × ' + img.naturalHeight + ')');
+        glisser(-80, 120);
+        v.egal(rang.textContent, '1 / 6',
+               'un geste en diagonale ne fait pas défiler non plus : le doigt '
+             + 'partait vers le bas, c’est la page qu’il voulait bouger');
 
-        /* Toutes les illustrations annoncées doivent exister : une image
-           cassée ne se verrait pas avant le téléphone. */
-        var fichiers = fen.App.m.MUSCLES.filter(function (m) { return m.image; })
-                          .map(function (m) { return m.image; });
-        return Promise.all(fichiers.map(function (f) {
-          return fen.fetch(f).then(function (r) { return r.ok ? null : f; },
-                                   function () { return f; });
-        })).then(function (ratees) {
-          v.egal(ratees.filter(Boolean).join(', '), '',
-                 'les ' + fichiers.length + ' illustrations existent vraiment dans le dépôt');
+        /* La boucle : au dernier, le geste suivant revient au premier. Un
+           cul-de-sac donne l'impression que le geste ne marche plus. */
+        glisser(-90, 0); glisser(-90, 0); glisser(-90, 0);
+        glisser(-90, 0); glisser(-90, 0);
+        v.egal(rang.textContent, '6 / 6', '[temoin] on est au dernier');
+        glisser(-90, 0);
+        v.egal(rang.textContent, '1 / 6', 'et au-delà du dernier, ça BOUCLE');
+
+        /* Les flèches font la même chose : le glissement ne doit pas être le
+           seul chemin. */
+        carte.dispatchEvent(new fen.KeyboardEvent('keydown',
+          { key: 'ArrowRight', bubbles: true, cancelable: true }));
+        v.egal(rang.textContent, '2 / 6', 'la flèche droite défile aussi');
+        carte.dispatchEvent(new fen.KeyboardEvent('keydown',
+          { key: 'ArrowLeft', bubbles: true, cancelable: true }));
+        v.egal(rang.textContent, '1 / 6', 'et la flèche gauche revient');
+
+        v.vrai(carte.getBoundingClientRect().width <= LARGEUR,
+               'la vignette tient dans la largeur');
+        v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
+               'et ne provoque aucun défilement horizontal');
+
+        return new Promise(function (ok) {
+          if (img.complete) return ok();
+          img.addEventListener('load', function () { ok(); });
+          img.addEventListener('error', function () { ok(); });
+          fen.setTimeout(ok, 3000);
+        }).then(function () {
+          v.vrai(img.naturalWidth > 0, 'et l’image se charge pour de bon ('
+               + img.naturalWidth + ' × ' + img.naturalHeight + ')');
+          var fichiers = fen.App.m.MUSCLES.filter(function (m) { return m.image; })
+                            .map(function (m) { return m.image; });
+          v.egal(fichiers.length, fen.App.m.MUSCLES.length,
+                 'les vingt-deux muscles ont leur illustration');
+          return Promise.all(fichiers.map(function (f) {
+            return fen.fetch(f).then(function (r) { return r.ok ? null : f; },
+                                     function () { return f; });
+          })).then(function (ratees) {
+            v.egal(ratees.filter(Boolean).join(', '), '',
+                   'et les ' + fichiers.length + ' existent vraiment dans le dépôt');
+          });
         });
+      }).then(function () {
+        /* Un panneau resté ouvert ferait échouer le bloc SUIVANT, et on
+           chercherait le défaut au mauvais endroit. */
+        var reste = doc.querySelector('.panneau .panneau-entete .bt-icone');
+        if (reste) reste.click();
+        return attendre(80);
       }).then(function () {
         /* --- les barres, et le chemin vers la planche en grand --- */
         var noms = doc.querySelectorAll('.barres-muscles .barre-nom');

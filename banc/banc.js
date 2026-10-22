@@ -978,19 +978,27 @@
        essayait de fabriquer sans y arriver : ici la forme est juste par
        construction. Un fichier annoncé mais absent donnerait une image
        cassée que personne ne verrait avant le téléphone. */
-    v.egal(A.m.musclesSansImage().join(', '), 'grand_pectoral, grand_dorsal, triceps',
-           'trois muscles n’ont pas encore leur illustration, et on les NOMME');
+    v.egal(A.m.musclesSansImage().join(', '), '',
+           'les vingt-deux muscles ont leur illustration propre (sans : '
+         + (A.m.musclesSansImage().join(', ') || 'aucun') + ')');
     var malFichu = A.m.MUSCLES.filter(function (m) {
       return m.image && m.image.indexOf('icones/muscle-') !== 0;
     }).map(function (m) { return m.id; });
     v.egal(malFichu.join(', '), '', 'chaque illustration est rangée au même endroit');
     v.egal(A.m.imageDuMuscle('fcu'), 'icones/muscle-fcu.png',
            'l’illustration se lit par identifiant');
-    v.egal(A.m.imageDuMuscle('triceps'), null,
-           'un muscle sans illustration rend null, pas une chaîne vide trompeuse');
-    v.egal(A.m.imageDuMuscle('zzz'), null, 'et un muscle inconnu non plus');
+    v.egal(A.m.imageDuMuscle('zzz'), null,
+           'un muscle inconnu rend null, pas une chaîne vide trompeuse');
+    /* Le repli sur la planche générale reste codé : il a servi avant que le
+       pectoral, le dorsal et le triceps n'arrivent, et il resservira si un
+       muscle est ajouté au carnet avant son image. */
+    v.egal(A.m.imageDuMuscle({ id: 'faux' }.id), null,
+           'et un identifiant inventé non plus');
     v.vrai(!!A.m.plancheDuMuscle('triceps'),
-           'mais il garde sa planche générale : il y est, nommé en latin');
+           'chaque muscle garde AUSSI sa planche générale, où il est nommé en latin');
+    var sansPlanche = A.m.MUSCLES.filter(function (m) { return !A.m.plancheDuMuscle(m.id); })
+                                 .map(function (m) { return m.id; });
+    v.egal(sansPlanche.join(', '), '', 'et aucun n’en manque');
 
     var pl = A.m.PLANCHES.map(function (x) { return x.id; });
     v.egal(pl.filter(function (x, i) { return pl.indexOf(x) !== i; }).join(','), '',

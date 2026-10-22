@@ -380,14 +380,32 @@ Muscle
   planche : 'avb_av'                  la planche générale, toujours présente
 ```
 
-**Dix-neuf des vingt-deux** en ont une. Les trois autres — grand pectoral, grand dorsal,
-triceps — retombent sur la **planche générale**, où ils sont nommés en latin.
-`musclesSansImage()` les nomme plutôt que de les laisser se fondre dans le lot : c'est ce
-qui reste à trouver, et le banc en tient la liste exacte.
+**Les vingt-deux** en ont une. Le repli sur la planche générale reste codé : il a servi
+avant que le pectoral, le dorsal et le triceps n'arrivent, et il resservira si un muscle
+est ajouté au carnet avant son image. `musclesSansImage()` nomme les manquants plutôt que
+de les laisser se fondre dans le lot.
 
-L'onglet Suivi montre l'illustration du **muscle le plus sollicité**, en vignette
-(un avant-bras fait 420 × 1283 : à pleine largeur il mange l'écran et on ne voit plus les
-barres). Le nom de chaque barre ouvre la même image pour le sien, en grand.
+### Les faire défiler au doigt
+
+L'onglet Suivi montre les muscles sollicités **dans l'ordre des barres**, du plus chargé au
+moins, et on passe de l'un à l'autre **d'un glissement du doigt** sur l'image. Un compteur
+dit où on en est (`3 / 6`).
+
+Deux gestes sur la même zone, donc, et il faut les distinguer :
+
+- **la distance tranche.** Sous 36 px, c'est un appui qui a tremblé : l'image s'ouvre en
+  grand. Au-dessus, c'est un défilement, et l'appui ne doit *pas* partir ;
+- **le geste doit être horizontal** (`|dx| > |dy|`). Un doigt qui part en diagonale veut
+  faire défiler la page, pas la liste ;
+- **`touch-action: pan-y`** sur la zone : le navigateur garde le défilement vertical — la
+  page bouge normalement — et nous laisse l'horizontal. Sans ça, le geste part en travers ;
+- **ça boucle.** Au dernier, le geste suivant revient au premier : un cul-de-sac au bout
+  d'une liste qu'on feuillette donne l'impression que le geste ne marche plus ;
+- **les flèches du clavier font la même chose.** Le glissement ne doit pas être le seul
+  chemin, et le nom de chaque barre ouvre toujours directement l'image du sien.
+
+La vignette est plafonnée en hauteur : un avant-bras fait 420 × 1283, à pleine largeur il
+mange l'écran et on ne voit plus les barres.
 
 **Poids.** Les fichiers d'origine pesaient 12,9 Mo pour 32 images — jusqu'à 740 ko pièce,
 en RGBA. Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles font 3,5 Mo au
