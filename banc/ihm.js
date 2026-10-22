@@ -60,7 +60,7 @@
   function hote() {
     var t = '?t=' + Date.now();
     /* Les chemins sont ceux de l'app, pas ceux du banc : avec <base href="../">
-       ci-dessous, `js/model.js` et `icones/Gray414.png` se résolvent dans
+       ci-dessous, `js/model.js` et `icones/muscle-fcu.png` se résolvent dans
        l'iframe exactement comme dans index.html. Sans ça, une planche
        trouvée ici serait introuvable sur le téléphone, ou l'inverse. */
     var s = function (f) { return '<scr' + 'ipt src="js/' + f + t + '"></scr' + 'ipt>'; };
