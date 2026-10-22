@@ -618,34 +618,115 @@
      dessous, dans la liste.
 
      Le bloc est REPLIÉ par défaut : qui connaît les noms n'a rien à lire. */
-  function selecteurOuCaTire(onAjout) {
+  /* Les zones ressenties sont des CASES A COCHER, pas des boutons qui
+     ajoutent. Elles l'ont ete : un appui posait des muscles, un second n'en
+     retirait aucun, et rien ne restait allume — on ne pouvait donc ni
+     defaire, ni voir ce qu'on avait deja choisi. MB l'a signale en croyant
+     qu'on ne pouvait pas en cocher plusieurs ; on pouvait, mais rien ne le
+     montrait.
+
+     La provenance des mouvements a servi de point de depart, mais elle ne
+     convient pas telle quelle : la, un muscle appartient a CELUI qui l'a
+     pose en premier. Pour des cases a cocher, ce qu'on attend est une
+     UNION — decocher une zone ne doit retirer que ce qu'AUCUNE autre zone
+     cochee ne reclame.
+
+     On retient donc, par muscle, l'ensemble des zones qui l'ont pose
+     (`origine`). Cocher une zone l'ajoute a l'origine de chacun de ses
+     muscles, meme deja coches ; decocher la retire, et le muscle ne part
+     que si son origine devient vide.
+
+     Un muscle coche A LA MAIN n'a aucune origine : il ne part jamais. C'est
+     la meme garantie que pour les mouvements, obtenue autrement.
+
+     Ca compte : QUATORZE des trente-cinq muscles appartiennent a plusieurs
+     zones, et l'extenseur du petit doigt a trois. Avec la semantique des
+     mouvements, decocher « le dessus de l'avant-bras » emportait l'extenseur
+     ulnaire alors que « le bord du petit doigt » restait coche.
+
+     Le contrat est `(lire, ecrire)` et non plus `(onAjout)` : le selecteur a
+     besoin de SAVOIR ce qui est deja coche pour calculer la provenance.
+
+     Le libelle a change trois fois, et chaque abandon dit quelque chose :
+     « Je ne connais pas les noms » collait une etiquette a qui appuyait ;
+     « Ou ca tire ? » posait une question la ou un en-tete doit nommer ;
+     « Choisir par sensation » decrivait un etat d'esprit. Celui qui reste
+     annonce la METHODE — on va designer un endroit du corps, pas un nom
+     latin — et c'est tout ce qu'un en-tete a besoin de faire. */
+  function selecteurOuCaTire(lire, ecrire) {
+    var LIBELLE = 'Par zone du corps';
     var corps = h('div', { class: 'ouca-corps', hidden: true });
     var entete = h('button', { type: 'button', class: 'bt', style: 'width:100%',
                                'aria-expanded': 'false',
-                               text: 'Je ne connais pas les noms →' });
+                               text: LIBELLE + ' →' });
     entete.addEventListener('click', function () {
       var ouvert = entete.getAttribute('aria-expanded') === 'true';
       entete.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
       corps.hidden = ouvert;
-      entete.textContent = ouvert ? 'Je ne connais pas les noms →'
-                                  : 'Je ne connais pas les noms ↓';
+      entete.textContent = LIBELLE + (ouvert ? ' →' : ' ↓');
     });
 
     corps.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 0 2px',
-      text: 'Appuie sur ce que tu sens travailler. Les muscles correspondants '
-          + 'se cochent en dessous, et tu corriges.' }));
+      text: 'Coche ce que tu sens travailler : les muscles correspondants se '
+          + 'cochent en dessous. Décoche, et ils s’en vont — sauf ceux qu’une '
+          + 'autre zone ou toi aviez déjà posés.' }));
+
+    var origine = {};   /* muscle -> [zones qui l'ont pose] */
 
     A.m.ZONES_RESSENTIES.forEach(function (z) {
-      var b = h('button', { type: 'button', class: 'ouca-ligne' },
+      var b = h('button', { type: 'button', class: 'ouca-ligne',
+                            'aria-pressed': 'false' },
+        h('span', { class: 'equip-coche', 'aria-hidden': 'true' }),
         h('span', { class: 'ouca-texte' },
           h('b', { text: z.nom }),
           h('span', { text: z.aide })));
+
       b.addEventListener('click', function () {
-        var ajoutes = A.m.musclesDesZones([z.id]);
-        onAjout(ajoutes);
-        toast(ajoutes.length + ' muscle' + (ajoutes.length > 1 ? 's' : '')
-            + ' coché' + (ajoutes.length > 1 ? 's' : '') + ' : '
-            + ajoutes.map(A.m.nomCourtMuscle).join(', ') + '.');
+        var coche = b.getAttribute('aria-pressed') === 'true';
+        var noms = function (l) { return l.map(A.m.nomCourtMuscle).join(', '); };
+        var siens = A.m.musclesDesZones([z.id]);
+        var actuels = lire() || [];
+
+        if (!coche) {
+          var neufs = [];
+          siens.forEach(function (id) {
+            var dejaLa = actuels.indexOf(id) >= 0;
+            /* Un muscle coché A LA MAIN n'a pas d'origine, et la zone ne
+               l'ADOPTE pas : sinon la décocher l'emporterait, alors que
+               personne ne l'avait posé pour elle. C'est le piège de ce
+               dessin, et il ne se voit que si le muscle coché à la main
+               appartient justement à la zone qu'on coche ensuite. */
+            if (dejaLa && !origine[id]) return;
+            if (!origine[id]) origine[id] = [];
+            if (origine[id].indexOf(z.id) < 0) origine[id].push(z.id);
+            if (!dejaLa) neufs.push(id);
+          });
+          b.setAttribute('aria-pressed', 'true');
+          ecrire(A.m.muscles({ muscles: actuels.concat(neufs) }));
+          toast(neufs.length
+            ? neufs.length + ' muscle' + (neufs.length > 1 ? 's' : '')
+              + ' coché' + (neufs.length > 1 ? 's' : '') + ' : ' + noms(neufs) + '.'
+            : 'Ces muscles étaient déjà cochés — rien de neuf à ajouter.');
+        } else {
+          /* Un muscle part quand plus AUCUNE zone cochée ne le réclame. Celui
+             qui a été coché à la main n'a pas d'origine du tout : il reste. */
+          var partent = [];
+          siens.forEach(function (id) {
+            var o = origine[id];
+            if (!o) return;
+            var i = o.indexOf(z.id);
+            if (i >= 0) o.splice(i, 1);
+            if (!o.length) { delete origine[id]; partent.push(id); }
+          });
+          b.setAttribute('aria-pressed', 'false');
+          if (partent.length) {
+            ecrire(actuels.filter(function (id) { return partent.indexOf(id) < 0; }));
+            toast('Décoché : ' + noms(partent) + '.');
+          } else {
+            toast('Rien retiré : ces muscles sont réclamés ailleurs, '
+                + 'ou tu les avais cochés à la main.');
+          }
+        }
       });
       corps.appendChild(b);
     });

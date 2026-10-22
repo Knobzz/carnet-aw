@@ -640,12 +640,12 @@
 
       /* L'entrée de secours : les noms latins ne parlent pas à tout le monde,
          et une case qu'on ne sait pas cocher reste vide. */
-      var ouCaTire = A.ui.selecteurOuCaTire(function (ajoutes) {
-        var fusion = A.m.muscles(exo).slice();
-        ajoutes.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
-        exo.muscles = A.m.muscles({ muscles: fusion });
-        rafraichirMuscles();
-      });
+      var ouCaTire = A.ui.selecteurOuCaTire(
+        function () { return A.m.muscles(exo); },
+        function (voulus) {
+          exo.muscles = A.m.muscles({ muscles: voulus });
+          rafraichirMuscles();
+        });
 
       var grMuscles = A.ui.groupe('Muscles sollicités', ouCaTire);
       grMuscles.appendChild(boiteMuscles);

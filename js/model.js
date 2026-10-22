@@ -929,11 +929,13 @@
       aide: 'côté paume — le wrist curl',
       muscles: ['rond_pronateur', 'fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts'] },
     { id: 'bord_pouce', nom: 'Le bord du pouce',
-      aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir',
+      aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir '
+          + '— le toproll, le reverse curl',
       muscles: ['brachio_radial', 'ecrl', 'ecrb', 'fcr', 'extenseurs_pouce',
                 'long_abducteur_pouce', 'court_abducteur_pouce'] },
     { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
-      aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y partir',
+      aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y '
+          + 'partir — le hook, le wrist curl en pronation',
       muscles: ['ecu', 'fcu', 'extenseur_petit_doigt', 'abducteur_auriculaire',
                 'court_flechisseur_auriculaire'] },
     { id: 'serrer', nom: 'La main qui serre',
@@ -949,7 +951,8 @@
        paume autour de la prise, et c'est une perception a part entiere : sans
        cette zone, deux muscles resteraient reserves a qui connait les noms. */
     { id: 'creux_paume', nom: 'Le creux de la main',
-      aide: 'la paume se creuse autour de la poignée, sans serrer plus fort',
+      aide: 'la paume se creuse autour de la poignée, sans serrer plus fort '
+          + '— la barre épaisse, la poignée large',
       muscles: ['lombricaux', 'court_palmaire', 'opposant_pouce', 'opposant_auriculaire'] },
     { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
       aide: 'la pronation — la poignée de pronation, la sangle',

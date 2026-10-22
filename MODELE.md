@@ -629,13 +629,32 @@ quand il y en a un. La première version disait « la face poilue » : c'était 
 quelqu'un comme à un enfant, ça a été relevé comme tel, et le banc tient maintenant le
 choix. Ne pas connaître le vocabulaire d'une discipline n'est pas ne rien comprendre.
 
-Trois décisions tenues par des contrôles :
+Quatre décisions tenues par des contrôles :
 
-- **Chaque appui AJOUTE, il ne remplace jamais.** Deux zones se recouvrent ; un décochage
-  ferait disparaître ce qu'une autre avait posé, sans prévenir.
+- **Ce sont des cases à cocher.** Une zone cochée reste allumée, et la décocher retire ses
+  muscles. Elles ont longtemps été des boutons qui *ajoutaient* : un second appui ne
+  retirait rien, et rien ne restait allumé. MB l'a signalé en croyant qu'on ne pouvait pas
+  en cocher plusieurs — on pouvait, mais l'écran ne le montrait pas. Une interface qui ne
+  dit pas ce qu'elle a retenu ment sur ce qu'elle sait faire.
+- **Le décochage est une UNION, pas un premier arrivé premier servi.** Un muscle ne part
+  que si **aucune** zone cochée ne le réclame encore. C'est nécessaire : **quatorze des
+  trente-cinq** muscles appartiennent à plusieurs zones, et l'extenseur du petit doigt à
+  trois. La provenance des mouvements a servi de point de départ, mais elle attribue le
+  muscle à qui l'a posé *en premier* — décocher « le dessus de l'avant-bras » emportait
+  alors l'extenseur ulnaire alors que « le bord du petit doigt » restait coché.
+- **Une zone n'ADOPTE pas ce qu'elle n'a pas posé.** Un muscle coché à la main n'a aucune
+  origine, et il survit à tous les décochages — *y compris quand la zone le contient*.
+  C'est le piège de ce dessin : il ne se voit que si le muscle coché à la main appartient
+  justement à la zone cochée ensuite, et le premier contrôle écrit ici ne le mesurait pas.
 - **Tout muscle doit être atteignable par ce chemin.** Un muscle qu'aucune zone ne nomme
-  resterait réservé à qui connaît déjà les termes — le banc le vérifie sur les 22.
+  resterait réservé à qui connaît déjà les termes — le banc le vérifie sur les 35.
 - **Le bloc est replié par défaut.** Qui connaît les noms n'a rien à lire.
+
+Le bloc s'appelle **« Par zone du corps »**, et chaque titre abandonné dit quelque chose :
+« Je ne connais pas les noms » collait une étiquette à celui qui appuie ; « Où ça tire ? »
+posait une question là où un en-tête doit nommer ; « Choisir par sensation » décrivait un
+état d'esprit. Celui qui reste annonce la **méthode** — on va désigner un endroit du
+corps, pas un nom latin — et c'est tout ce qu'un en-tête a besoin de faire.
 
 ### Les régions de muscles se replient
 

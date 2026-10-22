@@ -175,12 +175,12 @@
         boiteM.appendChild(A.ui.selecteurMuscles(choisis, function (l) { choisis = l; }));
       }
       rendreM();
-      var ouCaTire = A.ui.selecteurOuCaTire(function (ajoutes) {
-        var fusion = choisis.slice();
-        ajoutes.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
-        choisis = A.m.muscles({ muscles: fusion });
-        rendreM();
-      });
+      var ouCaTire = A.ui.selecteurOuCaTire(
+        function () { return choisis.slice(); },
+        function (voulus) {
+          choisis = A.m.muscles({ muscles: voulus });
+          rendreM();
+        });
       var grM = A.ui.groupe('Muscles sollicités', ouCaTire,
         'Facultatif — un réglage qui n’est qu’une étiquette distingue déjà '
       + 'deux séances. S’ils sont cochés, la fiche d’exercice les proposera.');

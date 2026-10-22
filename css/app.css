@@ -1244,6 +1244,17 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
 .ouca-ligne:hover .ouca-texte b { color: var(--laiton); }
+/* Une zone COCHEE se voit : memes marques qu'une ligne de muscle, puisque
+   c'est la meme question posee autrement. Sans etat visible, on ne sait pas
+   ce qu'on a deja choisi — et on croit ne pas pouvoir en cocher plusieurs. */
+.ouca-ligne[aria-pressed="true"] { background: var(--bleu-doux); }
+.ouca-ligne[aria-pressed="true"] .ouca-texte b { color: var(--bleu); }
+.ouca-ligne[aria-pressed="true"] .equip-coche { background: var(--bleu); border-color: var(--bleu); }
+.ouca-ligne[aria-pressed="true"] .equip-coche::after {
+  content: ''; display: block; width: 5px; height: 9px; margin: 2px auto 0;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.ouca-ligne .equip-coche { margin-right: 9px; flex: none; }
 .ouca-texte { flex: 1; min-width: 0; }
 .ouca-texte b { display: block; font-size: .86rem; font-weight: 600; }
 .ouca-texte span { display: block; font-size: .74rem; color: var(--texte-2); }

@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **808 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **821 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -169,7 +169,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **489 contrôles, 26 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **319 contrôles, 17 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **332 contrôles, 17 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -206,7 +206,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-seize défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-dix-huit défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -303,6 +303,8 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | les blocs des Réglages ouverts par défaut | `tous sont REPLIÉS au départ — attendu 0, obtenu 3` — 5 contrôles rouges |
 | le compte retiré de l'en-tête repliée | `le compte se lit sans ouvrir — attendu "3,1,1", obtenu ",,"` |
 | une planche archivée reconvertie à 32 couleurs | `les planches archivées ont gardé leur marquage — vidées par la conversion : pronator_quadratus` |
+| le décochage d'une zone rendu au premier qui a posé | `c'est une union, pas un premier arrivé premier servi — attendu true, obtenu false` |
+| une zone qui ADOPTE un muscle coché à la main | `il survit même quand la zone qui le contient est décochée — attendu true, obtenu false` |
 
 Ce tableau est un **journal**, pas un inventaire : quelques lignes citent des contrôles
 qui ont disparu avec ce qu'ils mesuraient — les planches générales de l'atlas, par

@@ -1299,7 +1299,10 @@
       if (!pan) return;
 
       var bloc2 = pan.querySelector('.ouca');
-      v.vrai(!!bloc2, 'le raccourci « je ne connais pas les noms » est là');
+      v.vrai(!!bloc2, 'le raccourci « Par zone du corps » est là');
+      v.vrai(bloc2.querySelector('button').textContent.indexOf('Par zone du corps') === 0,
+             'et il annonce la MÉTHODE — désigner un endroit, pas un nom latin — '
+           + 'sans rien supposer de celui qui appuie');
       if (!bloc2) return;
 
       var corps = bloc2.querySelector('.ouca-corps');
@@ -1366,6 +1369,71 @@
         var presses = pan.querySelectorAll('.muscle-ligne[aria-pressed="true"]');
         v.egal(presses.length, l2.length,
                'et la liste en dessous le MONTRE, case cochée');
+
+        /* --- une zone cochée le DIT, et se décoche ---
+
+           Elle ne le disait pas : rien ne restait allumé, et un second appui
+           ne retirait rien. MB l'a signalé en croyant qu'on ne pouvait pas en
+           cocher plusieurs — on pouvait, mais l'écran ne le montrait pas. */
+        v.egal(cible.getAttribute('aria-pressed'), 'true',
+               'une zone cochée le DIT — sans ça on ne sait pas ce qu’on a pris');
+        v.egal(autre.getAttribute('aria-pressed'), 'true',
+               'et deux zones peuvent l’être en même temps');
+
+        /* Un muscle coché À LA MAIN ne part jamais. Le piège : il faut
+           qu'il APPARTIENNE à la zone qu'on cochera ensuite, sinon aucune
+           zone ne peut l'emporter et le contrôle ne mesure rien. L'anconé
+           appartient à « Le dessus de l'avant-bras », qu'on coche juste
+           après — c'est ce cas-là qui faisait adopter le muscle par la
+           zone, puis l'emportait au décochage. */
+        var aMain = null;
+        Array.prototype.forEach.call(pan.querySelectorAll('.muscle-ligne'), function (n) {
+          var b2 = n.querySelector('b');
+          if (b2 && b2.textContent === 'Anconé') aMain = n;
+        });
+        v.vrai(!!aMain, 'on retrouve l’anconé dans la liste');
+        aMain.click();
+        v.vrai(fen.App.m.muscles(brouillon).indexOf('ancone') >= 0,
+               'et il est coché à la main, avant toute zone');
+
+        /* Il FAUT deux zones qui se RECOUVRENT, sinon le contrôle ne mesure
+           rien : « le bord du petit doigt » et « la main qui serre » n'ont
+           aucun muscle commun, et la sémantique du premier-qui-pose donnerait
+           le même résultat que l'union. Ce contrôle a d'abord été écrit comme
+           ça, et il refusait de tomber.
+
+           « Le dessus de l'avant-bras » partage l'extenseur ulnaire ET
+           l'extenseur du petit doigt avec « le bord du petit doigt ». */
+        var dessus = null;
+        Array.prototype.forEach.call(lignes, function (n) {
+          if (n.textContent.indexOf('Le dessus de l’avant-bras') === 0) dessus = n;
+        });
+        v.vrai(!!dessus, 'on retrouve « Le dessus de l’avant-bras »');
+        dessus.click();
+        var partage = fen.App.m.muscles(brouillon);
+        v.vrai(partage.indexOf('ecu') >= 0 && partage.indexOf('extenseur_petit_doigt') >= 0,
+               'les deux zones se recouvrent bien sur l’extenseur ulnaire et '
+             + 'celui du petit doigt');
+
+        cible.click();
+        var l3 = fen.App.m.muscles(brouillon);
+        v.egal(cible.getAttribute('aria-pressed'), 'false', 'décocher le DIT aussi');
+        v.egal(l3.indexOf('fcu'), -1,
+               'décocher retire ce que CETTE zone était seule à réclamer');
+        v.vrai(l3.indexOf('ecu') >= 0 && l3.indexOf('extenseur_petit_doigt') >= 0,
+               'mais PAS ce qu’une autre zone cochée réclame encore — c’est '
+             + 'une union, pas un premier arrivé premier servi');
+        v.vrai(l3.indexOf('flechisseurs_doigts') >= 0,
+               'ni ce qu’une zone sans recouvrement avait posé');
+        v.vrai(l3.indexOf('ancone') >= 0,
+               'et JAMAIS ce qui a été coché à la main, MÊME quand la zone le '
+             + 'contient : une zone n’ADOPTE pas ce qu’elle n’a pas posé');
+        /* On décoche aussi « Le dessus », qui contient l'anconé : il doit
+           survivre aux deux décochages. */
+        dessus.click();
+        var l4 = fen.App.m.muscles(brouillon);
+        v.vrai(l4.indexOf('ancone') >= 0,
+               'il survit même quand la zone qui le contient est décochée');
 
         var corpsPan = pan.querySelector('.panneau-corps');
         v.vrai(corpsPan.scrollWidth <= corpsPan.clientWidth + 1,
