@@ -792,6 +792,14 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    comparer des hauteurs. */
 .barre { display: grid; grid-template-columns: minmax(4.2rem, max-content) 1fr auto; align-items: center; gap: 8px; font-size: .8rem; }
 .barre > :first-child { white-space: nowrap; }
+/* Le libelle d'une barre de muscle ouvre la planche : c'est un bouton, et il
+   doit le MONTRER sans devenir une puce — la liste en compte vingt. Le
+   souligne pointille dit « il se passe quelque chose » et ne coute pas une
+   ligne de haut. */
+.barre-nom { background: none; border: 0; padding: 0; margin: 0; color: var(--texte);
+             font: inherit; text-align: left; cursor: pointer;
+             text-decoration: underline dotted var(--texte-2); text-underline-offset: 3px; }
+.barre-nom:hover { color: var(--laiton); }
 .barre-piste { height: 16px; background: var(--fond-3); border-radius: 3px; overflow: hidden; display: flex; }
 .barre-piste i { display: block; height: 100%; }
 .barre-piste .aw { background: var(--laiton); }
@@ -806,6 +814,16 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .barres-serrees { display: grid; grid-template-columns: minmax(4.2rem, max-content) 1fr auto;
                   align-items: center; column-gap: 8px; row-gap: 7px; }
 .barres-serrees .barre { display: contents; }
+
+/* Une gravure de 1918 : fond blanc, trait fin. En theme sombre elle reste
+   sur son fond clair — l'inverser rendrait l'anatomie illisible — mais on lui
+   pose un cadre pour qu'elle ne flotte pas. */
+.planche { display: block; width: 100%; height: auto; margin: 8px 0;
+           border-radius: 8px; background: #fff; border: 1px solid var(--bord); }
+.bt-planche { font-size: .74rem; padding: 4px 9px; }
+/* Le latin est une CITATION de la planche, pas une etiquette de l'app :
+   l'italique le dit sans ajouter un mot. */
+.jeton-latin { font-style: italic; }
 
 .legende { display: flex; gap: 12px; font-size: .74rem; color: var(--texte-2); margin-top: 9px; }
 .legende span { display: flex; align-items: center; gap: 5px; }

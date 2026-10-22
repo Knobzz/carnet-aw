@@ -59,7 +59,11 @@
 
   function hote() {
     var t = '?t=' + Date.now();
-    var s = function (f) { return '<scr' + 'ipt src="../js/' + f + t + '"></scr' + 'ipt>'; };
+    /* Les chemins sont ceux de l'app, pas ceux du banc : avec <base href="../">
+       ci-dessous, `js/model.js` et `icones/Gray414.png` se résolvent dans
+       l'iframe exactement comme dans index.html. Sans ça, une planche
+       trouvée ici serait introuvable sur le téléphone, ou l'inverse. */
+    var s = function (f) { return '<scr' + 'ipt src="js/' + f + t + '"></scr' + 'ipt>'; };
     var barre = '';
     onglets.forEach(function (n) {
       barre += '<button class="onglet" role="tab" aria-selected="false" aria-label="' + n
@@ -67,7 +71,8 @@
     });
     return '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">'
       + '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
-      + '<link rel="stylesheet" href="../css/app.css' + t + '">'
+      + '<base href="../">'
+      + '<link rel="stylesheet" href="css/app.css' + t + '">'
       + '</head><body>'
       + '<scr' + 'ipt>window.__BANC_IHM = 1;</scr' + 'ipt>'
       + '<div class="app"><header class="entete"><div style="flex:1;min-width:0">'
@@ -753,6 +758,65 @@
         return svg2;
       }).then(function (svg2) {
 
+      /* --- la planche de Gray ---
+         Un fichier nommé mais absent donnerait une image cassée, et personne
+         ne le verrait avant le téléphone. On va les CHERCHER, toutes. */
+        var aChercher = fen.App.m.PLANCHES.map(function (x) { return x.fichier; });
+        return Promise.all(aChercher.map(function (f) {
+          return fen.fetch(f, { method: 'GET' }).then(function (r) {
+            return r.ok ? null : f + ' (' + r.status + ')';
+          }, function () { return f + ' (injoignable)'; });
+        })).then(function (ratees) {
+          v.egal(ratees.filter(Boolean).join(', '), '',
+                 'les ' + aChercher.length + ' planches existent vraiment dans le dépôt');
+
+          /* Le libellé d'une barre ouvre la planche : c'est le seul chemin
+             vers les muscles qui n'ont pas de tracé. */
+          var noms = doc.querySelectorAll('.barres-muscles .barre-nom');
+          v.vrai(noms.length >= 3, 'chaque barre porte un libellé');
+          var inertes = Array.prototype.filter.call(noms, function (n) {
+            return n.tagName !== 'BUTTON';
+          }).map(function (n) { return n.textContent; });
+          v.egal(inertes.join(', '), '',
+                 'et c’est un BOUTON, pas un texte qui fait semblant');
+          var cible = null;
+          Array.prototype.forEach.call(noms, function (n) {
+            if (n.getAttribute('title') === 'Extenseur ulnaire du carpe') cible = n;
+          });
+          v.vrai(!!cible, 'dont un muscle SANS tracé sur le schéma — sinon il serait '
+                        + 'un nom sans visage');
+          if (!cible) return svg2;
+          cible.click();
+          return attendre(140).then(function () {
+            var pan = doc.querySelector('.panneau');
+            v.vrai(!!pan, 'la planche s’ouvre');
+            if (!pan) return svg2;
+            var img = pan.querySelector('img.planche');
+            v.vrai(!!img, 'elle porte une image');
+            v.vrai(pan.textContent.indexOf('Extensor carpi ulnaris') >= 0,
+                   'et le nom LATIN à y chercher — c’est le seul écrit sur la gravure');
+            v.vrai(pan.textContent.indexOf('Gray') >= 0 && pan.textContent.indexOf('1918') >= 0,
+                   'la source est citée : Gray, 1918, domaine public');
+            v.vrai(img.getBoundingClientRect().width <= LARGEUR,
+                   'la planche tient dans la largeur');
+            v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
+                   'et n’ouvre aucun défilement horizontal');
+            return new Promise(function (ok) {
+              if (img.complete) return ok();
+              img.addEventListener('load', function () { ok(); });
+              img.addEventListener('error', function () { ok(); });
+              fen.setTimeout(ok, 3000);
+            }).then(function () {
+              v.vrai(img.naturalWidth > 0,
+                     'et l’image se charge pour de bon (mesuré : '
+                   + img.naturalWidth + ' × ' + img.naturalHeight + ')');
+              var fermer = pan.querySelector('.panneau-entete .bt-icone');
+              if (fermer) fermer.click();
+              return attendre(80);
+            });
+          }).then(function () { return svg2; });
+        }).then(function (svg2) {
+
       v.vrai(svg2.getBoundingClientRect().width <= LARGEUR,
              'la carte tient dans la largeur');
       v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
@@ -761,6 +825,7 @@
       fen.App.ui.vider(vue);
       e.seances = [];
       return attendre(20);
+        });
       });
     });
   });

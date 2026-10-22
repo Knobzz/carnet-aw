@@ -957,6 +957,29 @@
     v.egal(courts.filter(function (x, i) { return courts.indexOf(x) !== i; }).join(', '), '',
            'et deux muscles ne portent pas le même');
     v.egal(A.m.nomCourtMuscle('ecrb'), 'Court ext. radial', 'le nom court se lit par identifiant');
+
+    /* --- le nom latin et la planche ---
+       Le latin n'est pas de la décoration : c'est le seul mot écrit SUR la
+       gravure de 1918. Sans lui on cherche « fléchisseur ulnaire » sur une
+       planche qui ne l'a jamais porté. */
+    var sansLatin = A.m.MUSCLES.filter(function (m) { return !m.latin; })
+                               .map(function (m) { return m.nom; });
+    v.egal(sansLatin.join(', '), '', 'chaque muscle porte son nom latin');
+    var sansPlanche = A.m.MUSCLES.filter(function (m) { return !A.m.plancheDuMuscle(m.id); })
+                                 .map(function (m) { return m.nom; });
+    v.egal(sansPlanche.join(', '), '',
+           'et renvoie à une planche qui existe dans le tableau');
+    v.egal(A.m.plancheDuMuscle('fcu').numero, 414,
+           'le fléchisseur ulnaire est sur la planche de l’avant-bras antérieur');
+    v.egal(A.m.plancheDuMuscle('ecu').numero, 418, 'et l’extenseur ulnaire sur la postérieure');
+    v.egal(A.m.plancheDuMuscle('zzz'), null, 'un muscle inconnu n’a pas de planche');
+    var pl = A.m.PLANCHES.map(function (x) { return x.id; });
+    v.egal(pl.filter(function (x, i) { return pl.indexOf(x) !== i; }).join(','), '',
+           'aucune planche en double');
+    var malNommees = A.m.PLANCHES.filter(function (x) {
+      return x.fichier.indexOf('icones/Gray') !== 0 || !x.numero || !x.nom;
+    }).map(function (x) { return x.id; });
+    v.egal(malNommees.join(', '), '', 'chaque planche a son fichier, son numéro et son titre');
     v.egal(A.m.nomCourtMuscle('zzz'), '', 'et un inconnu ne rend rien');
     var tropLong = A.m.MUSCLES.filter(function (m) { return m.court.length > 18; })
                               .map(function (m) { return m.court; });

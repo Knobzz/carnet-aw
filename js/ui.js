@@ -631,6 +631,9 @@
                saisie et qui rendent la liste lisible à qui ne la connaît pas. */
             h('span', { class: 'muscle-marques' },
               h('span', { class: 'jeton jeton-art', text: A.m.nomArticulation(m.articulation) }),
+              /* Le nom latin : c'est celui qui est écrit sur les planches
+                 d'anatomie, et le seul qui permette d'y retrouver le muscle. */
+              h('span', { class: 'jeton jeton-latin', text: m.latin }),
               m.medial ? h('span', { class: 'jeton jeton-medial', text: 'ins. médiale' })
                        : (m.lateral ? h('span', { class: 'jeton jeton-medial', text: 'ins. latérale' }) : null),
               m.profond ? h('span', { class: 'jeton jeton-medial', text: 'profond' }) : null)));

@@ -396,6 +396,33 @@ muscle serait un mensonge.
 La **main** est le seul décor : elle sert à reconnaître le membre et ne répond pas au
 doigt. Le deltoïde, lui, est devenu un muscle suivi comme les autres.
 
+### Les planches de Gray
+
+Le schéma répond à *combien*. Il ne répondra jamais à *à quoi ça ressemble, et où est-ce
+exactement* — c'est un schéma de bandes, et c'est écrit à l'écran. Neuf gravures de
+**Henry Gray, Anatomy of the Human Body, 1918** répondent à ça, et à rien d'autre.
+
+**1918, domaine public** : c'est la seule raison de ces planches-là. Une planche trouvée au
+hasard sur le web aurait une licence invérifiable sur une app publiée.
+
+Chaque muscle porte **son nom latin et sa planche**. Le latin n'est pas de la décoration :
+c'est le seul mot **écrit sur la gravure**. Chercher « fléchisseur ulnaire » sur une
+planche de 1918 ne donne rien ; chercher *Flexor carpi ulnaris* le trouve.
+
+Elles ne sont **pas pré-chargées**. Le service worker met en cache tout ce qui passe, donc
+une planche consultée une fois reste disponible hors ligne — mais tant qu'on ne l'ouvre
+pas, elle ne coûte rien à l'installation. 680 ko précachés pour des images qu'on regarde
+trois fois seraient payés par tout le monde, tout le temps.
+
+Le libellé de chaque barre est un **bouton** : c'est le seul chemin vers les sept muscles
+qui n'ont pas de tracé sur le schéma, qui seraient sinon des noms sans visage.
+
+Le banc **va chercher les huit fichiers** : une planche nommée mais absente donnerait une
+image cassée que personne ne verrait avant le téléphone. Et l'iframe du banc d'interface
+porte `<base href="../">`, pour que `icones/Gray414.png` s'y résolve **exactement comme
+dans `index.html`** — sans ça, une planche trouvée au banc pourrait être introuvable en
+production.
+
 Ce que ce n'est **pas** : une planche médicale. Les contours sont approximatifs, en
 particulier les insertions. Des régions nettes, nommées et à la bonne place valent mieux
 qu'un réalisme raté à 170 px de large.

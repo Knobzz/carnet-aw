@@ -60,6 +60,48 @@
   }
 
   /* ------------------------------------------------------------------
+     Une planche de Gray, en grand
+
+     Le schéma de l'onglet Suivi répond à « combien » : il se teinte, il se
+     touche, il tient dans 190 px. Il ne répondra jamais à « à quoi ça
+     ressemble, et où est-ce exactement » — c'est un schéma de bandes, et
+     c'est dit à l'écran.
+
+     La gravure répond à ça, et à rien d'autre : elle ne se teinte pas, elle
+     ne compte rien. On y ajoute le nom LATIN parce que c'est celui qui est
+     écrit SUR la gravure ; chercher « fléchisseur ulnaire » sur une planche
+     de 1918 ne donne rien.
+     ------------------------------------------------------------------ */
+  function voirPlanche(idMuscle) {
+    var m = A.m.muscle(idMuscle);
+    var pl = A.m.plancheDuMuscle(idMuscle);
+    if (!m || !pl) return;
+    return ouvrirPanneau(m.nom, function (c) {
+      c.appendChild(h('div', { class: 'item-resume', style: 'margin-bottom:2px' },
+        h('b', { text: m.latin }),
+        h('span', { text: ' — c’est le nom écrit sur la gravure.' })));
+      c.appendChild(h('div', { class: 'item-resume', text: pl.nom }));
+
+      /* `loading: lazy` ne sert à rien ici (l'image est le sujet), mais la
+         hauteur reste libre : une planche fait 1 150 px de haut pour 440 de
+         large, et la forcer déformerait l'anatomie. */
+      c.appendChild(h('img', { class: 'planche', src: pl.fichier,
+                               alt: 'Planche de Gray numéro ' + pl.numero + ' : ' + pl.nom }));
+
+      c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px' },
+        h('span', { text: m.quoi.charAt(0).toUpperCase() + m.quoi.slice(1) + '. ' }),
+        h('span', { text: 'Mobilise : ' + A.m.nomArticulation(m.articulation) + '.' })));
+      if (m.aussi) {
+        c.appendChild(h('div', { class: 'item-resume',
+          text: 'Dit aussi « ' + m.aussi +' » sur les planches françaises.' }));
+      }
+      c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px;opacity:.75',
+        text: 'Henry Gray, Anatomy of the Human Body, 1918 — planche ' + pl.numero + '. '
+            + 'Domaine public.' }));
+    }, [{ nom: 'Fermer', classe: 'bt-plein', action: function (f) { f(); } }]);
+  }
+
+  /* ------------------------------------------------------------------
      Choisir dans tout l'équipement
 
      Taper le nom marche quand on le connaît. Passé une vingtaine d'outils, on
@@ -531,5 +573,5 @@
   }
 
   A.panneau = { ouvrir: ouvrirPanneau, editerExercice: editerExercice,
-                choisirOutils: choisirOutils };
+                choisirOutils: choisirOutils, voirPlanche: voirPlanche };
 })(window.App || (window.App = {}));

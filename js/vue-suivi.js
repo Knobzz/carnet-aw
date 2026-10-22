@@ -574,6 +574,31 @@
                                          + 'chaque muscle teinté selon sa sollicitation' });
     var detail = h('div', { class: 'item-resume', style: 'min-height:3.2em;margin-top:6px' });
 
+    /* Ce qu'on sait d'un muscle, dit en entier : le nom, ce qu'il fait, ce
+       qu'il mobilise, son insertion s'il en partage une, et de quoi aller
+       voir à quoi il ressemble. C'est la même chose au doigt sur le schéma
+       et sur une barre — y compris pour les muscles qui n'ont pas de tracé,
+       qui seraient sinon des noms sans visage. */
+    function direMuscle(id, n) {
+      var m = A.m.muscle(id);
+      A.ui.vider(detail);
+      var marques = [m.quoi];
+      marques.push('mobilise : ' + A.m.nomArticulation(m.articulation).toLowerCase());
+      if (m.medial) marques.push('insertion médiale');
+      if (m.lateral) marques.push('insertion latérale');
+      if (m.profond) marques.push('profond');
+      detail.appendChild(h('div', null,
+        h('b', { text: m.nom }),
+        h('span', { text: ' — ' + n + ' série' + (n > 1 ? 's' : '') })));
+      detail.appendChild(h('div', { text: marques.join(' · ') }));
+      if (m.aussi) detail.appendChild(h('div', { text: 'dit aussi « ' + m.aussi + ' »' }));
+      var bt = h('button', { type: 'button', class: 'bt bt-planche',
+                             style: 'margin-top:5px',
+                             text: 'Voir ' + m.latin + ' sur la planche' });
+      bt.addEventListener('click', function () { A.panneau.voirPlanche(id); });
+      detail.appendChild(bt);
+    }
+
     SILHOUETTE.concat([TRACE_MAIN]).forEach(function (d) {
       svg.appendChild(svgEl('path', { d: d, class: 'bras-inerte' }));
     });
@@ -590,11 +615,7 @@
       function montrer() {
         zones.forEach(function (x) { x.removeAttribute('data-choisi'); });
         p.setAttribute('data-choisi', '1');
-        detail.textContent = m.nom + (m.aussi ? ' (' + m.aussi + ')' : '')
-          + ' — ' + n + ' série' + (n > 1 ? 's' : '')
-          + ' · ' + m.quoi
-          + (m.medial ? ' · insertion médiale' : '')
-          + (m.lateral ? ' · insertion latérale' : '');
+        direMuscle(id, n);
       }
       p.addEventListener('click', montrer);
       p.addEventListener('keydown', function (ev) {
@@ -609,7 +630,8 @@
       return (c.parMuscle[id] || 0) > 0;
     }).map(A.m.nomMuscle);
     corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:2px',
-      text: 'Vue antérieure. Appuie sur un muscle pour le détail.'
+      text: 'Vue antérieure, schématique. Appuie sur un muscle pour le détail, '
+          + 'et sur son nom dans les barres pour la planche anatomique.'
           + (horsDessin.length
               ? ' Faute de place, ceux-ci ne sont que dans les barres : '
                 + horsDessin.join(', ') + '.'
@@ -623,8 +645,13 @@
     }).forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
       if (!n) return;
+      /* Le libellé est un BOUTON : c'est la seule façon d'atteindre les sept
+         muscles qui n'ont pas de tracé sur le schéma. */
+      var lib = h('button', { type: 'button', class: 'barre-nom',
+                              text: m.court || m.nom, title: m.nom });
+      lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });
       barres.appendChild(h('div', { class: 'barre' },
-        h('span', { text: m.court || m.nom, title: m.nom }),
+        lib,
         h('div', { class: 'barre-piste' },
           h('i', { class: 'aw', style: 'width:' + (n / maxM * 100) + '%' })),
         h('span', { class: 'barre-val', text: n + ' sér.' })));

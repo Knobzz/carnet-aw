@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **606 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **624 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **402 contrôles, 23 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **204 contrôles, 12 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **409 contrôles, 23 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **215 contrôles, 12 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -180,7 +180,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Trente-quatre défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quarante défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -221,6 +221,12 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | les hors dessin listés même sans série | `et ne l'est pas quand il n'a aucune série — attendu true, obtenu false` |
 | une grille par ligne au lieu d'une par groupe | `toutes les pistes commencent au même endroit (vues : 204/27 176/55)` — 2 contrôles rouges |
 | une région de muscles oubliée du tableau | `chaque muscle a sa ligne dans la fiche — attendu 22, obtenu 19` |
+| une planche nommée mais absente du dépôt | `les 8 planches existent vraiment (icones/Gray417.png (404))` — 2 contrôles rouges |
+| un muscle sans nom latin | `chaque muscle porte son nom latin — obtenu "Extenseur ulnaire du carpe"` |
+| un muscle sans planche | `renvoie à une planche qui existe — obtenu "Supinateur"` |
+| le latin retiré de la planche ouverte | `le nom LATIN à y chercher — attendu true, obtenu false` |
+| la source de la gravure non citée | `la source est citée : Gray, 1918, domaine public` |
+| le libellé des barres redevenu inerte | `c'est un BOUTON, pas un texte qui fait semblant` |
 | l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à

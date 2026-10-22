@@ -192,65 +192,87 @@
   var MUSCLES = [
     /* --- épaule et tronc --- */
     { id: 'grand_pectoral', nom: 'Grand pectoral', court: 'Pectoral', aussi: 'pectoral',
-      groupe: 'tronc', quoi: 'ramène le bras vers soi', articulation: 'epaule' },
+      latin: 'Pectoralis major', planche: 'bras_av', groupe: 'tronc',
+      quoi: 'ramène le bras vers soi', articulation: 'epaule' },
     { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
-      groupe: 'tronc', quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
-    { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde', groupe: 'tronc',
+      latin: 'Latissimus dorsi', planche: 'dos', groupe: 'tronc',
+      quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
+    { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde',
+      latin: 'Deltoideus', planche: 'bras_av', groupe: 'tronc',
       quoi: 'élève le bras et tient l’épaule', articulation: 'epaule' },
-    { id: 'coraco_brachial', nom: 'Coraco-brachial', court: 'Coraco-brach.', groupe: 'tronc',
+    { id: 'coraco_brachial', nom: 'Coraco-brachial', court: 'Coraco-brach.',
+      latin: 'Coracobrachialis', planche: 'thorax_prof', groupe: 'tronc',
       quoi: 'amène le bras vers l’avant et vers soi', articulation: 'epaule', profond: true },
 
     /* --- bras --- */
     { id: 'biceps', nom: 'Biceps brachial', court: 'Biceps', aussi: 'biceps',
-      groupe: 'bras_av', quoi: 'fléchit le coude et supine', articulation: 'coude' },
+      latin: 'Biceps brachii', planche: 'bras_av', groupe: 'bras_av',
+      quoi: 'fléchit le coude et supine', articulation: 'coude' },
     { id: 'brachial', nom: 'Brachial', court: 'Brachial', aussi: 'brachial antérieur',
-      groupe: 'bras_av', quoi: 'fléchit le coude, quelle que soit la prise',
+      latin: 'Brachialis', planche: 'bras_av', groupe: 'bras_av',
+      quoi: 'fléchit le coude, quelle que soit la prise',
       articulation: 'coude', profond: true },
     { id: 'triceps', nom: 'Triceps brachial', court: 'Triceps', aussi: 'triceps',
-      groupe: 'bras_ar', quoi: 'tend le coude', articulation: 'coude' },
-    { id: 'ancone', nom: 'Anconé', court: 'Anconé', groupe: 'bras_ar',
+      latin: 'Triceps brachii', planche: 'bras_ar', groupe: 'bras_ar',
+      quoi: 'tend le coude', articulation: 'coude' },
+    { id: 'ancone', nom: 'Anconé', court: 'Anconé',
+      latin: 'Anconeus', planche: 'avb_ar', groupe: 'bras_ar',
       quoi: 'assiste l’extension et tient le coude', articulation: 'coude' },
 
     /* --- avant-bras, face antérieure : la masse flexo-pronatrice --- */
     { id: 'rond_pronateur', nom: 'Rond pronateur', court: 'Rond pronat.',
-      groupe: 'avant_bras_av', quoi: 'tourne la paume vers le bas',
+      latin: 'Pronator teres', planche: 'avb_av', groupe: 'avant_bras_av',
+      quoi: 'tourne la paume vers le bas',
       articulation: 'avant_bras', medial: true },
     { id: 'fcr', nom: 'Fléchisseur radial du carpe', court: 'Fléch. radial',
-      aussi: 'grand palmaire', groupe: 'avant_bras_av',
+      aussi: 'grand palmaire', latin: 'Flexor carpi radialis', planche: 'avb_av',
+      groupe: 'avant_bras_av',
       quoi: 'plie le poignet, côté pouce', articulation: 'poignet', medial: true },
     { id: 'long_palmaire', nom: 'Long palmaire', court: 'Long palmaire',
-      aussi: 'petit palmaire', groupe: 'avant_bras_av',
+      aussi: 'petit palmaire', latin: 'Palmaris longus', planche: 'avb_av',
+      groupe: 'avant_bras_av',
       quoi: 'plie faiblement le poignet — absent chez une personne sur six',
       articulation: 'poignet', medial: true },
     { id: 'fcu', nom: 'Fléchisseur ulnaire du carpe', court: 'Fléch. ulnaire',
-      aussi: 'cubital antérieur', groupe: 'avant_bras_av',
+      aussi: 'cubital antérieur', latin: 'Flexor carpi ulnaris', planche: 'avb_av',
+      groupe: 'avant_bras_av',
       quoi: 'plie le poignet, côté auriculaire', articulation: 'poignet', medial: true },
     { id: 'flechisseurs_doigts', nom: 'Fléchisseurs des doigts', court: 'Fléch. doigts',
+      latin: 'Flexor digitorum superficialis et profundus', planche: 'avb_av_prof',
       groupe: 'main', quoi: 'serrent la main', articulation: 'doigts', medial: true },
     { id: 'carre_pronateur', nom: 'Carré pronateur', court: 'Carré pronat.',
-      groupe: 'avant_bras_av', quoi: 'tourne l’avant-bras, près du poignet',
+      latin: 'Pronator quadratus', planche: 'avb_av_prof', groupe: 'avant_bras_av',
+      quoi: 'tourne l’avant-bras, près du poignet',
       articulation: 'avant_bras', profond: true },
 
     /* --- avant-bras, face postérieure --- */
     { id: 'brachio_radial', nom: 'Brachio-radial', court: 'Brachio-radial',
-      aussi: 'long supinateur', groupe: 'avant_bras_ar',
+      aussi: 'long supinateur', latin: 'Brachioradialis', planche: 'avb_av',
+      groupe: 'avant_bras_ar',
       quoi: 'fléchit le coude, prise marteau', articulation: 'coude' },
     { id: 'ecrl', nom: 'Long extenseur radial du carpe', court: 'Long ext. radial',
-      aussi: '1er radial', groupe: 'avant_bras_ar',
+      aussi: '1er radial', latin: 'Extensor carpi radialis longus', planche: 'avb_ar',
+      groupe: 'avant_bras_ar',
       quoi: 'relève le poignet, côté pouce', articulation: 'poignet', lateral: true },
     { id: 'ecrb', nom: 'Court extenseur radial du carpe', court: 'Court ext. radial',
-      aussi: '2e radial', groupe: 'avant_bras_ar', quoi: 'relève le poignet',
+      aussi: '2e radial', latin: 'Extensor carpi radialis brevis', planche: 'avb_ar',
+      groupe: 'avant_bras_ar', quoi: 'relève le poignet',
       articulation: 'poignet', lateral: true },
     { id: 'ecu', nom: 'Extenseur ulnaire du carpe', court: 'Ext. ulnaire',
-      aussi: 'cubital postérieur', groupe: 'avant_bras_ar',
+      aussi: 'cubital postérieur', latin: 'Extensor carpi ulnaris', planche: 'avb_ar',
+      groupe: 'avant_bras_ar',
       quoi: 'relève le poignet, côté auriculaire', articulation: 'poignet', lateral: true },
     { id: 'extenseurs_doigts', nom: 'Extenseurs des doigts', court: 'Ext. doigts',
+      latin: 'Extensor digitorum', planche: 'avb_ar',
       groupe: 'avant_bras_ar', quoi: 'ouvrent la main', articulation: 'doigts', lateral: true },
     { id: 'extenseur_petit_doigt', nom: 'Extenseur du petit doigt', court: 'Ext. auriculaire',
+      latin: 'Extensor digiti minimi', planche: 'avb_ar',
       groupe: 'avant_bras_ar', quoi: 'ouvre l’auriculaire', articulation: 'doigts', lateral: true },
     { id: 'extenseurs_pouce', nom: 'Extenseurs du pouce', court: 'Ext. pouce',
+      latin: 'Extensor pollicis longus et brevis', planche: 'avb_ar_prof',
       groupe: 'avant_bras_ar', quoi: 'ouvrent et écartent le pouce', articulation: 'pouce' },
-    { id: 'supinateur', nom: 'Supinateur', court: 'Supinateur', groupe: 'avant_bras_ar',
+    { id: 'supinateur', nom: 'Supinateur', court: 'Supinateur',
+      latin: 'Supinator', planche: 'avb_ar_prof', groupe: 'avant_bras_ar',
       quoi: 'tourne la paume vers le haut', articulation: 'avant_bras',
       lateral: true, profond: true }
   ];
@@ -277,6 +299,56 @@
      illisibles : le dessin montre SIX regions, et les chiffres exacts se
      lisent en barres en dessous. Le visuel sert le coup d'oeil, pas la
      precision — c'est la division du travail entre les deux. */
+  /* ---------- les planches de Gray ----------
+
+     Henry Gray, « Anatomy of the Human Body », 1918 : domaine public, et
+     c'est ce qui compte ici. Une planche trouvée au hasard sur le web aurait
+     une licence invérifiable sur une app publiée.
+
+     Elles ne REMPLACENT pas le schéma : une image matricielle ne se teinte
+     pas muscle par muscle, donc elle ne peut pas porter la charge. Elles
+     répondent à l'autre question — « à quoi ça ressemble, et où est-ce » —
+     que des bandes de couleur ne répondront jamais.
+
+     Elles ne sont pas pré-chargées : le service worker les met en cache à la
+     première consultation. Tant qu'on ne les ouvre pas, elles ne coûtent rien
+     à l'installation.
+
+     `fichier` est vérifié par le banc contre le dépôt : une planche nommée
+     mais absente donnerait une image cassée, et personne ne le verrait
+     avant le téléphone. */
+  var PLANCHES = [
+    { id: 'dos',          fichier: 'icones/Gray409.png', numero: 409,
+      nom: 'Dos, plan superficiel' },
+    { id: 'bras_av',      fichier: 'icones/Gray410.png', numero: 410,
+      nom: 'Épaule et bras, face antérieure' },
+    { id: 'thorax_prof',  fichier: 'icones/Gray411.png', numero: 411,
+      nom: 'Thorax, plan profond — le pectoral est écarté' },
+    { id: 'bras_ar',      fichier: 'icones/Gray412.png', numero: 412,
+      nom: 'Épaule et bras, face postérieure' },
+    { id: 'avb_av',       fichier: 'icones/Gray414.png', numero: 414,
+      nom: 'Avant-bras, face antérieure, plan superficiel' },
+    { id: 'avb_av_prof',  fichier: 'icones/Gray415.png', numero: 415,
+      nom: 'Avant-bras, face antérieure, plan profond' },
+    { id: 'avb_ar',       fichier: 'icones/Gray418.png', numero: 418,
+      nom: 'Avant-bras, face postérieure, plan superficiel' },
+    { id: 'avb_ar_prof',  fichier: 'icones/Gray419.png', numero: 419,
+      nom: 'Avant-bras, face postérieure, plan profond' }
+  ];
+
+  function planche(id) {
+    for (var i = 0; i < PLANCHES.length; i++) if (PLANCHES[i].id === id) return PLANCHES[i];
+    return null;
+  }
+
+  /* La planche d'un muscle : celle où il est le mieux visible, et le nom
+     LATIN à y chercher — c'est celui qui est écrit sur la gravure, pas le
+     français. Sans lui on cherche un mot qui n'y est pas. */
+  function plancheDuMuscle(id) {
+    var m = muscle(id);
+    return m ? planche(m.planche) : null;
+  }
+
   var REGIONS_MUSCLE = [
     { id: 'tronc',          nom: 'Épaule et tronc' },
     { id: 'bras_av',        nom: 'Bras, avant' },
@@ -1855,6 +1927,7 @@
     MUSCLES: MUSCLES, REGIONS_MUSCLE: REGIONS_MUSCLE,
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
     muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
+    PLANCHES: PLANCHES, planche: planche, plancheDuMuscle: plancheDuMuscle,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     chargeParMuscle: chargeParMuscle,
