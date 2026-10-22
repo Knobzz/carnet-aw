@@ -746,6 +746,305 @@
     return f;
   }
 
+  /* ------------------------------------------------------------------
+     Ce qu'on travaille, par region du corps
+
+     Deux silhouettes, parce que quatre des sept regions ne se montrent que
+     d'un seul cote : le biceps et le triceps sont LE MEME segment vu de
+     face et de dos. Une silhouette unique devrait en cacher un des deux.
+
+     Le contour est dessine UNE fois et sert de DECOUPE a toutes les
+     regions : chaque region n'est qu'un polygone grossier que le contour
+     taille au bord reel du corps. Les seules limites que ce dessin AFFIRME
+     sont les coupes internes, et chacune a son repere anatomique —
+     insertion du deltoide, pli du coude, pli du poignet.
+
+     Le buste s'arrete aux hanches : aucun des muscles du carnet n'est dans
+     les jambes, elles ne portaient rien.
+
+     Deux schemas ont echoue ici avant : un dessin a la main, puis des
+     polygones poses sur les gravures. Les deux cherchaient les contours de
+     chaque MUSCLE sur une gravure exacte, et l'oeil voyait la vraie limite
+     juste a cote de la fausse. Ici ce sont SEPT regions sur un schema
+     autonome, qui n'annonce aucune exactitude anatomique de detail.
+
+     Le total, le tableau et les semaines sortent TOUS de chargeParSemaine.
+     Deux sources, meme proches, finissent par se contredire : une fenetre
+     en jours et une fenetre en semaines ISO ne couvrent deja pas les memes
+     jours, et l'ecart est invisible a l'oeil.
+     ------------------------------------------------------------------ */
+  var SEMAINES_REGION = 12;
+  var NSVG = 'http://www.w3.org/2000/svg';
+
+  function nsvg(nom, attrs, enfants) {
+    var e = document.createElementNS(NSVG, nom);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    (enfants || []).forEach(function (x) { e.appendChild(x); });
+    return e;
+  }
+
+  /* Un corps au canon classique : 7,5 tetes de haut, bras a 0,44 de la
+     hauteur. Mesure, pas estime — la premiere version faisait 9,7 tetes
+     avec des bras de 5,8, et elle ne ressemblait a personne.
+
+     Face et dos sont SYMETRIQUES : on n'ecrit que la moitie droite et le
+     miroir est calcule. Ecrire les deux a la main, c'est se garantir une
+     asymetrie qu'on ne verra pas. */
+  var DEMI_CORPS = [
+    [53.6, 4, 56.6, 8.5, 56.6, 14], [56.6, 19, 55.4, 22.3, 53.6, 24],
+    [53.6, 26, 53.6, 27, 53.6, 28.5], [58.5, 29.5, 64.5, 30.5, 69, 32.5],
+    [72.5, 34, 74.5, 37, 75.5, 41], [77, 46, 78.5, 51, 79.5, 56],
+    [80.5, 59, 81, 61, 81.2, 63], [82, 67, 83, 71, 83.5, 75],
+    [84, 77.5, 84.2, 79, 84.2, 80.5], [84.5, 84, 84, 88, 83, 90.5],
+    [82, 92.5, 80, 93, 78.8, 91.5], [78, 90, 77.6, 87, 77.5, 84],
+    [77.4, 82, 77.3, 81, 77.2, 80], [76.6, 76, 75.6, 72, 74.8, 68],
+    [74.2, 65, 73.8, 63, 73.6, 61], [72.6, 56, 70.5, 50, 68.5, 45],
+    [67.8, 43.5, 66.8, 42.5, 65.8, 42], [65.2, 48, 64.2, 55, 63.5, 61],
+    [63, 64, 62.5, 67, 62.2, 70], [62.5, 74, 63.5, 78, 64.5, 82],
+    [64.8, 86, 64.8, 90, 64.8, 96], [60, 96, 55, 96, 50, 96]
+  ];
+  var CONTOUR = (function () {
+    var d = 'M 50 4', m = function (x) { return 100 - x; };
+    DEMI_CORPS.forEach(function (x) { d += ' C ' + x.join(' '); });
+    /* Le retour : segments a l'envers, points de controle echanges, x en
+       miroir. Le dernier point retombe EXACTEMENT sur le depart, donc le Z
+       est de longueur nulle et aucun trait ne traverse le corps. */
+    for (var i = DEMI_CORPS.length - 1; i >= 0; i--) {
+      var x = DEMI_CORPS[i];
+      var p = i === 0 ? [50, 4] : [DEMI_CORPS[i - 1][4], DEMI_CORPS[i - 1][5]];
+      d += ' C ' + m(x[2]) + ' ' + x[3] + ' ' + m(x[0]) + ' ' + x[1]
+         + ' ' + m(p[0]) + ' ' + p[1];
+    }
+    return d + ' Z';
+  })();
+
+  function miroirChemin(d) {
+    return d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, function (_, x, y) {
+      return (100 - parseFloat(x)) + ' ' + y;
+    });
+  }
+
+  var FORMES_REGION = {
+    torse:  'M 31 26 L 69 26 L 69 99 L 31 99 Z',
+    bras:   'M 64 28 L 92 28 L 88 59 L 72 63 Z',
+    avb:    'M 72 63 L 88 59 L 90 79 L 74 83 Z',
+    main:   'M 74 83 L 90 79 L 94 96 L 72 99 Z',
+    /* L'epaule ne se dessine pas pareil des deux cotes, et c'est ce qui la
+       rend honnete : de FACE elle tient le deltoide et le creux de
+       l'aisselle, de DOS le deltoide et l'omoplate, ou s'inserent le grand
+       rond et le subscapulaire. Une seule forme mentirait d'un cote. */
+    epFace: 'M 62 27 L 95 27 L 86 54 L 70 50 L 65 44 L 63 30 Z',
+    epDos:  'M 59 27 L 95 27 L 86 54 L 70 50 L 59 48 Z'
+  };
+  /* Repassees par-dessus les aplats : sans elles, deux regions voisines de
+     teinte proche se lisent comme une seule. */
+  var COUPES_REGION = 'M 72 63 L 88 59 M 74 83 L 90 79 M 70 50 L 86 54';
+  var COUPE_EPAULE = { face: 'M 65 44 L 63 30', dos: 'M 59 48 L 59 27' };
+
+  /* Sur quelle vue chaque region se montre. Une region du catalogue absente
+     d'ici n'aurait AUCUNE forme sur le buste : sa charge disparaitrait en
+     silence. Le banc verifie la correspondance dans les deux sens. */
+  var VUE_REGION = {
+    epaule: 'deux', torse: 'deux', main: 'deux',
+    bras_av: 'face', avant_bras_av: 'face',
+    bras_ar: 'dos',  avant_bras_ar: 'dos'
+  };
+
+  function formesDeLaVue(vue) {
+    var l = [['torse', FORMES_REGION.torse]];
+    [[vue === 'face' ? 'bras_av' : 'bras_ar', FORMES_REGION.bras],
+     [vue === 'face' ? 'avant_bras_av' : 'avant_bras_ar', FORMES_REGION.avb],
+     ['main', FORMES_REGION.main]].forEach(function (p) {
+      l.push([p[0], p[1]]);
+      l.push([p[0], miroirChemin(p[1])]);
+    });
+    var ep = vue === 'face' ? FORMES_REGION.epFace : FORMES_REGION.epDos;
+    l.push(['epaule', ep]);
+    l.push(['epaule', miroirChemin(ep)]);
+    return l;
+  }
+
+  /* Du bleu au rouge en cinq paliers, et le GRIS pour ce qui n'a jamais
+     servi — c'est une troisieme chose, pas un bleu tres pale. La couleur ne
+     porte jamais l'information seule : le chiffre est dans le tableau juste
+     en dessous, chaque forme porte son total au survol, et toucher une
+     region allume sa ligne. */
+  var PALIERS_REGION = ['#3d6fa8', '#7fa6c4', '#cfcfcf', '#d79a6a', '#c0392b'];
+  function teinteRegion(valeur, maxi) {
+    if (!valeur) return null;
+    return PALIERS_REGION[Math.min(4, Math.floor(valeur / maxi * 5))];
+  }
+
+  function blocRegions(e) {
+    var f = document.createDocumentFragment();
+    var parSem = A.m.chargeParSemaine(e, 'region', SEMAINES_REGION);
+    if (!parSem) return f;
+
+    var totaux = {}, maxi = 0;
+    parSem.cles.forEach(function (c) { totaux[c.id] = 0; });
+    parSem.semaines.forEach(function (sem) {
+      parSem.cles.forEach(function (c) { totaux[c.id] += sem.par[c.id] || 0; });
+    });
+    parSem.cles.forEach(function (c) { maxi = Math.max(maxi, totaux[c.id]); });
+
+    f.appendChild(section('Régions — ' + SEMAINES_REGION + ' dernières semaines',
+      'Le rouge est le plus travaillé, le bleu le moins, le gris n’a jamais servi. '
+    + 'Touche une région ou une ligne : l’autre s’allume.'));
+
+    if (!maxi) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune région renseignée' }),
+        'Une région se remplit dès qu’un exercice porte des muscles. '
+      + 'Ouvre la fiche d’un exercice pour les renseigner.'));
+      return f;
+    }
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+
+    /* ---- les deux silhouettes ---- */
+    var dessin = nsvg('svg', {
+      viewBox: '8 0 176 100', class: 'corps-regions', role: 'img',
+      'aria-label': 'Charge par région du corps, de face et de dos'
+    });
+    var defs = nsvg('defs');
+    dessin.appendChild(defs);
+
+    ['face', 'dos'].forEach(function (vue, i) {
+      var g = nsvg('g', { transform: 'translate(' + (i * 92) + ',0)' });
+      var cle = 'decoupe-corps-' + vue;
+      defs.appendChild(nsvg('clipPath', { id: cle }, [nsvg('path', { d: CONTOUR })]));
+      g.appendChild(nsvg('path', { d: CONTOUR, class: 'peau-corps' }));
+
+      var dedans = nsvg('g', { 'clip-path': 'url(#' + cle + ')' });
+      formesDeLaVue(vue).forEach(function (fo) {
+        var id = fo[0];
+        var c = teinteRegion(totaux[id], maxi);
+        var cle2 = parSem.cles.filter(function (x) { return x.id === id; })[0];
+        var nom = cle2 ? cle2.nom : id;
+        var p = nsvg('path', {
+          d: fo[1], fill: c, 'data-region': id,
+          class: 'zone-region' + (c ? '' : ' zone-muette')
+        });
+        var t = nsvg('title');
+        t.textContent = nom + ' — ' + (totaux[id]
+          ? totaux[id] + ' série' + (totaux[id] > 1 ? 's' : '')
+          : 'jamais travaillée');
+        p.appendChild(t);
+        dedans.appendChild(p);
+      });
+      dedans.appendChild(nsvg('path', {
+        class: 'coupe-corps',
+        d: COUPES_REGION + ' ' + miroirChemin(COUPES_REGION) + ' '
+         + COUPE_EPAULE[vue] + ' ' + miroirChemin(COUPE_EPAULE[vue])
+      }));
+      g.appendChild(dedans);
+      g.appendChild(nsvg('path', { d: CONTOUR, class: 'bord-corps' }));
+      g.appendChild(nsvg('path', { class: 'detail-corps', d: vue === 'face'
+        ? 'M 43 31 Q 50 34 57 31 M 50 35 L 50 56 M 44 60 Q 50 63 56 60 M 44 68 Q 50 71 56 68'
+        : 'M 50 30 L 50 82' }));
+      dessin.appendChild(g);
+    });
+    corps.appendChild(dessin);
+    corps.appendChild(h('div', { class: 'vues-corps' },
+      h('span', { text: 'de face' }), h('span', { text: 'de dos' })));
+    corps.appendChild(h('div', { class: 'echelle-ligne' },
+      h('span', { text: 'le moins' }),
+      h('span', { class: 'echelle-barre', 'aria-hidden': 'true' }),
+      h('span', { text: 'le plus' })));
+
+    /* ---- le tableau, du plus charge au moins ---- */
+    var compare = A.m.comparerDeuxPeriodes(e, 'region', SEMAINES_REGION) || [];
+    var triees = parSem.cles.slice().sort(function (a, b) {
+      return totaux[b.id] - totaux[a.id];
+    });
+    var table = h('table', { class: 'table-regions' });
+    table.appendChild(h('tr', {},
+      h('th', { text: 'région' }),
+      h('th', { class: 'col-n', text: SEMAINES_REGION + ' sem.' }),
+      h('th', { class: 'col-n', text: 'écart' })));
+
+    triees.forEach(function (c) {
+      var total = totaux[c.id];
+      var cmp = compare.filter(function (x) { return x.id === c.id; })[0] || {};
+      var ec = cmp.ecart;
+      var ou = VUE_REGION[c.id] === 'face' ? 'de face'
+             : (VUE_REGION[c.id] === 'dos' ? 'de dos' : 'les deux vues');
+      /* Un ecart NUL veut dire « jamais travaillee », pas « stable ». Un
+         « = 0 » a cet endroit se lirait comme une stagnation. */
+      var txt = ec == null ? 'jamais'
+              : (ec > 0 ? '▲ +' + ec : (ec < 0 ? '▼ ' + ec : '= 0'));
+      var classe = ec == null ? 'ecart-nul'
+                 : (ec > 0 ? 'ecart-haut' : (ec < 0 ? 'ecart-bas' : ''));
+      table.appendChild(h('tr', {
+          'data-region': c.id, tabindex: '0', role: 'button',
+          'aria-label': c.nom + ', ' + (total || 'aucune') + ' séries, ' + ou
+        },
+        h('td', {},
+          h('span', { class: 'carre-region', 'aria-hidden': 'true',
+            style: 'background:' + (teinteRegion(total, maxi) || 'var(--fond-3)') }),
+          h('span', { text: c.nom }),
+          h('span', { class: 'ou-vue', text: ou })),
+        h('td', { class: 'col-n', text: total ? String(total) : '—' }),
+        h('td', { class: 'col-n ' + classe, text: txt })));
+    });
+    corps.appendChild(table);
+
+    /* ---- semaine apres semaine ---- */
+    corps.appendChild(h('div', { class: 'sous-titre', style: 'margin:16px 0 2px',
+                                 text: 'Semaine après semaine' }));
+    corps.appendChild(h('div', { class: 'item-resume', style: 'margin:0 0 8px',
+      text: 'Une semaine sans séance reste visible, à zéro : la faire disparaître '
+          + 'compresserait le temps.' }));
+    triees.forEach(function (c) {
+      if (!totaux[c.id]) return;
+      var vals = parSem.semaines.map(function (x) { return x.par[c.id] || 0; });
+      var hmax = Math.max.apply(null, vals) || 1;
+      var piste = h('div', { class: 'piste-semaine' });
+      vals.forEach(function (v, i) {
+        piste.appendChild(h('i', {
+          class: v ? '' : 'semaine-vide',
+          style: 'height:' + (v ? Math.max(4, Math.round(v / hmax * 26)) : 3) + 'px',
+          title: parSem.semaines[i].semaine + ' — ' + v + ' série' + (v > 1 ? 's' : '')
+        }));
+      });
+      corps.appendChild(h('div', { class: 'bloc-piste' },
+        h('div', { class: 'item-resume', style: 'margin:0 0 2px', text: c.nom }),
+        piste));
+    });
+    corps.appendChild(h('div', { class: 'bornes-semaines' },
+      h('span', { text: 'il y a ' + SEMAINES_REGION + ' sem.' }),
+      h('span', { text: 'cette semaine' })));
+
+    /* Le lien dans les deux sens. Sans lui, deux regions de teinte proche ne
+       se distinguent pas — et c'est exactement le cas du biceps et du
+       triceps, qui sont le meme bras vu des deux cotes. */
+    var courante = null;
+    function vedette(id) {
+      courante = id;
+      [].forEach.call(corps.querySelectorAll('[data-region]'), function (x) {
+        if (id && x.getAttribute('data-region') === id) x.classList.add('vedette');
+        else x.classList.remove('vedette');
+      });
+    }
+    function basculer(ev) {
+      var cible = ev.target.closest ? ev.target.closest('[data-region]') : null;
+      if (!cible) return false;
+      var id = cible.getAttribute('data-region');
+      vedette(id === courante ? null : id);
+      return true;
+    }
+    corps.addEventListener('click', basculer);
+    corps.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      if (basculer(ev)) ev.preventDefault();
+    });
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    return f;
+  }
+
   function rendre(hote) {
     A.ui.vider(hote);
     var e = etat();
@@ -773,6 +1072,7 @@
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocRecup(e));
     hote.appendChild(blocForces(e));
+    hote.appendChild(blocRegions(e));
     hote.appendChild(blocMuscles(e));
     hote.appendChild(blocPentes(e));
     hote.appendChild(blocStructures(e));

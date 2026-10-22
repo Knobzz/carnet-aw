@@ -714,6 +714,182 @@
   });
 
   /* ================================================================
+     Le buste par region, a 320 px
+
+     Un dessin peut mentir sans qu'aucun controle de modele s'en apercoive.
+     Les deux bords qu'on garde ici : une region du catalogue SANS forme sur
+     le buste n'apparait nulle part et sa charge disparait en silence ; une
+     forme dont l'id n'existe plus au catalogue affiche une zone que rien ne
+     nourrit. On mesure la correspondance et les chiffres, pas l'esthetique.
+     ================================================================ */
+
+  bloc('Le buste par région, à 320 px', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+
+    function jourIlYA(n) {
+      var d = new Date();
+      d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function serie() {
+      return { id: fen.App.m.uid('s'), type: 'normale', repsCible: '', chargeCible: '',
+               chargeReel: '20', repsReel: '10', rpe: null, faite: true, faiteA: null };
+    }
+    function exoM(nom, muscles, n) {
+      var l = [];
+      for (var i = 0; i < n; i++) l.push(serie());
+      return { id: fen.App.m.uid('e'), ordre: 0, nom: nom, slug: fen.App.m.slug(nom),
+               aw: false, typeCharge: 'kg', forces: [], structures: [], outils: [],
+               consigne: '', reposSecondes: 90, series: l,
+               muscles: muscles, cote: 'deux' };
+    }
+
+    /* Un carnet ou les regions sont VOLONTAIREMENT inegales : il faut du
+       rouge, du bleu, et au moins une region jamais touchee — sinon les
+       trois cas d'affichage ne sont pas parcourus. Le bras arriere et le
+       bras avant restent vides. */
+    var e = fen.App.store.etat();
+    e.seances = [];
+    for (var sem = 0; sem < 11; sem++) {
+      e.seances.push({
+        id: 'bu-' + sem, type: 'muscu', date: jourIlYA(sem * 7 + 1),
+        heure: jourIlYA(sem * 7 + 1) + 'T18:00:00.000Z',
+        programmeId: null, programmeNom: 'Buste', dureeMin: 50, rpeGlobal: null,
+        note: '', douleurs: [],
+        exercices: [exoM('Wrist curl', ['fcu', 'fcr'], 4),
+                    exoM('Extension poignet', ['ecrl', 'ecrb'], 2),
+                    exoM('Élévation latérale', ['deltoide'], 3),
+                    exoM('Pince', ['flechisseurs_doigts'], 1)]
+      });
+    }
+    /* Une seule seance de tirage, tout au debut : le torse doit donc etre
+       la region la MOINS chargee sans etre vide. */
+    e.seances.push({
+      id: 'bu-torse', type: 'muscu', date: jourIlYA(70),
+      heure: jourIlYA(70) + 'T18:00:00.000Z', programmeId: null,
+      programmeNom: 'Buste', dureeMin: 50, rpeGlobal: null, note: '',
+      douleurs: [], exercices: [exoM('Tirage', ['grand_dorsal'], 2)]
+    });
+
+    var vue = doc.getElementById('vue');
+    fen.App.vues.suivi.rendre(vue);
+
+    return attendre(90).then(function () {
+      var svg = doc.querySelector('.corps-regions');
+      v.vrai(!!svg, 'le buste est dessiné dans Suivi');
+      if (!svg) return attendre(10);
+
+      /* --- la correspondance, DANS LES DEUX SENS --- */
+      var dessinees = {};
+      Array.prototype.forEach.call(svg.querySelectorAll('[data-region]'), function (p) {
+        dessinees[p.getAttribute('data-region')] = true;
+      });
+      var duModele = fen.App.m.REGIONS_MUSCLE.map(function (r) { return r.id; });
+      var sansForme = duModele.filter(function (id) { return !dessinees[id]; });
+      var horsModele = Object.keys(dessinees).filter(function (id) {
+        return duModele.indexOf(id) < 0;
+      });
+      v.egal(sansForme.join(','), '',
+             'chaque région du catalogue a sa forme sur le buste');
+      v.egal(horsModele.join(','), '',
+             'et aucune forme ne porte un id absent du catalogue');
+
+      /* --- une ligne par region, et le TOTAL qui va avec --- */
+      var lignes = doc.querySelectorAll('.table-regions tr[data-region]');
+      v.egal(lignes.length, duModele.length, 'une ligne de tableau par région');
+
+      function ligne(id) {
+        return doc.querySelector('.table-regions tr[data-region="' + id + '"]');
+      }
+      function celluleDe(id, i) {
+        var l = ligne(id);
+        return l ? l.children[i].textContent.trim() : 'ligne absente';
+      }
+      function nombreDe(id) {
+        var c = celluleDe(id, 1);
+        if (c === 'ligne absente') return c;
+        return c === '—' ? 0 : parseInt(c, 10);
+      }
+      /* 11 seances x 4 series de wrist curl, deux muscles de la loge
+         anterieure chacun : le compte est pose a la main, pas relu depuis
+         la fonction qu'on teste. */
+      v.egal(nombreDe('avant_bras_av'), 11 * 4 * 2,
+             'l’avant-bras antérieur compte ses séries, muscle par muscle');
+      v.egal(nombreDe('epaule'), 11 * 3, 'l’épaule aussi');
+      v.egal(nombreDe('bras_ar'), 0, 'le bras arrière n’a rien reçu');
+
+      /* --- ce qui n'a JAMAIS servi se dit, et ne se devine pas a la teinte --- */
+      var zonesBrasAr = svg.querySelectorAll('[data-region="bras_ar"]');
+      var muettes = Array.prototype.filter.call(zonesBrasAr, function (p) {
+        return p.classList.contains('zone-muette');
+      }).length;
+      v.egal(muettes, zonesBrasAr.length,
+             'une région jamais travaillée est grise, pas bleu pâle');
+      v.egal(celluleDe('bras_ar', 2), 'jamais',
+             'et sa ligne dit « jamais », pas « = 0 »');
+
+      /* --- la somme des semaines egale le total affiche --- */
+      var titres = Array.prototype.map.call(doc.querySelectorAll('.bloc-piste'),
+        function (b) { return b.firstElementChild.textContent; });
+      var nomAvb = fen.App.m.REGIONS_MUSCLE.filter(function (r) {
+        return r.id === 'avant_bras_av';
+      })[0].nom;
+      v.vrai(titres.indexOf(nomAvb) >= 0, 'chaque région chargée a sa piste de semaines');
+      var blocPiste = doc.querySelectorAll('.bloc-piste')[titres.indexOf(nomAvb)];
+      var piste = blocPiste ? blocPiste.querySelector('.piste-semaine') : null;
+      v.egal(piste ? piste.children.length : 'piste absente', 12,
+             'douze semaines, pleines ou vides');
+      var vides = piste ? Array.prototype.filter.call(piste.children, function (b) {
+        return b.classList.contains('semaine-vide');
+      }).length : 0;
+      v.vrai(vides > 0, 'une semaine sans séance reste visible, à zéro');
+
+      /* --- le lien dans les deux sens, et SUR LA BONNE VUE ---
+         Le bras arriere ne doit s'allumer que sur le dos : un triceps qui
+         apparait de face est un mensonge anatomique. */
+      var lBrasAr = ligne('bras_ar');
+      v.vrai(!!lBrasAr, 'la ligne du bras arrière existe, avant de la toucher');
+      if (lBrasAr) lBrasAr.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      var allumees = svg.querySelectorAll('.zone-region.vedette');
+      v.egal(allumees.length, 2, 'toucher une ligne allume les deux côtés du corps');
+      var surDos = Array.prototype.every.call(allumees, function (p) {
+        var t = p.parentNode.parentNode.getAttribute('transform') || '';
+        return t.indexOf('translate(92') === 0;
+      });
+      v.vrai(surDos, 'et le bras arrière ne s’allume QUE sur la vue de dos');
+      v.vrai(!!lBrasAr && lBrasAr.classList.contains('vedette'),
+             'la ligne touchée s’allume elle aussi');
+
+      /* --- la place a 320 px --- */
+      var debordants = [];
+      Array.prototype.forEach.call(
+        doc.querySelectorAll('.corps-regions, .table-regions, .piste-semaine'),
+        function (n) {
+          var r = n.getBoundingClientRect();
+          if (r.right > LARGEUR + 0.5 || r.left < -0.5) {
+            debordants.push(n.className.baseVal || n.className);
+          }
+        });
+      v.egal(debordants.join(','), '',
+             'rien ne sort de l’écran à 320 px — mesuré au bord droit, pas '
+           + 'au scrollWidth, que « overflow-x: hidden » rend toujours vert');
+      var mini = 999, nomMini = '';
+      Array.prototype.forEach.call(svg.querySelectorAll('.zone-region'), function (p) {
+        var r = p.getBoundingClientRect();
+        var c = Math.min(r.width, r.height);
+        if (c < mini) { mini = c; nomMini = p.getAttribute('data-region'); }
+      });
+      v.vrai(mini >= 24, 'la plus petite région reste touchable du doigt ('
+                       + nomMini + ' : ' + Math.round(mini) + ' px)');
+
+      fen.App.ui.vider(vue);
+      e.seances = [];
+      return attendre(20);
+    });
+  });
+
+  /* ================================================================
      12. La carte du bras
 
      Un dessin peut mentir sans qu'aucun test de modèle s'en aperçoive : un

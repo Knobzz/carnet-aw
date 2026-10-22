@@ -190,31 +190,39 @@
      ne portent AUCUNE des deux marques : les mettre avec les autres aurait
      ete plus simple a lire et faux. */
   var MUSCLES = [
-    /* --- épaule et tronc --- */
+    /* --- épaule et torse ---
+       Separes le 2026-10-22, apres mesure : sur les 21 mots d'exercice du
+       carnet qui touchent cette zone, AUCUN n'allume les deux cotes.
+       « elevation laterale » et « shoulder press » vont a l'epaule,
+       « developpe », « tirage », « traction » au torse. Fondus en une
+       region, un tirage et une elevation laterale rendaient la meme ligne.
+       La coupe est anatomique : scapulo-humeral d'un cote (deltoide,
+       grand rond, subscapulaire, coraco-brachial), thoraco-humeral de
+       l'autre (grand pectoral, grand dorsal). */
     { id: 'grand_pectoral', nom: 'Grand pectoral', court: 'Pectoral', aussi: 'pectoral',
-      latin: 'Pectoralis major', image: 'icones/muscle-grand_pectoral.png', groupe: 'tronc',
+      latin: 'Pectoralis major', image: 'icones/muscle-grand_pectoral.png', groupe: 'torse',
       quoi: 'ramène le bras vers soi', articulation: 'epaule' },
     { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
-      latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', groupe: 'tronc',
+      latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', groupe: 'torse',
       quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
     /* L'auxiliaire du grand dorsal : meme action sur l'humerus, et les deux
        sont nommes ensemble aussi bien par l'etude EMG — parmi les rotateurs
        internes agissant pendant le sport — que par les competiteurs, qui les
        donnent prioritaires pour tirer la main de l'adversaire vers soi. */
     { id: 'grand_rond', nom: 'Grand rond', court: 'Grand rond',
-      latin: 'Teres major', image: 'icones/muscle-grand_rond.png', groupe: 'tronc',
+      latin: 'Teres major', image: 'icones/muscle-grand_rond.png', groupe: 'epaule',
       quoi: 'ramène le bras vers l’arrière et le tourne vers l’intérieur',
       articulation: 'epaule' },
     { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde',
-      latin: 'Deltoideus', image: 'icones/muscle-deltoide.png', groupe: 'tronc',
+      latin: 'Deltoideus', image: 'icones/muscle-deltoide.png', groupe: 'epaule',
       quoi: 'élève le bras et tient l’épaule', articulation: 'epaule' },
     { id: 'coraco_brachial', nom: 'Coraco-brachial', court: 'Coraco-brach.',
-      latin: 'Coracobrachialis', image: 'icones/muscle-coraco_brachial.png', groupe: 'tronc',
+      latin: 'Coracobrachialis', image: 'icones/muscle-coraco_brachial.png', groupe: 'epaule',
       quoi: 'amène le bras vers l’avant et vers soi', articulation: 'epaule', profond: true },
     { id: 'subscapulaire', nom: 'Subscapulaire', court: 'Subscapulaire',
       aussi: 'sous-scapulaire',
       latin: 'Subscapularis', image: 'icones/muscle-subscapulaire.png',
-      groupe: 'tronc', quoi: 'tourne le bras vers l’intérieur',
+      groupe: 'epaule', quoi: 'tourne le bras vers l’intérieur',
       articulation: 'epaule', profond: true },
 
     /* --- bras --- */
@@ -424,7 +432,8 @@
   }
 
   var REGIONS_MUSCLE = [
-    { id: 'tronc',          nom: 'Épaule et tronc' },
+    { id: 'epaule',         nom: 'Épaule' },
+    { id: 'torse',          nom: 'Torse' },
     { id: 'bras_av',        nom: 'Bras, avant' },
     { id: 'bras_ar',        nom: 'Bras, arrière' },
     { id: 'avant_bras_av',  nom: 'Avant-bras, face antérieure' },
@@ -2403,6 +2412,122 @@
     return ordre.sort().slice(-limite).map(function (s) { return par[s]; }).reverse();
   }
 
+  /* ---------- par SEMAINE et par zone ----------
+
+     Le modele savait compter par ZONE (une fenetre, un total) ou par SEMAINE
+     (du volume global), jamais les deux. « Quelle zone monte, laquelle
+     tombe » demande les deux a la fois.
+
+     Chaque axe garde EXACTEMENT les regles de la fonction qui le comptait
+     deja, sinon deux ecrans du meme carnet se contrediraient :
+
+       'region'     comme chargeParMuscle — la RECUPERATION EST INCLUSE, et
+                    une serie compte une fois par muscle, donc plusieurs fois
+                    pour une region qui en porte plusieurs.
+       'mouvement'  comme repartitionForces — la MUSCULATION SEULE, et une
+                    serie compte une fois par mouvement coche.
+
+     Ce n'est pas un detail : les deux axes n'ont pas le meme perimetre de
+     seances. Un controle somme les semaines et exige le meme total que la
+     fonction d'origine sur la meme fenetre — il tombe des que l'un des deux
+     derive.
+
+     UNE SEMAINE SANS SEANCE VAUT ZERO, et elle reste dans la liste. La faire
+     disparaitre compresserait le temps : une courbe sauterait par-dessus un
+     mois d'arret et montrerait une regularite qui n'a pas eu lieu.
+
+     Rendu du PLUS ANCIEN au plus recent — c'est une serie temporelle, elle se
+     lit dans ce sens. `volumeParSemaine` rend l'inverse parce que c'est une
+     liste qu'on consulte, pas une courbe. */
+
+  var AXES_SEMAINE = {
+    region:    { cles: function () { return REGIONS_MUSCLE; },
+                 avecRecup: true },
+    mouvement: { cles: function () { return FORCES; },
+                 avecRecup: false }
+  };
+
+  function semainesRecentes(nbSemaines) {
+    var l = [], d = new Date();
+    for (var i = 0; i < nbSemaines; i++) {
+      var z = function (n) { return (n < 10 ? '0' : '') + n; };
+      var iso = d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+      var sem = semaineDe(iso);
+      if (l.indexOf(sem) < 0) l.push(sem);
+      d.setDate(d.getDate() - 7);
+    }
+    return l.sort();
+  }
+
+  function chargeParSemaine(etat, axe, nbSemaines) {
+    var def = AXES_SEMAINE[axe];
+    if (!def) return null;
+    var n = nbSemaines || 8;
+    var semaines = semainesRecentes(n);
+    var cles = def.cles();
+    var par = {};
+    semaines.forEach(function (sem) {
+      par[sem] = {};
+      cles.forEach(function (c) { par[sem][c.id] = 0; });
+    });
+
+    (etat.seances || []).forEach(function (se) {
+      if (!se) return;
+      if (se.type !== 'muscu' && !(def.avecRecup && se.type === 'recup')) return;
+      var sem = semaineDe(se.date);
+      if (!par[sem]) return;
+      (se.exercices || []).forEach(function (ex) {
+        var faites = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!faites) return;
+        if (axe === 'region') {
+          muscles(ex).forEach(function (id) {
+            var m = muscle(id);
+            if (m && par[sem][m.groupe] != null) par[sem][m.groupe] += faites;
+          });
+        } else {
+          (ex.forces || []).forEach(function (f) {
+            if (par[sem][f] != null) par[sem][f] += faites;
+          });
+        }
+      });
+    });
+
+    return {
+      cles: cles.map(function (c) { return { id: c.id, nom: c.nom }; }),
+      semaines: semaines.map(function (sem) {
+        var total = 0;
+        cles.forEach(function (c) { total += par[sem][c.id]; });
+        return { semaine: sem, par: par[sem], total: total };
+      })
+    };
+  }
+
+  /* Les N dernieres semaines contre les N precedentes, par zone. Derive de
+     chargeParSemaine et de RIEN D'AUTRE : deux chemins de calcul finiraient
+     par diverger, et c'est le genre d'ecart que personne ne remarque.
+
+     `ecart` est null quand les deux periodes sont a zero : une zone jamais
+     travaillee n'a pas « stagne », elle est absente, et un 0 affiche comme
+     une stabilite serait un mensonge. */
+  function comparerDeuxPeriodes(etat, axe, nbSemaines) {
+    var n = nbSemaines || 4;
+    var d = chargeParSemaine(etat, axe, n * 2);
+    if (!d) return null;
+    var sem = d.semaines;
+    var coupe = Math.max(0, sem.length - n);
+    function somme(liste, cle) {
+      var t = 0;
+      liste.forEach(function (x) { t += x.par[cle] || 0; });
+      return t;
+    }
+    return d.cles.map(function (c) {
+      var recent = somme(sem.slice(coupe), c.id);
+      var avant = somme(sem.slice(0, coupe), c.id);
+      return { id: c.id, nom: c.nom, recent: recent, precedent: avant,
+               ecart: (recent === 0 && avant === 0) ? null : recent - avant };
+    });
+  }
+
   function repartitionForces(etat, depuisJours) {
     var c = {}, total = 0;
     FORCES.forEach(function (f) { c[f.id] = 0; });
@@ -2569,6 +2694,7 @@
     derniereSollicitation: derniereSollicitation, zoneDelai: zoneDelai,
     fenetreAvant: fenetreAvant, episodesDouleur: episodesDouleur,
     volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
+    chargeParSemaine: chargeParSemaine, comparerDeuxPeriodes: comparerDeuxPeriodes,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
     contexteTechnique: contexteTechnique, texteRetour: texteRetour,

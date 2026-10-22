@@ -1293,6 +1293,244 @@
      perception, si.
      ================================================================ */
   /* ================================================================
+     Par semaine et par zone
+
+     Le modele savait compter par zone OU par semaine, jamais les deux. Le
+     danger de ce genre d'ajout, c'est qu'il RECOMPTE : deux chemins de calcul
+     pour la meme chose finissent par diverger, et personne ne le remarque
+     avant de lire deux ecrans cote a cote.
+     ================================================================ */
+  bloc('Par semaine et par zone', function (v) {
+    /* Un carnet fabrique : deux seances de muscu cette semaine, une de
+       recuperation, et une seance vieille de trois mois qui doit rester
+       DEHORS de la fenetre. */
+    function serie() { return { id: A.m.uid('s'), type: 'normale', faite: true,
+                                chargeReel: '20', repsReel: '10' }; }
+    function exo(nom, muscles, forces) {
+      return { id: A.m.uid('e'), nom: nom, slug: A.m.slug(nom), colonnes: ['charge','reps'],
+               muscles: muscles, forces: forces || [], series: [serie(), serie()] };
+    }
+    function jour(n) {
+      var d = new Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate());
+    }
+    var e = { seances: [
+      { id: 'a', type: 'muscu', date: jour(1), heure: '', douleurs: [],
+        exercices: [exo('Curl', ['biceps'], ['rising'])] },
+      { id: 'b', type: 'muscu', date: jour(10), heure: '', douleurs: [],
+        exercices: [exo('Wrist curl', ['fcu','fcr'], ['cupping'])] },
+      { id: 'c', type: 'recup', date: jour(3), heure: '', douleurs: [],
+        exercices: [exo('Élastique', ['fcu'], [])] },
+      { id: 'vieux', type: 'muscu', date: jour(120), heure: '', douleurs: [],
+        exercices: [exo('Vieux curl', ['biceps'], ['rising'])] }
+    ], exercices: [], programmes: [], outils: [], releves: [] };
+
+    var d8 = A.m.chargeParSemaine(e, 'region', 8);
+    v.egal(d8.semaines.length, 8, 'huit semaines rendues, pleines ou vides');
+    var prem = d8.semaines[0], dern = d8.semaines[d8.semaines.length - 1];
+    v.egal(!!prem && !!dern && prem.semaine < dern.semaine, true,
+           'du PLUS ANCIEN au plus récent : c’est une série temporelle');
+
+    /* Une semaine sans séance vaut ZÉRO et reste dans la liste. La faire
+       disparaître compresserait le temps : la courbe sauterait par-dessus un
+       arrêt et montrerait une régularité qui n’a pas eu lieu. */
+    var vides = d8.semaines.filter(function (x) { return x.total === 0; }).length;
+    v.vrai(vides > 0, 'une semaine sans séance vaut zéro, elle ne disparaît pas');
+
+    /* LE contrôle de ce bloc : sommer les semaines doit redonner EXACTEMENT
+       ce que la fonction d’origine compte sur la même fenêtre. Sinon deux
+       écrans du même carnet se contredisent. */
+    function sommeAxe(d, cle) {
+      var t = 0;
+      d.semaines.forEach(function (x) { t += x.par[cle] || 0; });
+      return t;
+    }
+    /* La fenetre ne fait PAS 8 x 7 jours. Les semaines partent d'un LUNDI,
+       donc elles couvrent entre 50 et 56 jours selon le jour ou on regarde —
+       aujourd'hui, 8 semaines valent ' + joursDepuis(d8.semaines[0].semaine) + ' jours. L'ecrire en dur
+       donnait un controle qui tenait par chance : le decor n'avait aucune
+       seance dans l'ecart, donc la comparaison fautive ne pouvait pas
+       tomber. On DERIVE la fenetre de ce que la fonction a vraiment rendu. */
+    function joursDepuis(iso) {
+      var a = new Date(iso + 'T00:00:00'), b = new Date();
+      b.setHours(0, 0, 0, 0);
+      return Math.round((b - a) / 86400000) + 1;
+    }
+    var jours = joursDepuis(d8.semaines[0].semaine);
+    v.vrai(jours > 7 * 7 && jours <= 8 * 7,
+           'huit semaines ISO couvrent entre 50 et 56 jours, pas 56 tout rond');
+    var ref = A.m.chargeParMuscle(e, jours).parRegion;
+    var ecarts = [];
+    d8.cles.forEach(function (c) {
+      if (sommeAxe(d8, c.id) !== ref[c.id]) {
+        ecarts.push(c.id + ' : ' + sommeAxe(d8, c.id) + ' vs ' + ref[c.id]);
+      }
+    });
+    v.egal(ecarts.join(', '), '',
+           'la somme des semaines égale chargeParMuscle sur la même fenêtre');
+
+    var mv = A.m.chargeParSemaine(e, 'mouvement', 8);
+    var refF = A.m.repartitionForces(e, jours).parForce;
+    var ecartsF = [];
+    mv.cles.forEach(function (c) {
+      if (sommeAxe(mv, c.id) !== refF[c.id]) {
+        ecartsF.push(c.id + ' : ' + sommeAxe(mv, c.id) + ' vs ' + refF[c.id]);
+      }
+    });
+    v.egal(ecartsF.join(', '), '',
+           'et la somme des mouvements égale repartitionForces');
+
+    /* Les deux axes n’ont PAS le même périmètre de séances, et c’est voulu :
+       la récupération charge les fléchisseurs sans être du travail. */
+    v.vrai(sommeAxe(d8, 'avant_bras_av') > 0,
+           'la récupération compte dans les régions…');
+    v.egal(sommeAxe(mv, 'cupping'), 2,
+           '…et PAS dans les mouvements : deux séries de muscu, pas trois');
+
+    /* La comparaison dérive de la même source, et de rien d’autre. */
+    var cmp = A.m.comparerDeuxPeriodes(e, 'mouvement', 4);
+    var rising = cmp.filter(function (x) { return x.id === 'rising'; })[0];
+    v.egal(rising.recent, 2, 'le rising de ces quatre semaines');
+    v.egal(rising.precedent, 0, 'contre les quatre précédentes');
+    v.egal(rising.ecart, 2, 'et l’écart entre les deux');
+
+    /* Une zone JAMAIS travaillée n’a pas « stagné » : elle est absente, et un
+       écart de 0 se lirait comme une stabilité. */
+    var jamais = cmp.filter(function (x) { return x.id === 'side_pressure'; })[0];
+    v.egal(jamais.recent + jamais.precedent, 0, 'le side pressure n’a jamais servi');
+    v.egal(jamais.ecart, null, 'son écart est null, pas zéro : il n’a pas stagné');
+
+    /* La BORDURE elle-meme, et pas un jour approchant : une seance posee sur
+       le premier lundi doit etre DEDANS, celle de la veille DEHORS. Les deux
+       dates sont calculees depuis ce que la fonction a rendu, donc le
+       controle mesure la meme chose quel que soit le jour ou il tourne. */
+    function veille(iso) {
+      var d = new Date(iso + 'T00:00:00');
+      d.setDate(d.getDate() - 1);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    /* Un fait ABSOLU, qui ne se lit pas dans la sortie de la fonction : une
+       semaine commence un LUNDI, et deux semaines voisines sont a sept jours.
+       Les deux controles qui suivent tiraient leur bordure du resultat
+       meme — ils la mesuraient contre elle-meme et ne pouvaient pas tomber.
+       Vu le 2026-10-22 : la semaine passee au DIMANCHE ne les faisait pas
+       bouger d'un pouce. */
+    var liste = (d8.semaines || []).filter(function (x) { return x && x.semaine; });
+    v.egal(liste.length, 8, 'huit semaines exploitables, avant de mesurer leurs bords');
+    var pasLundi = liste.map(function (x) { return x.semaine; })
+      .filter(function (iso) { return new Date(iso + 'T00:00:00').getDay() !== 1; });
+    v.egal(pasLundi.join(','), '', 'chaque semaine rendue commence un LUNDI');
+    var pasSept = [];
+    for (var k = 1; k < liste.length; k++) {
+      var p0 = new Date(liste[k-1].semaine + 'T00:00:00');
+      var p1 = new Date(liste[k].semaine + 'T00:00:00');
+      if (Math.round((p1 - p0) / 86400000) !== 7) pasSept.push(liste[k].semaine);
+    }
+    v.egal(pasSept.join(','), '', 'deux semaines voisines sont a SEPT jours');
+
+    var lundi = liste.length ? liste[0].semaine : '1970-01-05';
+    function avecSeanceLe(date) {
+      var c = { seances: e.seances.concat([
+        { id: 'bord', type: 'muscu', date: date, heure: '', douleurs: [],
+          exercices: [exo('Curl bordure', ['biceps'], [])] }
+      ]), exercices: [], programmes: [], outils: [], releves: [] };
+      return sommeAxe(A.m.chargeParSemaine(c, 'region', 8), 'bras_av');
+    }
+    var sansBord = sommeAxe(d8, 'bras_av');
+    v.egal(avecSeanceLe(lundi), sansBord + 2,
+           'une seance posee SUR le premier lundi est dans la fenetre');
+    v.egal(avecSeanceLe(veille(lundi)), sansBord,
+           'celle de la veille en est dehors : la bordure est nette');
+
+    v.egal(A.m.chargeParSemaine(e, 'zzz', 8), null, 'un axe inconnu ne rend rien');
+  });
+
+  /* ================================================================
+     L'epaule n'est pas le torse
+
+     Separees le 2026-10-22. La mesure qui l'a decidee : sur les 21 mots
+     d'exercice du carnet qui touchent cette zone, AUCUN n'allume les deux
+     cotes — « elevation laterale » va a l'epaule, « tirage » au torse.
+     Fondus, ils rendaient la meme ligne.
+
+     Ce bloc garde les deux bords. Le premier est le piege de la moitie
+     livree : une region declaree sans muscle, ou un muscle range dans un
+     groupe qui n'est plus une region, ne se voit NULLE PART a l'ecran —
+     la charge disparait en silence.
+     ================================================================ */
+  bloc('Épaule et torse', function (v) {
+    var ids = A.m.REGIONS_MUSCLE.map(function (r) { return r.id; });
+    v.egal(ids.indexOf('tronc'), -1,
+           '« tronc » n’existe plus : la region fondue a bien ete retiree');
+    v.vrai(ids.indexOf('epaule') >= 0 && ids.indexOf('torse') >= 0,
+           'l’epaule et le torse sont deux regions');
+
+    /* Les DEUX SENS, parce qu'une seule direction laisse passer la moitie
+       de la faute : un groupe sans region perd sa charge, une region sans
+       muscle affiche une ligne qui ne bougera jamais. */
+    var groupes = {};
+    A.m.MUSCLES.forEach(function (m) {
+      groupes[m.groupe] = (groupes[m.groupe] || 0) + 1;
+    });
+    var orphelins = Object.keys(groupes).filter(function (g) { return ids.indexOf(g) < 0; });
+    var vides = ids.filter(function (r) { return !groupes[r]; });
+    v.egal(orphelins.join(','), '', 'aucun muscle dans un groupe qui n’est pas une region');
+    v.egal(vides.join(','), '', 'aucune region sans muscle');
+    v.egal(A.m.MUSCLES.length, 36, 'les 36 muscles sont toujours la');
+
+    /* La coupe est anatomique : scapulo-humeral d'un cote, thoraco-humeral
+       de l'autre. On la nomme muscle par muscle, sinon « separes » ne veut
+       rien dire. */
+    function groupeDe(id) {
+      var m = A.m.MUSCLES.filter(function (x) { return x.id === id; })[0];
+      return m ? m.groupe : null;
+    }
+    ['deltoide', 'grand_rond', 'subscapulaire', 'coraco_brachial'].forEach(function (id) {
+      v.egal(groupeDe(id), 'epaule', id + ' tient a l’omoplate : il est a l’epaule');
+    });
+    ['grand_pectoral', 'grand_dorsal'].forEach(function (id) {
+      v.egal(groupeDe(id), 'torse', id + ' tient au thorax : il est au torse');
+    });
+
+    /* Et la preuve par l'usage : une elevation laterale et un tirage, le
+       meme jour, doivent tomber dans DEUX lignes differentes. C'est ce que
+       la separation promet a l'ecran — le reste n'est que declaration. */
+    function exoMuscle(nom, muscles, n) {
+      var series = [];
+      for (var i = 0; i < n; i++) series.push(serie('normale', 20, 10));
+      var x = exo(nom, series);
+      x.muscles = muscles;
+      x.cote = 'deux';
+      return x;
+    }
+    var e = etatAvec([
+      seance(jourIlYA(1), [
+        exoMuscle('Élévation latérale', ['deltoide'], 4),
+        exoMuscle('Tirage poulie', ['grand_dorsal'], 6)
+      ])
+    ]);
+    var r = A.m.chargeParMuscle(e, 28).parRegion;
+    v.egal(r.epaule, 4, 'l’elevation laterale compte a l’epaule');
+    v.egal(r.torse, 6, 'le tirage compte au torse');
+    v.vrai(r.epaule !== r.torse, 'les deux lignes bougent SEPAREMENT');
+
+    /* La meme chose vue par l'axe du Suivi : si la region neuve n'arrive
+       pas jusqu'a chargeParSemaine, le buste l'affichera a zero pour
+       toujours sans que rien ne tombe. */
+    var sem = A.m.chargeParSemaine(e, 'region', 4);
+    var cles = sem.cles.map(function (c) { return c.id; });
+    v.egal(cles.length, A.m.REGIONS_MUSCLE.length,
+           'l’axe « region » rend AUTANT de cles qu’il y a de regions');
+    v.vrai(cles.indexOf('epaule') >= 0 && cles.indexOf('torse') >= 0,
+           'l’epaule et le torse arrivent jusqu’a la serie par semaine');
+    var derniere = sem.semaines[sem.semaines.length - 1];
+    v.egal(derniere.par.epaule, 4, 'et la charge de l’epaule y est juste');
+    v.egal(derniere.par.torse, 6, 'celle du torse aussi');
+  });
+
+  /* ================================================================
      Le retour d'un testeur
 
      Deux promesses tiennent cet ecran, et ce sont elles qu'on mesure : le

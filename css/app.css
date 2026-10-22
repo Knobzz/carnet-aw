@@ -1374,3 +1374,57 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .pente i[data-niveau="moyen"] { background: var(--laiton); }
 .pente i[data-niveau="haut"]  { background: var(--tendon); }
 .pente i[data-niveau="inconnu"] { background: repeating-linear-gradient(45deg, var(--trait-fort) 0 2px, transparent 2px 4px); }
+
+/* ---------- Suivi : les régions du corps ----------
+   Le contour sert de découpe aux régions : les aplats sont des polygones
+   grossiers que `clip-path` taille au bord réel du corps. */
+.corps-regions { width: 100%; height: auto; display: block; }
+.peau-corps   { fill: var(--fond-2); }
+.bord-corps   { fill: none; stroke: var(--trait-fort); stroke-width: 1.1; }
+.zone-region  { cursor: pointer; }
+.zone-muette  { fill: var(--fond-3); }
+/* Repassées par-dessus les aplats : deux régions de teinte proche se
+   liraient comme une seule sans ces traits. */
+.coupe-corps  { fill: none; stroke: var(--fond); stroke-width: 1.2;
+                stroke-linecap: round; }
+.detail-corps { fill: none; stroke: var(--trait); stroke-width: .8;
+                stroke-linecap: round; opacity: .7; }
+.vedette      { stroke: var(--texte); stroke-width: 2.2; }
+tr.vedette td { background: var(--fond-2); }
+
+.vues-corps { display: flex; margin-top: 2px; }
+.vues-corps span { flex: 1; text-align: center; font-size: 11px;
+                   font-weight: 600; color: var(--texte-2); }
+
+.echelle-ligne { display: flex; align-items: center; gap: 6px;
+                 margin: 8px 2px 0; font-size: 11px; color: var(--texte-2); }
+.echelle-barre { flex: 1; height: 9px; border-radius: 5px;
+                 background: linear-gradient(90deg, #3d6fa8, #7fa6c4,
+                                             #cfcfcf, #d79a6a, #c0392b); }
+
+.table-regions { width: 100%; border-collapse: collapse; margin-top: 10px;
+                 font-size: 13px; }
+.table-regions th { text-align: left; font-weight: 600; font-size: 11px;
+                    color: var(--texte-2); padding: 0 0 4px; }
+.table-regions td { padding: 5px 0; border-top: 1px solid var(--trait);
+                    cursor: pointer; }
+.table-regions .col-n { text-align: right; font-variant-numeric: tabular-nums; }
+.carre-region { display: inline-block; width: 10px; height: 10px;
+                border-radius: 3px; margin-right: 7px; vertical-align: -1px; }
+/* Sous le nom et non à côté : à 320 px, « les deux vues » collé au libellé
+   faisait déborder la colonne et empilait l'en-tête sur deux lignes. */
+.ou-vue { display: block; font-size: 10px; color: var(--texte-3);
+          margin-left: 17px; }
+.ecart-haut { color: #c0392b; font-weight: 600; }
+.ecart-bas  { color: #3d6fa8; font-weight: 600; }
+.ecart-nul  { color: var(--texte-3); }
+
+.bloc-piste { margin-bottom: 10px; }
+.piste-semaine { display: flex; align-items: flex-end; gap: 2px; height: 26px; }
+.piste-semaine i { flex: 1; background: var(--bleu); border-radius: 1px 1px 0 0;
+                   display: block; }
+/* Une semaine sans séance garde un trait visible : la faire disparaître
+   compresserait le temps. */
+.piste-semaine i.semaine-vide { background: var(--trait); }
+.bornes-semaines { display: flex; justify-content: space-between;
+                   font-size: 10px; color: var(--texte-3); margin-top: 2px; }
