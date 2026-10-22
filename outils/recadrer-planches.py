@@ -23,9 +23,15 @@ POURQUOI DEUX, ET PAS VINGT-DEUX
         plafonnée à 400 px de haut. Sur la planche ENTIÈRE, le muscle marqué
         est donc visible à 100 % pour VINGT muscles sur vingt-deux.
 
-        Les deux exceptions, et elles seules :
-            brachial   413 px de large pour 290 — 5 % du muscle visible
-            biceps     413 px de large pour 290 — 40 % du muscle visible
+        Les exceptions, et elles seules :
+            brachial              413 px pour 290 —  5 % du muscle visible
+            biceps                413 px pour 290 — 40 %
+            opposant_auriculaire  385 px pour 290 — 35 %
+
+    La troisième n'a pas été vue à l'œil : elle est arrivée avec les treize
+    muscles de la main, et c'est le CONTRÔLE qui l'a trouvée en refaisant la
+    mesure. C'est tout l'intérêt d'un contrôle qui mesure au lieu de lire une
+    liste — une planche neuve entre dans le lot et il le dit.
 
     Ce sont les deux seules planches où la carte coupe le muscle lui-même.
     Quatre autres débordent aussi (grand pectoral, coraco-brachial, triceps,
@@ -86,7 +92,7 @@ SORTIE = os.path.join(RACINE, 'icones')
 
 # Les deux seules planches où la carte coupe le MUSCLE. Décidé en les
 # regardant, puis vérifié par le contrôle « la liste correspond à la mesure ».
-A_RECADRER = ('biceps', 'brachial')
+A_RECADRER = ('biceps', 'brachial', 'opposant_auriculaire')
 
 CARTE_L = 290            # .planche-carte max-width, et elle coupe à droite
 VIGNETTE_H = 400         # .planche-bouton .planche-fond max-height

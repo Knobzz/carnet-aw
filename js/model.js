@@ -203,6 +203,11 @@
     { id: 'coraco_brachial', nom: 'Coraco-brachial', court: 'Coraco-brach.',
       latin: 'Coracobrachialis', image: 'icones/muscle-coraco_brachial.png', planche: 'thorax_prof', groupe: 'tronc',
       quoi: 'amène le bras vers l’avant et vers soi', articulation: 'epaule', profond: true },
+    { id: 'subscapulaire', nom: 'Subscapulaire', court: 'Subscapulaire',
+      aussi: 'sous-scapulaire',
+      latin: 'Subscapularis', image: 'icones/muscle-subscapulaire.png',
+      groupe: 'tronc', quoi: 'tourne le bras vers l’intérieur',
+      articulation: 'epaule', profond: true },
 
     /* --- bras --- */
     { id: 'biceps', nom: 'Biceps brachial', court: 'Biceps', aussi: 'biceps',
@@ -274,7 +279,73 @@
     { id: 'supinateur', nom: 'Supinateur', court: 'Supinateur',
       latin: 'Supinator', image: 'icones/muscle-supinateur.png', planche: 'avb_ar_prof', groupe: 'avant_bras_ar',
       quoi: 'tourne la paume vers le haut', articulation: 'avant_bras',
-      lateral: true, profond: true }
+      lateral: true, profond: true },
+    /* --- avant-bras profond : ce qui commande le pouce et l'index ---
+       Ces trois-la naissent du radius, de l'ulna ou de la membrane
+       interosseuse — PAS d'un epicondyle. Ils ne portent donc ni `medial` ni
+       `lateral`, comme le carre pronateur et le brachio-radial : les ranger
+       avec les autres serait plus simple a lire et ferait accuser la mauvaise
+       insertion. */
+    { id: 'long_abducteur_pouce', nom: 'Long abducteur du pouce', court: 'Long abd. pouce',
+      latin: 'Abductor pollicis longus', image: 'icones/muscle-long_abducteur_pouce.png',
+      groupe: 'avant_bras_ar', quoi: 'écarte le pouce de la paume, et le tire vers l’arrière',
+      articulation: 'pouce', profond: true },
+    { id: 'long_flechisseur_pouce', nom: 'Long fléchisseur du pouce', court: 'Long fléch. pouce',
+      aussi: 'long fléchisseur propre du pouce',
+      latin: 'Flexor pollicis longus', image: 'icones/muscle-long_flechisseur_pouce.png',
+      groupe: 'avant_bras_av', quoi: 'plie le bout du pouce — c’est lui qui écrase',
+      articulation: 'pouce', profond: true },
+    { id: 'extenseur_index', nom: 'Extenseur de l’index', court: 'Ext. index',
+      latin: 'Extensor indicis', image: 'icones/muscle-extenseur_index.png',
+      groupe: 'avant_bras_ar', quoi: 'ouvre l’index, seul',
+      articulation: 'doigts', profond: true },
+
+    /* --- la main : le thenar, l'hypothenar, les lombricaux ---
+       Mesure trouvee, et elle borne ce qu'on peut dire : les EXTRINSEQUES
+       font la force d'une prise de force, les intrinseques assistent (JBJS
+       1970, 115 sujets). Le thenar y est employe dans toutes les formes SAUF
+       la « hook grip » — attention au faux ami : cette « hook grip » est la
+       prise a quatre doigts sans pouce du chirurgien de la main, PAS le hook
+       du bras de fer. Les deux n'ont que le nom en commun, et les confondre
+       ferait dire a l'etude ce qu'elle ne dit pas. */
+    { id: 'court_abducteur_pouce', nom: 'Court abducteur du pouce', court: 'Court abd. pouce',
+      latin: 'Abductor pollicis brevis', image: 'icones/muscle-court_abducteur_pouce.png',
+      groupe: 'main', quoi: 'écarte le pouce de la paume', articulation: 'pouce' },
+    { id: 'court_flechisseur_pouce', nom: 'Court fléchisseur du pouce', court: 'Court fléch. pouce',
+      latin: 'Flexor pollicis brevis', image: 'icones/muscle-court_flechisseur_pouce.png',
+      groupe: 'main', quoi: 'plie la base du pouce', articulation: 'pouce' },
+    { id: 'opposant_pouce', nom: 'Opposant du pouce', court: 'Opp. pouce',
+      latin: 'Opponens pollicis', image: 'icones/muscle-opposant_pouce.png',
+      groupe: 'main', quoi: 'amène le pouce en face des autres doigts',
+      articulation: 'pouce', profond: true },
+    { id: 'adducteur_pouce', nom: 'Adducteur du pouce', court: 'Add. pouce',
+      latin: 'Adductor pollicis', image: 'icones/muscle-adducteur_pouce.png',
+      groupe: 'main', quoi: 'serre le pouce contre l’index — la pince qui tient',
+      articulation: 'pouce', profond: true },
+    { id: 'abducteur_auriculaire', nom: 'Abducteur de l’auriculaire', court: 'Abd. auriculaire',
+      latin: 'Abductor digiti minimi', image: 'icones/muscle-abducteur_auriculaire.png',
+      groupe: 'main', quoi: 'écarte le petit doigt', articulation: 'doigts' },
+    { id: 'court_flechisseur_auriculaire', nom: 'Court fléchisseur de l’auriculaire',
+      court: 'Fléch. auriculaire',
+      latin: 'Flexor digiti minimi brevis', image: 'icones/muscle-court_flechisseur_auriculaire.png',
+      groupe: 'main', quoi: 'plie la base du petit doigt', articulation: 'doigts' },
+    { id: 'opposant_auriculaire', nom: 'Opposant de l’auriculaire', court: 'Opp. auriculaire',
+      latin: 'Opponens digiti minimi', image: 'icones/muscle-opposant_auriculaire.png',
+      groupe: 'main', quoi: 'creuse la paume du côté du petit doigt',
+      articulation: 'doigts', profond: true },
+    { id: 'court_palmaire', nom: 'Court palmaire', court: 'Court palmaire',
+      aussi: 'palmaire cutané',
+      latin: 'Palmaris brevis', image: 'icones/muscle-court_palmaire.png',
+      groupe: 'main', quoi: 'plisse la peau de la paume et l’empêche de glisser',
+      articulation: 'doigts' },
+    /* Les lombricaux ne sont PAS employes dans une prise de force — c'est le
+       resultat explicite de l'etude de 1970, quatrieme excepte. On les garde
+       parce qu'ils existent et qu'ils tiennent les doigts, pas parce qu'ils
+       serrent : c'est pour ca qu'ils n'entrent pas dans la prise fermee. */
+    { id: 'lombricaux', nom: 'Lombricaux', court: 'Lombricaux',
+      latin: 'Lumbricales', image: 'icones/muscle-lombricaux.png',
+      groupe: 'main', quoi: 'plient les doigts à leur base en tendant le bout',
+      articulation: 'doigts', profond: true }
   ];
 
   /* Ce que chaque muscle MOBILISE. C'est la question qu'on se pose vraiment
@@ -410,6 +481,20 @@
     extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
     extenseurs_pouce:    ['pouce', 'thumb'],
     deltoide:            ['deltoide', 'epaule', 'elevation laterale', 'shoulder press'],
+    /* « pouce » tout seul reste aux extenseurs du pouce, ou il etait deja :
+       six muscles du pouce qui repondraient tous au meme mot noieraient la
+       proposition au lieu de l'aider. On ne propose que sur un mot qui
+       designe sans ambiguite. */
+    long_abducteur_pouce:  ['long abducteur'],
+    court_abducteur_pouce: ['court abducteur'],
+    long_flechisseur_pouce:['long flechisseur du pouce', 'flechisseur du pouce'],
+    court_flechisseur_pouce:['court flechisseur du pouce'],
+    adducteur_pouce:       ['adducteur du pouce', 'adducteur pouce'],
+    opposant_pouce:        ['opposant du pouce', 'opposition du pouce', 'opposant pouce'],
+    extenseur_index:       ['extenseur index', 'extenseur de l index'],
+    lombricaux:            ['lombricaux', 'lombrical'],
+    court_palmaire:        ['court palmaire'],
+    subscapulaire:         ['subscapulaire', 'sous scapulaire'],
     coraco_brachial:     ['coraco'],
     ancone:              ['ancone'],
     long_palmaire:       ['petit palmaire', 'long palmaire'],
@@ -484,7 +569,17 @@
     /* Une prise fermee fait travailler les flechisseurs des doigts. C'est la
        definition de serrer, pas une interpretation. */
     if (priseValide(prise) === 'fermee') {
-      vus.flechisseurs_doigts = 1;
+      /* Les EXTRINSEQUES font la force d'une prise de force ; les intrinseques
+         assistent. Le thenar, lui, est employe dans toutes les formes de prise
+         de force — c'est mesure (JBJS 1970, 115 sujets), pas deduit.
+
+         Ce qui N'EST PAS propose ici l'est pour la meme raison : les
+         lombricaux sont explicitement donnes comme non employes dans une
+         prise de force, et l'hypothenar n'est pas documente. On ne comble pas
+         un trou de la source avec une intuition. */
+      ['flechisseurs_doigts', 'long_flechisseur_pouce', 'court_flechisseur_pouce',
+       'court_abducteur_pouce', 'opposant_pouce', 'adducteur_pouce'
+      ].forEach(function (m) { vus[m] = 1; });
       sources.anatomie = true;
     }
     (forces || []).forEach(function (f) {
@@ -822,16 +917,27 @@
       muscles: ['rond_pronateur', 'fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts'] },
     { id: 'bord_pouce', nom: 'Le bord du pouce',
       aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir',
-      muscles: ['brachio_radial', 'ecrl', 'ecrb', 'fcr', 'extenseurs_pouce'] },
+      muscles: ['brachio_radial', 'ecrl', 'ecrb', 'fcr', 'extenseurs_pouce',
+                'long_abducteur_pouce', 'court_abducteur_pouce'] },
     { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
       aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y partir',
-      muscles: ['ecu', 'fcu', 'extenseur_petit_doigt'] },
+      muscles: ['ecu', 'fcu', 'extenseur_petit_doigt', 'abducteur_auriculaire',
+                'court_flechisseur_auriculaire'] },
     { id: 'serrer', nom: 'La main qui serre',
       aide: 'les doigts se referment — le gripper, la barre épaisse',
-      muscles: ['flechisseurs_doigts'] },
+      muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
+                'court_flechisseur_pouce', 'adducteur_pouce'] },
     { id: 'ouvrir', nom: 'La main qui s’ouvre',
       aide: 'les doigts s’écartent — l’élastique autour des doigts',
-      muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce'] },
+      muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce',
+                'extenseur_index', 'abducteur_auriculaire'] },
+    /* Les lombricaux et le court palmaire ne SERRENT pas — l'etude de 1970 le
+       dit des premiers, le second est un muscle de la peau. Ils creusent la
+       paume autour de la prise, et c'est une perception a part entiere : sans
+       cette zone, deux muscles resteraient reserves a qui connait les noms. */
+    { id: 'creux_paume', nom: 'Le creux de la main',
+      aide: 'la paume se creuse autour de la poignée, sans serrer plus fort',
+      muscles: ['lombricaux', 'court_palmaire', 'opposant_pouce', 'opposant_auriculaire'] },
     { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
       aide: 'la pronation — la poignée de pronation, la sangle',
       muscles: ['rond_pronateur', 'carre_pronateur'] },
@@ -846,7 +952,7 @@
       muscles: ['triceps', 'ancone'] },
     { id: 'epaule', nom: 'L’épaule',
       aide: 'le bras entier bouge — les élévations, le développé',
-      muscles: ['deltoide', 'coraco_brachial'] },
+      muscles: ['deltoide', 'coraco_brachial', 'subscapulaire'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
       aide: 'le torse travaille avec le bras — le tirage, le pull-over',
       muscles: ['grand_pectoral', 'grand_dorsal'] }

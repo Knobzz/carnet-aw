@@ -1348,7 +1348,7 @@
         if (!cible) return;
         cible.click();
         var l = fen.App.m.muscles(brouillon);
-        v.egal(l.join(','), 'fcu,ecu,extenseur_petit_doigt',
+        v.egal(l.join(','), 'fcu,ecu,extenseur_petit_doigt,abducteur_auriculaire,court_flechisseur_auriculaire',
                'un appui coche les muscles de la zone, dans l’ordre du tableau');
 
         /* Deux zones s'ajoutent, elles ne se remplacent pas : sinon le second

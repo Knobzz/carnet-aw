@@ -837,7 +837,7 @@
      ================================================================ */
 
   bloc('Muscles et prise', function (v) {
-    v.egal(A.m.MUSCLES.length, 22, 'vingt-deux muscles — toute la planche, plus les profonds qu’elle ne montre pas');
+    v.egal(A.m.MUSCLES.length, 35, 'trente-cinq muscles — toute la planche, les profonds qu’elle ne montre pas, et la main');
     v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
     v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
     v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
@@ -886,8 +886,22 @@
     v.egal(A.m.nomPrise(null), 'Prise non renseignée', 'et son absence se DIT');
     v.egal(A.m.priseValide('molle'), null, 'une valeur inconnue devient non renseignée');
     var ferme = A.m.musclesProposes([], 'fermee');
-    v.egal(ferme.muscles.join(','), 'flechisseurs_doigts',
-           'une prise fermée propose les fléchisseurs des doigts, à elle seule');
+    /* La proposition a été ÉLARGIE au pouce, et bornée par la même source :
+       les extrinsèques font la force d'une prise de force, et le thénar y est
+       employé dans toutes ses formes (JBJS 1970, 115 sujets). Ce qui reste
+       dehors l'est pour la même raison — voir le contrôle juste en dessous. */
+    v.egal(ferme.muscles.join(','),
+           'flechisseurs_doigts,long_flechisseur_pouce,court_abducteur_pouce,'
+         + 'court_flechisseur_pouce,opposant_pouce,adducteur_pouce',
+           'une prise fermée propose les fléchisseurs des doigts ET le pouce');
+    /* Les lombricaux sont explicitement donnés comme NON employés dans une
+       prise de force, et l'hypothénar n'est pas documenté. Les proposer
+       serait combler un trou de la source avec une intuition. */
+    v.egal(ferme.muscles.filter(function (m) {
+             return ['lombricaux', 'court_palmaire', 'opposant_auriculaire',
+                     'court_flechisseur_auriculaire', 'abducteur_auriculaire'].indexOf(m) >= 0;
+           }).join(','), '',
+           'et ni les lombricaux ni l’hypothénar : la source ne le dit pas');
     v.egal(ferme.source, 'anatomie', 'et c’est de l’anatomie');
     v.egal(A.m.musclesProposes([], 'ouverte').muscles.length, 0,
            'une prise ouverte ne propose rien : on pousse, on ne serre pas');
@@ -1151,7 +1165,7 @@
      perception, si.
      ================================================================ */
   bloc('Où ça tire', function (v) {
-    v.egal(A.m.ZONES_RESSENTIES.length, 12, 'douze zones ressenties');
+    v.egal(A.m.ZONES_RESSENTIES.length, 13, 'treize zones ressenties');
 
     var muets = A.m.ZONES_RESSENTIES.filter(function (z) {
       return !z.nom || !z.aide || !(z.muscles || []).length;
@@ -1181,10 +1195,16 @@
     v.egal(A.m.zoneRessentie('zzz'), null, 'et un id inconnu ne rend rien');
 
     v.egal(A.m.musclesDesZones(['bord_auriculaire']).join(','),
-           'fcu,ecu,extenseur_petit_doigt',
-           'le bord du petit doigt, c’est le fléchisseur et l’extenseur ulnaires');
-    v.egal(A.m.musclesDesZones(['serrer']).join(','), 'flechisseurs_doigts',
-           'serrer, ce sont les fléchisseurs des doigts — et c’est tout');
+           'fcu,ecu,extenseur_petit_doigt,abducteur_auriculaire,court_flechisseur_auriculaire',
+           'le bord du petit doigt : les ulnaires, et ce que l’auriculaire a en propre');
+    v.egal(A.m.musclesDesZones(['serrer']).join(','),
+           'flechisseurs_doigts,long_flechisseur_pouce,court_flechisseur_pouce,adducteur_pouce',
+           'serrer, ce sont les fléchisseurs des doigts et le pouce qui écrase');
+    /* Les lombricaux et le court palmaire CREUSENT la paume, ils ne serrent
+       pas : ils ont leur zone à eux, sinon ils resteraient inatteignables. */
+    v.egal(A.m.musclesDesZones(['creux_paume']).join(','),
+           'opposant_pouce,opposant_auriculaire,court_palmaire,lombricaux',
+           'le creux de la main, c’est ce qui enveloppe sans serrer');
     v.egal(A.m.musclesDesZones(['paume_bas']).join(','), 'rond_pronateur,carre_pronateur',
            'tourner la paume vers le bas, ce sont les deux pronateurs');
 
@@ -1196,7 +1216,7 @@
            'et les deux apports sont là');
 
     var ordre = A.m.musclesDesZones(['tendre_coude', 'epaule']);
-    v.egal(ordre.join(','), 'deltoide,coraco_brachial,triceps,ancone',
+    v.egal(ordre.join(','), 'deltoide,coraco_brachial,subscapulaire,triceps,ancone',
            'l’ordre est celui du tableau, pas celui des appuis');
 
     v.egal(A.m.musclesDesZones(['zzz']).length, 0, 'une zone inconnue n’apporte rien');
