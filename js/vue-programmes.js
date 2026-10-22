@@ -134,6 +134,7 @@
         function majMeta() {
           A.ui.vider(meta);
           meta.appendChild(h('span', { text: 'Repos ' + ep.reposSecondes + ' s' }));
+          if (ep.cote) meta.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ep.cote) }));
           (ep.outils || []).forEach(function (o) {
             meta.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
           });

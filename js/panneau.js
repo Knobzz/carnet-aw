@@ -238,12 +238,14 @@
         exo.aw = it.aw;
         exo.typeCharge = it.typeCharge;
         exo.colonnes = A.m.colonnes(it);
+        exo.cote = A.m.coteValide(it.cote);
         exo.forces = (it.forces || []).slice();
         exo.outils = (it.outils || []).slice();
         exo.structures = (it.structures || []).slice();
         btAw.setAttribute('aria-pressed', exo.aw ? 'true' : 'false');
         selCharge.value = exo.typeCharge;
         rafraichirColonnes();
+        rafraichirCote();
         if (selForces) rafraichirForces();
         rafraichirOutils();
         rafraichirStructures();
@@ -255,6 +257,18 @@
       });
       c.appendChild(A.ui.groupe('', btAw,
         'Compté dans le volume AW, à part de la muscu générale.'));
+
+      /* Quel bras cet exercice charge. Facultatif, posé une fois : le
+         catalogue le retient avec le nom, et il revient tout seul ensuite. */
+      var boiteCote = h('div');
+      function rafraichirCote() {
+        A.ui.vider(boiteCote);
+        boiteCote.appendChild(A.ui.selecteurCote(exo.cote, function (v) { exo.cote = v; }));
+      }
+      rafraichirCote();
+      c.appendChild(A.ui.groupe('Côté', boiteCote,
+        'Facultatif. C’est ce qui permet à Suivi de relier une douleur au bras qui l’a chargée — '
+      + 'sans lui, le recoupement croise les deux.'));
 
       A.m.TYPES_CHARGE.forEach(function (t) {
         selCharge.appendChild(h('option', { value: t.id, text: t.nom }));

@@ -47,6 +47,13 @@
         });
         c.appendChild(puces);
 
+        /* De quel bras. Un sparring charge un coude, pas deux — sauf si on a
+           tiré des deux côtés, ce que « Les deux » dit. */
+        c.appendChild(h('label', { text: 'Bras' }));
+        var cotes = A.ui.selecteurCote(sp.cote, function (v) { sp.cote = v; A.store.sauver(); });
+        cotes.style.marginBottom = '12px';
+        c.appendChild(cotes);
+
         var part = h('input', { class: 'champ', value: sp.partenaires || '',
                                 placeholder: 'Qui, et à quel niveau' });
         part.addEventListener('input', function () { sp.partenaires = part.value; A.store.sauver(); });

@@ -276,6 +276,7 @@
     function majMeta() {
       A.ui.vider(meta);
       meta.appendChild(h('span', { text: 'Repos ' + exo.reposSecondes + ' s' }));
+      if (exo.cote) meta.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(exo.cote) }));
       if (tc.id !== 'kg') meta.appendChild(h('span', { text: tc.nom }));
       (exo.outils || []).forEach(function (o) {
         meta.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));

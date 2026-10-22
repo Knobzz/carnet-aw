@@ -281,10 +281,15 @@
     ]);
 
     var st = A.m.derniereSollicitationStructure(e);
-    function parNom(id) { for (var i = 0; i < st.length; i++) if (st[i].structure === id) return st[i]; }
+    function parNom(id) {
+      for (var i = 0; i < st.lignes.length; i++) if (st.lignes[i].structure === id) return st.lignes[i];
+      return null;
+    }
     v.egal(parNom('coude_medial').jours, 1, 'le médial a été chargé hier');
     v.egal(parNom('poignet').jours, 5, 'le poignet il y a cinq jours');
-    v.egal(parNom('biceps').date, null, 'une structure jamais chargée le dit, au lieu de mentir');
+    v.egal(parNom('biceps'), null, 'une structure jamais chargée n’a pas de ligne…');
+    v.vrai(st.jamais.some(function (x) { return x.structure === 'biceps'; }),
+           '…elle est listée à part, ce qui le DIT au lieu de mentir');
     v.egal(parNom('coude_medial').exercices[0], 'Curl', 'et on sait par quel exercice');
 
     var ch = A.m.chargeParStructure(e, 28);
@@ -822,6 +827,125 @@
     }] });
     v.egal(m.seances[0].exercices[0].series[0].type, 'normale',
            'un type inconnu redevient normal plutôt que de faire planter la ligne');
+  });
+
+  /* ================================================================
+     20. Le côté — le bras de fer est asymétrique
+
+     Sans lui, « coude médial 4/10 » ne dit pas quel coude, et le recoupement
+     72 h croise la douleur d'un bras avec la charge de l'autre. `null` veut
+     dire NON RENSEIGNÉ, jamais une valeur par défaut — même principe que
+     l'intensité d'une douleur.
+     ================================================================ */
+
+  bloc('Côté', function (v) {
+    v.egal(A.m.COTES.length, 3, 'trois réponses possibles : droit, gauche, les deux');
+    v.egal(A.m.nomCote('droit'), 'Droit', 'elles s’affichent en clair');
+    v.egal(A.m.nomCote(null), 'Côté non renseigné',
+           'et l’absence de réponse se DIT, au lieu d’être comblée');
+    v.egal(A.m.coteValide('zzz'), null, 'une valeur inconnue devient « non renseigné »');
+    v.egal(A.m.coteValide(undefined), null, 'l’absence aussi');
+    v.egal(A.m.courtCote('deux'), 'G+D', 'la forme courte tient dans un jeton');
+
+    /* « Les deux » n'est pas un troisième côté : c'est une charge qui porte
+       sur les deux, et elle compte des deux côtés. */
+    v.egal(A.m.cotesCouverts('droit').join(','), 'droit', 'une charge à droite charge le droit');
+    v.egal(A.m.cotesCouverts('deux').sort().join(','), 'droit,gauche',
+           '« les deux » charge les DEUX, ce n’est pas un côté de plus');
+    v.egal(A.m.cotesCouverts(null).length, 0,
+           'un côté inconnu ne couvre RIEN : on ne devine pas quel bras a travaillé');
+
+    /* --- la douleur porte un côté --- */
+    var d = A.m.normaliserDouleurs([{ zone: 'coude_medial', intensite: 4, cote: 'droit' }]);
+    v.egal(d[0].cote, 'droit', 'une douleur sait de quel côté elle est');
+    v.egal(A.m.texteDouleur(d[0]), 'Coude médial D 4/10', 'et le dit à l’écran');
+
+    var vieille = A.m.normaliserDouleurs(['coude_medial']);
+    v.egal(vieille[0].cote, null,
+           'une douleur d’un carnet d’avant a un côté INCONNU, pas inventé');
+    v.egal(A.m.texteDouleur(vieille[0]), 'Coude médial',
+           'et son affichage ne change pas : rien à dire de plus');
+
+    var aucune = A.m.normaliserDouleurs([{ zone: 'aucune', intensite: 3, cote: 'droit' }]);
+    v.egal(aucune[0].cote, null, '« aucune » ne porte pas de côté : il n’y a rien à situer');
+    v.egal(aucune[0].intensite, 3, '[temoin] le reste de la normalisation est inchangé');
+
+    var faux = A.m.normaliserDouleurs([{ zone: 'poignet', intensite: null, cote: 'milieu' }]);
+    v.egal(faux[0].cote, null, 'un côté absurde est refusé, pas stocké');
+
+    /* --- le recoupement, qui est la raison d'être du champ --- */
+    function exoCote(nom, cote, structures) {
+      var x = exo(nom, [serie('normale', 20, 10)], { structures: structures });
+      x.cote = cote;
+      return x;
+    }
+
+    var e = etatAvec([
+      seance(jourIlYA(1), [
+        exoCote('Curl droit', 'droit', ['coude_medial']),
+        exoCote('Curl gauche', 'gauche', ['coude_medial']),
+        exoCote('Barre', 'deux', ['coude_medial']),
+        exoCote('Vieux curl', null, ['coude_medial'])
+      ])
+    ]);
+
+    var r = A.m.derniereSollicitationStructure(e);
+    function ligne(st, cote) {
+      return r.lignes.filter(function (x) {
+        return x.structure === st && x.cote === cote;
+      })[0] || null;
+    }
+
+    v.vrai(!!ligne('coude_medial', 'droit'), 'le médial droit a sa propre ligne');
+    v.vrai(!!ligne('coude_medial', 'gauche'), 'le médial gauche aussi');
+    v.vrai(!!ligne('coude_medial', A.m.COTE_INCONNU),
+           'et ce qui n’a pas de côté a la sienne, nommée');
+
+    v.egal(ligne('coude_medial', 'droit').series, 2,
+           'le droit compte l’exercice droit ET celui qui porte sur les deux');
+    v.egal(ligne('coude_medial', 'gauche').series, 2, 'le gauche aussi, symétriquement');
+    v.egal(ligne('coude_medial', A.m.COTE_INCONNU).series, 1,
+           'l’exercice sans côté n’est attribué à AUCUN bras — il reste à part');
+
+    v.egal(ligne('coude_medial', 'droit').exercices.sort().join(','), 'Barre,Curl droit',
+           'et on voit lesquels, pour pouvoir contester le compte');
+    v.egal(ligne('coude_medial', 'droit').nomCote, 'Droit', 'la ligne porte son libellé');
+    v.egal(ligne('coude_medial', A.m.COTE_INCONNU).nomCote, null,
+           'celle sans côté n’en porte pas : l’écran décide quoi en dire');
+
+    v.vrai(r.jamais.length > 0, 'les structures jamais chargées restent listées');
+    v.egal(r.jamais.filter(function (x) { return x.structure === 'coude_medial'; }).length, 0,
+           '[temoin] et le médial n’en fait pas partie, puisqu’il a été chargé');
+
+    /* La charge sur une fenêtre, ventilée. */
+    var c = A.m.chargeParStructure(e, 28);
+    v.egal(c.parStructure.coude_medial, 4,
+           'le total par structure ne change PAS : quatre exercices, quatre séries');
+    v.egal(c.parCote['coude_medial|droit'], 2, 'mais on sait maintenant ce qui revient au droit');
+    v.egal(c.parCote['coude_medial|gauche'], 2, 'et au gauche');
+    v.egal(c.parCote['coude_medial|' + A.m.COTE_INCONNU], 1, 'et ce qu’on ne peut pas attribuer');
+
+    /* Ce qui a chargé un côté donné, dans une fenêtre de séances. */
+    var q = A.m.exercicesAyantCharge(e.seances, 'coude_medial', 'droit');
+    v.egal(q.surLeCote.sort().join(','), 'Barre,Curl droit',
+           'on retrouve ce qui a chargé CE bras');
+    v.egal(q.sansCote.join(','), 'Vieux curl',
+           'et à part, ce qui aurait pu être en cause sans qu’on puisse le dire');
+
+    var qg = A.m.exercicesAyantCharge(e.seances, 'coude_medial', 'gauche');
+    v.egal(qg.surLeCote.indexOf('Curl droit'), -1,
+           'le bras gauche ne se voit PAS attribuer le travail du droit — '
+         + 'c’est tout l’objet du champ');
+
+    /* Un carnet d'avant : tout est inconnu, et rien ne se perd. */
+    var vieux = etatAvec([seance(jourIlYA(1), [exo('Curl', [serie('normale', 20, 10)],
+                                                  { structures: ['coude_medial'] })])]);
+    var rv = A.m.derniereSollicitationStructure(vieux);
+    v.egal(rv.lignes.length, 1, 'un carnet d’avant donne une ligne, pas zéro');
+    v.egal(rv.lignes[0].cote, A.m.COTE_INCONNU, 'avec un côté inconnu');
+    v.egal(rv.lignes[0].series, 1, 'et son compte intact');
+    v.egal(A.m.chargeParStructure(vieux, 28).parStructure.coude_medial, 1,
+           'le total d’un carnet d’avant ne bouge pas d’un pouce');
   });
 
   /* ================================================================

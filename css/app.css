@@ -1108,6 +1108,16 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   transform: translateY(-1px) rotate(-45deg);
 }
 
+/* Le cote se lit d'un coup d'oeil, sans se confondre avec un outil : c'est
+   une information d'anatomie, pas d'equipement. */
+.jeton-cote {
+  border-color: var(--laiton);
+  color: var(--laiton);
+  background: var(--laiton-doux);
+  font-weight: 700;
+  margin-left: 6px;
+}
+
 /* l'outil se lit dans l'en-tête d'exercice, pas seulement dans sa fiche */
 .jeton-outil { border-color: var(--trait-fort); color: var(--texte-2); background: var(--fond-3); font-weight: 550; }
 

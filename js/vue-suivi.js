@@ -69,7 +69,14 @@
      ------------------------------------------------------------------ */
   function blocStructures(e) {
     var f = document.createDocumentFragment();
-    var l = A.m.derniereSollicitationStructure(e).filter(function (s) { return s.date; });
+    var r = A.m.derniereSollicitationStructure(e);
+    var l = r.lignes;
+
+    /* Le côté ne s'affiche QUE s'il est renseigné quelque part : tant que le
+       carnet n'en porte aucun, répéter « côté non renseigné » sur chaque
+       ligne serait du bruit sur toute la hauteur de l'écran. */
+    var avecCote = l.some(function (s) { return s.cote !== A.m.COTE_INCONNU; });
+    var sansCote = l.filter(function (s) { return s.cote === A.m.COTE_INCONNU; });
 
     f.appendChild(section('Par structure',
       'Un exercice charge plusieurs structures, et une structure est chargée par plusieurs exercices. '
@@ -89,8 +96,13 @@
     l.sort(function (a, b) { return a.jours - b.jours; }).forEach(function (s) {
       var j = s.jours;
       var txt = j === 0 ? "aujourd’hui" : (j === 1 ? 'hier' : j + ' j');
+      var titre = h('b', { text: s.nom });
+      if (avecCote) {
+        titre.appendChild(h('span', { class: 'jeton jeton-cote',
+          text: s.nomCote || 'côté ?' }));
+      }
       corps.appendChild(h('div', { class: 'item-ligne', style: 'padding:7px 0;align-items:center' },
-        h('b', { text: s.nom }),
+        titre,
         h('span', { style: 'font-size:.78rem', text: s.series + ' sér.' }),
         h('span', { class: 'delai', dataset: { zone: A.m.zoneDelai(j) }, text: txt })));
       if (s.exercices.length) {
@@ -100,12 +112,23 @@
     });
 
     /* Les structures jamais chargées sont une information, pas un vide. */
-    var jamais = A.m.derniereSollicitationStructure(e)
-      .filter(function (s) { return !s.date; })
-      .map(function (s) { return s.nom; });
-    if (jamais.length) {
+    if (r.jamais.length) {
       corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
-        text: 'Jamais chargée : ' + jamais.join(', ') + '.' }));
+        text: 'Jamais chargée : ' + r.jamais.map(function (x) { return x.nom; }).join(', ') + '.' }));
+    }
+
+    /* Dire une fois, et une seule, ce qui manque pour que le croisement
+       gauche/droite soit juste. Le carnet montre, il ne réclame pas. */
+    if (sansCote.length) {
+      var noms = {};
+      sansCote.forEach(function (x) { x.exercices.forEach(function (n) { noms[n] = true; }); });
+      var liste = Object.keys(noms);
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:6px',
+        text: avecCote
+          ? 'Sans côté renseigné : ' + liste.join(', ') + '. '
+          + 'Ces séries ne peuvent être attribuées ni à un bras ni à l’autre.'
+          : 'Aucun exercice ne dit quel bras il charge. Le côté se pose dans la fiche '
+          + 'd’un exercice ; c’est lui qui permet de relier une douleur au bras qui l’a chargée.' }));
     }
 
     carte.appendChild(corps);
@@ -158,11 +181,18 @@
             var quoi;
             if (s.type === 'sparring') {
               quoi = 'Sparring' + (s.rounds ? ' · ' + s.rounds + ' rounds' : '')
-                   + (s.style ? ' · ' + A.m.nomStyle(s.style) : '');
+                   + (s.style ? ' · ' + A.m.nomStyle(s.style) : '')
+                   + (s.cote ? ' · ' + A.m.nomCote(s.cote) : '');
             } else {
+              /* Le côté de chaque exercice est dit ici : c'est la question
+                 que pose un épisode de douleur — « est-ce CE bras qui a
+                 travaillé ? ». Sans cette marque, la liste répond à côté. */
               var noms = (s.exercices || []).filter(function (x) {
                 return (x.series || []).some(function (y) { return y.faite; });
-              }).map(function (x) { return x.nom + (x.aw ? ' (AW)' : ''); });
+              }).map(function (x) {
+                return x.nom + (x.aw ? ' (AW)' : '')
+                     + (x.cote ? ' ' + A.m.courtCote(x.cote) : '');
+              });
               quoi = noms.length ? noms.join(', ') : 'séance sans série validée';
             }
             var j = A.m.joursEntre(s.date, se.date);

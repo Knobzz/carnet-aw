@@ -525,6 +525,104 @@
   });
 
   /* ================================================================
+     10. Le côté, posé au doigt
+
+     Le modèle sait le porter ; reste à savoir s'il arrive bien jusqu'à lui.
+     La feuille d'intensité pose DEUX questions — le côté puis l'intensité —
+     et c'est le chemin le plus facile à casser en silence.
+     ================================================================ */
+
+  bloc('Le côté, posé au doigt', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var exo = fen.App.m.exerciceSeanceVierge({ nom: 'Curl', typeCharge: 'kg' });
+
+    fen.App.panneau.editerExercice(exo, {}, function () {});
+
+    return attendre(120).then(function () {
+      var pan = doc.querySelector('.panneau');
+      function groupe(libelle) {
+        var l = pan.querySelectorAll('.groupe > label');
+        for (var i = 0; i < l.length; i++) if (l[i].textContent === libelle) return l[i].parentNode;
+        return null;
+      }
+      var g = groupe('Côté');
+      v.vrai(!!g, 'la fiche d’exercice demande le côté');
+      if (!g) return;
+
+      var puces = g.querySelectorAll('.puce');
+      v.egal(puces.length, 3, 'trois réponses : droit, gauche, les deux');
+      var mini = 999;
+      Array.prototype.forEach.call(puces, function (p) {
+        mini = Math.min(mini, p.getBoundingClientRect().height);
+      });
+      v.vrai(mini >= 44, 'chaque puce fait 44 px (mesuré : ' + Math.round(mini) + ')');
+      v.egal(exo.cote, null, '[temoin] rien n’est coché d’avance : le côté n’est pas inventé');
+
+      puces[0].click();
+      v.egal(exo.cote, 'droit', 'un appui pose le côté');
+      v.egal(puces[0].getAttribute('aria-pressed'), 'true', 'et se voit');
+      puces[1].click();
+      v.egal(exo.cote, 'gauche', 'le choix est UNIQUE : l’autre prend la place');
+      v.egal(puces[0].getAttribute('aria-pressed'), 'false', 'le premier se relâche');
+      puces[1].click();
+      v.egal(exo.cote, null,
+             'ré-appuyer sur celui qui est actif le retire : « non renseigné » reste atteignable');
+
+      var fermer = pan.querySelector('.panneau-entete .bt-icone');
+      if (fermer) fermer.click();
+
+      /* --- la feuille de douleur : côté PUIS intensité --- */
+      return attendre(100).then(function () {
+        var douleurs = [];
+        var sel = fen.App.ui.selecteurDouleurs([], function (v2) { douleurs = v2; });
+        doc.getElementById('vue').appendChild(sel);
+
+        var zone = null;
+        Array.prototype.forEach.call(sel.querySelectorAll('.puce-douleur'), function (b) {
+          if (b.textContent === 'Coude médial') zone = b;
+        });
+        v.vrai(!!zone, '[temoin] la zone est là');
+        zone.click();                       // premier appui : la zone seule
+        v.egal(douleurs.length, 1, 'un appui pose la zone');
+        v.egal(douleurs[0].cote, null, 'sans côté : on n’a rien demandé encore');
+
+        zone.click();                       // second appui : la feuille
+        return attendre(100).then(function () {
+          var popo = doc.querySelector('.popo');
+          v.vrai(!!popo, 'le second appui ouvre la feuille');
+          if (!popo) return;
+
+          var cotes = popo.querySelectorAll('.puce');
+          v.egal(cotes.length, 3, 'la feuille demande AUSSI le côté — une feuille, deux questions');
+
+          var droit = null;
+          Array.prototype.forEach.call(cotes, function (b) {
+            if (b.textContent === 'Droit') droit = b;
+          });
+          droit.click();
+
+          var cinq = null;
+          Array.prototype.forEach.call(popo.querySelectorAll('.echelon'), function (b) {
+            if (b.textContent === '5') cinq = b;
+          });
+          cinq.click();
+
+          return attendre(100).then(function () {
+            v.egal(douleurs[0].intensite, 5, 'l’intensité arrive jusqu’au modèle');
+            v.egal(douleurs[0].cote, 'droit', 'et le côté AUSSI — c’est ce chemin qui casse en silence');
+            v.egal(fen.App.m.texteDouleur(douleurs[0]), 'Coude médial D 5/10',
+                   'la puce le dit en clair');
+            v.egal(doc.querySelectorAll('.popo').length, 0, 'et la feuille se referme');
+
+            fen.App.ui.vider(doc.getElementById('vue'));
+            return attendre(20);
+          });
+        });
+      });
+    });
+  });
+
+  /* ================================================================
      9. Choisir dans tout l'équipement
 
      Taper le nom marche quand on le connaît. Passé une vingtaine d'outils, la

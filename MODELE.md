@@ -36,6 +36,7 @@ Exercice
   aw         : bool
   typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
   colonnes   : [ 'charge' | 'reps' | 'duree' ]   // ce que la ligne fait saisir
+  cote       : 'droit' | 'gauche' | 'deux' | null   // quel bras, voir plus bas
   forces     : [ 'rising' | 'back_pressure' | 'side_pressure'
                | 'supination' | 'cupping' | 'pronation' ]   // affiché « Mouvements »
   structures : [ string ]              // ce que l'exercice charge, voir plus bas
@@ -111,6 +112,7 @@ ExerciceProgramme
   aw            : bool
   typeCharge    : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
   colonnes      : [ string ]
+  cote          : string | null
   forces        : [ string ]
   outils        : [ string ]           // noms, copiés — pas des références
   consigne      : string               // tempo, tenue, prise — instruction d'exécution
@@ -148,7 +150,7 @@ Seance
   exercices   : [ ExerciceSeance ]
 
 ExerciceSeance
-  id, ordre, nom, slug, aw, typeCharge, colonnes, forces, outils, consigne, reposSecondes
+  id, ordre, nom, slug, aw, typeCharge, colonnes, cote, forces, outils, consigne, reposSecondes
   series : [ SerieSeance ]
 
 SerieSeance
@@ -175,6 +177,7 @@ SeanceSparring
   dureeMin    : int | null
   rounds      : int | null
   style       : 'hook' | 'toproll' | 'mixte' | ''
+  cote        : 'droit' | 'gauche' | 'deux' | null
   partenaires : string
   technique   : string
   ressenti    : string
@@ -237,6 +240,42 @@ correspondante, et c'est assumé.
 Portées par l'exercice (catalogue, programme et séance), facultatives, copiées comme le
 reste — jamais référencées.
 
+## Le côté
+
+Le bras de fer est asymétrique, et une épicondylite est d'**un** côté. Sans cette
+information, « coude médial 4/10 » ne dit pas quel coude, et le recoupement 72 h croise
+la douleur d'un bras avec la charge de l'autre : il répond alors à côté de la question
+qu'on lui pose. C'était le trou le plus grave du modèle, et il est passé inaperçu
+longtemps parce que rien ne le signalait.
+
+```
+'droit' | 'gauche' | 'deux' | null
+```
+
+Porté par l'exercice (catalogue, programme et séance), par le sparring, et par la
+douleur. **`null` veut dire NON RENSEIGNÉ** et n'est jamais remplacé par une valeur par
+défaut — même principe que `intensite`. Un carnet écrit avant se relit entier, avec des
+côtés inconnus plutôt qu'inventés, et ses totaux ne bougent pas d'un pouce.
+
+**« Les deux » n'est pas un troisième côté.** C'est une charge qui porte sur les deux
+bras, et elle compte **des deux côtés** : une barre chargée des deux mains sollicite le
+médial droit *et* le gauche. `cotesCouverts()` porte cette règle, et c'est elle qui
+rend `derniereSollicitationStructure()` juste.
+
+Ce qui n'a pas de côté n'est **ni réparti ni jeté** : il tombe dans un seau à lui,
+nommé, que l'écran montre à part. Un exercice sans côté pourrait être en cause dans une
+douleur sans qu'on puisse le dire — et c'est exactement ce qu'il faut afficher.
+
+`derniereSollicitationStructure()` rend donc `{ lignes, jamais }` : une ligne par
+*(structure, côté)* réellement chargée, et la liste des structures jamais touchées.
+L'écran n'affiche le côté que si le carnet en porte **au moins un** : tant qu'il n'y en
+a aucun, répéter « côté non renseigné » sur chaque ligne serait du bruit sur toute la
+hauteur. La fonctionnalité est invisible jusqu'à ce qu'on s'en serve.
+
+Le côté se pose **dans la feuille d'intensité**, pas dans un troisième appui : une
+feuille, deux questions. Un appui de plus en aurait fait l'information qu'on ne
+renseigne jamais.
+
 ## Zones de douleur, et leur intensité
 
 ```
@@ -244,6 +283,7 @@ Douleur
   zone      : 'coude_medial' | 'coude_lateral' | 'poignet' | 'avant_bras'
             | 'epaule' | 'aucune'
   intensite : 0–10 | null
+  cote      : 'droit' | 'gauche' | 'deux' | null
 ```
 
 `'aucune'` est **enregistré**, pas déduit d'une liste vide : une séance sans douleur cochée

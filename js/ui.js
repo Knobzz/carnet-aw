@@ -416,13 +416,23 @@
 
   /* Echelle 0-10, en grille : onze boutons empiles seraient illisibles et
      demanderaient un defilement pour atteindre les valeurs hautes. */
-  function choisirIntensite(nomZone, actuelle, onChoix) {
+  function choisirIntensite(nomZone, actuelle, onChoix, coteActuel) {
     var fond = h('div', { class: 'popo', role: 'dialog', 'aria-modal': 'true',
                           'aria-label': 'Intensité — ' + nomZone });
     var boite = h('div', { class: 'popo-feuille' });
-    boite.appendChild(h('h3', { text: 'Intensité — ' + nomZone }));
-    boite.appendChild(h('div', { class: 'item-resume', style: 'padding:0 6px 8px',
-      text: '0 : rien. 3 : je la sens. 6 : elle gêne le geste. 9 : je dois arrêter.' }));
+    boite.appendChild(h('h3', { text: nomZone }));
+
+    /* Le cote se demande ICI, dans la feuille qui est deja ouverte : un
+       troisieme appui pour le poser aurait fait du cote l'information
+       qu'on ne renseigne jamais. Il reste facultatif — on peut choisir une
+       intensite sans y toucher. */
+    var cote = A.m.coteValide(coteActuel);
+    boite.appendChild(h('div', { class: 'item-resume', style: 'padding:0 6px 6px',
+      text: 'De quel côté ? Facultatif, mais c’est ce qui permet de relier la douleur à ce qui l’a chargée.' }));
+    boite.appendChild(selecteurCote(cote, function (v) { cote = v; }));
+
+    boite.appendChild(h('div', { class: 'item-resume', style: 'padding:10px 6px 8px',
+      text: 'Intensité — 0 : rien. 3 : je la sens. 6 : elle gêne le geste. 9 : je dois arrêter.' }));
 
     var grille = h('div', { class: 'popo-echelle' });
     for (var i = 0; i <= 10; i++) {
@@ -431,7 +441,7 @@
                               'aria-pressed': actuelle === v ? 'true' : 'false',
                               dataset: { niveau: v < 4 ? 'bas' : (v < 7 ? 'moyen' : 'haut') },
                               text: String(v) });
-        b.addEventListener('click', function () { fermer(); onChoix(v); });
+        b.addEventListener('click', function () { fermer(); onChoix(v, cote); });
         grille.appendChild(b);
       })(i);
     }
@@ -439,12 +449,12 @@
 
     var flou = h('button', { class: 'bt bt-large bt-fantome', style: 'margin-top:8px',
                              text: 'Non précisée' });
-    flou.addEventListener('click', function () { fermer(); onChoix(null); });
+    flou.addEventListener('click', function () { fermer(); onChoix(null, cote); });
     boite.appendChild(flou);
 
     var ote = h('button', { class: 'bt bt-large bt-danger', style: 'margin-top:6px',
                             text: 'Retirer cette zone' });
-    ote.addEventListener('click', function () { fermer(); onChoix('retirer'); });
+    ote.addEventListener('click', function () { fermer(); onChoix('retirer', cote); });
     boite.appendChild(ote);
 
     var annul = h('button', { class: 'bt bt-large bt-fantome', style: 'margin-top:6px', text: 'Annuler' });
@@ -501,7 +511,9 @@
         if (d && d.intensite != null) n.dataset.niveau = d.intensite < 4 ? 'bas' : (d.intensite < 7 ? 'moyen' : 'haut');
         else delete n.dataset.niveau;
       });
-      onChange(sel.map(function (d) { return { zone: d.zone, intensite: d.intensite }; }));
+      onChange(sel.map(function (d) {
+        return { zone: d.zone, intensite: d.intensite, cote: d.cote || null };
+      }));
     }
 
     A.m.ZONES.forEach(function (z) {
@@ -511,7 +523,7 @@
         var d = trouve(z.id);
 
         if (z.id === 'aucune') {
-          sel = d ? [] : [{ zone: 'aucune', intensite: null }];
+          sel = d ? [] : [{ zone: 'aucune', intensite: null, cote: null }];
           rafraichir();
           return;
         }
@@ -519,16 +531,16 @@
         sel = sel.filter(function (x) { return x.zone !== 'aucune'; });
 
         if (!d) {                       // premier appui : la zone, rien de plus
-          sel.push({ zone: z.id, intensite: null });
+          sel.push({ zone: z.id, intensite: null, cote: null });
           rafraichir();
           return;
         }
 
-        choisirIntensite(z.nom, d.intensite, function (v) {   // second appui
+        choisirIntensite(z.nom, d.intensite, function (v, c) {   // second appui
           if (v === 'retirer') sel = sel.filter(function (x) { return x.zone !== z.id; });
-          else d.intensite = v;
+          else { d.intensite = v; d.cote = c; }
           rafraichir();
-        });
+        }, d.cote);
       });
       boite.appendChild(b);
     });
@@ -551,6 +563,34 @@
         b.setAttribute('aria-pressed', i >= 0 ? 'false' : 'true');
         onChange(sel.slice());
       });
+      boite.appendChild(b);
+    });
+    return boite;
+  }
+
+  /* Le cote : un choix UNIQUE, et qui peut redevenir vide. Appuyer sur celui
+     qui est deja actif le retire — « non renseigne » doit rester atteignable
+     une fois qu'on a repondu par erreur. */
+  function selecteurCote(valeur, onChange) {
+    var sel = A.m.coteValide(valeur);
+    var boite = h('div', { class: 'enrobe' });
+    var boutons = [];
+
+    function rafraichir() {
+      boutons.forEach(function (b) {
+        b.noeud.setAttribute('aria-pressed', sel === b.id ? 'true' : 'false');
+      });
+    }
+
+    A.m.COTES.forEach(function (c) {
+      var b = h('button', { type: 'button', class: 'puce', text: c.nom,
+                            'aria-pressed': sel === c.id ? 'true' : 'false' });
+      b.addEventListener('click', function () {
+        sel = (sel === c.id) ? null : c.id;
+        rafraichir();
+        onChange(sel);
+      });
+      boutons.push({ id: c.id, noeud: b });
       boite.appendChild(b);
     });
     return boite;
@@ -666,6 +706,7 @@
     empiler: empiler, depiler: depiler, garderEcranAllume: garderEcranAllume,
     jetonsDouleur: jetonsDouleur, selecteurDouleurs: selecteurDouleurs,
     selecteurForces: selecteurForces, selecteurStructures: selecteurStructures,
+    selecteurCote: selecteurCote,
     choisirIntensite: choisirIntensite,
     notificationsPossibles: notificationsPossibles,
     demanderNotifications: demanderNotifications,

@@ -59,6 +59,7 @@
         if (ex.consigne) bloc.appendChild(h('div', { class: 'consigne', text: ex.consigne }));
         if ((ex.outils || []).length || (ex.structures || []).length) {
           var m2 = h('div', { class: 'exo-meta' });
+          if (ex.cote) m2.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ex.cote) }));
           (ex.outils || []).forEach(function (o) {
             m2.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
           });
@@ -181,6 +182,7 @@
     if (se.rounds) r.push(se.rounds + ' rounds');
     if (se.dureeMin) r.push(se.dureeMin + ' min');
     if (se.style) r.push(A.m.nomStyle(se.style));
+    if (se.cote) r.push('bras ' + A.m.nomCote(se.cote).toLowerCase());
     if (se.partenaires) r.push(se.partenaires);
     if (r.length) it.appendChild(h('div', { class: 'item-resume', text: r.join(' · ') }));
     if (se.technique) it.appendChild(h('div', { class: 'item-resume', text: se.technique }));

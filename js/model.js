@@ -108,6 +108,46 @@
     { id: 'biceps',        nom: 'Biceps' }
   ];
 
+  /* ---------- le cote ----------
+
+     Le bras de fer est asymetrique, et une epicondylite est d'UN cote. Sans
+     cette information, « coude medial 4/10 » ne dit pas quel coude, et le
+     recoupement 72 h croise la douleur d'un bras avec la charge de l'autre :
+     il repond alors a cote de la question qu'on lui pose.
+
+     `null` veut dire NON RENSEIGNE, et n'est jamais remplace par une valeur
+     par defaut — meme principe que l'intensite d'une douleur. Un carnet
+     ecrit avant se relit entier, avec des cotes inconnus plutot qu'inventes.
+
+     « Les deux » n'est pas un troisieme cote : c'est une charge qui porte sur
+     les deux, et elle compte des deux cotes. */
+  var COTES = [
+    { id: 'droit',  nom: 'Droit',     court: 'D' },
+    { id: 'gauche', nom: 'Gauche',    court: 'G' },
+    { id: 'deux',   nom: 'Les deux',  court: 'G+D' }
+  ];
+  var COTE_INCONNU = 'inconnu';
+
+  function coteValide(id) {
+    for (var i = 0; i < COTES.length; i++) if (COTES[i].id === id) return id;
+    return null;
+  }
+  function nomCote(id) {
+    for (var i = 0; i < COTES.length; i++) if (COTES[i].id === id) return COTES[i].nom;
+    return 'Côté non renseigné';
+  }
+  function courtCote(id) {
+    for (var i = 0; i < COTES.length; i++) if (COTES[i].id === id) return COTES[i].court;
+    return '';
+  }
+  /* Quels cotes une charge portee « a droite », « a gauche » ou « des deux »
+     sollicite reellement. Un cote inconnu ne couvre rien : on ne devine pas. */
+  function cotesCouverts(cote) {
+    if (cote === 'deux') return ['droit', 'gauche'];
+    if (cote === 'droit' || cote === 'gauche') return [cote];
+    return [];
+  }
+
   var ZONES = [
     { id: 'coude_medial',  nom: 'Coude médial' },
     { id: 'coude_lateral', nom: 'Coude latéral' },
@@ -210,11 +250,14 @@
     if (!Array.isArray(liste)) return [];
     var sortie = [];
     liste.forEach(function (d) {
-      if (typeof d === 'string') { sortie.push({ zone: d, intensite: null }); return; }
+      if (typeof d === 'string') { sortie.push({ zone: d, intensite: null, cote: null }); return; }
       if (d && typeof d === 'object' && typeof d.zone === 'string') {
         var i = d.intensite;
         i = (typeof i === 'number' && isFinite(i)) ? Math.min(10, Math.max(0, Math.round(i))) : null;
-        sortie.push({ zone: d.zone, intensite: i });
+        /* « Aucune » ne porte ni intensite ni cote : il n'y a pas de douleur
+           a situer. */
+        var c = d.zone === 'aucune' ? null : coteValide(d.cote);
+        sortie.push({ zone: d.zone, intensite: i, cote: c });
       }
     });
     return sortie;
@@ -236,7 +279,9 @@
   }
 
   function texteDouleur(d) {
-    return nomZone(d.zone) + (d.intensite == null ? '' : ' ' + d.intensite + '/10');
+    return nomZone(d.zone)
+         + (d.cote ? ' ' + courtCote(d.cote) : '')
+         + (d.intensite == null ? '' : ' ' + d.intensite + '/10');
   }
   function nomForce(id) {
     for (var i = 0; i < FORCES.length; i++) if (FORCES[i].id === id) return FORCES[i].nom;
@@ -311,6 +356,7 @@
     if (!e) {
       e = { id: uid('ex'), nom: exo.nom, slug: s, aw: !!exo.aw,
             typeCharge: exo.typeCharge || 'kg', colonnes: colonnes(exo),
+            cote: coteValide(exo.cote),
             forces: (exo.forces || []).slice(),
             structures: (exo.structures || []).slice(),
             outils: (exo.outils || []).slice(), vuLe: maintenant() };
@@ -320,6 +366,9 @@
       e.aw = !!exo.aw;
       if (exo.typeCharge) e.typeCharge = exo.typeCharge;
       if (exo.colonnes) e.colonnes = colonnes(exo);
+      /* Le cote se met a jour, et peut aussi etre EFFACE : repasser un exercice
+         a « non renseigne » doit pouvoir se faire. */
+      e.cote = coteValide(exo.cote);
       if (exo.forces) e.forces = exo.forces.slice();
       if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
@@ -474,6 +523,8 @@
         });
       }
       ex.colonnes = colonnes(ex);
+      /* Le cote n'est pas invente : absent, il reste null. */
+      ex.cote = coteValide(ex.cote);
 
       (ex.series || []).forEach(function (s) {
         if (!s) return;
@@ -508,7 +559,7 @@
       id: uid('ep'), ordre: 0,
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
-      colonnes: colonnes(modele),
+      colonnes: colonnes(modele), cote: coteValide(modele.cote),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -542,7 +593,7 @@
       id: uid('es'), ordre: ep.ordre,
       nom: ep.nom, slug: ep.slug || slug(ep.nom),
       aw: !!ep.aw, typeCharge: ep.typeCharge || 'kg',
-      colonnes: colonnes(ep),
+      colonnes: colonnes(ep), cote: coteValide(ep.cote),
       forces: (ep.forces || []).slice(),
       structures: (ep.structures || []).slice(),
       outils: (ep.outils || []).slice(),
@@ -567,7 +618,7 @@
       id: uid('es'), ordre: 0,
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
-      colonnes: colonnes(modele),
+      colonnes: colonnes(modele), cote: coteValide(modele.cote),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -689,7 +740,7 @@
 
   function seanceSparring() {
     return { id: uid('sp'), type: 'sparring', date: aujourdHui(), heure: new Date().toISOString(),
-             club: '', dureeMin: null, rounds: null, style: '', partenaires: '',
+             club: '', dureeMin: null, rounds: null, style: '', cote: null, partenaires: '',
              technique: '', ressenti: '', note: '', douleurs: [] };
   }
 
@@ -701,6 +752,7 @@
     p.exercices = renumeroter((seance.exercices || []).map(function (es) {
       return exerciceProgramme({
         nom: es.nom, aw: es.aw, typeCharge: es.typeCharge, colonnes: colonnes(es),
+        cote: es.cote,
         forces: es.forces, structures: es.structures, outils: es.outils,
         consigne: es.consigne, reposSecondes: es.reposSecondes,
         series: (es.series || []).map(function (ss) {
@@ -974,47 +1026,107 @@
   /* Derniere fois que chaque STRUCTURE a ete chargee, et combien de series.
      Repond a la question que la liste par exercice ne sait pas traiter :
      « quand ai-je charge lourd le medial », toutes origines confondues. */
+  /* Quand chaque structure a-t-elle ete chargee, ET DE QUEL COTE.
+
+     Une charge portee « des deux » compte des DEUX cotes : ce n'est pas un
+     troisieme cote, c'est un exercice qui sollicite les deux bras. Un
+     exercice sans cote renseigne tombe dans son propre seau, nomme — on ne
+     le repartit pas au hasard, et on ne le jette pas non plus.
+
+     Rendu : une ligne par (structure, cote) REELLEMENT chargee, plus la
+     liste des structures jamais touchees. L'ecran decide ensuite s'il
+     mentionne le cote — inutile tant que le carnet n'en porte aucun. */
   function derniereSollicitationStructure(etat) {
-    var par = {};
+    var par = {}, ordre = [];
+
+    function poser(st, cote, date, nom, faites) {
+      var cle = st + '|' + cote;
+      if (!par[cle]) {
+        par[cle] = { structure: st, cote: cote, date: date, series: 0, exercices: [] };
+        ordre.push(cle);
+      }
+      var e = par[cle];
+      if (date > e.date) { e.date = date; e.series = 0; e.exercices = []; }
+      if (date === e.date) {
+        e.series += faites;
+        if (e.exercices.indexOf(nom) < 0) e.exercices.push(nom);
+      }
+    }
+
     seancesMuscuTriees(etat).forEach(function (se) {
       (se.exercices || []).forEach(function (ex) {
         var faites = (ex.series || []).filter(function (s) { return s.faite; }).length;
         if (!faites) return;
+        var cotes = cotesCouverts(ex.cote);
+        if (!cotes.length) cotes = [COTE_INCONNU];
         (ex.structures || []).forEach(function (st) {
-          if (!par[st]) par[st] = { structure: st, date: se.date, series: 0, exercices: [] };
-          if (se.date > par[st].date) { par[st].date = se.date; }
-          if (se.date === par[st].date) {
-            par[st].series += faites;
-            if (par[st].exercices.indexOf(ex.nom) < 0) par[st].exercices.push(ex.nom);
-          }
+          cotes.forEach(function (c) { poser(st, c, se.date, ex.nom, faites); });
         });
       });
     });
-    return STRUCTURES.map(function (s) {
-      var e = par[s.id];
-      return { structure: s.id, nom: s.nom,
-               date: e ? e.date : null,
-               jours: e ? joursDepuis(e.date) : null,
-               series: e ? e.series : 0,
-               exercices: e ? e.exercices : [] };
+
+    var lignes = ordre.map(function (cle) {
+      var e = par[cle];
+      return { structure: e.structure, nom: nomStructure(e.structure),
+               cote: e.cote, nomCote: e.cote === COTE_INCONNU ? null : nomCote(e.cote),
+               date: e.date, jours: joursDepuis(e.date),
+               series: e.series, exercices: e.exercices };
     });
+
+    var touchees = {};
+    lignes.forEach(function (l) { touchees[l.structure] = true; });
+    var jamais = STRUCTURES.filter(function (s) { return !touchees[s.id]; })
+      .map(function (s) { return { structure: s.id, nom: s.nom }; });
+
+    return { lignes: lignes, jamais: jamais };
   }
 
   /* Series validees par structure sur une fenetre, pour voir la repartition. */
+  /* Le meme compte, mais sur une fenetre, et ventile par cote. `parStructure`
+     reste le total toutes origines confondues — c'est lui qui repond a
+     « ai-je neglige l'avant-bras » ; `parCote` repond a « de quel bras ». */
   function chargeParStructure(etat, depuisJours) {
-    var c = {}, total = 0;
+    var c = {}, parCote = {}, total = 0;
     STRUCTURES.forEach(function (s) { c[s.id] = 0; });
     seancesMuscuTriees(etat).forEach(function (se) {
       if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
       (se.exercices || []).forEach(function (ex) {
         var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
         if (!n) return;
+        var cotes = cotesCouverts(ex.cote);
+        if (!cotes.length) cotes = [COTE_INCONNU];
         (ex.structures || []).forEach(function (st) {
-          if (c[st] != null) { c[st] += n; total += n; }
+          if (c[st] == null) return;
+          c[st] += n;
+          total += n;
+          cotes.forEach(function (k) {
+            var cle = st + '|' + k;
+            parCote[cle] = (parCote[cle] || 0) + n;
+          });
         });
       });
     });
-    return { parStructure: c, total: total };
+    return { parStructure: c, parCote: parCote, total: total };
+  }
+
+  /* Ce qui a charge un cote donne d'une structure, dans une liste de seances.
+     C'est la brique du recoupement : une douleur au medial DROIT doit se
+     croiser avec ce qui a charge le medial droit, pas avec l'autre bras.
+     Un exercice sans cote renseigne est rendu a part, parce qu'il pourrait
+     etre en cause sans qu'on puisse le dire. */
+  function exercicesAyantCharge(seances, structure, cote) {
+    var surLeCote = [], sansCote = [];
+    (seances || []).forEach(function (se) {
+      if (!se || se.type !== 'muscu') return;
+      (se.exercices || []).forEach(function (ex) {
+        if (!(ex.series || []).some(function (s) { return s.faite; })) return;
+        if (structure && (ex.structures || []).indexOf(structure) < 0) return;
+        var cotes = cotesCouverts(ex.cote);
+        if (!cotes.length) { sansCote.push(ex.nom); return; }
+        if (!cote || cotes.indexOf(cote) >= 0) surLeCote.push(ex.nom);
+      });
+    });
+    return { surLeCote: surLeCote, sansCote: sansCote };
   }
 
   function zoneDelai(jours) {
@@ -1174,6 +1286,9 @@
   A.m = {
     TYPES_SERIE: TYPES_SERIE, ORDRE_TYPES: ORDRE_TYPES, TYPES_CHARGE: TYPES_CHARGE,
     FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
+    COTES: COTES, COTE_INCONNU: COTE_INCONNU,
+    coteValide: coteValide, nomCote: nomCote, courtCote: courtCote,
+    cotesCouverts: cotesCouverts,
     COLONNES: COLONNES, COLONNES_DEFAUT: COLONNES_DEFAUT,
     uid: uid, slug: slug, nombre: nombre, fmt: fmt,
     secondes: secondes, texteDuree: texteDuree,
@@ -1187,7 +1302,7 @@
     rangParType: rangParType, serieAuRangParType: serieAuRangParType,
     dureeReelle: dureeReelle,
     derniereSollicitationStructure: derniereSollicitationStructure,
-    chargeParStructure: chargeParStructure,
+    chargeParStructure: chargeParStructure, exercicesAyantCharge: exercicesAyantCharge,
     historiqueExercice: historiqueExercice, exercicesPratiques: exercicesPratiques,
     aujourdHui: aujourdHui, maintenant: maintenant,
     dateCourte: dateCourte, jourSemaine: jourSemaine,
