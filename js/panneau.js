@@ -403,9 +403,60 @@
             o.jetons = o.categorie ? [{ texte: o.categorie }] : [];
             return o;
           });
-        }, function (v) { exo.outils = v; }, 'Dumbbell, poulie haute, Titan Grip…'));
+        }, function (v) { exo.outils = v; rafraichirReglages(); },
+          'Dumbbell, poulie haute, Titan Grip…'));
       }
+
+      /* ---- les réglages de chaque outil ----
+         Un même outil ne charge pas pareil selon la façon dont il est monté :
+         le mousqueton à l'extérieur de la poignée pousse sur le bord externe
+         de la main. Ce n'est ni un autre outil, ni un autre exercice.
+
+         Le groupe N'APPARAÎT QUE si un outil retenu a des réglages déclarés
+         au catalogue. Montrer une rangée vide à tous ceux qui n'en ont pas
+         serait une case de plus à ignorer. */
+      var boiteReglages = h('div');
+      var grReglages = A.ui.groupe('Réglage de l’outil', boiteReglages,
+        'Déclare-les sur l’outil, dans Réglages → Mon équipement.');
+      function rafraichirReglages() {
+        A.ui.vider(boiteReglages);
+        var rien = true;
+        (exo.outils || []).forEach(function (nomOutil) {
+          var l = A.m.reglagesOutil(etat(), nomOutil);
+          if (!l.length) return;
+          rien = false;
+          boiteReglages.appendChild(h('div', { class: 'item-resume',
+                                               style: 'margin-top:6px', text: nomOutil }));
+          var rangee = h('div', { class: 'puces' });
+          var puces = [];
+          function majPuces() {
+            var actuel = A.m.reglageDe(exo, nomOutil);
+            puces.forEach(function (p) {
+              p.bouton.setAttribute('aria-pressed',
+                (p.nom === actuel || (!p.nom && !actuel)) ? 'true' : 'false');
+            });
+          }
+          function poser(nom) {
+            A.m.poserReglage(exo, nomOutil, nom);
+            majPuces();
+            majAideMuscles();
+          }
+          [{ nom: null, texte: 'Aucun' }].concat(l.map(function (r) {
+            return { nom: r.nom, texte: r.nom };
+          })).forEach(function (o) {
+            var b = h('button', { type: 'button', class: 'puce', text: o.texte });
+            b.addEventListener('click', function () { poser(o.nom); });
+            puces.push({ nom: o.nom, bouton: b });
+            rangee.appendChild(b);
+          });
+          majPuces();
+          boiteReglages.appendChild(rangee);
+        });
+        grReglages.hidden = rien;
+      }
+
       rafraichirOutils();
+      rafraichirReglages();
       var grOutils = A.ui.groupe('Outils', boiteOutils);
 
       /* Taper marche quand on connaît le nom. Passé une vingtaine d'outils,
@@ -422,11 +473,13 @@
         choisirOutils(etat(), exo.outils || [], function (liste) {
           exo.outils = liste;
           rafraichirOutils();
+          rafraichirReglages();
           majBtEquip();
         });
       });
       grOutils.appendChild(btEquip);
       c.appendChild(grOutils);
+      c.appendChild(grReglages);
 
       /* Les structures chargees. Memes identifiants que les zones de douleur :
          c'est ce qui permet a Suivi de repondre a « quand ai-je charge lourd le
@@ -485,14 +538,16 @@
         }
         aideMuscles.textContent = bouts.join(' ');
 
-        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value);
+        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value,
+                                       A.m.musclesDesReglages(etat(), exo));
         var manquants = prop.muscles.filter(function (id) { return l.indexOf(id) < 0; });
         btProposer.disabled = !manquants.length;
         /* Le bouton dit D'OÙ vient la proposition. Annoncer « d'après les
            mouvements » alors qu'on lit le nom serait une petite malhonnêteté,
            et c'est exactement ce que le reste de l'app refuse. */
         var depuis = { nom: 'le nom', anatomie: 'l’anatomie',
-                       a_verifier: 'les mouvements', mixte: 'le nom et les mouvements' };
+                       a_verifier: 'les mouvements', reglage: 'le réglage de l’outil',
+                       mixte: 'ce qui est renseigné' };
         btProposer.textContent = !prop.muscles.length
           ? 'Rien à proposer : donne un nom, ou coche un mouvement'
           : (manquants.length
@@ -512,7 +567,8 @@
       rafraichirMuscles();
 
       btProposer.addEventListener('click', function () {
-        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value);
+        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value,
+                                       A.m.musclesDesReglages(etat(), exo));
         if (!prop.muscles.length) return;
         var fusion = A.m.muscles(exo).slice();
         prop.muscles.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
@@ -522,6 +578,8 @@
           ? 'Proposé d’après l’anatomie. À corriger si ça ne correspond pas.'
           : prop.source === 'nom'
           ? 'Proposé d’après le nom que tu as écrit. À corriger si besoin.'
+          : prop.source === 'reglage'
+          ? 'Proposé d’après le réglage de l’outil — c’est toi qui l’as renseigné.'
           : 'Proposé — à vérifier : les directions de poussée ne sont pas des actions articulaires.');
       });
 

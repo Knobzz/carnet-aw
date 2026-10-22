@@ -1010,6 +1010,128 @@
      ouvrir son équipement, le voir rangé, en cocher plusieurs d'un coup.
      ================================================================ */
 
+  /* ================================================================
+     Le réglage de l'outil, à l'écran
+
+     Le même Titan Grip, mousqueton dehors ou dedans, ne charge pas la même
+     chose. La rangée ne doit apparaître QUE si l'outil retenu a des réglages
+     déclarés : une case vide de plus serait une case de plus à ignorer.
+     ================================================================ */
+  bloc('Réglage de l’outil', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var e = fen.App.store.etat();
+
+    fen.App.m.majCatalogueOutils(e, 'Titan Grip', 'Poignées AW');
+    fen.App.m.majCatalogueOutils(e, 'Dumbbell', 'Barres');
+    fen.App.m.majReglageOutil(e, 'Titan Grip', 'Mousqueton dehors', ['ecrl', 'ecrb', 'ecu']);
+    fen.App.m.majReglageOutil(e, 'Titan Grip', 'Mousqueton dedans', ['fcu', 'fcr']);
+
+    /* Un nom NEUTRE : « Pronation » contient un mot-muscle, et la source
+       deviendrait « mixte » — on mesurerait alors autre chose que le réglage. */
+    var brouillon = fen.App.m.exerciceProgramme({ nom: 'Essai A', outils: ['Dumbbell'] });
+    fen.App.panneau.editerExercice(brouillon, { titre: 'Essai' }, function () {});
+
+    function groupeDe(pan, libelle) {
+      var l = pan.querySelectorAll('.groupe > label');
+      for (var i = 0; i < l.length; i++) {
+        if (l[i].textContent === libelle) return l[i].parentNode;
+      }
+      return null;
+    }
+
+    return attendre(140).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+
+      var gr = groupeDe(pan, 'Réglage de l’outil');
+      v.vrai(!!gr, 'le groupe existe dans la fiche');
+
+      /* Le piège déjà rencontré sur le filtre de l'équipement : `display`
+         l'emporte sur [hidden]. On mesure la HAUTEUR, pas l'attribut. */
+      v.egal(gr ? gr.getBoundingClientRect().height : -1, 0,
+             'un outil SANS réglage ne montre rien — pas même une rangée vide');
+
+      /* On ajoute l'outil qui en a : la rangée doit apparaître seule. */
+      brouillon.outils = ['Dumbbell', 'Titan Grip'];
+      var fermer1 = pan.querySelector('.panneau-entete .bt-icone');
+      if (fermer1) fermer1.click();
+      return attendre(80);
+    }).then(function () {
+      fen.App.panneau.editerExercice(brouillon, { titre: 'Essai' }, function () {});
+      return attendre(140);
+    }).then(function () {
+      var pan = doc.querySelector('.panneau');
+      var gr = groupeDe(pan, 'Réglage de l’outil');
+      v.vrai(gr && gr.getBoundingClientRect().height > 0
+                && gr.querySelectorAll('.puce').length === 3,
+             'avec un outil réglable, la rangée apparaît — avec ses puces, '
+           + 'pas seulement son libellé');
+      if (!gr) return;
+
+      v.vrai(gr.textContent.indexOf('Titan Grip') >= 0,
+             'elle dit DE QUEL OUTIL il s’agit — un exercice peut en porter plusieurs');
+      v.egal(gr.textContent.indexOf('Dumbbell'), -1,
+             'et ne parle pas de celui qui n’a aucun réglage');
+
+      var puces = gr.querySelectorAll('.puce');
+      var noms = Array.prototype.map.call(puces, function (p) { return p.textContent; });
+      v.egal(noms.join(' | '), 'Aucun | Mousqueton dehors | Mousqueton dedans',
+             '« Aucun » d’abord : ne rien régler reste un choix, pas un oubli');
+
+      var choisies = Array.prototype.filter.call(puces, function (p) {
+        return p.getAttribute('aria-pressed') === 'true';
+      });
+      v.egal(choisies.length, 1, 'une seule est retenue à la fois');
+      v.egal(choisies[0].textContent, 'Aucun', 'et au départ c’est « Aucun »');
+
+      var minH = 999, sort = 0;
+      Array.prototype.forEach.call(puces, function (p) {
+        var r = p.getBoundingClientRect();
+        minH = Math.min(minH, r.height);
+        if (r.right > LARGEUR + 1) sort += 1;
+      });
+      v.vrai(minH >= 44, 'chaque puce se touche (mesuré : ' + Math.round(minH) + ' px)');
+      v.egal(sort, 0, 'et aucune ne sort de l’écran à 320 px');
+
+      puces[1].click();
+      v.egal(fen.App.m.reglageDe(brouillon, 'Titan Grip'), 'Mousqueton dehors',
+             'appuyer retient le réglage');
+      v.egal(puces[1].getAttribute('aria-pressed'), 'true', 'la puce le montre');
+      v.egal(puces[0].getAttribute('aria-pressed'), 'false', 'et « Aucun » se relâche');
+
+      /* Le réglage nourrit la proposition : c'est tout son intérêt. */
+      var bt = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('button'), function (b) {
+        if (b.textContent.indexOf('Proposer d’après') === 0) bt = b;
+      });
+      v.vrai(!!bt, 'le bouton de proposition s’active');
+      if (bt) {
+        v.vrai(bt.textContent.indexOf('le réglage de l’outil') >= 0,
+               'et dit D’OÙ ça vient : du réglage, pas de l’anatomie ('
+             + bt.textContent + ')');
+        bt.click();
+        v.vrai(fen.App.m.muscles(brouillon).indexOf('ecu') >= 0,
+               'la proposition coche bien les muscles du réglage');
+      }
+
+      puces[0].click();
+      v.egal(fen.App.m.reglageDe(brouillon, 'Titan Grip'), null,
+             '« Aucun » retire le réglage — on peut revenir en arrière');
+
+      var corps = pan.querySelector('.panneau-corps');
+      v.vrai(corps.scrollWidth <= corps.clientWidth + 1,
+             'aucun débordement horizontal à 320 px');
+
+      var fermer = pan.querySelector('.panneau-entete .bt-icone');
+      if (fermer) fermer.click();
+      return attendre(80).then(function () {
+        e.outils = [];
+        e.exercices = [];
+      });
+    });
+  });
+
   bloc('Choisir dans l’équipement', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var e = fen.App.store.etat();

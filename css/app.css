@@ -316,6 +316,11 @@ textarea.champ { min-height: 72px; resize: vertical; line-height: 1.4; }
 select.champ { appearance: none; background-image: none; }
 
 .groupe { margin-bottom: 12px; }
+/* Pas de `.groupe[hidden] { display: none }` : la regle du navigateur suffit
+   tant que .groupe ne pose aucun display. Elle a ete ecrite, puis RETIREE
+   faute d'avoir pu la faire tomber — une regle qu'on ne voit pas servir ne
+   prouve rien et se contente d'encombrer. Ce qui protege le comportement,
+   c'est le controle qui mesure la hauteur reelle du groupe. */
 .grille-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* interrupteur / puces de choix */
@@ -740,6 +745,13 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .item-ligne { display: flex; gap: 8px; padding: 1.5px 0; }
 .item-ligne b { font-weight: 550; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-ligne span { color: var(--texte-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Une ligne qui s'ouvre : elle reste une ligne, mais elle se touche. 44 px,
+   comme tout ce qui se touche dans cette app. */
+.item-bouton { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--bord);
+               font: inherit; text-align: left; cursor: pointer; align-items: center;
+               min-height: 44px; padding: 4px 0; color: var(--texte); }
+.item-bouton:last-of-type { border-bottom: 0; }
+.item-bouton:hover b { color: var(--laiton); }
 .item.archive { opacity: .62; border-style: dashed; }
 
 .filtres { display: flex; gap: 6px; margin-bottom: 10px; }

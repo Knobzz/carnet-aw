@@ -459,6 +459,56 @@ colonne du libellé dépendait du mot le plus long de *sa* ligne : une piste cou
 pistes d'un groupe commencent au même endroit, font la même longueur, et qu'il en reste
 assez pour comparer.
 
+## Les réglages d'un outil
+
+Un même outil ne charge pas pareil selon la façon dont il est monté. Sur une poignée de
+pronation, le mousqueton posé **à l'extérieur** fait porter la pression sur le bord externe
+de la main et tire sur les extenseurs ; **à l'intérieur**, c'est l'autre bord. Ce n'est ni
+un autre outil, ni un autre exercice : c'est un **réglage**.
+
+```
+Outil (catalogue)
+  reglages : [ { id, nom, slug, muscles: [] } ]
+
+Exercice
+  reglages : { '<slug de l’outil>': '<nom du réglage>' }
+```
+
+**Les réglages vivent sur l'outil, pas sur l'exercice.** On les écrit une fois au
+catalogue, on les coche ensuite. Les saisir à chaque exercice donnerait « extérieur »,
+« Exterieur » et « ext » : trois réglages pour un seul.
+
+**Côté exercice, la clé est le slug de l'outil tel que l'exercice le porte** — exactement
+comme le reste. Renommer un outil au catalogue ne touche pas les exercices passés : leur
+outil garde son ancien nom, et son réglage reste accroché au même endroit.
+
+**Retirer l'outil emporte son réglage.** `reglagesPortes()` ne rend que les réglages dont
+l'outil est encore coché : un réglage sans outil s'afficherait tout seul et personne ne
+saurait de quoi il parle. Le réglage n'est pas *effacé* pour autant — remettre l'outil le
+retrouve.
+
+**Retirer un réglage du catalogue ne touche pas les exercices qui le portaient.** Leur
+mention reste : on n'efface pas ce qui a été fait. Il ne propose simplement plus rien.
+
+### La quatrième source de proposition
+
+Un réglage peut porter des muscles, et c'est tout son intérêt : **c'est l'utilisateur qui
+sait ce que SON matériel sollicite**, et le carnet le lui propose ensuite au lieu de le
+lui redemander. `musclesProposes()` prend donc un quatrième argument, et la source
+s'appelle `reglage` — le bouton le dit, comme pour les trois autres.
+
+### Ce qui se voit
+
+L'outil **se dit avec son réglage** partout où il s'affiche : séance, journal, programme.
+`outilDit(exo, nom)` rend « Titan Grip · Mousqueton à l'extérieur ». Sans ça, deux séances
+de « Pronation Titan Grip » seraient indiscernables au journal alors que ce n'était pas le
+même travail.
+
+La rangée de choix **n'apparaît que** si un outil retenu a des réglages déclarés. Une case
+vide de plus serait une case de plus à ignorer — et le banc mesure la **hauteur réelle** du
+groupe, pas l'attribut `hidden` : le filtre de l'équipement avait déjà été battu par un
+`display: flex` qui l'emportait sur `[hidden]`.
+
 ## Zones de douleur, et leur intensité
 
 ```

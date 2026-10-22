@@ -1135,6 +1135,133 @@
      lendemain d'une grosse séance est souvent un jour de repos.
      ================================================================ */
 
+  /* ================================================================
+     Les réglages d'un outil
+
+     Le même Titan Grip, mousqueton à l'extérieur ou à l'intérieur, ne charge
+     pas la même chose. Ce n'est ni un autre outil, ni un autre exercice.
+     ================================================================ */
+  bloc('Réglages d’outil', function (v) {
+    var e = A.store.vide();
+    A.m.majCatalogueOutils(e, 'Titan Grip Iron Wrist 60', 'Poignées AW');
+    A.m.majCatalogueOutils(e, 'Poulie basse', 'Poulies');
+
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 0,
+           'un outil neuf n’a AUCUN réglage — rien n’est supposé');
+    v.egal(A.m.reglagesOutil(e, 'Outil inconnu').length, 0,
+           'et un outil qui n’existe pas n’en a pas non plus, sans planter');
+
+    var r = A.m.majReglageOutil(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’extérieur',
+                                ['ecrl', 'ecrb', 'ecu']);
+    v.vrai(!!r && !!r.id, 'un réglage se pose et reçoit un identifiant');
+    v.egal(r.muscles.join(','), 'ecrl,ecrb,ecu', 'avec les muscles qu’il sollicite');
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 1, 'et il est au catalogue');
+    v.egal(A.m.reglagesOutil(e, 'Poulie basse').length, 0,
+           'sur CET outil seulement — un réglage n’est pas global');
+
+    A.m.majReglageOutil(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’intérieur',
+                        ['fcu', 'fcr', 'flechisseurs_doigts']);
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 2, 'un second s’ajoute');
+
+    /* Reposer le MÊME nom met à jour, il n'empile pas : sinon la liste se
+       remplirait de doublons au premier enregistrement répété. */
+    A.m.majReglageOutil(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’extérieur', ['ecu']);
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 2,
+           'reposer le même nom MET À JOUR, il n’empile pas');
+    v.egal(A.m.trouverReglage(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’extérieur')
+                .muscles.join(','), 'ecu', 'et les muscles suivent');
+
+    /* Renommer : avec l'identifiant, c'est un renommage ; sans lui, ce serait
+       un second réglage à côté de l'ancien. */
+    A.m.majReglageOutil(e, 'Titan Grip Iron Wrist 60', 'Dehors', null, r.id);
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 2,
+           'renommer par identifiant ne crée pas de second réglage');
+    v.egal(A.m.trouverReglage(e, 'Titan Grip Iron Wrist 60', 'Dehors').muscles.join(','), 'ecu',
+           'et garde ses muscles : renommer n’est pas recommencer');
+    v.egal(A.m.trouverReglage(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’extérieur'), null,
+           'l’ancien nom ne répond plus');
+
+    v.egal(A.m.majReglageOutil(e, 'Titan Grip Iron Wrist 60', '   '), null,
+           'un réglage sans nom ne s’enregistre pas');
+    v.egal(A.m.majReglageOutil(e, 'Outil inconnu', 'Quelque chose'), null,
+           'et on ne règle pas un outil qui n’existe pas');
+
+    /* --- côté exercice --- */
+    var x = A.m.exerciceProgramme({ nom: 'Pronation Titan', outils: ['Titan Grip Iron Wrist 60'] });
+    v.egal(A.m.reglageDe(x, 'Titan Grip Iron Wrist 60'), null,
+           'un exercice neuf ne retient AUCUN réglage');
+    A.m.poserReglage(x, 'Titan Grip Iron Wrist 60', 'Dehors');
+    v.egal(A.m.reglageDe(x, 'Titan Grip Iron Wrist 60'), 'Dehors', 'il se pose…');
+    v.egal(A.m.outilDit(x, 'Titan Grip Iron Wrist 60'), 'Titan Grip Iron Wrist 60 · Dehors',
+           '…et l’outil se DIT avec, sinon deux séances seraient indiscernables au journal');
+    A.m.poserReglage(x, 'Titan Grip Iron Wrist 60', '');
+    v.egal(A.m.reglageDe(x, 'Titan Grip Iron Wrist 60'), null, 'et il se retire');
+    v.egal(A.m.outilDit(x, 'Titan Grip Iron Wrist 60'), 'Titan Grip Iron Wrist 60',
+           'l’outil redevient nu');
+
+    /* Décocher l'outil doit emporter son réglage : un réglage sans outil
+       s'afficherait tout seul, et personne ne saurait de quoi il parle. */
+    A.m.poserReglage(x, 'Titan Grip Iron Wrist 60', 'Dehors');
+    v.egal(A.m.reglagesPortes(x).length, 1, '[temoin] le réglage est porté');
+    x.outils = [];
+    v.egal(A.m.reglagesPortes(x).length, 0,
+           'retirer l’outil emporte son réglage : il ne reste pas tout seul');
+    var copie = A.m.exerciceProgramme(x);
+    v.egal(JSON.stringify(copie.reglages), '{}',
+           'et la copie ne le traîne pas non plus');
+
+    x.outils = ['Titan Grip Iron Wrist 60'];
+    var copie2 = A.m.exerciceProgramme(x);
+    v.egal(A.m.reglageDe(copie2, 'Titan Grip Iron Wrist 60'), 'Dehors',
+           'remettre l’outil retrouve son réglage — rien n’avait été effacé');
+    var enSeance = A.m.exerciceSeanceVierge(copie2);
+    v.egal(A.m.reglageDe(enSeance, 'Titan Grip Iron Wrist 60'), 'Dehors',
+           'et la séance qui en part le porte aussi');
+
+    /* --- le catalogue retient le réglage AVEC le nom de l'exercice --- */
+    A.m.majCatalogue(e, copie2);
+    var auCat = A.m.trouverCatalogue(e, A.m.slug('Pronation Titan'));
+    v.egal(A.m.reglageDe(auCat, 'Titan Grip Iron Wrist 60'), 'Dehors',
+           'le catalogue retient le réglage avec le nom, comme les muscles');
+
+    /* --- la quatrième source de proposition --- */
+    var y = A.m.exerciceProgramme({ nom: 'Travail poignée', outils: ['Titan Grip Iron Wrist 60'] });
+    v.egal(A.m.musclesDesReglages(e, y).length, 0, 'sans réglage retenu, rien n’est proposé');
+    A.m.poserReglage(y, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’intérieur');
+    v.egal(A.m.musclesDesReglages(e, y).join(','), 'fcr,fcu,flechisseurs_doigts',
+           'le réglage retenu désigne ses muscles, dans l’ordre du tableau');
+    var prop = A.m.musclesProposes([], null, 'Travail poignée', A.m.musclesDesReglages(e, y));
+    v.egal(prop.source, 'reglage',
+           'et la source est NOMMÉE : elle vient du réglage, pas de l’anatomie');
+    v.egal(prop.muscles.join(','), 'fcr,fcu,flechisseurs_doigts', 'avec les bons muscles');
+    var mixte = A.m.musclesProposes(['cupping'], null, 'Curl biceps',
+                                    A.m.musclesDesReglages(e, y));
+    v.egal(mixte.source, 'mixte', 'mêlée à une autre source, elle se dit « mixte »');
+    v.vrai(mixte.muscles.indexOf('biceps') >= 0 && mixte.muscles.indexOf('fcr') >= 0,
+           'et les deux sources se cumulent');
+    v.egal(A.m.musclesProposes([], null, '', ['zzz']).muscles.length, 0,
+           'un muscle inconnu posé sur un réglage ne passe pas');
+
+    /* --- retirer --- */
+    var id2 = A.m.trouverReglage(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’intérieur').id;
+    v.vrai(A.m.supprimerReglageOutil(e, 'Titan Grip Iron Wrist 60', id2), 'un réglage se retire');
+    v.egal(A.m.reglagesOutil(e, 'Titan Grip Iron Wrist 60').length, 1, 'et il n’est plus là');
+    v.egal(A.m.reglageDe(y, 'Titan Grip Iron Wrist 60'), 'Mousqueton à l’intérieur',
+           'mais l’exercice qui le portait GARDE sa mention — on n’efface pas '
+         + 'ce qui a été fait');
+    v.egal(A.m.musclesDesReglages(e, y).length, 0,
+           'il ne propose simplement plus rien');
+    v.egal(A.m.supprimerReglageOutil(e, 'Titan Grip Iron Wrist 60', 'zzz'), false,
+           'retirer un réglage inconnu ne fait rien, et le dit');
+
+    /* --- un carnet d'AVANT, sans la notion --- */
+    var vieux = { nom: 'Vieux', outils: ['Dumbbell'] };
+    v.egal(A.m.reglageDe(vieux, 'Dumbbell'), null,
+           'un exercice d’avant n’a pas de réglage, et ne plante pas');
+    v.egal(A.m.outilDit(vieux, 'Dumbbell'), 'Dumbbell', 'son outil se dit nu');
+    v.egal(A.m.reglagesPortes(vieux).length, 0, 'et il n’en porte aucun');
+  });
+
   bloc('Règle des 24 h', function (v) {
     function etatDouleur(jours, zone, cote, intensite) {
       var se = seance(jourIlYA(jours), [], { id: 'd' + jours });

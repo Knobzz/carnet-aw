@@ -473,8 +473,15 @@
   }
 
   /* Ce que les mouvements d'un exercice proposent, et d'ou ca vient. */
-  function musclesProposes(forces, prise, nom) {
+  function musclesProposes(forces, prise, nom, musclesReglage) {
     var vus = {}, l = [], sources = {};
+
+    /* Le réglage d'abord, à égalité avec le nom : c'est l'utilisateur qui a
+       écrit ce que SON matériel sollicite, une fois, au catalogue. */
+    (musclesReglage || []).forEach(function (m) {
+      if (!muscle(m)) return;
+      vus[m] = 1; sources.reglage = true;
+    });
 
     /* Le nom d'abord : c'est ce que l'utilisateur a ECRIT lui-meme, donc la
        source la moins contestable des trois. */
@@ -493,11 +500,13 @@
     });
     var ordonne = [];
     MUSCLES.forEach(function (m) { if (vus[m.id]) ordonne.push(m.id); });
-    var nb = (sources.nom ? 1 : 0) + (sources.anatomie ? 1 : 0) + (sources.a_verifier ? 1 : 0);
+    var nb = (sources.nom ? 1 : 0) + (sources.anatomie ? 1 : 0)
+           + (sources.a_verifier ? 1 : 0) + (sources.reglage ? 1 : 0);
     var source = nb > 1 ? 'mixte'
+               : (sources.reglage ? 'reglage'
                : (sources.nom ? 'nom'
                : (sources.anatomie ? 'anatomie'
-               : (sources.a_verifier ? 'a_verifier' : null)));
+               : (sources.a_verifier ? 'a_verifier' : null))));
     return { muscles: ordonne, source: source };
   }
 
@@ -713,7 +722,8 @@
             muscles: muscles(exo),
             forces: (exo.forces || []).slice(),
             structures: (exo.structures || []).slice(),
-            outils: (exo.outils || []).slice(), vuLe: maintenant() };
+            outils: (exo.outils || []).slice(), reglages: reglagesDe(exo),
+            vuLe: maintenant() };
       etat.exercices.push(e);
     } else {
       e.nom = exo.nom;
@@ -728,6 +738,9 @@
       if (exo.forces) e.forces = exo.forces.slice();
       if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
+      /* Le réglage se retient AVEC le nom de l'exercice, comme les muscles :
+         « Pronation Titan Grip » revient avec son mousqueton du bon côté. */
+      if (exo.reglages) e.reglages = reglagesDe(exo);
       e.vuLe = maintenant();
     }
     (exo.outils || []).forEach(function (o) { majCatalogueOutils(etat, o); });
@@ -760,6 +773,128 @@
       o.vuLe = maintenant();
     }
     return o;
+  }
+
+  /* ---------- les réglages d'un outil ----------
+
+     Un même outil ne charge pas pareil selon la façon dont il est monté.
+     Sur une poignée de pronation, le mousqueton posé à l'EXTÉRIEUR fait
+     porter la pression sur le bord externe de la main ; à l'intérieur,
+     c'est l'autre bord. Ce n'est pas un autre outil, et ce n'est pas un
+     autre exercice : c'est un RÉGLAGE, et il mérite d'être noté parce qu'il
+     change ce qui travaille.
+
+     Les réglages vivent sur l'OUTIL, dans le catalogue : on les écrit une
+     fois, on les coche ensuite. Les écrire à chaque exercice donnerait
+     « extérieur », « Exterieur », « ext » — trois réglages pour un seul.
+
+     Un réglage peut porter des muscles. C'est tout l'intérêt : c'est
+     l'utilisateur qui sait ce que SON matériel sollicite, et le carnet le
+     lui propose ensuite au lieu de le lui redemander. */
+
+  function reglagesOutil(etat, nomOutil) {
+    var o = trouverOutil(etat, slug(nomOutil));
+    return (o && Array.isArray(o.reglages)) ? o.reglages : [];
+  }
+
+  function trouverReglage(etat, nomOutil, nomReglage) {
+    var cible = slug(nomReglage);
+    if (!cible) return null;
+    var l = reglagesOutil(etat, nomOutil);
+    for (var i = 0; i < l.length; i++) if (l[i].slug === cible) return l[i];
+    return null;
+  }
+
+  /* Pose ou met à jour un réglage. `id` sert au renommage : sans lui, changer
+     « Extérieur » en « Dehors » en créerait un second à côté. */
+  function majReglageOutil(etat, nomOutil, nomReglage, musclesVoulus, id) {
+    var o = trouverOutil(etat, slug(nomOutil));
+    if (!o) return null;
+    var n = String(nomReglage == null ? '' : nomReglage).trim();
+    if (!n) return null;
+    if (!Array.isArray(o.reglages)) o.reglages = [];
+    var r = null, i;
+    if (id) {
+      for (i = 0; i < o.reglages.length; i++) if (o.reglages[i].id === id) r = o.reglages[i];
+    }
+    if (!r) {
+      for (i = 0; i < o.reglages.length; i++) if (o.reglages[i].slug === slug(n)) r = o.reglages[i];
+    }
+    if (!r) { r = { id: uid('rg'), nom: n, slug: slug(n), muscles: [] }; o.reglages.push(r); }
+    r.nom = n;
+    r.slug = slug(n);
+    if (musclesVoulus) r.muscles = muscles({ muscles: musclesVoulus });
+    return r;
+  }
+
+  function supprimerReglageOutil(etat, nomOutil, id) {
+    var o = trouverOutil(etat, slug(nomOutil));
+    if (!o || !Array.isArray(o.reglages)) return false;
+    for (var i = 0; i < o.reglages.length; i++) {
+      if (o.reglages[i].id === id) { o.reglages.splice(i, 1); return true; }
+    }
+    return false;
+  }
+
+  /* Côté exercice, le réglage retenu est rangé par SLUG de l'outil tel que
+     l'exercice le porte — comme le reste. Renommer un outil au catalogue ne
+     touche pas les exercices : leur outil garde son ancien nom, et son
+     réglage reste accroché au même endroit. */
+  function reglageDe(exo, nomOutil) {
+    var m = exo && exo.reglages;
+    var s = slug(nomOutil);
+    if (!m || !s) return null;
+    var v = m[s];
+    return v ? String(v) : null;
+  }
+
+  function poserReglage(exo, nomOutil, nomReglage) {
+    var s = slug(nomOutil);
+    if (!s) return exo;
+    if (!exo.reglages) exo.reglages = {};
+    var n = String(nomReglage == null ? '' : nomReglage).trim();
+    if (n) exo.reglages[s] = n;
+    else delete exo.reglages[s];
+    return exo;
+  }
+
+  /* Les réglages réellement portés, dans l'ordre des outils. Décocher un
+     outil emporte son réglage : un réglage sans outil s'afficherait tout
+     seul, et personne ne saurait de quoi il parle. */
+  function reglagesPortes(exo) {
+    var l = [];
+    (exo && exo.outils || []).forEach(function (o) {
+      var r = reglageDe(exo, o);
+      if (r) l.push({ outil: o, reglage: r });
+    });
+    return l;
+  }
+
+  /* L'outil tel qu'on le DIT : avec son réglage s'il en porte un. Sans ça,
+     deux séances de « Pronation Titan Grip » seraient indiscernables au
+     journal alors que ce n'était pas le même travail. */
+  function outilDit(exo, nomOutil) {
+    var r = reglageDe(exo, nomOutil);
+    return r ? nomOutil + ' · ' + r : nomOutil;
+  }
+
+  function reglagesDe(modele) {
+    var m = {};
+    reglagesPortes(modele).forEach(function (x) { m[slug(x.outil)] = x.reglage; });
+    return m;
+  }
+
+  /* Les muscles que les réglages retenus désignent — la quatrième source de
+     proposition, et la seule qui vienne de l'utilisateur ET de son matériel. */
+  function musclesDesReglages(etat, exo) {
+    var ids = [];
+    (exo && exo.outils || []).forEach(function (o) {
+      var nom = reglageDe(exo, o);
+      if (!nom) return;
+      var r = trouverReglage(etat, o, nom);
+      if (r) (r.muscles || []).forEach(function (x) { ids.push(x); });
+    });
+    return muscles({ muscles: ids });
   }
 
   var SANS_CATEGORIE = 'Sans catégorie';
@@ -921,7 +1056,7 @@
       prise: priseValide(modele.prise), muscles: muscles(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
-      outils: (modele.outils || []).slice(),
+      outils: (modele.outils || []).slice(), reglages: reglagesDe(modele),
       consigne: modele.consigne || '',
       reposSecondes: modele.reposSecondes == null ? 120 : modele.reposSecondes,
       series: (modele.series || []).map(serieProgramme)
@@ -956,7 +1091,7 @@
       prise: priseValide(ep.prise), muscles: muscles(ep),
       forces: (ep.forces || []).slice(),
       structures: (ep.structures || []).slice(),
-      outils: (ep.outils || []).slice(),
+      outils: (ep.outils || []).slice(), reglages: reglagesDe(ep),
       consigne: ep.consigne || '',
       reposSecondes: ep.reposSecondes == null ? 120 : ep.reposSecondes,
       series: (ep.series || []).map(serieDepuisProgramme)
@@ -982,7 +1117,7 @@
       prise: priseValide(modele.prise), muscles: muscles(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
-      outils: (modele.outils || []).slice(),
+      outils: (modele.outils || []).slice(), reglages: reglagesDe(modele),
       consigne: modele.consigne || '',
       reposSecondes: modele.reposSecondes == null ? 120 : modele.reposSecondes,
       series: (modele.series && modele.series.length ? modele.series.map(serieSeanceVierge)
@@ -1959,6 +2094,11 @@
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,
     categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie, SANS_CATEGORIE: SANS_CATEGORIE,
+    reglagesOutil: reglagesOutil, trouverReglage: trouverReglage,
+    majReglageOutil: majReglageOutil, supprimerReglageOutil: supprimerReglageOutil,
+    reglageDe: reglageDe, poserReglage: poserReglage, reglagesPortes: reglagesPortes,
+    outilDit: outilDit,
+    musclesDesReglages: musclesDesReglages,
     serieProgramme: serieProgramme, exerciceProgramme: exerciceProgramme, programme: programme,
     renumeroter: renumeroter,
     seanceMuscu: seanceMuscu, seanceSparring: seanceSparring,

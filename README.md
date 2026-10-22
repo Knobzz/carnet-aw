@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **624 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **683 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **409 contrôles, 23 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **215 contrôles, 12 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **449 contrôles, 24 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **234 contrôles, 13 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -165,6 +165,7 @@ catalogues vides au départ · ce que l'autocomplétion montre vraiment · les s
 mouvements · la durée par série, le temps sous tension et les colonnes choisies ·
 la migration d'un carnet d'avant · la récupération quotidienne et sa régularité ·
 le côté et le recoupement douleur / bras qui l'a chargée · **la règle des 24 h** ·
+**les réglages d'un outil, et ce qu'ils proposent** ·
 **la progression en récupération · **les muscles, la prise, et la carte du bras**.
 
 Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
@@ -180,7 +181,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quarante défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quarante-sept défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -227,6 +228,13 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | le latin retiré de la planche ouverte | `le nom LATIN à y chercher — attendu true, obtenu false` |
 | la source de la gravure non citée | `la source est citée : Gray, 1918, domaine public` |
 | le libellé des barres redevenu inerte | `c'est un BOUTON, pas un texte qui fait semblant` |
+| un réglage reposé qui empile au lieu de mettre à jour | `reposer le même nom MET À JOUR — attendu 2, obtenu 3` |
+| un renommage de réglage traité comme un ajout | `renommer par identifiant ne crée pas de second réglage — attendu 2, obtenu 3` |
+| un réglage gardé après décochage de son outil | `retirer l'outil emporte son réglage — attendu 0, obtenu 1` |
+| le réglage perdu à la copie de l'exercice | `remettre l'outil retrouve son réglage — attendu "Dehors", obtenu null` |
+| le réglage absent du nom affiché de l'outil | `l'outil se DIT avec — attendu "Titan Grip · Dehors"` |
+| la source « réglage » non nommée au bouton | `la source est NOMMÉE — attendu "reglage", obtenu "nom"` |
+| la rangée de réglages montrée sans réglage à offrir | `un outil SANS réglage ne montre rien — attendu 0, obtenu 63` |
 | l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à

@@ -147,6 +147,67 @@
     return Object.keys(vus).length;
   }
 
+  /* Fiche d'un RÉGLAGE : son nom, et ce qu'il fait travailler.
+
+     Les muscles sont facultatifs — un réglage qui n'est qu'une étiquette
+     (« mousqueton à l'extérieur ») a déjà sa valeur : il distingue deux
+     séances qui se ressembleraient. Mais s'ils sont renseignés, la fiche
+     d'exercice les PROPOSE, et c'est la seule source qui vienne du matériel
+     de celui qui s'en sert. */
+  function editerReglage(outil, reglage, apres) {
+    var e = etat();
+    var neuf = !reglage;
+    var choisis = neuf ? [] : (reglage.muscles || []).slice();
+    var appliquer = null;
+
+    A.panneau.ouvrir(neuf ? 'Nouveau réglage' : reglage.nom, function (c, fermer) {
+      var champ = h('input', { class: 'champ', value: neuf ? '' : reglage.nom,
+                               placeholder: 'Mousqueton à l’extérieur…' });
+      c.appendChild(A.ui.groupe('Nom du réglage', champ,
+        'Comment l’outil est monté : ce qui change ce qu’il sollicite.'));
+
+      c.appendChild(A.ui.groupe('Muscles sollicités',
+        A.ui.selecteurMuscles(choisis, function (l) { choisis = l; }),
+        'Facultatif. S’ils sont cochés, la fiche d’exercice les proposera '
+      + 'quand ce réglage est retenu.'));
+
+      if (!neuf) {
+        c.appendChild(A.ui.confirmer2(
+          h('button', { class: 'bt bt-large bt-danger', style: 'margin-top:12px',
+                        text: 'Retirer ce réglage' }),
+          'Appuyer encore pour retirer',
+          function () {
+            A.m.supprimerReglageOutil(e, outil.nom, reglage.id);
+            A.store.sauver(true);
+            fermer();
+            A.ui.toast('Retiré. Les exercices qui le portent gardent leur mention.');
+            apres && apres();
+          }));
+      }
+
+      appliquer = function () {
+        var nom = champ.value.trim();
+        if (!nom) { A.ui.toast('Donne un nom au réglage.'); champ.focus(); return false; }
+        var existant = A.m.trouverReglage(e, outil.nom, nom);
+        if (existant && (neuf || existant.id !== reglage.id)) {
+          A.ui.toast('« ' + existant.nom + ' » existe déjà sur cet outil.');
+          return false;
+        }
+        A.m.majReglageOutil(e, outil.nom, nom, choisis, neuf ? null : reglage.id);
+        A.store.sauver(true);
+        return true;
+      };
+      setTimeout(function () { if (neuf) champ.focus(); }, 60);
+    }, [
+      { nom: 'Annuler', action: function (fermer) { fermer(); } },
+      { nom: 'Enregistrer', classe: 'bt-primaire', action: function (fermer) {
+          if (appliquer && !appliquer()) return;
+          fermer();
+          apres && apres();
+        } }
+    ]);
+  }
+
   /* Fiche d'un outil : nom + catégorie, la catégorie en saisie libre avec
      autocomplétion sur celles déjà employées. `outil` null = création. */
   function editerOutil(outil, apres) {
@@ -172,6 +233,41 @@
       }, function () {});
 
       if (!neuf) {
+        /* ---- les réglages ----
+           Un même outil ne charge pas pareil selon la façon dont il est
+           monté. On les écrit UNE fois ici ; la fiche d'exercice les coche
+           ensuite. Les écrire à chaque exercice donnerait « extérieur »,
+           « Exterieur » et « ext » : trois réglages pour un seul. */
+        var boiteReg = h('div');
+        function rendreReglages() {
+          A.ui.vider(boiteReg);
+          var l = A.m.reglagesOutil(e, outil.nom);
+          if (!l.length) {
+            boiteReg.appendChild(h('div', { class: 'item-resume',
+              text: 'Aucun pour l’instant.' }));
+          }
+          l.forEach(function (r) {
+            var b = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+              h('b', { text: r.nom }),
+              h('span', { text: (r.muscles || []).length
+                ? (r.muscles || []).length + ' muscle(s)' : 'sans muscle' }));
+            b.addEventListener('click', function () {
+              editerReglage(outil, r, function () { rendreReglages(); });
+            });
+            boiteReg.appendChild(b);
+          });
+          var plus = h('button', { type: 'button', class: 'bt', style: 'margin-top:8px',
+                                   text: '+ Ajouter un réglage' });
+          plus.addEventListener('click', function () {
+            editerReglage(outil, null, function () { rendreReglages(); });
+          });
+          boiteReg.appendChild(plus);
+        }
+        rendreReglages();
+        c.appendChild(A.ui.groupe('Réglages', boiteReg,
+          'Facultatif. « Mousqueton à l’extérieur », « poignée fine » : ce qui '
+        + 'change ce que l’outil sollicite, sans en faire un autre exercice.'));
+
         var n = compterUsages(e, outil);
         c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px',
           text: n ? 'Employé par ' + n + ' exercice(s).' : 'Aucun exercice ne l’emploie pour l’instant.' }));

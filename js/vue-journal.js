@@ -62,7 +62,7 @@
           if (ex.cote) m2.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ex.cote) }));
           if (ex.prise) m2.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(ex.prise).toLowerCase() }));
           (ex.outils || []).forEach(function (o) {
-            m2.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
+            m2.appendChild(h('span', { class: 'jeton jeton-outil', text: A.m.outilDit(ex, o) }));
           });
           if ((ex.structures || []).length) {
             m2.appendChild(h('span', { text: ex.structures.map(A.m.nomStructure).join(' · ') }));

@@ -280,7 +280,7 @@
       if (exo.prise) meta.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(exo.prise).toLowerCase() }));
       if (tc.id !== 'kg') meta.appendChild(h('span', { text: tc.nom }));
       (exo.outils || []).forEach(function (o) {
-        meta.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
+        meta.appendChild(h('span', { class: 'jeton jeton-outil', text: A.m.outilDit(exo, o) }));
       });
       if ((exo.structures || []).length) {
         meta.appendChild(h('span', { text: exo.structures.map(A.m.nomStructure).join(' · ') }));
@@ -372,7 +372,7 @@
         { nom: 'Dupliquer dans la séance', action: function () {
             var copie = A.m.exerciceSeanceVierge({
               nom: exo.nom, aw: exo.aw, typeCharge: exo.typeCharge, forces: exo.forces,
-              structures: exo.structures, outils: exo.outils,
+              structures: exo.structures, outils: exo.outils, reglages: exo.reglages,
               consigne: exo.consigne, reposSecondes: exo.reposSecondes,
               series: exo.series.map(function (s) {
                 return { type: s.type, repsCible: s.repsCible, chargeCible: s.chargeCible };
