@@ -525,6 +525,80 @@
   });
 
   /* ================================================================
+     11. La question du lendemain, à 320 px
+
+     Même défaut que le libellé du chrono : un nom en ligne avec un bouton de
+     taille fixe se réduit à « Coude m… ». On mesure la place réelle.
+     ================================================================ */
+
+  bloc('Question du lendemain à 320 px', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+
+    function jourIlYA(n) {
+      var d = new Date();
+      d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+
+    e.seances = [{ id: 'd1', type: 'muscu', date: jourIlYA(1), heure: jourIlYA(1) + 'T18:00:00.000Z',
+                   programmeId: null, programmeNom: 'P', dureeMin: null, rpeGlobal: null,
+                   note: '', exercices: [],
+                   douleurs: [{ zone: 'coude_medial', intensite: 5, cote: 'droit' }] }];
+    e.releves = [];
+    fen.App.vues.suivi.rendre(vue);
+
+    return attendre(120).then(function () {
+      var ligne = doc.querySelector('.h24-ligne');
+      v.vrai(!!ligne, 'la question du lendemain est posée');
+      if (!ligne) return;
+
+      var nom = ligne.querySelector('.h24-quoi b');
+      v.egal(nom.textContent, 'Coude médial D', 'avec la zone ET le côté');
+      v.vrai(nom.scrollWidth <= nom.clientWidth + 1,
+             'et le nom n’est pas tronqué (place : ' + Math.round(nom.getBoundingClientRect().width)
+           + ' px, il en demande ' + nom.scrollWidth + ')');
+
+      var bt = ligne.querySelector('button');
+      v.vrai(!!bt, 'un bouton permet de répondre');
+      v.vrai(bt.getBoundingClientRect().height >= 44,
+             'et il fait 44 px (mesuré : ' + Math.round(bt.getBoundingClientRect().height) + ')');
+      v.vrai(doc.documentElement.scrollWidth <= LARGEUR, 'rien ne déborde à 320 px');
+
+      /* Répondre doit écrire un relevé et faire disparaître la question. */
+      bt.click();
+      return attendre(120).then(function () {
+        var popo = doc.querySelector('.popo');
+        v.vrai(!!popo, 'la feuille d’intensité s’ouvre');
+        var trois = null;
+        Array.prototype.forEach.call(popo.querySelectorAll('.echelon'), function (b) {
+          if (b.textContent === '3') trois = b;
+        });
+        trois.click();
+
+        return attendre(150).then(function () {
+          v.egal(fen.App.store.etat().releves.length, 1, 'répondre pose un relevé');
+          v.egal(fen.App.store.etat().releves[0].intensite, 3, 'avec la valeur choisie');
+          v.egal(fen.App.m.questions24h(fen.App.store.etat()).length, 0,
+                 'et la question ne se repose pas');
+
+          var apres = doc.querySelector('.h24-ligne .delai');
+          v.vrai(!!apres, 'l’écart s’affiche à la place');
+          v.vrai(apres.textContent.indexOf('redescend') >= 0,
+                 'et il est NOMMÉ : « ' + apres.textContent +' »');
+
+          fen.App.ui.vider(vue);
+          e.seances = [];
+          e.releves = [];
+          return attendre(20);
+        });
+      });
+    });
+  });
+
+  /* ================================================================
      10. Le côté, posé au doigt
 
      Le modèle sait le porter ; reste à savoir s'il arrive bien jusqu'à lui.

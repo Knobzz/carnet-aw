@@ -16,6 +16,7 @@ Etat
   outils         : [ Outil ]           // idem, pour l'équipement
   programmes     : [ Programme ]
   routineRecup   : Programme | null    // la routine quotidienne, voir plus bas
+  releves        : [ Releve ]          // la règle des 24 h, voir plus bas
   seances        : [ Seance | SeanceSparring | SeanceRecup ]
   reglages       : { theme, ecranAllume, notifierRepos }
   seanceEnCoursId: string | null
@@ -220,6 +221,12 @@ programme : modifier la routine ne réécrit pas ce qui a déjà été coché.
 **Une journée n'est enregistrée qu'une fois quelque chose coché**, et elle ressort si on
 vide tout. Une journée vide écrite dans le journal dirait qu'on l'a faite.
 
+`volumeRecupParSemaine()` compte les **répétitions** et les **secondes** par semaine,
+jamais des kilos : l'élastique n'a pas de charge chiffrée, et c'est très bien ainsi.
+La régularité dit si le geste tient ; elle ne dit **pas** s'il progresse, et une
+rééducation qui ne monte jamais en charge ne soigne rien. Une journée non cochée ne pèse
+rien : sinon la pente monterait sans qu'on ait rien fait.
+
 `statsRecup()` rend les jours faits sur une fenêtre et la série en cours. Cette série se
 compte **depuis hier** tant qu'aujourd'hui n'est pas coché : sinon elle afficherait zéro
 chaque matin, ce qui est exactement ce qui démotive. Un jour compte comme fait dès
@@ -297,6 +304,42 @@ absent ne doit pas être inventé, sous peine de fabriquer une pente qui n'exist
 **Compatibilité descendante.** Les carnets antérieurs stockaient `douleurs: ['coude_medial']`,
 une simple liste de chaînes. `normaliserDouleurs()` accepte les deux formes et convertit **à
 la lecture** : une sauvegarde ancienne se relit intégralement, avec une intensité inconnue.
+
+## La règle des 24 h
+
+Une douleur fait presque toujours mal **pendant** l'effort — ce n'est pas un signal. Ce
+qui renseigne sur un tendon, c'est si elle est revenue à son niveau de base le
+**lendemain**. C'est le repère qui revient dans toutes les sources de rééducation
+tendineuse, et c'est un **avis d'expert, pas une règle validée par essai** : le carnet
+montre donc l'écart, et ne conseille rien.
+
+```
+Releve
+  id        : string
+  date      : 'AAAA-MM-JJ'
+  zone      : zone de douleur, jamais 'aucune'
+  cote      : 'droit' | 'gauche' | 'deux' | null
+  intensite : 0–10 | null
+```
+
+**Un relevé est indépendant d'une séance, et c'est tout l'objet :** le lendemain d'une
+grosse séance est souvent un jour de repos, où rien ne serait enregistré. Il vit donc
+dans sa propre liste.
+
+`questions24h()` rend ce qu'il reste à demander : pour chaque *(zone, côté)* noté **hier
+ou avant-hier** et pas encore repris aujourd'hui, la dernière valeur connue. Deux jours,
+pas un — une séance du soir se juge le surlendemain matin aussi bien que le lendemain.
+Rien n'est demandé pour une douleur notée **le jour même** : la question porte sur le
+lendemain, pas sur l'instant.
+
+Un seul relevé par *(jour, zone, côté)* : répondre deux fois **corrige**, ça n'empile
+pas. Et répondre pour un côté ne répond pas pour l'autre.
+
+`suiviZone()` mélange séances et relevés — c'est la même douleur, peu importe par quel
+chemin elle a été saisie — et accepte un filtre par côté : deux bras font deux pentes.
+
+`ecart24h()` nomme la direction : **baisse**, **stable**, **hausse**, ou **inconnu**
+quand il manque une des deux valeurs. On ne l'invente pas, et on ne la commente pas.
 
 ## Le repos survit à la fermeture
 

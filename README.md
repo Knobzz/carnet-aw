@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **434 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **480 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **278 contrôles, 20 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **156 contrôles, 10 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **312 contrôles, 22 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **168 contrôles, 11 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -164,7 +164,8 @@ programme/séance · les douleurs et leur compatibilité descendante · structur
 catalogues vides au départ · ce que l'autocomplétion montre vraiment · les six
 mouvements · la durée par série, le temps sous tension et les colonnes choisies ·
 la migration d'un carnet d'avant · la récupération quotidienne et sa régularité ·
-**le côté, et le recoupement douleur / bras qui l'a chargée**.
+le côté et le recoupement douleur / bras qui l'a chargée · **la règle des 24 h** ·
+**la progression en récupération**.
 
 Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
 du style calculé, dans un iframe de **320 px** — la largeur la plus dure. Le chronomètre
@@ -176,7 +177,7 @@ saisissable · **six onglets tiennent-ils dans la barre** · **une journée de r
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatorze blocs ont été vus rougir,
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Dix-sept blocs ont été vus rougir,
 en réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -196,6 +197,9 @@ en réintroduisant volontairement le défaut qu'ils surveillent :
 | « les deux » traité comme un 3ᵉ côté | `le droit compte l'exercice droit ET celui qui porte sur les deux — attendu 2, obtenu 1` — 6 contrôles rouges |
 | côté inconnu attribué au bras demandé | `à part, ce qui aurait pu être en cause sans qu'on puisse le dire — attendu "Vieux curl", obtenu ""` |
 | côté perdu entre la feuille et le modèle | `le côté AUSSI — attendu "droit", obtenu null` |
+| question des 24 h posée le jour même | `une douleur notée AUJOURD'HUI n'appelle rien — attendu 0, obtenu 1` |
+| relevé empilé au lieu de corrigé | `répondre deux fois CORRIGE — attendu 1, obtenu 2` |
+| nom de zone rogné dans la question | `il n'est pas tronqué — 90 px de place, il en demande 122` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans

@@ -364,6 +364,93 @@
   }
 
   /* ------------------------------------------------------------------
+     la règle des 24 h — la seule question que le carnet pose
+
+     Ce qui renseigne n'est pas la douleur pendant l'effort, mais si elle est
+     revenue à son niveau de base le lendemain. L'app montre l'écart ; elle
+     ne conseille rien, et elle ne demande rien quand il n'y a rien à
+     demander.
+     ------------------------------------------------------------------ */
+  function blocVingtQuatre(e, surReponse) {
+    var f = document.createDocumentFragment();
+    var q = A.m.questions24h(e);
+    var auj = A.m.aujourdHui();
+
+    /* Ce à quoi on a déjà répondu aujourd'hui : on montre l'écart, qui est
+       l'information, et pas seulement le chiffre du jour. */
+    var repondus = A.m.relevesTries(e).filter(function (r) { return r.date === auj; });
+
+    if (!q.length && !repondus.length) return f;
+
+    f.appendChild(section('Et aujourd’hui ?',
+      'Une douleur fait presque toujours mal pendant l’effort. Ce qui renseigne, '
+    + 'c’est si elle est revenue à son niveau de la veille le lendemain.'));
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+
+    function libelle(zone, cote) {
+      return A.m.nomZone(zone) + (cote ? ' ' + A.m.courtCote(cote) : '');
+    }
+
+    q.forEach(function (x) {
+      var quand = x.jours === 1 ? 'hier' : 'il y a ' + x.jours + ' j';
+      /* Le nom de la zone a son propre rang : en ligne avec un bouton de
+         taille fixe, « Coude médial D » se réduisait à « Coude m… ». */
+      var ligne = h('div', { class: 'h24-ligne' },
+        h('div', { class: 'h24-quoi' },
+          h('b', { text: libelle(x.zone, x.cote) }),
+          h('span', { text: x.intensite == null ? quand + ' · non chiffrée'
+                                                : x.intensite + '/10 ' + quand })));
+      var bt = h('button', { class: 'bt bt-petit', text: 'Répondre' });
+      bt.addEventListener('click', function () {
+        /* La feuille redemande le côté : si c'est en fait l'autre bras, le
+           relevé doit aller là où il le dit, pas là où la question le
+           supposait. La question d'origine, elle, reste sans réponse. */
+        A.ui.choisirIntensite(libelle(x.zone, x.cote), null, function (v, c) {
+          if (v === 'retirer') return;
+          A.m.poserReleve(A.store.etat(), auj, x.zone, c, v);
+          A.store.sauver(true);
+          surReponse();
+        }, x.cote);
+      });
+      ligne.appendChild(bt);
+      corps.appendChild(ligne);
+    });
+
+    repondus.forEach(function (r) {
+      /* La veille, telle qu'elle était : on la relit dans le suivi de la zone,
+         qui mélange déjà séances et relevés. */
+      var pts = A.m.suiviZone(e, r.zone, 0, r.cote).filter(function (p) { return p.date < auj; });
+      var veille = pts.length ? pts[pts.length - 1] : null;
+      var ec = A.m.ecart24h(veille && veille.intensite, r.intensite);
+
+      var dit;
+      if (ec.sens === 'baisse') dit = 'redescend (' + ec.delta + ')';
+      else if (ec.sens === 'hausse') dit = 'n’est pas revenue à la base (+' + ec.delta + ')';
+      else if (ec.sens === 'stable') dit = 'au même niveau';
+      else dit = 'rien à comparer';
+
+      corps.appendChild(h('div', { class: 'h24-ligne' },
+        h('div', { class: 'h24-quoi' },
+          h('b', { text: libelle(r.zone, r.cote) }),
+          h('span', { text: (veille && veille.intensite != null ? veille.intensite + ' → ' : '')
+                          + (r.intensite == null ? 'non chiffrée' : r.intensite + '/10') })),
+        h('span', { class: 'delai', dataset: { zone: ec.sens === 'hausse' ? 'chaud'
+                                             : (ec.sens === 'baisse' ? 'froid' : 'tiede') },
+                    text: dit })));
+    });
+
+    corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
+      text: 'Le carnet ne décide pas : il montre l’écart. Une douleur qui n’est pas '
+          + 'revenue à sa base le lendemain est une information, pas une consigne.' }));
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
      la récupération : une régularité, pas une charge
      ------------------------------------------------------------------ */
   function blocRecup(e) {
@@ -406,6 +493,36 @@
         text: 'Rien de coché aujourd’hui.' }));
     }
 
+    /* La régularité dit si le geste tient ; elle ne dit PAS s'il progresse.
+       Une rééducation qui ne monte jamais en charge ne soigne rien. On compte
+       en reps et en secondes : l'élastique n'a pas de charge chiffrée. */
+    var sem = A.m.volumeRecupParSemaine(e, 8);
+    var avecVolume = sem.filter(function (x) { return x.reps > 0 || x.tempsSousTension > 0; });
+    if (avecVolume.length >= 2) {
+      corps.appendChild(h('div', { class: 'sous-titre', style: 'margin:16px 0 4px',
+                                   text: 'Charge par semaine' }));
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 0 7px',
+        text: 'Répétitions tenues, semaine par semaine. C’est ce qui dit si tu montes '
+            + 'en charge ou si tu fais du surplace.' }));
+      var maxR = sem.reduce(function (m, x) { return Math.max(m, x.reps); }, 0) || 1;
+      var barres = h('div', { class: 'barres' });
+      sem.forEach(function (x) {
+        if (!x.reps && !x.tempsSousTension) return;
+        var val = A.m.fmt(x.reps) + ' reps'
+                + (x.tempsSousTension ? ' · ' + A.m.texteDuree(x.tempsSousTension) : '');
+        barres.appendChild(h('div', { class: 'barre' },
+          h('span', { class: 'tab-num', text: A.m.dateCourte(x.semaine).replace(/ \d{4}$/, '') }),
+          h('div', { class: 'barre-piste' },
+            h('i', { class: 'gen', style: 'width:' + (x.reps / maxR * 100) + '%' })),
+          h('span', { class: 'barre-val', text: val })));
+      });
+      corps.appendChild(barres);
+    } else if (jours.length) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
+        text: 'La charge par semaine apparaîtra après deux semaines cochées : '
+            + 'une seule ne fait pas une pente.' }));
+    }
+
     carte.appendChild(corps);
     f.appendChild(carte);
     return f;
@@ -427,6 +544,7 @@
     btHisto.addEventListener('click', function () { A.vues.exercice.choisir(); });
     hote.appendChild(btHisto);
 
+    hote.appendChild(blocVingtQuatre(e, function () { rendre(hote); }));
     hote.appendChild(blocSollicitation(e));
     hote.appendChild(blocStructures(e));
     hote.appendChild(blocDouleurs(e));

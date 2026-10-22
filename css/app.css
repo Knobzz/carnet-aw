@@ -1108,6 +1108,14 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   transform: translateY(-1px) rotate(-45deg);
 }
 
+/* La ligne de la question du lendemain : le nom de la zone sur son propre
+   rang, parce qu'en ligne avec un bouton de taille fixe il se reduisait a
+   « Coude m… ». Meme defaut que le libelle du chrono, meme correction. */
+.h24-ligne { display: flex; align-items: center; gap: 8px; padding: 7px 0; }
+.h24-quoi { flex: 1; min-width: 0; }
+.h24-quoi b { display: block; font-weight: 600; }
+.h24-quoi span { display: block; font-size: .78rem; color: var(--texte-2); font-variant-numeric: tabular-nums; }
+
 /* Le cote se lit d'un coup d'oeil, sans se confondre avec un outil : c'est
    une information d'anatomie, pas d'equipement. */
 .jeton-cote {

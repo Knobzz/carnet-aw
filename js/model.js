@@ -738,6 +738,38 @@
              aujourdHuiFait: !!faits[jourDecale(0)] };
   }
 
+  /* La regularite dit si le geste tient ; elle ne dit PAS s'il progresse. Une
+     reeducation qui ne monte jamais en charge ne soigne rien, et c'est le
+     reproche le plus courant qu'on puisse faire a un carnet d'habitudes.
+
+     On compte en REPS et en SECONDES, pas en kilos : l'elastique n'a pas de
+     charge chiffree, et c'est tres bien ainsi. */
+  function volumeRecupParSemaine(etat, nbSemaines) {
+    var par = {}, ordre = [];
+    seancesRecupTriees(etat).forEach(function (se) {
+      if (!recupFaite(se)) return;
+      var sem = semaineDe(se.date);
+      if (!par[sem]) {
+        par[sem] = { semaine: sem, reps: 0, tempsSousTension: 0, series: 0, jours: 0 };
+        ordre.push(sem);
+      }
+      par[sem].jours += 1;
+      (se.exercices || []).forEach(function (ex) {
+        var aR = aColonne(ex, 'reps'), aD = aColonne(ex, 'duree');
+        (ex.series || []).forEach(function (s) {
+          if (!s.faite) return;
+          par[sem].series += 1;
+          var rp = aR ? nombre(s.repsReel) : null;
+          var dr = aD ? secondes(s.dureeReel) : null;
+          if (rp != null) par[sem].reps += rp;
+          if (dr != null) par[sem].tempsSousTension += dr;
+        });
+      });
+    });
+    return ordre.sort().slice(-(nbSemaines || 8))
+      .map(function (s) { return par[s]; }).reverse();
+  }
+
   function seanceSparring() {
     return { id: uid('sp'), type: 'sparring', date: aujourdHui(), heure: new Date().toISOString(),
              club: '', dureeMin: null, rounds: null, style: '', cote: null, partenaires: '',
@@ -1156,16 +1188,136 @@
      releve isole. Rendu du plus ancien au plus recent pour se lire comme une
      courbe. Une intensite inconnue (carnet d'avant) est gardee a null et
      signalee, jamais remplacee par un chiffre invente. */
-  function suiviZone(etat, zone, nbMax) {
-    var l = [];
-    toutesSeancesTriees(etat).forEach(function (se) {
-      var d = zonesVives(se.douleurs).filter(function (x) { return x.zone === zone; })[0];
-      if (!d) return;
-      l.push({ date: se.date, intensite: d.intensite, type: se.type,
-               quoi: se.type === 'sparring' ? 'sparring' : (se.programmeNom || 'séance libre') });
+  /* ---------- la règle des 24 h ----------
+
+     Ce qui renseigne sur un tendon n'est pas la douleur PENDANT l'effort —
+     elle est presque toujours là — mais si elle est revenue a son niveau de
+     base le LENDEMAIN. C'est le signal qui revient dans toutes les sources de
+     reeducation tendineuse, et c'est un avis d'expert, pas une regle validee
+     par essai : l'app montre donc l'ecart, et ne conseille rien.
+
+     Un releve est INDEPENDANT d'une seance, et c'est tout l'objet : le
+     lendemain d'une grosse seance est souvent un jour de repos, ou rien ne
+     serait enregistre. Il vit dans sa propre liste.
+
+       Releve : { id, date, zone, cote, intensite }
+
+     Un seul par (jour, zone, cote) : repondre deux fois corrige, n'empile pas. */
+
+  function relevesTries(etat) {
+    return ((etat && etat.releves) || []).slice().sort(function (a, b) {
+      return String(b.date).localeCompare(String(a.date));
     });
+  }
+
+  function normaliserReleves(liste) {
+    if (!Array.isArray(liste)) return [];
+    var sortie = [];
+    liste.forEach(function (r) {
+      if (!r || typeof r !== 'object') return;
+      if (typeof r.zone !== 'string' || r.zone === 'aucune') return;
+      if (typeof r.date !== 'string' || !r.date) return;
+      var i = r.intensite;
+      i = (typeof i === 'number' && isFinite(i)) ? Math.min(10, Math.max(0, Math.round(i))) : null;
+      sortie.push({ id: r.id || uid('rl'), date: r.date, zone: r.zone,
+                    cote: coteValide(r.cote), intensite: i });
+    });
+    return sortie;
+  }
+
+  function poserReleve(etat, date, zone, cote, intensite) {
+    if (!etat.releves) etat.releves = [];
+    var c = coteValide(cote);
+    for (var i = etat.releves.length - 1; i >= 0; i--) {
+      var r = etat.releves[i];
+      if (r.date === date && r.zone === zone && coteValide(r.cote) === c) {
+        etat.releves.splice(i, 1);
+      }
+    }
+    var neuf = { id: uid('rl'), date: date, zone: zone, cote: c,
+                 intensite: (typeof intensite === 'number' && isFinite(intensite))
+                            ? Math.min(10, Math.max(0, Math.round(intensite))) : null };
+    etat.releves.push(neuf);
+    return neuf;
+  }
+
+  /* Tout ce qui a ete note pour une zone, seances ET releves melanges : c'est
+     la meme douleur, peu importe par quel chemin elle a ete saisie. */
+  function suiviZone(etat, zone, nbMax, cote) {
+    var l = [];
+    var filtreCote = coteValide(cote);
+    toutesSeancesTriees(etat).forEach(function (se) {
+      zonesVives(se.douleurs).forEach(function (d) {
+        if (d.zone !== zone) return;
+        if (filtreCote && coteValide(d.cote) !== filtreCote) return;
+        l.push({ date: se.date, intensite: d.intensite, cote: d.cote, type: se.type,
+                 quoi: se.type === 'sparring' ? 'sparring'
+                     : se.type === 'recup' ? 'récupération'
+                     : (se.programmeNom || 'séance libre') });
+      });
+    });
+    relevesTries(etat).forEach(function (r) {
+      if (r.zone !== zone) return;
+      if (filtreCote && r.cote !== filtreCote) return;
+      l.push({ date: r.date, intensite: r.intensite, cote: r.cote, type: 'releve',
+               quoi: 'relevé du jour' });
+    });
+    l.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
     l.reverse();
     return nbMax ? l.slice(-nbMax) : l;
+  }
+
+  /* Ce qu'il reste a demander aujourd'hui : pour chaque (zone, cote) note
+     HIER ou AVANT-HIER et pas encore repris aujourd'hui, la derniere valeur
+     connue. Deux jours, pas un : une seance du soir se juge le surlendemain
+     matin aussi bien que le lendemain.
+
+     Rien n'est demande pour une douleur notee le jour meme : la question
+     porte sur le lendemain, pas sur l'instant. */
+  function questions24h(etat, aujourdHuiIso) {
+    var auj = aujourdHuiIso || aujourdHui();
+    var derniers = {}, repondu = {};
+
+    function cle(zone, cote) { return zone + '|' + (cote || COTE_INCONNU); }
+
+    toutesSeancesTriees(etat).forEach(function (se) {
+      var j = joursEntre(se.date, auj);
+      if (j < 1 || j > 2) return;
+      zonesVives(se.douleurs).forEach(function (d) {
+        var k = cle(d.zone, d.cote);
+        if (!derniers[k] || derniers[k].date < se.date) {
+          derniers[k] = { zone: d.zone, cote: d.cote || null, date: se.date,
+                          intensite: d.intensite, jours: j };
+        }
+      });
+    });
+
+    relevesTries(etat).forEach(function (r) {
+      var j = joursEntre(r.date, auj);
+      var k = cle(r.zone, r.cote);
+      if (j === 0) { repondu[k] = true; return; }
+      if (j < 1 || j > 2) return;
+      if (!derniers[k] || derniers[k].date < r.date) {
+        derniers[k] = { zone: r.zone, cote: r.cote, date: r.date,
+                        intensite: r.intensite, jours: j };
+      }
+    });
+
+    var sortie = [];
+    Object.keys(derniers).forEach(function (k) {
+      if (repondu[k]) return;
+      sortie.push(derniers[k]);
+    });
+    sortie.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    return sortie;
+  }
+
+  /* L'ecart entre la veille et aujourd'hui, nomme. On ne conseille pas : on
+     dit si c'est redescendu, si c'est stable, ou si ca n'est pas revenu. */
+  function ecart24h(avant, apres) {
+    if (avant == null || apres == null) return { sens: 'inconnu', delta: null };
+    var d = apres - avant;
+    return { sens: d <= -1 ? 'baisse' : (d >= 1 ? 'hausse' : 'stable'), delta: d };
   }
 
   /* Toutes les zones ayant fait mal au moins une fois, la plus recente d'abord. */
@@ -1299,6 +1451,9 @@
     normaliserDouleurs: normaliserDouleurs, zonesDe: zonesDe, zonesVives: zonesVives,
     intensiteDe: intensiteDe, texteDouleur: texteDouleur,
     suiviZone: suiviZone, zonesRencontrees: zonesRencontrees,
+    relevesTries: relevesTries, normaliserReleves: normaliserReleves,
+    poserReleve: poserReleve, questions24h: questions24h, ecart24h: ecart24h,
+    volumeRecupParSemaine: volumeRecupParSemaine,
     rangParType: rangParType, serieAuRangParType: serieAuRangParType,
     dureeReelle: dureeReelle,
     derniereSollicitationStructure: derniereSollicitationStructure,

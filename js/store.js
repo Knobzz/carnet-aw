@@ -20,6 +20,9 @@
       /* La routine de recuperation : un programme comme les autres, mais un
          seul, et qui ne se lance pas — il se coche, jour apres jour. */
       routineRecup: null,
+      /* Les releves de douleur du lendemain : independants des seances, parce
+         que le lendemain d'une grosse seance est souvent un jour de repos. */
+      releves: [],
       seances: [],
       reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false },
       seanceEnCoursId: null,
@@ -45,6 +48,7 @@
     if (Array.isArray(brut.outils)) d.outils = brut.outils;
     if (Array.isArray(brut.programmes)) d.programmes = brut.programmes;
     if (brut.routineRecup && typeof brut.routineRecup === 'object') d.routineRecup = brut.routineRecup;
+    if (Array.isArray(brut.releves)) d.releves = brut.releves;
     if (Array.isArray(brut.seances)) d.seances = brut.seances;
     if (brut.reglages && typeof brut.reglages === 'object') {
       d.reglages.theme = ['auto', 'clair', 'sombre'].indexOf(brut.reglages.theme) >= 0
@@ -72,6 +76,7 @@
        principe, converti A LA LECTURE pour qu'une sauvegarde ancienne se
        relise entiere. Voir A.m.migrer() — il dit ce qui bouge et ce qui ne
        bouge pas. */
+    if (A.m && A.m.normaliserReleves) d.releves = A.m.normaliserReleves(d.releves);
     if (A.m && A.m.migrer) A.m.migrer(d);
 
     d.versionDonnees = VERSION_DONNEES;
@@ -167,7 +172,7 @@
      l'ecran l'affiche : une fusion muette serait pire qu'un remplacement. */
   function fusionner(brut) {
     var entrant = normaliser(brut);
-    var bilan = { seancesAjoutees: 0, seancesGardees: 0,
+    var bilan = { seancesAjoutees: 0, seancesGardees: 0, relevesAjoutes: 0,
                   programmesAjoutes: 0, programmesGardes: 0,
                   exercicesAjoutes: 0, outilsAjoutes: 0 };
 
@@ -183,6 +188,16 @@
       if (vusSeances[s.id]) { bilan.seancesGardees += 1; return; }
       etat.seances.push(s);
       bilan.seancesAjoutees += 1;
+    });
+
+    /* Les releves suivent la meme regle que les seances : l'identite est
+       l'id, rien n'est jamais supprime par un import. */
+    if (!etat.releves) etat.releves = [];
+    var vusReleves = parId(etat.releves);
+    entrant.releves.forEach(function (r) {
+      if (!r || !r.id || vusReleves[r.id]) return;
+      etat.releves.push(r);
+      bilan.relevesAjoutes = (bilan.relevesAjoutes || 0) + 1;
     });
 
     var vusProgrammes = parId(etat.programmes);

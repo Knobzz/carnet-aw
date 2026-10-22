@@ -830,6 +830,155 @@
   });
 
   /* ================================================================
+     21. La règle des 24 h
+
+     Ce qui renseigne n'est pas la douleur pendant l'effort — elle est
+     presque toujours là — mais si elle est revenue à sa base le lendemain.
+     Un relevé est INDÉPENDANT d'une séance, et c'est tout l'objet : le
+     lendemain d'une grosse séance est souvent un jour de repos.
+     ================================================================ */
+
+  bloc('Règle des 24 h', function (v) {
+    function etatDouleur(jours, zone, cote, intensite) {
+      var se = seance(jourIlYA(jours), [], { id: 'd' + jours });
+      se.douleurs = [{ zone: zone, intensite: intensite, cote: cote }];
+      return se;
+    }
+
+    /* --- la question se pose le LENDEMAIN, pas le jour même --- */
+    var hier = A.store.vide();
+    hier.seances = [etatDouleur(1, 'coude_medial', 'droit', 5)];
+    var q = A.m.questions24h(hier);
+    v.egal(q.length, 1, 'une douleur notée hier appelle une question aujourd’hui');
+    v.egal(q[0].zone, 'coude_medial', 'sur la bonne zone');
+    v.egal(q[0].cote, 'droit', 'et le bon côté');
+    v.egal(q[0].intensite, 5, 'avec la valeur de la veille, pour pouvoir comparer');
+    v.egal(q[0].jours, 1, 'et depuis combien de jours');
+
+    var aujourdhui = A.store.vide();
+    aujourdhui.seances = [etatDouleur(0, 'coude_medial', 'droit', 5)];
+    v.egal(A.m.questions24h(aujourdhui).length, 0,
+           'une douleur notée AUJOURD’HUI n’appelle rien : la question porte sur le lendemain');
+
+    var vieux = A.store.vide();
+    vieux.seances = [etatDouleur(5, 'coude_medial', 'droit', 5)];
+    v.egal(A.m.questions24h(vieux).length, 0,
+           'et une douleur d’il y a cinq jours non plus : la fenêtre est de deux jours');
+
+    var avantHier = A.store.vide();
+    avantHier.seances = [etatDouleur(2, 'poignet', null, 3)];
+    v.egal(A.m.questions24h(avantHier).length, 1,
+           'avant-hier compte encore : une séance du soir se juge aussi le surlendemain');
+
+    /* --- répondre fait disparaître la question --- */
+    var e = A.store.vide();
+    e.seances = [etatDouleur(1, 'coude_medial', 'droit', 5)];
+    A.m.poserReleve(e, A.m.aujourdHui(), 'coude_medial', 'droit', 3);
+    v.egal(A.m.questions24h(e).length, 0, 'répondre retire la question');
+    v.egal(e.releves.length, 1, 'et pose un relevé');
+
+    A.m.poserReleve(e, A.m.aujourdHui(), 'coude_medial', 'droit', 2);
+    v.egal(e.releves.length, 1, 'répondre deux fois CORRIGE, ça n’empile pas');
+    v.egal(e.releves[0].intensite, 2, 'et c’est la dernière réponse qui vaut');
+
+    /* Le côté distingue : répondre pour le droit ne répond pas pour le gauche. */
+    var deux = A.store.vide();
+    deux.seances = [etatDouleur(1, 'coude_medial', 'droit', 5)];
+    deux.seances[0].douleurs.push({ zone: 'coude_medial', intensite: 4, cote: 'gauche' });
+    v.egal(A.m.questions24h(deux).length, 2, 'deux côtés douloureux font deux questions');
+    A.m.poserReleve(deux, A.m.aujourdHui(), 'coude_medial', 'droit', 1);
+    var reste = A.m.questions24h(deux);
+    v.egal(reste.length, 1, 'répondre pour un côté ne répond pas pour l’autre');
+    v.egal(reste[0].cote, 'gauche', 'et c’est bien l’autre qui reste à renseigner');
+
+    /* --- un relevé d'hier vaut aussi point de départ --- */
+    var chaine = A.store.vide();
+    A.m.poserReleve(chaine, jourIlYA(1), 'coude_medial', 'droit', 4);
+    var q2 = A.m.questions24h(chaine);
+    v.egal(q2.length, 1, 'un relevé d’hier appelle la question du jour, sans aucune séance');
+    v.egal(q2[0].intensite, 4, 'avec sa valeur — le lendemain est souvent un jour de repos');
+
+    /* --- l'écart, nommé, jamais conseillé --- */
+    v.egal(A.m.ecart24h(5, 3).sens, 'baisse', 'de 5 à 3 : ça redescend');
+    v.egal(A.m.ecart24h(5, 3).delta, -2, 'et on dit de combien');
+    v.egal(A.m.ecart24h(3, 6).sens, 'hausse', 'de 3 à 6 : ce n’est pas revenu à la base');
+    v.egal(A.m.ecart24h(5, 5).sens, 'stable', 'au même niveau');
+    v.egal(A.m.ecart24h(null, 3).sens, 'inconnu',
+           'sans valeur de départ, il n’y a PAS d’écart — on ne l’invente pas');
+    v.egal(A.m.ecart24h(5, null).sens, 'inconnu', 'ni sans valeur d’arrivée');
+
+    /* --- le suivi d'une zone mélange séances et relevés --- */
+    var melange = A.store.vide();
+    melange.seances = [etatDouleur(3, 'coude_medial', 'droit', 6)];
+    A.m.poserReleve(melange, jourIlYA(2), 'coude_medial', 'droit', 4);
+    A.m.poserReleve(melange, jourIlYA(1), 'coude_medial', 'droit', 2);
+    var pts = A.m.suiviZone(melange, 'coude_medial', 0);
+    v.egal(pts.length, 3, 'la pente est faite des deux : c’est la même douleur');
+    v.egal(pts.map(function (p) { return p.intensite; }).join(','), '6,4,2',
+           'et elle est dans l’ordre, du plus ancien au plus récent');
+
+    var droite = A.m.suiviZone(melange, 'coude_medial', 0, 'gauche');
+    v.egal(droite.length, 0,
+           'filtrer sur un côté ne rend que ce côté — deux bras font deux pentes');
+
+    /* Une normalisation qui refuse ce qui n'a pas de sens. */
+    var sales = A.m.normaliserReleves([
+      { date: '2026-10-20', zone: 'coude_medial', cote: 'droit', intensite: 4 },
+      { date: '2026-10-20', zone: 'aucune', intensite: 2 },
+      { zone: 'poignet', intensite: 3 },
+      { date: '2026-10-20', zone: 'poignet', intensite: 'beaucoup' }
+    ]);
+    v.egal(sales.length, 2, '« aucune » et un relevé sans date sont refusés');
+    v.egal(sales[1].intensite, null, 'et une intensité non chiffrée devient inconnue, pas zéro');
+  });
+
+  /* ================================================================
+     22. La progression en récupération
+     ================================================================ */
+
+  bloc('Progression en récupération', function (v) {
+    function jourRecup(n, reps) {
+      return { id: 're' + n, type: 'recup', date: jourIlYA(n), heure: jourIlYA(n) + 'T20:00:00.000Z',
+               note: '', douleurs: [],
+               exercices: [{ id: 'x' + n, ordre: 0, nom: 'Élastique', slug: 'elastique',
+                             aw: false, typeCharge: 'elastique', colonnes: ['reps', 'duree'],
+                             cote: null, forces: [], structures: [], outils: [],
+                             consigne: '', reposSecondes: 0,
+                             series: [{ id: 's' + n, type: 'normale', repsCible: '', chargeCible: '',
+                                        dureeCible: '', repsReel: String(reps), chargeReel: '',
+                                        dureeReel: '60', rpe: null, faite: true, faiteA: null }] }] };
+    }
+
+    var e = A.store.vide();
+    e.seances = [jourRecup(1, 30), jourRecup(2, 30), jourRecup(9, 20)];
+
+    var sem = A.m.volumeRecupParSemaine(e, 8);
+    v.vrai(sem.length >= 1, 'la charge se compte par semaine');
+    var total = sem.reduce(function (m, x) { return m + x.reps; }, 0);
+    v.egal(total, 80, 'toutes les répétitions validées sont comptées');
+    var tst = sem.reduce(function (m, x) { return m + x.tempsSousTension; }, 0);
+    v.egal(tst, 180, 'et les secondes tenues aussi');
+
+    /* Une journée NON cochée ne compte pas : sinon la pente monterait sans
+       qu'on ait rien fait. */
+    var vide = A.store.vide();
+    var j = jourRecup(1, 30);
+    j.exercices[0].series[0].faite = false;
+    vide.seances = [j];
+    v.egal(A.m.volumeRecupParSemaine(vide, 8).length, 0,
+           'une journée ouverte mais pas cochée ne pèse rien');
+
+    /* La récupération ne doit pas déborder dans le volume de travail. */
+    var avecMuscu = A.store.vide();
+    avecMuscu.seances = [jourRecup(1, 30),
+                         seance(jourIlYA(1), [exo('Curl', [serie('normale', 20, 10)])])];
+    v.egal(A.m.volumeParSemaine(avecMuscu, 8)[0].series, 1,
+           '[temoin] le volume de travail ignore toujours la récupération');
+    v.egal(A.m.volumeRecupParSemaine(avecMuscu, 8)[0].reps, 30,
+           'et la récupération ne compte pas la muscu');
+  });
+
+  /* ================================================================
      20. Le côté — le bras de fer est asymétrique
 
      Sans lui, « coude médial 4/10 » ne dit pas quel coude, et le recoupement
