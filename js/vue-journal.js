@@ -27,10 +27,12 @@
         h('div', {}, h('dt', { text: 'Séries faites' }), h('dd', { class: 'chiffre', text: v.seriesFaites + ' / ' + v.series })),
         h('div', {}, h('dt', { text: 'Volume' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnage)) })),
         h('div', { class: 'aw' }, h('dt', { text: 'dont AW' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnageAw)) }))));
-      if (v.repsTotal) {
-        c.appendChild(h('p', { class: 'note-exclus',
-          text: A.m.fmt(v.repsTotal) + ' reps au total'
-              + (v.seriesAw ? ' · ' + v.seriesAw + ' série(s) marquée(s) AW' : '') }));
+      if (v.repsTotal || v.tempsSousTension) {
+        var bouts = [];
+        if (v.repsTotal) bouts.push(A.m.fmt(v.repsTotal) + ' reps au total');
+        if (v.tempsSousTension) bouts.push(A.m.texteTempsSousTension(v));
+        if (v.seriesAw) bouts.push(v.seriesAw + ' série(s) marquée(s) AW');
+        c.appendChild(h('p', { class: 'note-exclus', text: bouts.join(' · ') }));
       }
       var hors = A.m.texteHorsTonnage(v);
       if (hors) c.appendChild(h('p', { class: 'note-exclus', text: hors }));
@@ -45,7 +47,6 @@
 
       c.appendChild(h('div', { class: 'sous-titre', text: 'Exercices' }));
       (se.exercices || []).forEach(function (ex) {
-        var tc = A.m.typeCharge(ex.typeCharge);
         var bloc = h('div', { class: 'exo' });
         var btHisto = h('button', { class: 'bt-icone', text: '↗',
                                     'aria-label': 'Historique de ' + ex.nom, title: 'Historique' });
@@ -73,9 +74,7 @@
           var etiq;
           if (s.type === 'normale') { n += 1; etiq = String(n); }
           else etiq = A.m.TYPES_SERIE[s.type].lettre;
-          var val = [(s.chargeReel || '—'), (s.repsReel || '—')].join(' × ')
-                  + (tc.id === 'kg' && s.chargeReel ? ' kg' : '')
-                  + (s.rpe != null ? '  RPE ' + s.rpe : '');
+          var val = A.m.texteSerie(ex, s) + (s.rpe != null ? '  RPE ' + s.rpe : '');
           lignes.appendChild(h('div', { class: 'item-ligne' },
             h('b', { text: etiq + '. ' + (s.faite ? '' : '(non validée) ') }),
             h('span', { text: val })));
@@ -145,6 +144,7 @@
     var resume = [v.seriesFaites + '/' + v.series + ' séries'];
     if (v.tonnage) resume.push(A.m.fmt(Math.round(v.tonnage)) + ' kg');
     if (v.tonnageAw) resume.push(A.m.fmt(Math.round(v.tonnageAw)) + ' kg AW');
+    if (v.tempsSousTension) resume.push(A.m.texteDuree(v.tempsSousTension) + ' sous tension');
     var dm = se.dureeMin != null ? se.dureeMin : A.m.dureeReelle(se);
     if (dm != null) resume.push(dm + ' min');
     it.appendChild(h('div', { class: 'item-resume', text: resume.join(' · ') }));
@@ -153,7 +153,7 @@
     (se.exercices || []).slice(0, 4).forEach(function (ex) {
       var faites = (ex.series || []).filter(function (s) { return s.faite; });
       var txt = faites.length
-        ? faites.map(function (s) { return (s.chargeReel || '—') + '×' + (s.repsReel || '—'); }).join('  ')
+        ? faites.map(function (s) { return A.m.texteSerie(ex, s, true); }).join('  ')
         : 'non validé';
       lignes.appendChild(h('div', { class: 'item-ligne' },
         h('b', { text: ex.nom }), h('span', { text: txt })));

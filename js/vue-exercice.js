@@ -98,10 +98,8 @@
           && l.meilleure.charge === rec.charge && l.meilleure.reps === rec.reps && l.date === rec.date;
 
         var detail = l.detail.map(function (s) {
-          var t = (s.charge || '—') + '×' + (s.reps || '—');
-          if (s.type === 'echauffement') t = 'É ' + t;
-          else if (s.type === 'degressive') t = 'D ' + t;
-          else if (s.type === 'echec') t = 'E ' + t;
+          var t = s.texte;
+          if (s.type !== 'normale') t = A.m.TYPES_SERIE[s.type].lettre + ' ' + t;
           if (s.rpe != null) t += '@' + s.rpe;
           return t;
         }).join('   ');
@@ -111,11 +109,12 @@
           h('span', { class: 'histo-series' + (estRecord ? ' histo-record' : ''), text: detail }),
           h('span', { class: 'histo-total',
                       text: l.tonnage != null ? A.m.fmt(Math.round(l.tonnage)) + ' kg'
-                                              : l.series + ' sér.' })));
+                            : l.tempsSousTension != null ? A.m.texteDuree(l.tempsSousTension)
+                            : l.series + ' sér.' })));
       });
 
       corpsL.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px',
-        text: 'É échauffement · D dégressive · E à l’échec · @ le RPE noté.' }));
+        text: 'D dégressive · E à l’échec · @ le RPE noté.' }));
       liste.appendChild(corpsL);
       c.appendChild(liste);
     }, [

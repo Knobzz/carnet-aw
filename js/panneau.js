@@ -95,11 +95,13 @@
         /* Reprendre un nom connu reprend ses attributs : on ne les resaisit pas. */
         exo.aw = it.aw;
         exo.typeCharge = it.typeCharge;
+        exo.colonnes = A.m.colonnes(it);
         exo.forces = (it.forces || []).slice();
         exo.outils = (it.outils || []).slice();
         exo.structures = (it.structures || []).slice();
         btAw.setAttribute('aria-pressed', exo.aw ? 'true' : 'false');
         selCharge.value = exo.typeCharge;
+        rafraichirColonnes();
         if (selForces) rafraichirForces();
         rafraichirOutils();
         rafraichirStructures();
@@ -116,9 +118,67 @@
         selCharge.appendChild(h('option', { value: t.id, text: t.nom }));
       });
       selCharge.value = exo.typeCharge || 'kg';
-      selCharge.addEventListener('change', function () { exo.typeCharge = selCharge.value; });
+      selCharge.addEventListener('change', function () {
+        exo.typeCharge = selCharge.value;
+        majAideColonnes();
+      });
       c.appendChild(A.ui.groupe('Type de charge', selCharge,
         'Seul « Kilos » entre dans le tonnage. Les autres sont comptés en séries.'));
+
+      /* Quelles colonnes la ligne de série affiche. Separe du type de charge :
+         celui-ci dit COMMENT lire la charge, celles-la disent CE QU'ON SAISIT.
+         Un isometrique n'a que DUREE ; le defaut reste charge + reps. */
+      exo.colonnes = A.m.colonnes(exo);
+      var boiteColonnes = h('div', { class: 'enrobe' });
+      var aideColonnes = h('div', { class: 'item-resume' });
+
+      function majAideColonnes() {
+        var cols = A.m.colonnes(exo);
+        var bouts = ['Affichées : ' + cols.map(function (id) { return A.m.colonne(id).nom; }).join(' · ') + '.'];
+        bouts.push(A.m.peutPeser(exo)
+          ? 'Charge × reps en kilos : cet exercice entre dans le tonnage.'
+          : 'Pas de tonnage : ' + (A.m.aColonne(exo, 'charge') && A.m.aColonne(exo, 'reps')
+              ? 'la charge n’est pas en kilos.'
+              : 'sans charge ET reps, il n’y a rien à multiplier.'));
+        if (A.m.aColonne(exo, 'duree')) bouts.push('La durée compte en temps sous tension.');
+        aideColonnes.textContent = bouts.join(' ');
+      }
+
+      var pucesColonnes = [];
+      function rafraichirColonnes() {
+        pucesColonnes.forEach(function (p) {
+          p.bouton.setAttribute('aria-pressed', A.m.aColonne(exo, p.id) ? 'true' : 'false');
+        });
+        majAideColonnes();
+      }
+
+      A.m.COLONNES.forEach(function (col) {
+        var b = h('button', { type: 'button', class: 'puce', text: col.nom,
+                              'aria-pressed': A.m.aColonne(exo, col.id) ? 'true' : 'false' });
+        pucesColonnes.push({ id: col.id, bouton: b });
+        b.addEventListener('click', function () {
+          var cols = A.m.colonnes(exo);
+          var i = cols.indexOf(col.id);
+          if (i >= 0) {
+            /* Un exercice sans aucune colonne n'aurait plus rien a saisir. */
+            if (cols.length === 1) {
+              A.ui.toast('Il faut au moins une colonne à saisir.');
+              return;
+            }
+            cols.splice(i, 1);
+          } else cols.push(col.id);
+          exo.colonnes = A.m.colonnes({ colonnes: cols });
+          b.setAttribute('aria-pressed', A.m.aColonne(exo, col.id) ? 'true' : 'false');
+          majAideColonnes();
+        });
+        boiteColonnes.appendChild(b);
+      });
+      majAideColonnes();
+      /* L'aide entre DANS le groupe : posée à côté, elle collait au libellé
+         du groupe suivant et semblait lui appartenir. */
+      var grColonnes = A.ui.groupe('Colonnes à saisir', boiteColonnes);
+      grColonnes.appendChild(aideColonnes);
+      c.appendChild(grColonnes);
 
       var boiteOutils = h('div');
       function rafraichirOutils() {

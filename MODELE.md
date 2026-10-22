@@ -33,7 +33,8 @@ Exercice
   nom        : string                  // tel que saisi, affiché tel quel
   slug       : string                  // clé d'identité : minuscules, sans accents, espaces compactés
   aw         : bool
-  typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps' | 'duree'
+  typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
+  colonnes   : [ 'charge' | 'reps' | 'duree' ]   // ce que la ligne fait saisir
   forces     : [ 'rising' | 'back_pressure' | 'side_pressure'
                | 'supination' | 'cupping' | 'pronation' ]   // affiché « Mouvements »
   structures : [ string ]              // ce que l'exercice charge, voir plus bas
@@ -100,7 +101,8 @@ ExerciceProgramme
   nom           : string
   slug          : string
   aw            : bool
-  typeCharge    : 'kg' | 'niveau' | 'elastique' | 'poids_corps' | 'duree'
+  typeCharge    : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
+  colonnes      : [ string ]
   forces        : [ string ]
   outils        : [ string ]           // noms, copiés — pas des références
   consigne      : string               // tempo, tenue, prise — instruction d'exécution
@@ -109,12 +111,13 @@ ExerciceProgramme
 
 SerieProgramme
   id         : string
-  type       : 'echauffement' | 'normale' | 'degressive' | 'echec'
-  repsCible  : string                  // libre : "30", "3x5s", ""
+  type       : 'normale' | 'degressive' | 'echec'
+  repsCible  : string                  // libre : "30", ""
   chargeCible: string                  // libre : "17,5", "N3", "élastique rouge", ""
+  dureeCible : string                  // en secondes : "45", ""
 ```
 
-Une série planifiée est **une ligne**, avec ses deux champs. Jamais `"30/20/14/12"`.
+Une série planifiée est **une ligne**, avec ses champs. Jamais `"30/20/14/12"`.
 
 ## Séance — le journal daté
 
@@ -137,16 +140,18 @@ Seance
   exercices   : [ ExerciceSeance ]
 
 ExerciceSeance
-  id, ordre, nom, slug, aw, typeCharge, forces, outils, consigne, reposSecondes
+  id, ordre, nom, slug, aw, typeCharge, colonnes, forces, outils, consigne, reposSecondes
   series : [ SerieSeance ]
 
 SerieSeance
   id         : string
-  type       : 'echauffement' | 'normale' | 'degressive' | 'echec'
+  type       : 'normale' | 'degressive' | 'echec'
   repsCible  : string                  // copié du programme — affiché en gris dans le champ
   chargeCible: string                  // idem
+  dureeCible : string                  // idem
   repsReel   : string                  // ce que je saisis
   chargeReel : string                  // ce que je saisis
+  dureeReel  : string                  // ce que je saisis, en secondes
   rpe        : int | null
   faite      : bool
   faiteA     : ISO | null              // horodatage du ✓, sert au chrono et à l'ordre réel
@@ -230,6 +235,64 @@ compte de ce qui a été ajouté et gardé est affiché — une fusion muette se
 remplacement. Avant un remplacement, l'écran compare les dates et **avertit** si le carnet
 courant contient du plus récent que la sauvegarde.
 
+## Ce que la ligne de série fait saisir
+
+Un champ répondait à deux questions. `typeCharge: 'duree'` ne disait pas comment lire
+une charge : il **détournait la colonne REPS en secondes**. Conséquence, un exercice
+isométrique traînait une colonne charge dont il n'avait que faire, un exercice en kilos
+ne pouvait pas porter de durée, et les secondes dormaient dans un champ nommé `repsReel`,
+que tout le reste du code lisait comme des répétitions.
+
+Les deux questions sont maintenant séparées :
+
+| champ | répond à |
+|---|---|
+| `typeCharge` | **comment se lit la charge** — kilos, niveau de gripper, bande, lest |
+| `colonnes` | **ce qu'on saisit** — charge, reps, durée, toute combinaison |
+
+Le défaut reste `['charge', 'reps']`. Un isométrique n'a que `['duree']`. **Trois au
+plus** : à 320 px, une quatrième colonne souple mettait les champs à 37 px — mesuré, et
+refusé. À trois colonnes, la ligne passe d'ailleurs sur deux rangs, PRÉCÉDENT au-dessus.
+
+L'ordre d'affichage est toujours celui du tableau `COLONNES`, quel que soit l'ordre de
+sélection : une colonne ne doit pas changer de place d'un exercice à l'autre.
+
+**Le tonnage est charge × reps : sans les deux colonnes, il n'y a rien à multiplier.**
+C'est ce qui fait qu'un isométrique ne pèse rien tout seul, sans qu'on ait eu à l'écrire
+nulle part — et c'est aussi pourquoi la migration ci-dessous ne déplace aucun chiffre.
+
+### Le temps sous tension
+
+`dureeReel` est le temps sous tension de **la série entière**, pas d'une répétition. Une
+règle unique, qui s'explique en une phrase ; si un jour il faut la tenue *par rep*, ce
+sera un champ qui porte ce nom-là, pas une seconde lecture du même.
+
+`volumeSeance()` en sort `tempsSousTension` et `tempsSousTensionAw`, comptés comme le
+tonnage. Ils ne s'additionnent jamais à des kilos et ne partagent pas les mêmes barres
+dans Suivi : des secondes et des kilos empilés fabriqueraient une courbe qui ne veut
+rien dire. Un total vide rend `''`, jamais « 0 s » — on n'a pas tenu zéro seconde, on
+n'a rien chronométré.
+
+### La migration, à la lecture
+
+Comme pour les douleurs : convertie à la lecture, jamais réécrite dans le dos.
+
+| avant | après |
+|---|---|
+| `typeCharge: 'duree'` | `typeCharge: 'kg'` + `colonnes: ['charge', 'duree']` |
+| les secondes dans `repsReel` / `repsCible` | dans `dureeReel` / `dureeCible` |
+| une série `type: 'echauffement'` | `type: 'normale'` |
+| un exercice sans `colonnes` | `['charge', 'reps']` |
+
+**Aucun chiffre du passé ne bouge.** Le type `'duree'` portait déjà `tonnage: false`, et
+sans colonne reps il n'y a toujours rien à multiplier : le tonnage reste le même. Un
+échauffement comptait déjà comme une série de travail. Seules les secondes se mettent à
+compter — là où elles dormaient.
+
+Le type **« échauffement » a été retiré** : il n'était pas employé, et il gonflait le
+volume de travail sans qu'on puisse l'en sortir. Trois types restent : normale,
+dégressive, à l'échec.
+
 ## Charge non numérique
 
 `chargeReel` et `repsReel` sont des **chaînes libres**. `N3`, `élastique rouge`, `+ceinture`
@@ -240,8 +303,10 @@ n'est pas comptée dans le tonnage **et elle est comptée à part** : l'écran a
 
 ## Le volume compte ce qui a été FAIT
 
-`volumeSeance()` ne lit que `chargeReel` / `repsReel`, et ne compte une série que si elle
-porte le ✓ ou une valeur saisie. Une séance ouverte depuis un programme et pas encore
+`volumeSeance()` ne lit que les **colonnes affichées** — `chargeReel`, `repsReel`,
+`dureeReel` —, et ne compte une série que si elle porte le ✓ ou une valeur saisie. Une
+valeur restée dans un champ qu'on a ensuite masqué ne compte plus : rien ne doit compter
+en coulisse. Une séance ouverte depuis un programme et pas encore
 commencée affiche donc **0 kg**, pas le tonnage prévu par le programme.
 
 Ce qui sort du tonnage sort pour une raison, et l'écran la dit :
@@ -250,6 +315,8 @@ Ce qui sort du tonnage sort pour une raison, et l'écran la dit :
 |---|---|
 | `N3`, une bande, le poids du corps | `seriesNonChiffrees` — « à charge non chiffrée » |
 | type en kilos mais charge ou reps manquante | `seriesIncompletes` — « il manque la charge ou les reps » |
+| une durée saisie | `tempsSousTension` — comptée en secondes, pas en kilos |
+| ni charge ni reps à l'écran, et rien de saisi | `seriesSansTonnage` — « rien à multiplier » |
 
 Jamais un zéro muet.
 

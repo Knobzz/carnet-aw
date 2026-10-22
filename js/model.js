@@ -2,21 +2,84 @@
 (function (A) {
   'use strict';
 
+  /* Le type « échauffement » a été retiré : il n'était pas employé, et il
+     gonflait le volume de travail sans qu'on puisse l'en sortir. Les séries
+     qui le portaient deviennent normales à la lecture — voir migrer(). */
   var TYPES_SERIE = {
-    echauffement: { lettre: 'É', nom: 'Échauffement' },
-    normale:      { lettre: '',  nom: 'Normale' },
-    degressive:   { lettre: 'D', nom: 'Dégressive' },
-    echec:        { lettre: 'E', nom: "À l'échec" }
+    normale:    { lettre: '',  nom: 'Normale' },
+    degressive: { lettre: 'D', nom: 'Dégressive' },
+    echec:      { lettre: 'E', nom: "À l'échec" }
   };
-  var ORDRE_TYPES = ['normale', 'echauffement', 'degressive', 'echec'];
+  var ORDRE_TYPES = ['normale', 'degressive', 'echec'];
 
+  /* `typeCharge` ne dit plus qu'une chose : COMMENT se lit la charge. Il disait
+     aussi, pour la valeur 'duree', quelles colonnes afficher — en detournant la
+     colonne REPS en secondes. Deux questions dans un seul champ : un exercice
+     isometrique ne pouvait pas se passer de la colonne charge, et un exercice
+     en kilos ne pouvait pas porter de duree. Ce qui s'affiche est maintenant
+     dit par `colonnes`, juste en dessous. */
   var TYPES_CHARGE = [
-    { id: 'kg',          nom: 'Kilos',              unite: 'kg', labelCharge: 'Charge', labelReps: 'Reps', modeCharge: 'decimal', modeReps: 'numeric', tonnage: true },
-    { id: 'niveau',      nom: 'Niveau (gripper)',   unite: '',   labelCharge: 'Niveau', labelReps: 'Reps', modeCharge: 'text',    modeReps: 'numeric', tonnage: false },
-    { id: 'elastique',   nom: 'Élastique',          unite: '',   labelCharge: 'Bande',  labelReps: 'Reps', modeCharge: 'text',    modeReps: 'numeric', tonnage: false },
-    { id: 'poids_corps', nom: 'Poids du corps',     unite: 'kg', labelCharge: 'Lest',   labelReps: 'Reps', modeCharge: 'decimal', modeReps: 'numeric', tonnage: false },
-    { id: 'duree',       nom: 'Durée (isométrie)',  unite: 'kg', labelCharge: 'Charge', labelReps: 'Sec',  modeCharge: 'text',    modeReps: 'numeric', tonnage: false }
+    { id: 'kg',          nom: 'Kilos',            unite: 'kg', labelCharge: 'Charge', modeCharge: 'decimal', tonnage: true },
+    { id: 'niveau',      nom: 'Niveau (gripper)', unite: '',   labelCharge: 'Niveau', modeCharge: 'text',    tonnage: false },
+    { id: 'elastique',   nom: 'Élastique',        unite: '',   labelCharge: 'Bande',  modeCharge: 'text',    tonnage: false },
+    { id: 'poids_corps', nom: 'Poids du corps',   unite: 'kg', labelCharge: 'Lest',   modeCharge: 'decimal', tonnage: false }
   ];
+
+  /* Ce que la ligne de serie AFFICHE. Trois colonnes au plus : a 320 px, la
+     quatrieme passerait sous 45 px avec la colonne PRECEDENT, et on ne lirait
+     plus rien. Un isometrique n'affiche que DUREE ; le defaut reste charge+reps.
+
+     L'ordre de ce tableau est l'ordre a l'ecran, toujours : la colonne charge
+     ne doit pas changer de place d'un exercice a l'autre. */
+  /* Chaque colonne sait OU elle lit, OU elle ecrit, comment elle s'appelle et
+     quel clavier elle demande. La seance et l'editeur de programme batissent
+     tous deux leurs champs a partir d'ici : les nommer un par un dans chaque
+     vue dupliquait le code et rendait l'ajout d'une colonne impossible sans
+     rouvrir les deux. L'entete de la colonne charge depend du type de charge
+     — « Charge », « Niveau », « Bande », « Lest » — d'ou les fonctions. */
+  var COLONNES = [
+    { id: 'charge', nom: 'Charge', reel: 'chargeReel', cible: 'chargeCible',
+      label: function (tc) { return tc.labelCharge; },
+      mode: function (tc) { return tc.modeCharge; },
+      aide: 'Ce qui est soulevé.' },
+    { id: 'reps', nom: 'Reps', reel: 'repsReel', cible: 'repsCible',
+      label: function () { return 'Reps'; },
+      mode: function () { return 'numeric'; },
+      aide: 'Le nombre de répétitions.' },
+    /* En SECONDES : le clavier numerique du telephone n'offre pas de « : ».
+       secondes() lit quand meme « 1:30 », pour un carnet tape ailleurs, mais
+       ce n'est pas ce qu'on demande ici. */
+    { id: 'duree', nom: 'Durée', reel: 'dureeReel', cible: 'dureeCible',
+      label: function () { return 'Sec'; },
+      mode: function () { return 'numeric'; },
+      aide: 'Le temps sous tension de la série, en secondes.' }
+  ];
+  var COLONNES_DEFAUT = ['charge', 'reps'];
+
+  function colonne(id) {
+    for (var i = 0; i < COLONNES.length; i++) if (COLONNES[i].id === id) return COLONNES[i];
+    return COLONNES[0];
+  }
+
+  /* Les colonnes d'un exercice, remises dans l'ordre canonique et jamais vides :
+     un exercice sans aucune colonne n'aurait plus rien a saisir. */
+  function colonnes(exo) {
+    var voulues = (exo && exo.colonnes) || null;
+    if (!voulues || !voulues.length) return COLONNES_DEFAUT.slice();
+    var l = [];
+    COLONNES.forEach(function (c) { if (voulues.indexOf(c.id) >= 0) l.push(c.id); });
+    return l.length ? l : COLONNES_DEFAUT.slice();
+  }
+  function aColonne(exo, id) { return colonnes(exo).indexOf(id) >= 0; }
+
+  /* Le tonnage est charge x reps : sans les DEUX colonnes, il n'y a rien a
+     multiplier. C'est ce qui fait qu'un isometrique ne pese rien tout seul,
+     sans qu'on ait eu a l'ecrire quelque part — et c'est aussi pourquoi la
+     migration des anciens `typeCharge: 'duree'` ne deplace aucun chiffre. */
+  function peutPeser(exo) {
+    return typeCharge(exo && exo.typeCharge).tonnage
+        && aColonne(exo, 'charge') && aColonne(exo, 'reps');
+  }
 
   /* Les mouvements du bras de fer. La cle de stockage reste `forces` sur
      l'exercice : renommer le champ casserait les carnets deja saisis, et
@@ -85,6 +148,33 @@
     if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
     var n = parseFloat(s);
     return isFinite(n) ? n : null;
+  }
+
+  /* Une duree de serie, en secondes. Deux ecritures, parce que les deux se
+     tapent naturellement : "45" pour trois quarts de minute, "1:30" quand la
+     tenue depasse la minute et qu'on la compte en minutes. Tout le reste rend
+     null, comme nombre() : une tenue non chiffree n'est pas zero seconde.
+
+     "90" reste 90 secondes et non 1 min 30 : ce qui est tape est ce qui est lu. */
+  function secondes(txt) {
+    if (txt == null) return null;
+    var s = String(txt).trim().replace(',', '.');
+    if (s === '') return null;
+    var m = s.match(/^(\d+):([0-5]\d)$/);
+    if (m) return (+m[1]) * 60 + (+m[2]);
+    if (!/^\d+(\.\d+)?$/.test(s)) return null;
+    var n = parseFloat(s);
+    return isFinite(n) && n >= 0 ? n : null;
+  }
+
+  /* Au-dela de la minute, les secondes seules ne se lisent plus d'un coup
+     d'oeil : 1 850 s ne dit rien, 30:50 se compare. */
+  function texteDuree(sec) {
+    if (sec == null) return '';
+    var s = Math.round(sec);
+    if (s < 60) return s + ' s';
+    var mn = Math.floor(s / 60), r = s % 60;
+    return mn + ':' + (r < 10 ? '0' : '') + r;
   }
 
   function fmt(n, dec) {
@@ -220,7 +310,8 @@
     var e = trouverCatalogue(etat, s);
     if (!e) {
       e = { id: uid('ex'), nom: exo.nom, slug: s, aw: !!exo.aw,
-            typeCharge: exo.typeCharge || 'kg', forces: (exo.forces || []).slice(),
+            typeCharge: exo.typeCharge || 'kg', colonnes: colonnes(exo),
+            forces: (exo.forces || []).slice(),
             structures: (exo.structures || []).slice(),
             outils: (exo.outils || []).slice(), vuLe: maintenant() };
       etat.exercices.push(e);
@@ -228,6 +319,7 @@
       e.nom = exo.nom;
       e.aw = !!exo.aw;
       if (exo.typeCharge) e.typeCharge = exo.typeCharge;
+      if (exo.colonnes) e.colonnes = colonnes(exo);
       if (exo.forces) e.forces = exo.forces.slice();
       if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
@@ -328,12 +420,64 @@
     return debut.concat(dedans).slice(0, limite || 8);
   }
 
+  /* ---------- migration, À LA LECTURE ----------
+
+     Même principe que normaliserDouleurs() : une sauvegarde ancienne se relit
+     intégralement, et rien n'est réécrit sur le disque tant que l'app n'écrit
+     pas d'elle-même. Deux conversions.
+
+     1. `typeCharge: 'duree'` détournait la colonne REPS en secondes. L'exercice
+        devient « charge en kilos, colonnes charge + durée », et ses secondes
+        passent de repsReel à dureeReel, là où elles auraient toujours dû être.
+        AUCUN chiffre du passé ne bouge : sans colonne reps, il n'y a rien à
+        multiplier, donc pas de tonnage — exactement comme avant, où le type
+        'duree' portait tonnage: false.
+
+     2. Le type de série « échauffement » n'existe plus. Les séries qui le
+        portaient deviennent normales. Là non plus rien ne bouge : un
+        échauffement comptait déjà dans le tonnage comme une série de travail.
+        Seule la colonne PRÉCÉDENT se décale, et dans le bon sens : elle
+        indexait par rang DANS LE TYPE, et ces séries rejoignent le rang des
+        normales, qui est celui qu'on compare. */
+  function migrer(etat) {
+    function unExercice(ex) {
+      if (!ex || typeof ex !== 'object') return;
+
+      if (ex.typeCharge === 'duree') {
+        ex.typeCharge = 'kg';
+        ex.colonnes = ['charge', 'duree'];
+        (ex.series || []).forEach(function (s) {
+          if (!s) return;
+          if (!s.dureeReel && s.repsReel) { s.dureeReel = s.repsReel; s.repsReel = ''; }
+          if (!s.dureeCible && s.repsCible) { s.dureeCible = s.repsCible; s.repsCible = ''; }
+        });
+      }
+      ex.colonnes = colonnes(ex);
+
+      (ex.series || []).forEach(function (s) {
+        if (!s) return;
+        if (s.dureeReel == null) s.dureeReel = '';
+        if (s.dureeCible == null) s.dureeCible = '';
+        if (s.type === 'echauffement') s.type = 'normale';
+        if (!TYPES_SERIE[s.type]) s.type = 'normale';
+      });
+    }
+
+    (etat.exercices || []).forEach(unExercice);
+    (etat.programmes || []).forEach(function (p) { (p.exercices || []).forEach(unExercice); });
+    (etat.seances || []).forEach(function (s) {
+      if (s && s.type === 'muscu') (s.exercices || []).forEach(unExercice);
+    });
+    return etat;
+  }
+
   /* ---------- fabriques ---------- */
 
   function serieProgramme(modele) {
     modele = modele || {};
     return { id: uid('sp'), type: modele.type || 'normale',
-             repsCible: modele.repsCible || '', chargeCible: modele.chargeCible || '' };
+             repsCible: modele.repsCible || '', chargeCible: modele.chargeCible || '',
+             dureeCible: modele.dureeCible || '' };
   }
 
   function exerciceProgramme(modele) {
@@ -342,6 +486,7 @@
       id: uid('ep'), ordre: 0,
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
+      colonnes: colonnes(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -365,7 +510,9 @@
   function serieDepuisProgramme(sp) {
     return { id: uid('ss'), type: sp.type,
              repsCible: sp.repsCible || '', chargeCible: sp.chargeCible || '',
-             repsReel: '', chargeReel: '', rpe: null, faite: false, faiteA: null };
+             dureeCible: sp.dureeCible || '',
+             repsReel: '', chargeReel: '', dureeReel: '',
+             rpe: null, faite: false, faiteA: null };
   }
 
   function exerciceSeanceDepuisProgramme(ep) {
@@ -373,6 +520,7 @@
       id: uid('es'), ordre: ep.ordre,
       nom: ep.nom, slug: ep.slug || slug(ep.nom),
       aw: !!ep.aw, typeCharge: ep.typeCharge || 'kg',
+      colonnes: colonnes(ep),
       forces: (ep.forces || []).slice(),
       structures: (ep.structures || []).slice(),
       outils: (ep.outils || []).slice(),
@@ -386,7 +534,9 @@
     modele = modele || {};
     return { id: uid('ss'), type: modele.type || 'normale',
              repsCible: modele.repsCible || '', chargeCible: modele.chargeCible || '',
-             repsReel: '', chargeReel: '', rpe: null, faite: false, faiteA: null };
+             dureeCible: modele.dureeCible || '',
+             repsReel: '', chargeReel: '', dureeReel: '',
+             rpe: null, faite: false, faiteA: null };
   }
 
   function exerciceSeanceVierge(modele) {
@@ -395,6 +545,7 @@
       id: uid('es'), ordre: 0,
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
+      colonnes: colonnes(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -428,13 +579,14 @@
     p.description = 'Créé depuis la séance du ' + dateCourte(seance.date) + '.';
     p.exercices = renumeroter((seance.exercices || []).map(function (es) {
       return exerciceProgramme({
-        nom: es.nom, aw: es.aw, typeCharge: es.typeCharge, forces: es.forces,
-        structures: es.structures, outils: es.outils,
+        nom: es.nom, aw: es.aw, typeCharge: es.typeCharge, colonnes: colonnes(es),
+        forces: es.forces, structures: es.structures, outils: es.outils,
         consigne: es.consigne, reposSecondes: es.reposSecondes,
         series: (es.series || []).map(function (ss) {
           return { type: ss.type,
                    repsCible: (ss.repsReel || '').trim() || ss.repsCible || '',
-                   chargeCible: (ss.chargeReel || '').trim() || ss.chargeCible || '' };
+                   chargeCible: (ss.chargeReel || '').trim() || ss.chargeCible || '',
+                   dureeCible: (ss.dureeReel || '').trim() || ss.dureeCible || '' };
         })
       });
     }));
@@ -479,30 +631,54 @@
 
   function volumeSeance(seance) {
     var r = { series: 0, seriesFaites: 0, tonnage: 0, tonnageAw: 0, tonnageGeneral: 0,
-              seriesNonChiffrees: 0, seriesIncompletes: 0, seriesAw: 0, repsTotal: 0 };
+              seriesNonChiffrees: 0, seriesIncompletes: 0, seriesSansTonnage: 0,
+              seriesAw: 0, repsTotal: 0,
+              tempsSousTension: 0, tempsSousTensionAw: 0, seriesDuree: 0 };
     (seance.exercices || []).forEach(function (ex) {
       var tc = typeCharge(ex.typeCharge);
+      /* On ne lit QUE les colonnes affichees : une valeur restee dans un champ
+         qu'on a ensuite masque ne doit pas continuer a compter en silence. */
+      var aCharge = aColonne(ex, 'charge'),
+          aReps   = aColonne(ex, 'reps'),
+          aDuree  = aColonne(ex, 'duree');
       (ex.series || []).forEach(function (s) {
         r.series += 1;
         if (ex.aw) r.seriesAw += 1;
         if (s.faite) r.seriesFaites += 1;
 
-        var cTxt = (s.chargeReel || '').trim(), rTxt = (s.repsReel || '').trim();
-        if (!s.faite && !cTxt && !rTxt) return;        // rien de fait, rien à compter
+        var cTxt = aCharge ? (s.chargeReel || '').trim() : '';
+        var rTxt = aReps   ? (s.repsReel   || '').trim() : '';
+        var dTxt = aDuree  ? (s.dureeReel  || '').trim() : '';
+        if (!s.faite && !cTxt && !rTxt && !dTxt) return;   // rien de fait, rien à compter
 
-        var ch = nombre(cTxt), rp = nombre(rTxt);
+        var ch = nombre(cTxt), rp = nombre(rTxt), dr = secondes(dTxt);
         if (rp != null) r.repsTotal += rp;
 
-        if (tc.tonnage && ch != null && rp != null) {
+        /* Le temps sous tension se compte toujours, quel que soit le tonnage :
+           c'est l'autre façon de charger un tendon, et la seule que mesure un
+           isométrique. */
+        if (dr != null) {
+          r.tempsSousTension += dr;
+          if (ex.aw) r.tempsSousTensionAw += dr;
+          r.seriesDuree += 1;
+        }
+
+        if (tc.tonnage && aCharge && aReps && ch != null && rp != null) {
           var t = ch * rp;
           r.tonnage += t;
           if (ex.aw) r.tonnageAw += t; else r.tonnageGeneral += t;
+        } else if (!aCharge || !aReps) {
+          /* Le tonnage est charge × reps : sans les deux colonnes, il n'y a
+             rien à multiplier, et ce n'est PAS une saisie manquante. Une série
+             qui porte une durée est déjà comptée en temps sous tension — la
+             signaler ici serait du bruit sur chaque isométrique. */
+          if (dr == null) r.seriesSansTonnage += 1;
         } else if (!tc.tonnage || (cTxt && ch == null)) {
           /* N3, une bande rouge, le poids du corps : la charge N'EST PAS un
              nombre, et ce n'est pas un défaut de saisie. */
           r.seriesNonChiffrees += 1;
         } else {
-          /* Type chiffré, mais il manque la charge ou les reps. */
+          /* Type chiffré, deux colonnes affichées, mais une valeur manque. */
           r.seriesIncompletes += 1;
         }
       });
@@ -523,7 +699,52 @@
       bouts.push(v.seriesIncompletes + (v.seriesIncompletes > 1 ? ' séries incomplètes' : ' série incomplète')
         + ' : il manque la charge ou les reps.');
     }
+    if (v.seriesSansTonnage) {
+      bouts.push(v.seriesSansTonnage + (v.seriesSansTonnage > 1 ? ' séries' : ' série')
+        + ' sur un exercice sans charge ni reps — rien à multiplier, et rien de saisi non plus.');
+    }
     return bouts.join(' ');
+  }
+
+  /* Ce qu'une serie DIT, en une ligne. Le journal et l'historique le
+     demandaient chacun de leur cote, et chacun supposait deux colonnes :
+     « 20 × 45 » pour un gainage de 45 secondes, ou « 45 × — » une fois les
+     secondes deplacees. On ne montre que les colonnes AFFICHEES par
+     l'exercice, et rien d'autre.
+
+     `court` sert aux listes serrees du journal, ou chaque serie n'a que
+     quelques caracteres ; la forme longue porte l'unite. */
+  function texteSerie(exo, s, court) {
+    if (!s) return '';
+    var cols = colonnes(exo), tc = typeCharge(exo && exo.typeCharge);
+    var vide = '—';
+    var aC = cols.indexOf('charge') >= 0, aR = cols.indexOf('reps') >= 0,
+        aD = cols.indexOf('duree') >= 0;
+    var ch = aC ? (s.chargeReel || '').trim() : '',
+        rp = aR ? (s.repsReel || '').trim() : '',
+        dr = aD ? (s.dureeReel || '').trim() : '';
+    var bouts = [];
+
+    if (aC && aR) {
+      bouts.push((ch || vide) + (court ? '×' : ' × ') + (rp || vide)
+               + (!court && ch && tc.id === 'kg' ? ' kg' : ''));
+    } else if (aC) {
+      bouts.push((ch || vide) + (!court && ch && tc.unite ? ' ' + tc.unite : ''));
+    } else if (aR) {
+      bouts.push((rp || vide) + (court ? '' : ' reps'));
+    }
+    if (aD) bouts.push(dr ? (texteDuree(secondes(dr)) || dr) : vide);
+
+    return bouts.join(court ? ' ' : ' · ');
+  }
+
+  /* Le temps sous tension, dit comme le tonnage : un chiffre, et ce qu'il
+     recouvre. Rend '' quand il n'y a rien — jamais « 0 s », qui ferait croire
+     a une seance ou l'on n'a rien tenu alors qu'on n'a simplement rien chronometre. */
+  function texteTempsSousTension(v) {
+    if (!v.tempsSousTension) return '';
+    return texteDuree(v.tempsSousTension) + ' sous tension'
+         + (v.seriesDuree ? ' · ' + v.seriesDuree + (v.seriesDuree > 1 ? ' séries' : ' série') : '');
   }
 
   /* ---------- colonne PRÉCÉDENT ---------- */
@@ -537,10 +758,11 @@
   }
 
   /* Rang d'une serie PARMI CELLES DE SON TYPE : la 2e serie de travail reste la
-     2e serie de travail, qu'il y ait eu zero ou trois echauffements avant elle.
+     2e serie de travail, qu'il y ait eu zero ou trois degressives avant elle.
 
      C'est la correction d'un defaut mesure : l'indexation par rang brut faisait
-     glisser TOUTE la colonne d'un cran des qu'un echauffement etait ajoute, et
+     glisser TOUTE la colonne d'un cran des qu'une serie d'un autre type etait
+     inseree, et
      affichait des valeurs fausses mais plausibles — donc suivies. */
   function rangParType(series, index) {
     var s = series[index];
@@ -576,18 +798,26 @@
         if (ex.slug !== exoSlug) continue;
         var s = serieAuRangParType(ex.series || [], type, rangDansType);
         if (!s) return null;
-        var c = (s.chargeReel || '').trim(), r = (s.repsReel || '').trim();
-        if (!c && !r) return null;
-        return { charge: c, reps: r, date: se.date, typeCharge: ex.typeCharge, rpe: s.rpe };
+        var c = (s.chargeReel || '').trim(), r = (s.repsReel || '').trim(),
+            d = (s.dureeReel || '').trim();
+        if (!c && !r && !d) return null;
+        return { charge: c, reps: r, duree: d, date: se.date,
+                 typeCharge: ex.typeCharge, colonnes: colonnes(ex), rpe: s.rpe };
       }
     }
     return null;
   }
 
+  /* « 20 × 12 », « 45 s », « 20 × 12 · 45 s » : on ne montre que ce qui a ete
+     saisi. Le bouton est etroit — coller une duree a un couple charge/reps le
+     fait deborder — mais il vaut mieux une ligne dense qu'une valeur cachee. */
   function texteDernierePerf(p) {
     if (!p) return '';
-    if (p.charge && p.reps) return p.charge + ' × ' + p.reps;
-    return p.charge || p.reps || '';
+    var bouts = [];
+    if (p.charge && p.reps) bouts.push(p.charge + ' × ' + p.reps);
+    else if (p.charge || p.reps) bouts.push(p.charge || p.reps);
+    if (p.duree) bouts.push(texteDuree(secondes(p.duree)) || p.duree);
+    return bouts.join(' · ');
   }
 
   /* ---------- suivi ---------- */
@@ -725,12 +955,14 @@
         if (ex.slug !== exoSlug) return;
         var faites = (ex.series || []).filter(function (s) { return s.faite; });
         if (!faites.length) return;
-        var tc = typeCharge(ex.typeCharge);
-        var tonnage = 0, chiffrees = 0, meilleure = null, repsTotal = 0;
+        var tonnage = 0, chiffrees = 0, meilleure = null, repsTotal = 0, tst = 0;
+        var peut = peutPeser(ex), aD = aColonne(ex, 'duree');
         faites.forEach(function (s) {
           var ch = nombre(s.chargeReel), rp = nombre(s.repsReel);
+          var dr = aD ? secondes(s.dureeReel) : null;
           if (rp != null) repsTotal += rp;
-          if (tc.tonnage && ch != null && rp != null) {
+          if (dr != null) tst += dr;
+          if (peut && ch != null && rp != null) {
             tonnage += ch * rp;
             chiffrees += 1;
             if (!meilleure || ch > meilleure.charge || (ch === meilleure.charge && rp > meilleure.reps)) {
@@ -743,10 +975,13 @@
           programme: se.programmeNom || 'séance libre',
           series: faites.length, repsTotal: repsTotal,
           tonnage: chiffrees ? tonnage : null,
+          tempsSousTension: tst || null,
+          colonnes: colonnes(ex),
           meilleure: meilleure,
           typeCharge: ex.typeCharge,
           detail: faites.map(function (s) {
-            return { type: s.type, charge: s.chargeReel, reps: s.repsReel, rpe: s.rpe };
+            return { type: s.type, rpe: s.rpe, texte: texteSerie(ex, s, true),
+                     charge: s.chargeReel, reps: s.repsReel, duree: s.dureeReel };
           })
         });
       });
@@ -785,11 +1020,15 @@
     var limite = nbSemaines || 8;
     seancesMuscuTriees(etat).forEach(function (se) {
       var sem = semaineDe(se.date);
-      if (!par[sem]) { par[sem] = { semaine: sem, aw: 0, general: 0, series: 0, seances: 0 }; ordre.push(sem); }
+      if (!par[sem]) {
+        par[sem] = { semaine: sem, aw: 0, general: 0, series: 0, seances: 0, tempsSousTension: 0 };
+        ordre.push(sem);
+      }
       var v = volumeSeance(se);
       par[sem].aw += v.tonnageAw;
       par[sem].general += v.tonnageGeneral;
       par[sem].series += v.series;
+      par[sem].tempsSousTension += v.tempsSousTension;
       par[sem].seances += 1;
     });
     return ordre.sort().slice(-limite).map(function (s) { return par[s]; }).reverse();
@@ -814,7 +1053,11 @@
   A.m = {
     TYPES_SERIE: TYPES_SERIE, ORDRE_TYPES: ORDRE_TYPES, TYPES_CHARGE: TYPES_CHARGE,
     FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
+    COLONNES: COLONNES, COLONNES_DEFAUT: COLONNES_DEFAUT,
     uid: uid, slug: slug, nombre: nombre, fmt: fmt,
+    secondes: secondes, texteDuree: texteDuree,
+    colonnes: colonnes, colonne: colonne, aColonne: aColonne,
+    peutPeser: peutPeser, migrer: migrer,
     typeCharge: typeCharge, nomZone: nomZone, nomForce: nomForce, nomStyle: nomStyle,
     nomStructure: nomStructure,
     normaliserDouleurs: normaliserDouleurs, zonesDe: zonesDe, zonesVives: zonesVives,
@@ -837,6 +1080,8 @@
     exerciceSeanceVierge: exerciceSeanceVierge, serieSeanceVierge: serieSeanceVierge,
     programmeDepuisSeance: programmeDepuisSeance, dupliquerProgramme: dupliquerProgramme,
     volumeSeance: volumeSeance, texteHorsTonnage: texteHorsTonnage,
+    texteSerie: texteSerie,
+    texteTempsSousTension: texteTempsSousTension,
     seancesMuscuTriees: seancesMuscuTriees, toutesSeancesTriees: toutesSeancesTriees,
     dernierePerf: dernierePerf, texteDernierePerf: texteDernierePerf,
     derniereSollicitation: derniereSollicitation, zoneDelai: zoneDelai,

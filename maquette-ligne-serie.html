@@ -48,7 +48,7 @@
         </div>
 
         <div class="serie faite">
-          <button class="serie-num" data-type="echauffement" title="Échauffement">É</button>
+          <button class="serie-num" data-type="normale">1</button>
           <button class="serie-prec">15 × 30</button>
           <input class="serie-saisie" value="15" inputmode="decimal" aria-label="Charge">
           <input class="serie-saisie" value="30" inputmode="numeric" aria-label="Reps">
@@ -98,7 +98,7 @@
     Les champs vides portent la <b>cible du programme en placeholder</b> (gris, 35 / 12) :
     on voit la consigne sans qu'elle soit déjà une valeur saisie. Un chiffre tapé devient
     du texte noir. La colonne PRÉCÉDENT reste ce que j'ai fait la dernière fois —
-    un appui la recopie dans les deux champs.
+    un appui la recopie dans les champs affichés.
   </p>
 
   <hr>
@@ -154,6 +154,75 @@
     Le tonnage l'ignore et le <b>dit</b> — « 3 séries hors tonnage » — au lieu
     d'afficher un zéro qui ferait croire à une séance vide. <code>PRÉCÉDENT</code>
     affiche <code>—</code> et devient inerte quand il n'y a rien à recopier.
+  </p>
+
+  <hr>
+
+  <div class="cadre-lab">Les colonnes sont choisies par exercice</div>
+  <div class="cadre">
+    <div class="exo">
+      <div class="exo-entete">
+        <div><div class="exo-titre"><h3>Gainage poignet — isométrie</h3></div></div>
+        <button class="bt-icone" aria-label="Options de l'exercice">⋯</button>
+      </div>
+      <div class="exo-meta"><span>Repos 60&nbsp;s</span><span>Poignet</span></div>
+      <div class="series">
+        <div class="serie-entete" data-cols="1">
+          <span>Série</span><span>Précédent</span><span>Sec</span><span></span>
+        </div>
+        <div class="serie faite" data-cols="1">
+          <button class="serie-num" data-type="normale">1</button>
+          <button class="serie-prec">45 s</button>
+          <input class="serie-saisie" value="45" inputmode="numeric" aria-label="Durée en secondes">
+          <button class="serie-ok" aria-pressed="true" aria-label="Série faite"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+        <div class="serie" data-cols="1">
+          <button class="serie-num" data-type="normale">2</button>
+          <button class="serie-prec">1:00</button>
+          <input class="serie-saisie" placeholder="60" inputmode="numeric" aria-label="Durée en secondes">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="exo" style="margin-top:14px">
+      <div class="exo-entete">
+        <div><div class="exo-titre"><h3>Curl tenue</h3><span class="jeton">AW</span></div></div>
+        <button class="bt-icone" aria-label="Options de l'exercice">⋯</button>
+      </div>
+      <div class="exo-meta"><span>Repos 120&nbsp;s</span><span>Supination</span></div>
+      <div class="series">
+        <div class="serie-entete" data-cols="3">
+          <span>Série</span><span>Précédent</span><span>Charge</span><span>Reps</span><span>Sec</span><span></span>
+        </div>
+        <div class="serie faite" data-cols="3">
+          <button class="serie-num" data-type="normale">1</button>
+          <button class="serie-prec">20 × 10 · 30 s</button>
+          <input class="serie-saisie" value="20" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" value="10" inputmode="numeric" aria-label="Reps">
+          <input class="serie-saisie" value="30" inputmode="numeric" aria-label="Durée en secondes">
+          <button class="serie-ok" aria-pressed="true" aria-label="Série faite"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+        <div class="serie" data-cols="3">
+          <button class="serie-num" data-type="normale">2</button>
+          <button class="serie-prec" data-vide>—</button>
+          <input class="serie-saisie" placeholder="20" inputmode="decimal" aria-label="Charge">
+          <input class="serie-saisie" placeholder="10" inputmode="numeric" aria-label="Reps">
+          <input class="serie-saisie" placeholder="30" inputmode="numeric" aria-label="Durée en secondes">
+          <button class="serie-ok" aria-pressed="false" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12.8 9.2 18 20 6.6"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <p class="note-exclus">2:30 sous tension · 3 séries</p>
+  </div>
+
+  <p class="annot">
+    Un exercice dit <b>ce qu'il fait saisir</b>&nbsp;: charge, reps, durée, ou n'importe
+    quelle combinaison. Un isométrique n'a qu'une colonne, et sa ligne respire.
+    À trois colonnes, <code>PRÉCÉDENT</code> passe au-dessus&nbsp;: à 320&nbsp;px, quatre
+    colonnes souples sur une ligne mettaient les champs à <b>37&nbsp;px</b> — mesuré au
+    banc d'interface, et refusé. Le tonnage étant charge&nbsp;×&nbsp;reps, un exercice
+    sans colonne reps ne pèse rien&nbsp;: il se compte en <b>temps sous tension</b>.
   </p>
 
   <hr>

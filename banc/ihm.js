@@ -59,7 +59,7 @@
       + '</main></div>'
       + '<nav class="onglets" role="tablist" aria-label="Sections">' + onglets + '</nav>'
       + s('store.js') + s('model.js') + s('ui.js') + s('panneau.js')
-      + s('vue-exercice.js') + s('vue-suivi.js')
+      + s('vue-exercice.js') + s('vue-suivi.js') + s('vue-seance.js')
       + '</body></html>';
   }
 
@@ -87,7 +87,7 @@
         (function prêt() {
           if (fini) return;
           if (fen.App && fen.App.ui && fen.App.panneau && fen.App.m && fen.App.store
-              && fen.App.vues && fen.App.vues.suivi) {
+              && fen.App.vues && fen.App.vues.suivi && fen.App.vues.seance) {
             fini = true;
             clearTimeout(limite);
             resolve({ cadre: cadre, fen: fen, doc: fen.document });
@@ -461,6 +461,102 @@
       e.seances = [];
       return attendre(20);
     });
+  });
+
+  /* ================================================================
+     6. La ligne de série à 1, 2 et 3 colonnes, à 320 px
+
+     C'est la mesure qui décide si trois colonnes de saisie sont tenables :
+     avec PRÉCÉDENT, ce sont quatre colonnes souples à se partager la largeur.
+     Un champ sous 40 px ne se lit plus et ne se vise plus.
+     ================================================================ */
+
+  bloc('Ligne de série à 320 px', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+
+    /* On fabrique une séance en cours, et on la fait rendre par la vraie vue :
+       mesurer une maquette ne prouverait rien sur l'app. */
+    function seanceAvec(cols) {
+      var e = fen.App.store.etat();
+      var ex = fen.App.m.exerciceSeanceVierge({
+        nom: 'Exercice banc', typeCharge: 'kg', colonnes: cols,
+        series: [{}, {}]
+      });
+      var se = fen.App.m.seanceMuscu(null);
+      se.exercices = [ex];
+      e.seances = [se];
+      e.seanceEnCoursId = se.id;
+      fen.App.vues.seance.rendre(vue);
+      return se;
+    }
+
+    function mesurer(cols) {
+      seanceAvec(cols);
+      var ligne = doc.querySelector('.serie');
+      if (!ligne) return null;
+      var champs = ligne.querySelectorAll('.serie-saisie');
+      var prec = ligne.querySelector('.serie-prec');
+      var mini = 9999;
+      Array.prototype.forEach.call(champs, function (c) {
+        mini = Math.min(mini, c.getBoundingClientRect().width);
+      });
+      return {
+        nbChamps: champs.length,
+        miniChamp: Math.round(mini),
+        prec: Math.round(prec.getBoundingClientRect().width),
+        droite: Math.round(ligne.getBoundingClientRect().right),
+        cols: ligne.dataset.cols,
+        entetes: Array.prototype.map.call(doc.querySelectorAll('.serie-entete span'),
+          function (s) { return s.textContent; }).filter(function (t) { return t; })
+      };
+    }
+
+    var m2 = mesurer(['charge', 'reps']);
+    v.egal(m2.nbChamps, 2, 'le défaut affiche deux champs');
+    v.egal(m2.cols, '2', 'et la ligne le dit à la grille');
+    v.egal(m2.entetes.join(','), 'Série,Précédent,Charge,Reps', 'les en-têtes nomment les colonnes');
+    v.vrai(m2.miniChamp >= 40, 'à deux colonnes, le plus petit champ fait '
+                             + m2.miniChamp + ' px — au moins 40');
+
+    var m1 = mesurer(['duree']);
+    v.egal(m1.nbChamps, 1, 'un isométrique n’affiche qu’un champ');
+    v.egal(m1.entetes.join(','), 'Série,Précédent,Sec', 'et sa colonne s’appelle Sec');
+    v.vrai(m1.miniChamp >= 40, 'il est large (' + m1.miniChamp + ' px)');
+
+    var m3 = mesurer(['charge', 'reps', 'duree']);
+    v.egal(m3.nbChamps, 3, 'trois colonnes donnent trois champs');
+    v.egal(m3.entetes.join(','), 'Série,Précédent,Charge,Reps,Sec', 'nommées dans l’ordre');
+    v.vrai(m3.miniChamp >= 40,
+           'À TROIS COLONNES, le plus petit champ fait ' + m3.miniChamp
+         + ' px — c’est la mesure qui décide si trois colonnes tiennent à 320 px');
+    v.vrai(m3.prec >= 48,
+           'et PRÉCÉDENT garde ' + m3.prec + ' px, de quoi lire « 20 × 12 »');
+    v.vrai(m3.droite <= LARGEUR, 'la ligne ne déborde pas de l’écran');
+    v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
+           'et la séance ne défile pas horizontalement (débord : '
+         + (doc.documentElement.scrollWidth - LARGEUR) + ' px)');
+
+    /* La cible tactile du ✓ et du bouton de type ne doit pas avoir fondu. */
+    var ok = doc.querySelector('.serie-ok').getBoundingClientRect();
+    v.vrai(ok.width >= 40 && ok.height >= 40,
+           'le ✓ reste visable : ' + Math.round(ok.width) + ' × ' + Math.round(ok.height) + ' px');
+
+    /* Saisir dans la 3e colonne doit écrire dans dureeReel, pas ailleurs. */
+    var se = fen.App.store.etat().seances[0];
+    var champs = doc.querySelectorAll('.serie .serie-saisie');
+    champs[2].value = '45';
+    champs[2].dispatchEvent(new fen.Event('input', { bubbles: true }));
+    v.egal(se.exercices[0].series[0].dureeReel, '45',
+           'la troisième colonne écrit bien la DURÉE');
+    v.egal(se.exercices[0].series[0].repsReel, '',
+           'et surtout pas les reps — c’était tout le défaut d’avant');
+
+    fen.App.ui.vider(vue);
+    var e = fen.App.store.etat();
+    e.seances = [];
+    e.seanceEnCoursId = null;
+    return attendre(20);
   });
 
   /* ================================================================

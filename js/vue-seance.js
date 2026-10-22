@@ -34,7 +34,12 @@
       refs.tonnageAw.textContent = String(v.seriesAw);
       refs.etiquetteAw.textContent = 'séries AW';
     }
-    refs.reps.textContent = v.repsTotal ? A.m.fmt(v.repsTotal) + ' reps au total' : '';
+    var bouts = [];
+    if (v.repsTotal) bouts.push(A.m.fmt(v.repsTotal) + ' reps au total');
+    /* Le temps sous tension est l'autre façon de charger un tendon : il se lit
+       à côté des reps, pas dans un écran à part. */
+    if (v.tempsSousTension) bouts.push(A.m.texteTempsSousTension(v));
+    refs.reps.textContent = bouts.join(' · ');
     refs.exclus.textContent = A.m.texteHorsTonnage(v);
   }
 
@@ -83,7 +88,9 @@
      ------------------------------------------------------------------ */
   function ligneSerie(exo, serie, listeNoeud) {
     var tc = A.m.typeCharge(exo.typeCharge);
-    var ligne = h('div', { class: 'serie' + (serie.faite ? ' faite' : '') });
+    var cols = A.m.colonnes(exo);
+    var ligne = h('div', { class: 'serie' + (serie.faite ? ' faite' : ''),
+                           'data-cols': String(cols.length) });
 
     /* 1. numéro / type */
     var num = h('button', { type: 'button', class: 'serie-num' });
@@ -108,9 +115,9 @@
 
     /* 2. précédent — la raison d'être d'un carnet.
        Le rang est celui de la serie DANS SON TYPE : la 2e serie de travail
-       reste la 2e serie de travail, qu'on ait fait zero ou trois echauffements
-       avant elle. Indexer par rang brut faisait glisser toute la colonne d'un
-       cran des qu'un echauffement etait ajoute. */
+       reste la 2e serie de travail, qu'on ait insere zero ou trois series d'un
+       autre type avant elle. Indexer par rang brut faisait glisser toute la
+       colonne d'un cran des qu'une serie etait inseree. */
     var rang = exo.series.indexOf(serie);
     var rangType = A.m.rangParType(exo.series, rang);
     var prec = A.m.dernierePerf(etat(), exo.slug, serie.type, rangType, seance.id);
@@ -122,31 +129,36 @@
       btPrec.setAttribute('aria-label', 'Précédent : ' + txtPrec + '. Recopier dans les champs.');
     }
 
-    /* 3–4. charge et reps. La cible du programme est le PLACEHOLDER :
-       visible, mais pas déjà saisie — on voit ce qui a été corrigé. */
-    var chargeIn = h('input', { class: 'serie-saisie', type: 'text',
-      inputmode: tc.modeCharge, enterkeyhint: 'next',
-      value: serie.chargeReel || '', placeholder: serie.chargeCible || tc.labelCharge,
-      'aria-label': tc.labelCharge + ', série ' + (rang + 1) + ' de ' + exo.nom });
-
-    var repsIn = h('input', { class: 'serie-saisie', type: 'text',
-      inputmode: tc.modeReps, enterkeyhint: 'done',
-      value: serie.repsReel || '', placeholder: serie.repsCible || tc.labelReps,
-      'aria-label': tc.labelReps + ', série ' + (rang + 1) + ' de ' + exo.nom });
-
-    chargeIn.addEventListener('input', function () { serie.chargeReel = chargeIn.value; majTotaux(); sauver(); });
-    repsIn.addEventListener('input',  function () { serie.repsReel  = repsIn.value;  majTotaux(); sauver(); });
-
-    /* Au clavier du téléphone : « suivant » passe aux reps, « terminé » valide
-       la série et referme le clavier. Deux gestes, pouce jamais levé. */
-    chargeIn.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); repsIn.focus(); repsIn.select(); }
+    /* 3-N. les colonnes de saisie — une, deux ou trois selon l'exercice.
+       La cible du programme est le PLACEHOLDER : visible, mais pas déjà
+       saisie — on voit ce qui a été corrigé. */
+    var champs = {};
+    cols.forEach(function (id) {
+      var def = A.m.colonne(id);
+      champs[id] = h('input', { class: 'serie-saisie', type: 'text',
+        inputmode: def.mode(tc), enterkeyhint: 'next',
+        value: serie[def.reel] || '', placeholder: serie[def.cible] || def.label(tc),
+        'aria-label': def.label(tc) + ', série ' + (rang + 1) + ' de ' + exo.nom });
+      champs[id].addEventListener('input', function () {
+        serie[def.reel] = champs[id].value;
+        majTotaux(); sauver();
+      });
     });
-    repsIn.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      repsIn.blur();
-      if (!serie.faite) ok.click();
+
+    /* Au clavier du téléphone : « suivant » passe au champ d'à côté, « terminé »
+       sur le DERNIER valide la série et referme le clavier. Deux ou trois
+       gestes, pouce jamais levé. Le dernier champ dépend des colonnes : c'est
+       pour ça qu'on chaîne la liste au lieu de nommer les champs. */
+    cols.forEach(function (id, i) {
+      var suivant = champs[cols[i + 1]];
+      if (!suivant) champs[id].setAttribute('enterkeyhint', 'done');
+      champs[id].addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (suivant) { suivant.focus(); suivant.select(); return; }
+        champs[id].blur();
+        if (!serie.faite) ok.click();
+      });
     });
 
     /* Le gestionnaire lit btPrec._prec et non la valeur figee a la
@@ -155,8 +167,13 @@
     btPrec.addEventListener('click', function () {
       var p = btPrec._prec;
       if (!p) return;
-      chargeIn.value = p.charge; serie.chargeReel = p.charge;
-      repsIn.value   = p.reps;   serie.repsReel   = p.reps;
+      /* On ne recopie que dans les colonnes affichées : une valeur posée dans
+         un champ invisible ne se corrige pas, et compterait sans se voir. */
+      cols.forEach(function (id) {
+        var def = A.m.colonne(id), val = p[id === 'charge' ? 'charge' : id] || '';
+        champs[id].value = val;
+        serie[def.reel] = val;
+      });
       majTotaux(); sauver();
       A.ui.toast('Recopié : ' + A.m.texteDernierePerf(p));
     });
@@ -209,8 +226,13 @@
         serie.faiteA = new Date().toISOString();
         /* Rien de saisi ? On fige la cible comme valeur réelle : valider veut
            dire « fait comme prévu », pas « fait, valeur inconnue ». */
-        if (!serie.chargeReel && serie.chargeCible) { serie.chargeReel = serie.chargeCible; chargeIn.value = serie.chargeCible; }
-        if (!serie.repsReel && serie.repsCible)     { serie.repsReel   = serie.repsCible;   repsIn.value   = serie.repsCible; }
+        cols.forEach(function (id) {
+          var def = A.m.colonne(id);
+          if (!serie[def.reel] && serie[def.cible]) {
+            serie[def.reel] = serie[def.cible];
+            champs[id].value = serie[def.cible];
+          }
+        });
         var r = exo.series.indexOf(serie) + 1;
         A.ui.chrono.demarrer(exo.reposSecondes, exo.nom + ' · série ' + r);
       } else {
@@ -222,8 +244,7 @@
 
     ligne.appendChild(num);
     ligne.appendChild(btPrec);
-    ligne.appendChild(chargeIn);
-    ligne.appendChild(repsIn);
+    cols.forEach(function (id) { ligne.appendChild(champs[id]); });
     ligne.appendChild(ok);
     majRpe();
     return ligne;
@@ -270,9 +291,20 @@
     bloc.appendChild(meta);
 
     var zone = h('div', { class: 'series' });
-    zone.appendChild(h('div', { class: 'serie-entete' },
-      h('span', { text: 'Série' }), h('span', { text: 'Précédent' }),
-      h('span', { text: tc.labelCharge }), h('span', { text: tc.labelReps }), h('span')));
+    var entete = h('div', { class: 'serie-entete' });
+    function majEntete() {
+      A.ui.vider(entete);
+      var cols = A.m.colonnes(exo);
+      entete.dataset.cols = String(cols.length);
+      entete.appendChild(h('span', { text: 'Série' }));
+      entete.appendChild(h('span', { text: 'Précédent' }));
+      cols.forEach(function (id) {
+        entete.appendChild(h('span', { text: A.m.colonne(id).label(tc) }));
+      });
+      entete.appendChild(h('span'));
+    }
+    majEntete();
+    zone.appendChild(entete);
 
     var liste = h('div');
     exo.series.forEach(function (s) { liste.appendChild(ligneSerie(exo, s, liste)); });
@@ -281,8 +313,10 @@
     var btPlus = h('button', { class: 'bt bt-petit bt-fantome', text: '+ Série' });
     btPlus.addEventListener('click', function () {
       var modele = exo.series[exo.series.length - 1];
-      var s = A.m.serieSeanceVierge(modele ? { type: modele.type === 'echauffement' ? 'normale' : modele.type,
-                                               repsCible: modele.repsCible, chargeCible: modele.chargeCible } : {});
+      var s = A.m.serieSeanceVierge(modele ? { type: modele.type,
+                                               repsCible: modele.repsCible,
+                                               chargeCible: modele.chargeCible,
+                                               dureeCible: modele.dureeCible } : {});
       exo.series.push(s);
       liste.appendChild(ligneSerie(exo, s, liste));   // UN nœud ajouté
       renumeroter(exo, liste);
@@ -320,9 +354,16 @@
               consigne.style.display = exo.consigne ? '' : 'none';
               tc = A.m.typeCharge(exo.typeCharge);
               majMeta();
-              var e = zone.firstChild;
-              e.children[2].textContent = tc.labelCharge;
-              e.children[3].textContent = tc.labelReps;
+              majEntete();
+              /* Changer les colonnes change les champs de chaque ligne : il
+                 faut les reconstruire. La règle « on ne re-rend pas une liste
+                 qui contient des champs » vise la FRAPPE ; ici l'utilisateur
+                 vient de fermer un panneau, personne n'a le doigt sur un
+                 champ, et le re-rendu est le geste qu'il a demandé. */
+              A.ui.vider(liste);
+              exo.series.forEach(function (s) { liste.appendChild(ligneSerie(exo, s, liste)); });
+              renumeroter(exo, liste);
+              rafraichirPrecedents(exo, liste);
               majTotaux(); sauver();
             });
           } },

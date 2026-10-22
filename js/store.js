@@ -64,6 +64,12 @@
       d.seances.forEach(function (s) { s.douleurs = A.m.normaliserDouleurs(s.douleurs); });
     }
 
+    /* Les colonnes de la ligne de serie, et le type de serie disparu : meme
+       principe, converti A LA LECTURE pour qu'une sauvegarde ancienne se
+       relise entiere. Voir A.m.migrer() — il dit ce qui bouge et ce qui ne
+       bouge pas. */
+    if (A.m && A.m.migrer) A.m.migrer(d);
+
     d.versionDonnees = VERSION_DONNEES;
     return d;
   }

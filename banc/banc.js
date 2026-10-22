@@ -80,16 +80,16 @@
      ================================================================ */
 
   bloc('Colonne PRÉCÉDENT', function (v) {
-    /* La semaine d'avant : trois séries de travail, pas d'échauffement. */
+    /* La semaine d'avant : trois séries de travail, rien d'autre. */
     var e = etatAvec([
       seance('2026-10-14', [exo('Curl', [
         serie('normale', 20, 12), serie('normale', 22, 10), serie('normale', 24, 8)
       ])], { id: 'A' })
     ]);
 
-    /* Aujourd'hui, j'ajoute un échauffement en tête. Les séries de travail
+    /* Aujourd'hui, j'insère une dégressive en tête. Les séries de travail
        restent la 1re, la 2e et la 3e SÉRIE DE TRAVAIL. */
-    var auj = [serie('echauffement', 10, 20), serie('normale', 0, 0),
+    var auj = [serie('degressive', 10, 20), serie('normale', 0, 0),
                serie('normale', 0, 0), serie('normale', 0, 0)];
 
     function precedentDe(i) {
@@ -98,14 +98,14 @@
     }
 
     v.egal(precedentDe(1), '20 × 12', 'la 1re série de travail retrouve la 1re série de travail');
-    v.egal(precedentDe(2), '22 × 10', 'la 2e retrouve la 2e, malgré l’échauffement inséré');
+    v.egal(precedentDe(2), '22 × 10', 'la 2e retrouve la 2e, malgré la dégressive insérée');
     v.egal(precedentDe(3), '24 × 8', 'la 3e retrouve la 3e');
-    v.egal(precedentDe(0), '', 'un échauffement ne reprend pas une série de travail');
+    v.egal(precedentDe(0), '', 'une série d’un autre type ne reprend pas une série de travail');
 
-    /* Et sans échauffement, rien ne doit bouger. */
+    /* Et sans la dégressive, rien ne doit bouger. */
     var sans = [serie('normale', 0, 0), serie('normale', 0, 0), serie('normale', 0, 0)];
     v.egal(A.m.texteDernierePerf(A.m.dernierePerf(e, 'curl', 'normale', A.m.rangParType(sans, 0), 'B')),
-           '20 × 12', 'sans échauffement, l’alignement est inchangé');
+           '20 × 12', 'sans mélange de types, l’alignement est inchangé');
 
     v.egal(A.m.rangParType(auj, 3), 2, 'le rang par type ignore les séries d’un autre type');
     v.egal(A.m.rangParType(sans, 2), 2, 'sans mélange, rang par type = rang brut');
@@ -514,6 +514,270 @@
            'une date seule se relit, et se classe avant un horodatage du même jour');
     v.egal(A.m.suggestionsOutils(e3, '', [], 8).length, 2,
            'les deux formes cohabitent, aucune n’est perdue');
+  });
+
+  /* ================================================================
+     14. La durée par série, et les colonnes choisies
+
+     `typeCharge: 'duree'` détournait la colonne REPS en secondes : un champ
+     répondait à deux questions. Ce qui s'affiche est maintenant dit par
+     `colonnes`, et `typeCharge` ne dit plus que comment lire la charge.
+     ================================================================ */
+
+  bloc('Durée et colonnes', function (v) {
+    /* --- lecture d'une durée --- */
+    v.egal(A.m.secondes('45'), 45, 'des secondes seules se lisent');
+    v.egal(A.m.secondes('1:30'), 90, 'et la forme minutes:secondes aussi');
+    v.egal(A.m.secondes('2:05'), 125, 'y compris avec un zéro de tête');
+    v.egal(A.m.secondes('90'), 90, '« 90 » reste 90 secondes, pas 1 min 30 : ce qui est tapé est lu');
+    v.egal(A.m.secondes(''), null, 'le vide n’est pas zéro seconde');
+    v.egal(A.m.secondes('longtemps'), null, 'un mot n’est pas une durée');
+    v.egal(A.m.secondes('1:75'), null, '75 secondes dans une minute n’existent pas');
+    v.egal(A.m.secondes('-10'), null, 'une durée négative non plus');
+    v.egal(A.m.texteDuree(45), '45 s', 'sous la minute, on lit des secondes');
+    v.egal(A.m.texteDuree(90), '1:30', 'au-delà, on lit des minutes — 1 850 s ne dit rien');
+    v.egal(A.m.texteDuree(605), '10:05', 'et le zéro de tête est posé');
+    v.egal(A.m.texteDuree(null), '', 'rien à dire quand il n’y a rien');
+
+    /* --- quelles colonnes --- */
+    v.egal(A.m.colonnes({}).join(','), 'charge,reps', 'le défaut reste charge + reps');
+    v.egal(A.m.colonnes({ colonnes: [] }).join(','), 'charge,reps',
+           'un exercice sans aucune colonne n’aurait rien à saisir : on refuse');
+    v.egal(A.m.colonnes({ colonnes: ['duree'] }).join(','), 'duree',
+           'un isométrique n’affiche QUE la durée');
+    v.egal(A.m.colonnes({ colonnes: ['duree', 'charge'] }).join(','), 'charge,duree',
+           'l’ordre à l’écran est toujours le même, quel que soit l’ordre saisi');
+    v.egal(A.m.colonnes({ colonnes: ['charge', 'zzz'] }).join(','), 'charge',
+           'une colonne inconnue est ignorée, pas affichée');
+    v.vrai(A.m.aColonne({ colonnes: ['duree'] }, 'duree'), 'aColonne répond sur ce qui est là');
+    v.vrai(!A.m.aColonne({ colonnes: ['duree'] }, 'reps'), 'et sur ce qui n’y est pas');
+
+    /* --- ce qui peut peser --- */
+    v.vrai(A.m.peutPeser({ typeCharge: 'kg', colonnes: ['charge', 'reps'] }),
+           'kilos + charge + reps : le tonnage est possible');
+    v.vrai(!A.m.peutPeser({ typeCharge: 'kg', colonnes: ['duree'] }),
+           'sans colonne reps, il n’y a RIEN à multiplier');
+    v.vrai(!A.m.peutPeser({ typeCharge: 'kg', colonnes: ['charge', 'duree'] }),
+           'ni avec charge seule et durée');
+    v.vrai(!A.m.peutPeser({ typeCharge: 'elastique', colonnes: ['charge', 'reps'] }),
+           '[temoin] et un élastique ne pèse toujours pas, colonnes ou pas');
+  });
+
+  /* ================================================================
+     15. Le temps sous tension — l'autre façon de charger un tendon
+     ================================================================ */
+
+  bloc('Temps sous tension', function (v) {
+    function exoDuree(nom, series, cols) {
+      var x = exo(nom, series, { typeCharge: 'kg' });
+      x.colonnes = cols;
+      return x;
+    }
+    function serieD(duree, extra) {
+      var s = serie('normale', '', '', extra);
+      s.dureeReel = duree == null ? '' : String(duree);
+      return s;
+    }
+
+    var iso = seance('2026-10-20', [
+      exoDuree('Gainage poignet', [serieD(45), serieD(45), serieD('1:00')], ['duree'])
+    ]);
+    var v1 = A.m.volumeSeance(iso);
+    v.egal(v1.tempsSousTension, 150, 'les durées des séries s’additionnent');
+    v.egal(v1.seriesDuree, 3, 'et on sait combien de séries le composent');
+    v.egal(v1.tonnage, 0, 'un isométrique ne pèse RIEN — il n’y a rien à multiplier');
+    v.egal(v1.seriesIncompletes, 0,
+           'et ce n’est pas une saisie incomplète : l’exercice n’a pas de colonne reps');
+    v.egal(v1.seriesSansTonnage, 0,
+           'une série qui porte une durée est déjà comptée, la signaler serait du bruit');
+    v.egal(A.m.texteTempsSousTension(v1), '2:30 sous tension · 3 séries',
+           'l’écran le dit en clair');
+
+    /* Une série validée sans rien dedans, sur un exercice sans tonnage
+       possible : ce n'est ni du tonnage ni du temps. Il faut le DIRE. */
+    var vide = seance('2026-10-20', [exoDuree('Gainage', [serieD(null)], ['duree'])]);
+    var v2 = A.m.volumeSeance(vide);
+    v.egal(v2.tempsSousTension, 0, 'une série validée sans durée ne vaut pas zéro seconde en silence');
+    v.egal(v2.seriesSansTonnage, 1, 'elle est comptée à part');
+    v.vrai(A.m.texteHorsTonnage(v2).indexOf('rien à multiplier') >= 0,
+           'et l’écran explique pourquoi elle sort du tonnage');
+    v.egal(A.m.texteTempsSousTension(v2), '',
+           'jamais « 0 s », qui ferait croire à une séance où l’on n’a rien tenu');
+
+    /* Tonnage ET durée sur le même exercice : les deux comptes cohabitent. */
+    var mixte = seance('2026-10-20', [
+      (function () {
+        var x = exoDuree('Curl tenue', [], ['charge', 'reps', 'duree']);
+        var s1 = serie('normale', 20, 10); s1.dureeReel = '30';
+        var s2 = serie('normale', 20, 10); s2.dureeReel = '30';
+        x.series = [s1, s2];
+        return x;
+      })()
+    ]);
+    var v3 = A.m.volumeSeance(mixte);
+    v.egal(v3.tonnage, 400, 'les trois colonnes ensemble : le tonnage se calcule normalement');
+    v.egal(v3.tempsSousTension, 60, 'et le temps sous tension aussi, en même temps');
+
+    /* Une valeur restée dans un champ qu'on a ensuite masqué ne doit plus
+       compter : sinon le total bouge sans que rien ne soit visible. */
+    var masque = seance('2026-10-20', [
+      (function () {
+        var x = exoDuree('Curl', [], ['charge', 'reps']);
+        var s1 = serie('normale', 20, 10); s1.dureeReel = '30';
+        x.series = [s1];
+        return x;
+      })()
+    ]);
+    var v4 = A.m.volumeSeance(masque);
+    v.egal(v4.tonnage, 200, '[temoin] le tonnage de la série est bien là');
+    v.egal(v4.tempsSousTension, 0,
+           'une durée saisie puis masquée ne compte plus — rien ne compte en coulisse');
+
+    /* AW à part, comme pour le tonnage. */
+    var aw = seance('2026-10-20', [
+      (function () { var x = exoDuree('Tenue AW', [serieD(60)], ['duree']); x.aw = true; return x; })(),
+      exoDuree('Tenue générale', [serieD(30)], ['duree'])
+    ]);
+    var v5 = A.m.volumeSeance(aw);
+    v.egal(v5.tempsSousTension, 90, 'le total additionne tout');
+    v.egal(v5.tempsSousTensionAw, 60, 'et la part AW est comptée à part, comme le tonnage');
+  });
+
+  /* ================================================================
+     16. PRÉCÉDENT recopie aussi la durée
+     ================================================================ */
+
+  bloc('PRÉCÉDENT avec durée', function (v) {
+    function avecDuree(s, d) { s.dureeReel = d; return s; }
+
+    var e = etatAvec([
+      seance('2026-10-14', [
+        (function () {
+          var x = exo('Gainage', [avecDuree(serie('normale', '', ''), '45')]);
+          x.colonnes = ['duree'];
+          return x;
+        })()
+      ], { id: 'A' })
+    ]);
+    var p = A.m.dernierePerf(e, 'gainage', 'normale', 0, 'B');
+    v.vrai(!!p, 'une série qui ne porte QU’une durée est un précédent valide');
+    v.egal(p.duree, '45', 'et la durée en fait partie');
+    v.egal(A.m.texteDernierePerf(p), '45 s', 'affichée en clair');
+
+    var e2 = etatAvec([
+      seance('2026-10-14', [
+        (function () {
+          var x = exo('Curl tenue', [avecDuree(serie('normale', 20, 10), '30')]);
+          x.colonnes = ['charge', 'reps', 'duree'];
+          return x;
+        })()
+      ], { id: 'A' })
+    ]);
+    v.egal(A.m.texteDernierePerf(A.m.dernierePerf(e2, 'curl tenue', 'normale', 0, 'B')),
+           '20 × 10 · 30 s', 'les trois valeurs tiennent sur le bouton, séparées');
+
+    /* Une série vraiment vide reste sans précédent. */
+    var e3 = etatAvec([seance('2026-10-12', [exo('Vide', [serie('normale', '', '')])], { id: 'D' })]);
+    v.egal(A.m.dernierePerf(e3, 'vide', 'normale', 0, 'X'), null,
+           '[temoin] une série sans aucune valeur ne devient pas un précédent');
+  });
+
+  /* ================================================================
+     17. La migration à la lecture — un carnet d'avant se relit entier
+     ================================================================ */
+
+  bloc('Migration des colonnes', function (v) {
+    /* Un exercice d'avant : typeCharge 'duree', les secondes dans repsReel. */
+    var vieux = {
+      versionDonnees: 1, exercices: [], outils: [], programmes: [],
+      seances: [{
+        id: 'se1', type: 'muscu', date: '2026-09-01', heure: '2026-09-01T18:00:00.000Z',
+        programmeId: null, programmeNom: 'P', dureeMin: null, rpeGlobal: null,
+        note: '', douleurs: [],
+        exercices: [{
+          id: 'e1', ordre: 0, nom: 'Gainage', slug: 'gainage', aw: false,
+          typeCharge: 'duree', forces: [], structures: [], outils: [],
+          consigne: '', reposSecondes: 90,
+          series: [{ id: 's1', type: 'normale', repsCible: '40', chargeCible: '',
+                     repsReel: '45', chargeReel: '', rpe: null, faite: true, faiteA: null },
+                   { id: 's2', type: 'echauffement', repsCible: '', chargeCible: '',
+                     repsReel: '20', chargeReel: '', rpe: null, faite: true, faiteA: null }]
+        }]
+      }]
+    };
+    var m = A.m.migrer(vieux);
+    var ex = m.seances[0].exercices[0];
+
+    v.egal(ex.typeCharge, 'kg', 'typeCharge « duree » n’existe plus : il ne dit que la charge');
+    v.egal(ex.colonnes.join(','), 'charge,duree', 'et les colonnes disent ce qui s’affiche');
+    v.egal(ex.series[0].dureeReel, '45', 'les secondes quittent la colonne REPS…');
+    v.egal(ex.series[0].repsReel, '', '…qui redevient vide, puisqu’elle ne voulait rien dire');
+    v.egal(ex.series[0].dureeCible, '40', 'la cible suit le même chemin');
+    v.egal(ex.series[1].type, 'normale', 'un échauffement d’avant devient une série normale');
+
+    /* Le point qui compte : AUCUN chiffre du passé ne doit bouger. */
+    var vol = A.m.volumeSeance(m.seances[0]);
+    v.egal(vol.tonnage, 0, 'le tonnage reste à zéro — il l’était déjà, « duree » ne pesait pas');
+    v.egal(vol.tempsSousTension, 65, 'et les secondes sont maintenant comptées, là où elles dormaient');
+
+    /* Un exercice ordinaire d'avant reçoit le défaut, et rien d'autre. */
+    var ordinaire = A.m.migrer({
+      exercices: [{ nom: 'Curl', slug: 'curl', typeCharge: 'kg' }],
+      programmes: [], seances: []
+    });
+    v.egal(ordinaire.exercices[0].colonnes.join(','), 'charge,reps',
+           'un exercice d’avant prend le défaut charge + reps');
+    v.egal(ordinaire.exercices[0].typeCharge, 'kg', '[temoin] et son type de charge ne bouge pas');
+
+    /* La migration doit atteindre les programmes aussi, pas seulement les
+       séances : un programme non converti resservirait l'ancien format. */
+    var prog = A.m.migrer({
+      exercices: [], seances: [],
+      programmes: [{ id: 'p1', nom: 'P', exercices: [{
+        id: 'ep1', nom: 'Gainage', slug: 'gainage', typeCharge: 'duree',
+        series: [{ id: 'sp1', type: 'normale', repsCible: '60', chargeCible: '' }]
+      }] }]
+    });
+    var pex = prog.programmes[0].exercices[0];
+    v.egal(pex.colonnes.join(','), 'charge,duree', 'un programme d’avant est converti lui aussi');
+    v.egal(pex.series[0].dureeCible, '60', 'avec les cibles de ses séries');
+
+    /* Migrer deux fois ne doit rien abîmer. */
+    var deuxFois = A.m.migrer(A.m.migrer({
+      exercices: [], programmes: [], seances: [{
+        id: 'x', type: 'muscu', date: '2026-09-01', exercices: [{
+          nom: 'G', slug: 'g', typeCharge: 'duree',
+          series: [{ type: 'normale', repsReel: '30', chargeReel: '' }]
+        }]
+      }]
+    }));
+    v.egal(deuxFois.seances[0].exercices[0].series[0].dureeReel, '30',
+           'migrer deux fois donne le même résultat qu’une');
+    v.egal(deuxFois.seances[0].exercices[0].colonnes.join(','), 'charge,duree',
+           'et les colonnes ne se redoublent pas');
+  });
+
+  /* ================================================================
+     18. Le type « échauffement » n'existe plus
+     ================================================================ */
+
+  bloc('Types de série', function (v) {
+    v.egal(Object.keys(A.m.TYPES_SERIE).length, 3, 'trois types de série, pas quatre');
+    v.egal(A.m.TYPES_SERIE.echauffement, undefined, '« échauffement » n’en fait plus partie');
+    v.egal(A.m.ORDRE_TYPES.indexOf('echauffement'), -1, 'ni dans l’ordre proposé au doigt');
+    v.egal(A.m.ORDRE_TYPES.join(','), 'normale,degressive,echec', 'les trois restants, dans cet ordre');
+    v.egal(A.m.TYPES_SERIE.normale.lettre, '', '[temoin] une série normale porte son numéro, pas une lettre');
+
+    /* Un type inconnu dans un vieux carnet ne doit pas casser l'affichage :
+       renumeroter() lit TYPES_SERIE[s.type].lettre sans filet. */
+    var m = A.m.migrer({ exercices: [], programmes: [], seances: [{
+      id: 'x', type: 'muscu', date: '2026-09-01', exercices: [{
+        nom: 'C', slug: 'c', typeCharge: 'kg',
+        series: [{ type: 'inconnu', repsReel: '', chargeReel: '' }]
+      }]
+    }] });
+    v.egal(m.seances[0].exercices[0].series[0].type, 'normale',
+           'un type inconnu redevient normal plutôt que de faire planter la ligne');
   });
 
   /* ================================================================

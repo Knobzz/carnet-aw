@@ -65,15 +65,19 @@
           }));
         });
 
-        var ch = h('input', { class: 'serie-saisie', type: 'text', inputmode: tc.modeCharge,
-                              value: sp.chargeCible || '', placeholder: tc.labelCharge,
-                              'aria-label': tc.labelCharge + ' cible' });
-        ch.addEventListener('input', function () { sp.chargeCible = ch.value; sauver(); });
-
-        var rp = h('input', { class: 'serie-saisie', type: 'text', inputmode: tc.modeReps,
-                              value: sp.repsCible || '', placeholder: tc.labelReps,
-                              'aria-label': tc.labelReps + ' cible' });
-        rp.addEventListener('input', function () { sp.repsCible = rp.value; sauver(); });
+        var cols = A.m.colonnes(ep);
+        ligne.dataset.cols = String(cols.length);
+        var champs = {};
+        cols.forEach(function (id) {
+          var def = A.m.colonne(id);
+          champs[id] = h('input', { class: 'serie-saisie', type: 'text', inputmode: def.mode(tc),
+                                    value: sp[def.cible] || '', placeholder: def.label(tc),
+                                    'aria-label': def.label(tc) + ' cible' });
+          champs[id].addEventListener('input', function () {
+            sp[def.cible] = champs[id].value;
+            sauver();
+          });
+        });
 
         var sup = h('button', { class: 'bt-icone', text: '✕', 'aria-label': 'Retirer cette série' });
         sup.addEventListener('click', function () {
@@ -85,7 +89,9 @@
           sauver();
         });
 
-        ligne.appendChild(num); ligne.appendChild(ch); ligne.appendChild(rp); ligne.appendChild(sup);
+        ligne.appendChild(num);
+        cols.forEach(function (id) { ligne.appendChild(champs[id]); });
+        ligne.appendChild(sup);
         return ligne;
       }
 
@@ -140,9 +146,18 @@
         bloc.appendChild(meta);
 
         var zone = h('div', { class: 'series' });
-        var enteteSeries = h('div', { class: 'plan-entete' },
-          h('span', { text: 'Série' }), h('span', { text: tc.labelCharge + ' cible' }),
-          h('span', { text: tc.labelReps + ' cible' }), h('span'));
+        var enteteSeries = h('div', { class: 'plan-entete' });
+        function majEntete() {
+          A.ui.vider(enteteSeries);
+          var cols = A.m.colonnes(ep);
+          enteteSeries.dataset.cols = String(cols.length);
+          enteteSeries.appendChild(h('span', { text: 'Série' }));
+          cols.forEach(function (id) {
+            enteteSeries.appendChild(h('span', { text: A.m.colonne(id).label(tc) + ' cible' }));
+          });
+          enteteSeries.appendChild(h('span'));
+        }
+        majEntete();
         zone.appendChild(enteteSeries);
 
         var listeSeries = h('div');
@@ -153,8 +168,9 @@
         var plus = h('button', { class: 'bt bt-petit bt-fantome', text: '+ Série' });
         plus.addEventListener('click', function () {
           var d = ep.series[ep.series.length - 1];
-          var sp = A.m.serieProgramme(d ? { type: d.type === 'echauffement' ? 'normale' : d.type,
-                                            repsCible: d.repsCible, chargeCible: d.chargeCible } : {});
+          var sp = A.m.serieProgramme(d ? { type: d.type, repsCible: d.repsCible,
+                                            chargeCible: d.chargeCible,
+                                            dureeCible: d.dureeCible } : {});
           ep.series.push(sp);
           listeSeries.appendChild(lignePlan(ep, sp, listeSeries));
           renumPlan(ep, listeSeries);
@@ -170,11 +186,14 @@
                 A.panneau.editerExercice(ep, {}, function () {
                   titre.textContent = ep.nom;
                   tc = A.m.typeCharge(ep.typeCharge);
-                  majJetons(); majMeta();
+                  majJetons(); majMeta(); majEntete();
                   consigne.textContent = ep.consigne || '';
                   consigne.style.display = ep.consigne ? '' : 'none';
-                  enteteSeries.children[1].textContent = tc.labelCharge + ' cible';
-                  enteteSeries.children[2].textContent = tc.labelReps + ' cible';
+                  /* Les colonnes ont pu changer : les lignes portent d'autres
+                     champs. Le panneau vient de se fermer, personne ne tape. */
+                  A.ui.vider(listeSeries);
+                  ep.series.forEach(function (sp) { listeSeries.appendChild(lignePlan(ep, sp, listeSeries)); });
+                  renumPlan(ep, listeSeries);
                   sauver(true);
                 });
               } },

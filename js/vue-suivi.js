@@ -271,6 +271,29 @@
     corps.appendChild(h('div', { class: 'legende' },
       h('span', {}, h('i', { style: 'background:var(--laiton)' }), 'AW'),
       h('span', {}, h('i', { style: 'background:var(--bleu)' }), 'Muscu générale')));
+
+    /* Le temps sous tension ne se met PAS dans les mêmes barres : des kilos et
+       des secondes ne se comparent pas, et les empiler fabriquerait une courbe
+       qui ne veut rien dire. Il se lit à côté, semaine par semaine, et
+       seulement s'il y en a. */
+    var avecTst = sem.filter(function (s) { return s.tempsSousTension > 0; });
+    if (avecTst.length) {
+      corps.appendChild(h('div', { class: 'sous-titre', style: 'margin:14px 0 6px',
+                                   text: 'Temps sous tension' }));
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 0 7px',
+        text: 'Les séries tenues, isométries comprises. Des secondes ne s’additionnent pas à des kilos : elles se lisent à part.' }));
+      var maxT = avecTst.reduce(function (m, s) { return Math.max(m, s.tempsSousTension); }, 0) || 1;
+      var barresT = h('div', { class: 'barres' });
+      sem.forEach(function (s) {
+        if (!s.tempsSousTension) return;
+        barresT.appendChild(h('div', { class: 'barre' },
+          h('span', { class: 'tab-num', text: A.m.dateCourte(s.semaine).replace(/ \d{4}$/, '') }),
+          h('div', { class: 'barre-piste' },
+            h('i', { class: 'gen', style: 'width:' + (s.tempsSousTension / maxT * 100) + '%' })),
+          h('span', { class: 'barre-val', text: A.m.texteDuree(s.tempsSousTension) })));
+      });
+      corps.appendChild(barresT);
+    }
     carte.appendChild(corps);
     f.appendChild(carte);
     return f;
