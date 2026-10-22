@@ -364,17 +364,23 @@
   }
 
   /* ------------------------------------------------------------------
-     la carte des muscles
+     la carte des muscles : les planches de Gray, cliquables
 
-     Le schéma sert le coup d'œil, les barres servent la mesure : vingt-deux
-     muscles sur un bras de 290 px seraient illisibles, et six régions
-     teintées ne diraient pas les chiffres. Les deux, donc, et chacun son
-     travail — et les muscles trop fins pour le dessin vivent dans les
-     barres, où la place ne manque pas.
+     Il y avait ici un schéma de bandes dessiné à la main. Il a été RETIRÉ :
+     il ne ressemblait pas à un bras, et ça a été dit deux fois. Le remplacer
+     par des contours calculés l'avait rendu moins laid, pas plus juste.
 
-     Le dessin est un SCHÉMA, pas une planche d'anatomie : des régions nettes
-     et nommées valent mieux qu'un réalisme raté. Il est en SVG inline —
-     aucune image à charger, donc rien à casser hors ligne.
+     Ce sont maintenant les gravures de Gray (1918, domaine public), avec des
+     polygones transparents posés PAR-DESSUS — teintés selon la charge et
+     cliquables. On garde donc ce qu'une image matricielle ne sait pas faire,
+     se teinter muscle par muscle, sans renoncer à l'anatomie réelle.
+
+     Aucune planche ne montre le membre entier : c'est un atlas, pas une
+     affiche. Cinq faces, donc, choisies par une rangée de puces, et un
+     muscle peut figurer sur plusieurs.
+
+     Les polygones sont en pourcentage de la planche et le SVG s'étire
+     dessus : rien ne se décale quand la largeur de l'écran change.
      ------------------------------------------------------------------ */
 
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -384,166 +390,6 @@
     Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
     return n;
   }
-
-  /* Le membre supérieur en VUE ANTÉRIEURE, épaule en haut, main en bas —
-     la vue des planches d'anatomie, et celle qui laisse la place de montrer
-     un muscle par région plutôt que six zones.
-
-     Dessiné à la main d'après l'anatomie : il n'y a aucune image à charger,
-     donc rien à casser hors ligne, aucune question de licence, et chaque
-     muscle se teinte séparément — ce qu'une photo ne permettrait pas.
-
-     Ce que ça N'EST PAS : une planche médicale. Les contours sont
-     approximatifs, en particulier les insertions. Des régions nettes,
-     nommées et à la bonne place valent mieux qu'un réalisme raté à 170 px
-     de large.
-
-     La main est le seul décor INERTE : elle sert à reconnaître le membre et
-     ne répond pas au doigt. Le deltoïde, lui, est un muscle suivi comme les
-     autres. */
-  /* Les tracés sont CONSTRUITS, pas écrits à la main.
-
-     Trois tentatives de dessin libre ont donné trois amas de formes
-     détachées : sans discipline, les régions ne se touchent pas, les
-     proportions dérivent, et le membre ne se reconnaît plus. On décrit donc
-     le CONTOUR du membre — sa largeur à chaque hauteur — et chaque muscle
-     occupe une bande de ce contour, exprimée en fractions de largeur. Les
-     tracés se calculent, se touchent par construction, et restent justes
-     quand on bouge un point du contour.
-
-     Repères du contour : épaule large, bras qui s'affine vers le coude,
-     avant-bras qui regonfle à son ventre musculaire puis se resserre au
-     poignet. C'est ce profil qui fait lire « bras » et non « colonne ». */
-  var CONTOUR = [
-    { y: 22,  g: 40, d: 82 },
-    { y: 48,  g: 30, d: 88 },
-    { y: 70,  g: 29, d: 89 },
-    { y: 110, g: 28, d: 90 },   // ventre du biceps
-    { y: 150, g: 36, d: 82 },
-    { y: 162, g: 38, d: 80 },   // coude
-    { y: 188, g: 31, d: 87 },   // ventre de l'avant-bras
-    { y: 218, g: 34, d: 84 },
-    { y: 248, g: 41, d: 77 },
-    { y: 266, g: 43, d: 75 }    // poignet
-  ];
-
-  /* Largeur du membre a une hauteur donnee, interpolee entre deux reperes. */
-  function bords(y) {
-    if (y <= CONTOUR[0].y) return CONTOUR[0];
-    for (var i = 1; i < CONTOUR.length; i++) {
-      if (y <= CONTOUR[i].y) {
-        var a = CONTOUR[i - 1], b = CONTOUR[i];
-        var t = (y - a.y) / (b.y - a.y);
-        return { g: a.g + (b.g - a.g) * t, d: a.d + (b.d - a.d) * t };
-      }
-    }
-    return CONTOUR[CONTOUR.length - 1];
-  }
-
-  /* Une fraction de largeur : soit fixe, soit un couple [début, fin] qui
-     glisse le long de la bande. C'est ce qui permet de tracer un muscle
-     OBLIQUE — le rond pronateur part du bord médial du coude et finit au
-     milieu de l'avant-bras ; une bande droite en ferait un bandeau. */
-  function frac(f, t) {
-    return typeof f === 'number' ? f : f[0] + (f[1] - f[0]) * t;
-  }
-
-  /* Une bande : de la hauteur `de` a la hauteur `a`, entre deux fractions de
-     la largeur du membre. On echantillonne pour que les bords suivent le
-     galbe du contour au lieu d'etre des segments droits.
-
-     `pointeHaut` et `pointeBas` sont la part de la longueur sur laquelle la
-     bande se resserre vers son axe, comme un ventre musculaire vers son
-     tendon. Sans elles, chaque muscle est un rectangle et le dessin entier
-     lit « pile de briques » au lieu de « bras ». */
-  function bande(de, a, fg, fd, pointeHaut, pointeBas) {
-    var pas = Math.max(10, Math.round((a - de) / 3));
-    var gauche = [], droite = [];
-    for (var i = 0; i <= pas; i++) {
-      var t = i / pas;
-      var y = de + (a - de) * t;
-      var b = bords(y);
-      var large = b.d - b.g;
-      var g = frac(fg, t), d = frac(fd, t);
-      var k = 1;
-      if (pointeHaut && t < pointeHaut) {
-        k = Math.min(k, 0.22 + 0.78 * Math.sqrt(t / pointeHaut));
-      }
-      if (pointeBas && t > 1 - pointeBas) {
-        k = Math.min(k, 0.22 + 0.78 * Math.sqrt((1 - t) / pointeBas));
-      }
-      var axe = (g + d) / 2, demi = (d - g) / 2 * k;
-      gauche.push([(b.g + large * (axe - demi)).toFixed(1), y.toFixed(1)]);
-      droite.push([(b.g + large * (axe + demi)).toFixed(1), y.toFixed(1)]);
-    }
-    droite.reverse();
-    return 'M' + gauche.concat(droite).map(function (p) { return p[0] + ' ' + p[1]; }).join(' L') + ' Z';
-  }
-
-  /* Il ne reste que la main en décor : le deltoïde est devenu un muscle
-     suivi comme les autres. */
-  var SILHOUETTE = [];
-
-  /* L'ordre compte : les tracés se recouvrent, et les derniers posés sont
-     au-dessus. Les muscles profonds (supinateur, carré pronateur, brachial)
-     viennent donc après les superficiels qui les bordent. */
-  /* L'ordre est celui du dessin : les profonds (rond pronateur, supinateur)
-     passent APRÈS les superficiels qu'ils croisent, sinon ils disparaissent
-     dessous. Le pectoral et le dorsal sont hors du membre : ils gardent un
-     tracé à eux. */
-  /* Tous les muscles n'ont pas de territoire lisible à 190 px de large :
-     l'anconé, le long palmaire ou l'extenseur du petit doigt y tiendraient
-     sur trois pixels. Ceux-là n'ont PAS de tracé — ils vivent dans les
-     barres chiffrées, où la place ne manque pas. Le banc vérifie que cette
-     liste et celle du modèle se recouvrent exactement : un muscle oublié des
-     deux serait invisible, et une région sans muscle serait un mensonge. */
-  var TRACES_MUSCLE = [
-    /* Le tronc : ces deux-là ne sont pas dans le membre, ils tirent dessus.
-       Leurs tracés mordent sur le haut du bras — c'est là qu'ils s'insèrent,
-       et ça évite le trou blanc entre le torse et l'épaule. */
-    ['grand_pectoral',      'M5 30 Q20 22 40 29 Q51 42 52 58 Q32 67 13 61 Q3 46 5 30 Z'],
-    ['grand_dorsal',        'M5 66 Q17 63 31 73 Q34 90 32 105 Q17 111 5 102 Z'],
-
-    /* Bras, du bord médial au bord latéral. Chaque ventre se resserre vers
-       son tendon : le triceps vers l'olécrane, le biceps en fuseau aux deux
-       bouts, le brachial sous lui du côté latéral. */
-    ['triceps',             bande(60, 164, 0.00, [0.36, 0.22], 0.18, 0.30)],
-    ['biceps',              bande(58, 168, [0.26, 0.30], [0.76, 0.66], 0.26, 0.32)],
-    ['brachial',            bande(92, 168, [0.70, 0.64], 1.00, 0.30, 0.18)],
-
-    /* Le deltoïde coiffe l'épaule et descend sur le bras : il est posé APRÈS
-       le bras, parce qu'en vrai il le recouvre. */
-    ['deltoide',            'M43 24 Q63 13 77 33 Q85 52 79 70 Q68 76 59 67 Q58 43 43 24 Z'],
-
-    /* Avant-bras, face antérieure : la masse flexo-pronatrice, du bord
-       médial vers le milieu. Tous finissent en tendon au poignet. */
-    ['fcu',                 bande(160, 258, 0.00, 0.17, 0.10, 0.45)],
-    ['flechisseurs_doigts', bande(162, 260, 0.17, 0.39, 0.14, 0.40)],
-    ['fcr',                 bande(162, 258, 0.39, 0.55, 0.16, 0.48)],
-
-    /* Face postéro-latérale. Le brachio-radial part du BRAS, bien au-dessus
-       du coude — c'est ce qui le rend reconnaissable sur une planche. */
-    ['brachio_radial',      bande(118, 252, [0.60, 0.56], [0.86, 0.74], 0.34, 0.42)],
-    ['ecrl',                bande(132, 254, [0.80, 0.74], [0.94, 0.86], 0.34, 0.44)],
-    ['ecrb',                bande(148, 256, [0.92, 0.86], 1.00, 0.28, 0.44)],
-
-    /* Les obliques du coude, posés par-dessus pour rester visibles : le rond
-       pronateur traverse en diagonale vers le milieu du radius, le
-       supinateur s'enroule sous les extenseurs. */
-    ['rond_pronateur',      bande(158, 202, [0.02, 0.26], [0.26, 0.54], 0.10, 0.38)],
-    ['supinateur',          bande(156, 196, [0.60, 0.56], [1.00, 0.88], 0.14, 0.34)],
-    /* et le carré pronateur, transverse juste au-dessus du poignet */
-    ['carre_pronateur',     bande(244, 264, 0.06, 0.94, 0.12, 0.12)]
-  ];
-
-  /* Dits dans les barres, pas sur le dessin — faute de place, et c'est écrit
-     à l'écran plutôt que tu. */
-  var SANS_TRACE_ATTENDUS = ['coraco_brachial', 'ancone', 'long_palmaire',
-                             'ecu', 'extenseurs_doigts', 'extenseur_petit_doigt',
-                             'extenseurs_pouce'];
-
-  /* La main, inerte elle aussi — elle sert à reconnaître le membre. */
-  var TRACE_MAIN = 'M43 262 Q36 278 39 292 Q44 304 59 305 Q74 304 78 291 Q81 276 76 262 Q59 268 43 262 Z';
 
   function blocMuscles(e) {
     var f = document.createDocumentFragment();
@@ -563,22 +409,17 @@
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
-    /* --- le schéma, un muscle par région --- */
+    /* --- la carte : une planche, des zones teintées --- */
     var maxM = A.m.MUSCLES.reduce(function (m, x) {
       return Math.max(m, c.parMuscle[x.id] || 0);
     }, 0) || 1;
 
-    var svg = svgEl('svg', { viewBox: '0 0 100 306', class: 'carte-bras',
-                             role: 'img',
-                             'aria-label': 'Membre supérieur en vue antérieure, '
-                                         + 'chaque muscle teinté selon sa sollicitation' });
     var detail = h('div', { class: 'item-resume', style: 'min-height:3.2em;margin-top:6px' });
 
     /* Ce qu'on sait d'un muscle, dit en entier : le nom, ce qu'il fait, ce
        qu'il mobilise, son insertion s'il en partage une, et de quoi aller
-       voir à quoi il ressemble. C'est la même chose au doigt sur le schéma
-       et sur une barre — y compris pour les muscles qui n'ont pas de tracé,
-       qui seraient sinon des noms sans visage. */
+       voir la planche en grand. C'est la même chose au doigt sur la carte et
+       sur une barre. */
     function direMuscle(id, n) {
       var m = A.m.muscle(id);
       A.ui.vider(detail);
@@ -594,49 +435,80 @@
       if (m.aussi) detail.appendChild(h('div', { text: 'dit aussi « ' + m.aussi + ' »' }));
       var bt = h('button', { type: 'button', class: 'bt bt-planche',
                              style: 'margin-top:5px',
-                             text: 'Voir ' + m.latin + ' sur la planche' });
+                             text: 'Voir ' + m.latin + ' en grand' });
       bt.addEventListener('click', function () { A.panneau.voirPlanche(id); });
       detail.appendChild(bt);
     }
 
-    SILHOUETTE.concat([TRACE_MAIN]).forEach(function (d) {
-      svg.appendChild(svgEl('path', { d: d, class: 'bras-inerte' }));
-    });
+    function chaleur(n) {
+      if (!n) return '0';
+      return n / maxM > .66 ? '3' : (n / maxM > .33 ? '2' : '1');
+    }
 
-    var zones = [];
-    TRACES_MUSCLE.forEach(function (paire) {
-      var id = paire[0], m = A.m.muscle(id);
-      var n = c.parMuscle[id] || 0;
-      var p = svgEl('path', { d: paire[1], class: 'region-bras',
-                              'data-chaleur': n === 0 ? '0'
-                                : (n / maxM > .66 ? '3' : (n / maxM > .33 ? '2' : '1')),
-                              tabindex: '0', role: 'button',
-                              'aria-label': m.nom + ', ' + n + ' séries' });
-      function montrer() {
-        zones.forEach(function (x) { x.removeAttribute('data-choisi'); });
-        p.setAttribute('data-choisi', '1');
-        direMuscle(id, n);
-      }
-      p.addEventListener('click', montrer);
-      p.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); montrer(); }
+    var enrobe = h('div', { class: 'planche-carte' });
+    var puces = [];
+
+    function montrerCarte(idCarte) {
+      var ct = A.m.carte(idCarte);
+      var pl = A.m.planche(ct.planche);
+      A.ui.vider(enrobe);
+      puces.forEach(function (x) {
+        x.bouton.setAttribute('aria-pressed', x.id === idCarte ? 'true' : 'false');
       });
-      zones.push(p);
-      svg.appendChild(p);
+
+      enrobe.appendChild(h('img', { class: 'planche-fond', src: pl.fichier,
+        alt: 'Planche de Gray numéro ' + pl.numero + ' : ' + pl.nom }));
+
+      /* `preserveAspectRatio="none"` : le SVG s'étire exactement sur l'image,
+         donc les pourcentages tombent au bon endroit quelle que soit la
+         largeur. Avec le réglage par défaut il se centrerait et tout
+         glisserait. */
+      var svg = svgEl('svg', { class: 'planche-zones', viewBox: '0 0 100 100',
+                               preserveAspectRatio: 'none' });
+      var zones = [];
+      ct.zones.forEach(function (z) {
+        var m = A.m.muscle(z.muscle);
+        var n = c.parMuscle[z.muscle] || 0;
+        var pg = svgEl('polygon', { points: z.points, class: 'zone-planche',
+                                    'data-chaleur': chaleur(n),
+                                    tabindex: '0', role: 'button',
+                                    'aria-label': m.nom + ', ' + n + ' séries' });
+        function montrer() {
+          zones.forEach(function (x) { x.removeAttribute('data-choisi'); });
+          pg.setAttribute('data-choisi', '1');
+          direMuscle(z.muscle, n);
+        }
+        pg.addEventListener('click', montrer);
+        pg.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); montrer(); }
+        });
+        zones.push(pg);
+        svg.appendChild(pg);
+      });
+      enrobe.appendChild(svg);
+      legende.textContent = pl.nom + ' — Gray, 1918.';
+    }
+
+    var rangee = h('div', { class: 'puces planche-faces' });
+    A.m.CARTES.forEach(function (ct) {
+      var b = h('button', { type: 'button', class: 'puce', text: ct.nom,
+                            'aria-pressed': 'false' });
+      b.addEventListener('click', function () { montrerCarte(ct.id); });
+      puces.push({ id: ct.id, bouton: b });
+      rangee.appendChild(b);
     });
 
-    corps.appendChild(h('div', { class: 'bras-enrobe' }, svg));
-    var horsDessin = SANS_TRACE_ATTENDUS.filter(function (id) {
-      return (c.parMuscle[id] || 0) > 0;
-    }).map(A.m.nomMuscle);
-    corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:2px',
-      text: 'Vue antérieure, schématique. Appuie sur un muscle pour le détail, '
-          + 'et sur son nom dans les barres pour la planche anatomique.'
-          + (horsDessin.length
-              ? ' Faute de place, ceux-ci ne sont que dans les barres : '
-                + horsDessin.join(', ') + '.'
-              : '') }));
+    var legende = h('div', { class: 'item-resume', style: 'margin-top:2px' });
+    corps.appendChild(rangee);
+    corps.appendChild(enrobe);
+    corps.appendChild(legende);
+    corps.appendChild(h('div', { class: 'item-resume',
+      text: 'Appuie sur un muscle de la planche pour le détail, ou sur son nom '
+          + 'dans les barres. Les zones sont posées à l’œil : elles situent, '
+          + 'elles ne dissèquent pas.' }));
     corps.appendChild(detail);
+
+    montrerCarte(A.m.CARTES[0].id);
 
     /* --- les chiffres, muscle par muscle --- */
     var barres = h('div', { class: 'barres barres-serrees barres-muscles', style: 'margin-top:12px' });
@@ -645,8 +517,8 @@
     }).forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
       if (!n) return;
-      /* Le libellé est un BOUTON : c'est la seule façon d'atteindre les sept
-         muscles qui n'ont pas de tracé sur le schéma. */
+      /* Le libellé est un BOUTON : il ouvre la planche en grand, sans avoir
+         à deviner sur quelle face le muscle se trouve. */
       var lib = h('button', { type: 'button', class: 'barre-nom',
                               text: m.court || m.nom, title: m.nom });
       lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });
@@ -918,8 +790,5 @@
   }
 
   A.vues = A.vues || {};
-  /* SANS_TRACE_ATTENDUS est exposé pour le banc : c'est lui qui vérifie que
-     cette liste et celle du modèle se recouvrent exactement. */
-  A.vues.suivi = { rendre: rendre, titre: function () { return 'Suivi'; },
-                   SANS_TRACE_ATTENDUS: SANS_TRACE_ATTENDUS };
+  A.vues.suivi = { rendre: rendre, titre: function () { return 'Suivi'; } };
 })(window.App || (window.App = {}));

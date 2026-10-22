@@ -832,6 +832,27 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    pose un cadre pour qu'elle ne flotte pas. */
 .planche { display: block; width: 100%; height: auto; margin: 8px 0;
            border-radius: 8px; background: #fff; border: 1px solid var(--bord); }
+
+/* La carte : la gravure, et des polygones etires dessus. Le SVG est pose en
+   absolu sur l'image, en 0-100 avec preserveAspectRatio:none — donc les
+   pourcentages tombent au bon endroit quelle que soit la largeur. */
+.planche-faces { margin-bottom: 7px; }
+.planche-carte { position: relative; display: block; margin: 0 auto;
+                 max-width: 290px; background: #fff;
+                 border: 1px solid var(--bord); border-radius: 8px; overflow: hidden; }
+.planche-fond { display: block; width: 100%; height: auto; }
+.planche-zones { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.zone-planche { cursor: pointer; stroke: rgba(20, 28, 37, .35); stroke-width: .4;
+                vector-effect: non-scaling-stroke; }
+/* La gravure doit rester LISIBLE sous la teinte : c'est elle qu'on est venu
+   voir. Les opacites sont donc basses — on lit encore les fibres et les noms
+   latins a travers la zone la plus chaude. */
+.zone-planche[data-chaleur="0"] { fill: rgba(20, 28, 37, .05); }
+.zone-planche[data-chaleur="1"] { fill: rgba(176, 124, 20, .20); }
+.zone-planche[data-chaleur="2"] { fill: rgba(176, 124, 20, .34); }
+.zone-planche[data-chaleur="3"] { fill: rgba(176, 124, 20, .48); }
+.zone-planche[data-choisi] { stroke: var(--bleu); stroke-width: 2; }
+.zone-planche:focus-visible { stroke: var(--bleu); stroke-width: 2; outline: none; }
 .bt-planche { font-size: .74rem; padding: 4px 9px; }
 /* Le latin est une CITATION de la planche, pas une etiquette de l'app :
    l'italique le dit sans ajouter un mot. */
@@ -1147,34 +1168,9 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   transform: translateY(-1px) rotate(-45deg);
 }
 
-/* Le schema du bras : six regions teintees selon la sollicitation. C'est un
-   SCHEMA, pas une planche d'anatomie — des regions nettes et nommees valent
-   mieux qu'un realisme rate a 290 px de large. */
-.bras-enrobe { display: flex; justify-content: center; padding: 4px 0 2px; }
-.carte-bras { width: 100%; max-width: 190px; height: auto; }
-.region-bras {
-  fill: var(--fond-3);
-  stroke: var(--trait-fort);
-  stroke-width: 0.9;
-  stroke-linejoin: round;
-  cursor: pointer;
-  transition: fill .15s ease;
-}
-.region-bras[data-chaleur="1"] { fill: color-mix(in srgb, var(--laiton) 22%, var(--fond-3)); }
-.region-bras[data-chaleur="2"] { fill: color-mix(in srgb, var(--laiton) 55%, var(--fond-3)); }
-.region-bras[data-chaleur="3"] { fill: var(--laiton); }
-.region-bras[data-choisi] { stroke: var(--bleu); stroke-width: 2.6; }
-/* Le deltoide et la main : dessines, pas suivis. Ils ne se teintent pas et
-   ne repondent pas au doigt — ils servent a reconnaitre le membre. */
-.bras-inerte {
-  fill: var(--fond-3);
-  stroke: var(--trait);
-  stroke-width: 1;
-  stroke-linejoin: round;
-  pointer-events: none;
-}
-.region-bras:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .region-bras { transition: none; } }
+/* Le schema de bandes dessine a la main a ete RETIRE : il ne ressemblait pas
+   a un bras, et ca a ete dit deux fois. Les gravures de Gray le remplacent,
+   avec des polygones poses dessus — voir .planche-carte plus haut. */
 
 /* ---------- muscles ----------
    Treize noms latins ne se cochent pas sans ce qu'ils font : chaque ligne

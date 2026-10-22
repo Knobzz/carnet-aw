@@ -361,40 +361,45 @@ ce qui est stocké reste une décision, pas une déduction. Et la quatrième sou
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
 coche qu'une fois.
 
-### Le schéma
+### La carte : les planches de Gray, cliquables
 
-Un membre supérieur en **vue antérieure**, épaule en haut, main en bas — la vue des
-planches d'anatomie, et celle qui laisse la place de montrer **un muscle par région**
-plutôt que six zones.
+Il y avait ici un **schéma de bandes dessiné à la main**. Il a été retiré. Il ne ressemblait
+pas à un bras, ça a été dit deux fois, et le remplacer par des contours calculés l'avait
+rendu moins laid sans le rendre plus juste.
 
-Il est dessiné en **SVG inline**, pas importé. Une planche trouvée sur le web poserait
-trois problèmes : une licence invérifiable sur une app publiée, un poids qui dépasse
-celui de l'app entière, et l'impossibilité de **teinter un muscle** — une image
-matricielle ne change pas de couleur. Le SVG, lui, pèse quelques kilo-octets, reste net
-à toute taille et se teinte muscle par muscle.
+Ce sont maintenant les **gravures**, avec des **polygones transparents posés dessus** :
+teintés selon la charge, cliquables. On garde donc ce qu'une image matricielle ne sait pas
+faire — se teinter muscle par muscle — sans renoncer à l'anatomie réelle.
 
-**Les tracés sont construits, pas écrits à la main.** Trois tentatives de dessin libre ont
-donné trois amas de formes détachées. On décrit donc le **contour** du membre — sa largeur
-à chaque hauteur — et chaque muscle occupe une bande de ce contour, en fractions de
-largeur. Les régions se touchent par construction, et restent justes quand on déplace un
-point du contour.
+**Cinq faces** (bras devant/derrière, avant-bras devant/derrière, plan profond), parce
+qu'aucune planche de Gray ne montre le membre entier : c'est un atlas, pas une affiche. Un
+muscle peut figurer sur plusieurs — le brachio-radial se voit de devant comme de derrière.
+Les 22 muscles sont sur la carte, et le banc le vérifie.
 
-**Chaque muscle a un ventre, pas un rectangle.** Une bande peut se resserrer vers son axe
-à l'une ou l'autre extrémité (`pointeHaut`, `pointeBas`) et glisser en biais le long du
-membre (une fraction `[début, fin]`). Sans ça le dessin lit « pile de briques » : c'est
-ce qu'il faisait, et c'est ce que le fuseau corrige. Le rond pronateur traverse en
-diagonale parce qu'en vrai il traverse en diagonale.
+Les points sont en **pourcentage** de la planche, et le SVG est posé en
+`viewBox="0 0 100 100"` avec **`preserveAspectRatio="none"`** : il s'étire exactement sur
+l'image. Sans ce réglage il se centrerait et **toutes les zones glisseraient en silence** —
+un contrôle du banc le tient.
 
-**Tous les muscles n'ont pas de territoire lisible à 190 px de large.** L'anconé, le long
-palmaire ou l'extenseur du petit doigt y tiendraient sur trois pixels. Ceux-là vivent
-**dans les barres**, et la légende sous le dessin les nomme — mais seulement quand ils ont
-des séries, sinon on listerait pour lister. La liste `SANS_TRACE_ATTENDUS` est exposée au
-banc, qui vérifie le **recouvrement exact** : tout muscle est soit une région du schéma,
-soit déclaré hors dessin. Un muscle oublié des deux serait invisible ; une région sans
-muscle serait un mensonge.
+#### Comment les tracés ont été obtenus
 
-La **main** est le seul décor : elle sert à reconnaître le membre et ne répond pas au
-doigt. Le deltoïde, lui, est devenu un muscle suivi comme les autres.
+Trois méthodes essayées, une retenue :
+
+| méthode | résultat |
+|---|---|
+| polygones posés à l'œil | des pavés : « ça ne suit pas la forme », et c'était vrai |
+| remplissage depuis une graine, borné par les traits | **échec** : la tache fuit par les hachures (0 % ou 60 % de la planche) |
+| direction des fibres (tenseur de structure) | sépare les **groupes**, pas les muscles : les fléchisseurs voisins sont parallèles |
+| **ligne médiane + bord d'encre le plus proche** | **retenue** — c'est la gravure qui fixe les bords, pas moi |
+
+La méthode retenue part d'une ligne médiane (quelques ancres lues sur l'étiquette latine,
+qui est imprimée **sur** le muscle) et, à chaque ligne de balayage, cherche le trait sombre
+le plus proche à gauche et à droite. Elle marche sur les **avant-bras**, dont les muscles
+sont des rubans verticaux. Elle échoue sur le **bras**, qui est en diagonale : un balayage
+horizontal y coupe le pectoral en travers. Les deux planches du bras gardent donc des
+contours posés à la main.
+
+Ce que ce n'est **pas** : une dissection. Les zones **situent** un muscle sur la gravure.
 
 ### Les planches de Gray
 

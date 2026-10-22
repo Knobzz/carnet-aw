@@ -750,225 +750,162 @@
                    note: '', douleurs: [],
                    exercices: [exo('A', ['fcu'], 9), exo('B', ['biceps'], 3),
                                exo('C', ['grand_pectoral'], 1),
-                               /* Les noms les plus longs du tableau : sans eux, la
-                                  mesure de largeur des pistes ne prouverait rien. */
                                exo('D', ['fcr', 'ecrb', 'ecrl'], 2)] }];
     fen.App.vues.suivi.rendre(vue);
 
     return attendre(150).then(function () {
-      var svg = doc.querySelector('.carte-bras');
-      v.vrai(!!svg, 'la carte est dessinée');
-      if (!svg) return;
+      var carte = doc.querySelector('.planche-carte');
+      v.vrai(!!carte, 'la carte est dessinée');
+      if (!carte) return;
 
-      var zones = svg.querySelectorAll('.region-bras');
-
-      /* L'invariant du dessin : tout muscle du modèle est SOIT une région du
-         schéma, SOIT déclaré « dit dans les barres seulement ». Un muscle
-         oublié des deux listes serait invisible, et une région sans muscle
-         serait un mensonge. C'est ce recouvrement exact qu'on mesure — pas un
-         nombre, qui se contenterait de bouger avec le code. */
-      var horsDessin = fen.App.vues.suivi.SANS_TRACE_ATTENDUS;
-      var etiquettes = Array.prototype.map.call(zones, function (z) {
-        return z.getAttribute('aria-label').split(',')[0];
+      /* --- les faces --- */
+      var faces = doc.querySelectorAll('.planche-faces .puce');
+      v.egal(faces.length, fen.App.m.CARTES.length,
+             'une puce par face : aucune planche de Gray ne montre le membre entier');
+      var choisies = Array.prototype.filter.call(faces, function (p) {
+        return p.getAttribute('aria-pressed') === 'true';
       });
-      v.egal(zones.length + horsDessin.length, fen.App.m.MUSCLES.length,
-             'autant de régions et de muscles hors dessin que de muscles');
-      var invisibles = fen.App.m.MUSCLES.filter(function (m) {
-        return etiquettes.indexOf(m.nom) < 0 && horsDessin.indexOf(m.id) < 0;
-      }).map(function (m) { return m.nom; });
-      v.egal(invisibles.length, 0,
-             'aucun muscle n’est invisible : il a sa région, ou il est déclaré '
-           + 'hors dessin (oubliés : ' + (invisibles.join(', ') || 'aucun') + ')');
-      var fantomes = horsDessin.filter(function (id) {
-        return etiquettes.indexOf(fen.App.m.nomMuscle(id)) >= 0;
-      });
-      v.egal(fantomes.length, 0,
-             'et aucun n’est déclaré hors dessin alors qu’il y figure (fantômes : '
-           + (fantomes.join(', ') || 'aucun') + ')');
-      var inconnus = horsDessin.filter(function (id) { return !fen.App.m.muscle(id); });
-      v.egal(inconnus.length, 0,
-             'la liste hors dessin ne nomme aucun muscle inexistant (inconnus : '
-           + (inconnus.join(', ') || 'aucun') + ')');
+      v.egal(choisies.length, 1, 'une seule face est montrée à la fois');
+      v.egal(choisies[0].textContent, fen.App.m.CARTES[0].nom, 'et c’est la première au départ');
 
-      /* Les tracés doivent être valides : un `d` vide ou NaN donne une forme
-         invisible, et le navigateur ne s'en plaint pas. */
-      var casses = [];
-      Array.prototype.forEach.call(zones, function (z) {
-        var d = z.getAttribute('d') || '';
-        if (!d || d.indexOf('NaN') >= 0 || d.length < 20) casses.push(z.getAttribute('aria-label'));
+      var img = carte.querySelector('img.planche-fond');
+      v.vrai(!!img, 'la gravure est posée en fond');
+      var svg = carte.querySelector('svg.planche-zones');
+      v.vrai(!!svg, 'et les zones par-dessus');
+      if (!img || !svg) return;
+
+      /* Sans `preserveAspectRatio="none"`, le SVG se centrerait dans son
+         cadre et TOUTES les zones glisseraient — sans erreur, sans rien
+         dans la console. */
+      v.egal(svg.getAttribute('preserveAspectRatio'), 'none',
+             'le SVG s’étire sur l’image : sinon tout glisse en silence');
+      v.egal(svg.getAttribute('viewBox'), '0 0 100 100',
+             'et les points sont en pourcentage, donc indépendants de la taille du fichier');
+
+      var rImg = img.getBoundingClientRect(), rSvg = svg.getBoundingClientRect();
+      v.vrai(Math.abs(rImg.width - rSvg.width) <= 1 && Math.abs(rImg.height - rSvg.height) <= 1,
+             'les zones couvrent exactement la gravure ('
+           + Math.round(rImg.width) + '×' + Math.round(rImg.height) + ' contre '
+           + Math.round(rSvg.width) + '×' + Math.round(rSvg.height) + ')');
+
+      var zones = svg.querySelectorAll('.zone-planche');
+      v.egal(zones.length, fen.App.m.CARTES[0].zones.length,
+             'une zone par muscle de cette face');
+      var plates = Array.prototype.filter.call(zones, function (z) {
         var r = z.getBBox();
-        if (r.width < 2 || r.height < 2) casses.push(z.getAttribute('aria-label') + ' (plat)');
-      });
-      v.egal(casses.length, 0,
-             'aucun tracé vide, NaN ou plat (fautifs : ' + (casses.join(' / ') || 'aucun') + ')');
+        return r.width < 2 || r.height < 2;
+      }).length;
+      v.egal(plates, 0, 'aucune zone plate ou invisible');
 
-      /* La teinte doit suivre la charge, sinon le dessin ne dit rien. */
-      function chaleurDe(nom) {
+      /* --- la teinte suit la charge --- */
+      function zoneDe(nom) {
         var t = null;
-        Array.prototype.forEach.call(zones, function (z) {
-          if (z.getAttribute('aria-label').indexOf(nom) === 0) t = z.getAttribute('data-chaleur');
+        Array.prototype.forEach.call(doc.querySelectorAll('.zone-planche'), function (z) {
+          if (z.getAttribute('aria-label').indexOf(nom) === 0) t = z;
         });
         return t;
       }
-      v.egal(chaleurDe('Fléchisseur ulnaire du carpe'), '3',
-             'le muscle le plus sollicité est au maximum de teinte');
-      v.egal(chaleurDe('Triceps'), '0', 'un muscle jamais sollicité reste froid');
-      v.vrai(chaleurDe('Biceps') === '1' || chaleurDe('Biceps') === '2',
-             'et un muscle moyennement sollicité est entre les deux');
+      var zPect = zoneDe('Grand pectoral');
+      v.vrai(!!zPect, 'le pectoral a sa zone sur la face « Bras »');
+      v.egal(zPect.getAttribute('data-chaleur'), '1', 'une série, donc peu de teinte');
+      var zDelt = zoneDe('Deltoïde');
+      v.egal(zDelt.getAttribute('data-chaleur'), '0',
+             'un muscle jamais sollicité reste froid, pas absent');
 
-      /* Le décor ne doit pas répondre au doigt : la main est dessinée pour
-         reconnaître le membre, sans rien suivre. Le deltoïde, lui, est devenu
-         un muscle suivi — il n'est plus du décor. */
-      var inertes = svg.querySelectorAll('.bras-inerte');
-      v.egal(inertes.length, 1, 'la main est dessinée, et elle seule est inerte');
-      v.egal(fen.getComputedStyle(inertes[0]).pointerEvents, 'none',
-             'elle ne répond pas au doigt — elle n’est pas suivie');
-      v.vrai(etiquettes.indexOf('Deltoïde') >= 0,
-             'le deltoïde, lui, est une région comme les autres');
+      /* --- appuyer dit le muscle --- */
+      zPect.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      var detail = carte.parentNode.textContent;
+      v.vrai(detail.indexOf('Grand pectoral') >= 0, 'un appui nomme le muscle');
+      v.vrai(detail.indexOf('ramène le bras vers soi') >= 0, 'et dit ce qu’il FAIT');
+      v.vrai(detail.indexOf('Pectoralis major') >= 0,
+             'avec son nom latin, celui écrit sur la gravure');
+      v.egal(zPect.getAttribute('data-choisi'), '1', 'et la zone se marque');
 
-      /* Appuyer dit le nom, la fonction, et l'insertion quand elle compte. */
-      var fcu = null;
-      Array.prototype.forEach.call(zones, function (z) {
-        if (z.getAttribute('aria-label').indexOf('Fléchisseur ulnaire') === 0) fcu = z;
-      });
-      fcu.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
-      var detail = svg.parentNode.parentNode.textContent;
-      v.vrai(detail.indexOf('Fléchisseur ulnaire du carpe') >= 0, 'un appui nomme le muscle');
-      v.vrai(detail.indexOf('cubital antérieur') >= 0,
-             'et donne son nom classique — c’est celui des planches françaises');
-      v.vrai(detail.indexOf('insertion médiale') >= 0,
-             'et situe son insertion — une information d’anatomie, dite sans insistance');
-      v.vrai(detail.indexOf('plie le poignet') >= 0,
-             'et dit ce que le muscle FAIT — c’est ce qui sert quand on ne connaît '
-           + 'pas l’anatomie');
+      /* --- changer de face --- */
+      var avant = img.getAttribute('src');
+      faces[2].click();
+      return attendre(80).then(function () {
+        var carte2 = doc.querySelector('.planche-carte');
+        var img2 = carte2.querySelector('img.planche-fond');
+        v.vrai(img2.getAttribute('src') !== avant, 'changer de face change la gravure');
+        v.egal(doc.querySelectorAll('.planche-faces .puce[aria-pressed="true"]').length, 1,
+               'et une seule puce reste retenue');
+        v.vrai(carte2.textContent.indexOf('Gray') >= 0
+            || carte2.parentNode.textContent.indexOf('Gray') >= 0,
+               'la source reste citée sous la carte');
 
-      /* Les muscles sans tracé qui ont des séries doivent être NOMMÉS sous le
-         dessin, sinon leur absence passerait pour un oubli. */
-      var legende = svg.parentNode.parentNode.textContent;
-      e.seances[0].exercices.push(exo('E', ['ecu'], 2));
-      fen.App.ui.vider(vue);
-      fen.App.vues.suivi.rendre(vue);
-      return attendre(120).then(function () {
-        var svg2 = doc.querySelector('.carte-bras');
-        var dit = svg2.parentNode.parentNode.textContent;
-        v.vrai(dit.indexOf('Extenseur ulnaire du carpe') >= 0,
-               'un muscle hors dessin mais travaillé est nommé sous le schéma');
-        v.vrai(legende.indexOf('Extenseur ulnaire du carpe') < 0,
-               'et ne l’est pas quand il n’a aucune série — on ne liste pas pour lister');
+        var zFcu = zoneDe('Fléchisseur ulnaire du carpe');
+        v.vrai(!!zFcu, 'le fléchisseur ulnaire a sa zone sur l’avant-bras');
+        v.egal(zFcu.getAttribute('data-chaleur'), '3',
+               'le muscle le plus sollicité est au maximum de teinte');
 
+        v.vrai(carte2.getBoundingClientRect().width <= LARGEUR,
+               'la carte tient dans la largeur');
+        v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
+               'et ne provoque aucun défilement horizontal');
+
+        /* La gravure doit vraiment se charger : un fichier absent donnerait
+           une image vide que personne ne verrait avant le téléphone. */
+        return new Promise(function (ok) {
+          if (img2.complete) return ok();
+          img2.addEventListener('load', function () { ok(); });
+          img2.addEventListener('error', function () { ok(); });
+          fen.setTimeout(ok, 3000);
+        }).then(function () {
+          v.vrai(img2.naturalWidth > 0, 'et la gravure se charge pour de bon ('
+               + img2.naturalWidth + ' × ' + img2.naturalHeight + ')');
+        });
+      }).then(function () {
+        /* --- les barres, et le chemin vers la planche en grand --- */
+        var noms = doc.querySelectorAll('.barres-muscles .barre-nom');
+        v.vrai(noms.length >= 3, 'chaque barre porte un libellé');
+        var inertes = Array.prototype.filter.call(noms, function (n) {
+          return n.tagName !== 'BUTTON';
+        }).map(function (n) { return n.textContent; });
+        v.egal(inertes.join(', '), '', 'et c’est un BOUTON, pas un texte qui fait semblant');
+
+        var coupes = Array.prototype.filter.call(
+          doc.querySelectorAll('.barres-muscles .barre > :first-child'), function (n) {
+            return n.scrollWidth > n.clientWidth + 1;
+          }).map(function (n) { return n.textContent; });
+        v.egal(coupes.join(', '), '',
+               'aucun nom de muscle coupé — c’est à ça que servent les noms courts');
+
+        var pm = Array.prototype.map.call(doc.querySelectorAll('.barres-muscles .barre-piste'),
+          function (n) {
+            var r = n.getBoundingClientRect();
+            return Math.round(r.left) + '/' + Math.round(r.width);
+          });
+        v.egal(pm.filter(function (x) { return x !== pm[0]; }).length, 0,
+               'toutes les pistes commencent au même endroit et font la même longueur');
+        v.vrai(parseInt(pm[0].split('/')[1], 10) >= 70,
+               'et il en reste de quoi comparer (' + pm[0].split('/')[1] + ' px)');
+
+        noms[0].click();
+        return attendre(140);
+      }).then(function () {
+        var pan = doc.querySelector('.panneau');
+        v.vrai(!!pan, 'le libellé d’une barre ouvre la planche en grand');
+        if (pan) {
+          v.vrai(pan.querySelector('img.planche'), 'avec l’image');
+          v.vrai(pan.textContent.indexOf('Gray') >= 0 && pan.textContent.indexOf('1918') >= 0,
+                 'et la source : Gray, 1918, domaine public');
+          var fermer = pan.querySelector('.panneau-entete .bt-icone');
+          if (fermer) fermer.click();
+        }
+        return attendre(80);
+      }).then(function () {
         /* Ce que tu mobilises : par articulation. */
         var lignes = doc.querySelectorAll('.barres-art .barre');
         v.egal(lignes.length, fen.App.m.ARTICULATIONS.length,
                'chaque articulation a sa barre, zéro compris');
-        var textes = Array.prototype.map.call(lignes, function (l) { return l.textContent; });
-        v.vrai(textes.join(' ').indexOf('Rotation de l’avant-bras') >= 0,
+        v.vrai(doc.querySelector('.barres-art').textContent
+                  .indexOf('Rotation de l’avant-bras') >= 0,
                'et porte un nom lisible, pas un identifiant');
 
-        /* Les lignes partagent la grille du groupe : on mesure les libellés,
-           pas la ligne — avec display:contents elle n'a plus de boîte. */
-        function coupes(sel) {
-          return Array.prototype.filter.call(doc.querySelectorAll(sel), function (n) {
-            return n.scrollWidth > n.clientWidth + 1;
-          }).map(function (n) { return n.textContent; });
-        }
-        v.egal(coupes('.barres-art .barre > span:first-child').join(', '), '',
-               'aucun nom d’articulation n’est coupé à 320 px');
-        v.egal(coupes('.barres-muscles .barre > span:first-child').join(', '), '',
-               'ni aucun nom de muscle — c’est à ça que servent les noms courts');
-
-        /* Une piste courte remplie à fond paraît plus basse qu’une piste
-           longue à moitié : des barres qui ne commencent pas au même endroit
-           ne se comparent pas. */
-        function pistes(sel) {
-          return Array.prototype.map.call(doc.querySelectorAll(sel), function (n) {
-            var r = n.getBoundingClientRect();
-            return Math.round(r.left) + '/' + Math.round(r.width);
-          });
-        }
-        var pm = pistes('.barres-muscles .barre-piste');
-        v.vrai(pm.length >= 3, 'il y a bien une piste par muscle sollicité');
-        v.vrai(parseInt(pm[0].split('/')[1], 10) >= 70,
-               'et la piste garde de quoi comparer des longueurs ('
-             + pm[0].split('/')[1] + ' px)');
-        v.egal(pm.filter(function (x, i) { return x !== pm[0]; }).length, 0,
-               'toutes les pistes de muscles commencent au même endroit et font '
-             + 'la même longueur (vues : ' + pm.filter(function (x, i) {
-                 return pm.indexOf(x) === i;
-               }).join(' ') + ')');
-        var pa = pistes('.barres-art .barre-piste');
-        v.egal(pa.filter(function (x) { return x !== pa[0]; }).length, 0,
-               'et celles des articulations aussi');
-        return svg2;
-      }).then(function (svg2) {
-
-      /* --- la planche de Gray ---
-         Un fichier nommé mais absent donnerait une image cassée, et personne
-         ne le verrait avant le téléphone. On va les CHERCHER, toutes. */
-        var aChercher = fen.App.m.PLANCHES.map(function (x) { return x.fichier; });
-        return Promise.all(aChercher.map(function (f) {
-          return fen.fetch(f, { method: 'GET' }).then(function (r) {
-            return r.ok ? null : f + ' (' + r.status + ')';
-          }, function () { return f + ' (injoignable)'; });
-        })).then(function (ratees) {
-          v.egal(ratees.filter(Boolean).join(', '), '',
-                 'les ' + aChercher.length + ' planches existent vraiment dans le dépôt');
-
-          /* Le libellé d'une barre ouvre la planche : c'est le seul chemin
-             vers les muscles qui n'ont pas de tracé. */
-          var noms = doc.querySelectorAll('.barres-muscles .barre-nom');
-          v.vrai(noms.length >= 3, 'chaque barre porte un libellé');
-          var inertes = Array.prototype.filter.call(noms, function (n) {
-            return n.tagName !== 'BUTTON';
-          }).map(function (n) { return n.textContent; });
-          v.egal(inertes.join(', '), '',
-                 'et c’est un BOUTON, pas un texte qui fait semblant');
-          var cible = null;
-          Array.prototype.forEach.call(noms, function (n) {
-            if (n.getAttribute('title') === 'Extenseur ulnaire du carpe') cible = n;
-          });
-          v.vrai(!!cible, 'dont un muscle SANS tracé sur le schéma — sinon il serait '
-                        + 'un nom sans visage');
-          if (!cible) return svg2;
-          cible.click();
-          return attendre(140).then(function () {
-            var pan = doc.querySelector('.panneau');
-            v.vrai(!!pan, 'la planche s’ouvre');
-            if (!pan) return svg2;
-            var img = pan.querySelector('img.planche');
-            v.vrai(!!img, 'elle porte une image');
-            v.vrai(pan.textContent.indexOf('Extensor carpi ulnaris') >= 0,
-                   'et le nom LATIN à y chercher — c’est le seul écrit sur la gravure');
-            v.vrai(pan.textContent.indexOf('Gray') >= 0 && pan.textContent.indexOf('1918') >= 0,
-                   'la source est citée : Gray, 1918, domaine public');
-            v.vrai(img.getBoundingClientRect().width <= LARGEUR,
-                   'la planche tient dans la largeur');
-            v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
-                   'et n’ouvre aucun défilement horizontal');
-            return new Promise(function (ok) {
-              if (img.complete) return ok();
-              img.addEventListener('load', function () { ok(); });
-              img.addEventListener('error', function () { ok(); });
-              fen.setTimeout(ok, 3000);
-            }).then(function () {
-              v.vrai(img.naturalWidth > 0,
-                     'et l’image se charge pour de bon (mesuré : '
-                   + img.naturalWidth + ' × ' + img.naturalHeight + ')');
-              var fermer = pan.querySelector('.panneau-entete .bt-icone');
-              if (fermer) fermer.click();
-              return attendre(80);
-            });
-          }).then(function () { return svg2; });
-        }).then(function (svg2) {
-
-      v.vrai(svg2.getBoundingClientRect().width <= LARGEUR,
-             'la carte tient dans la largeur');
-      v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
-             'et ne provoque aucun défilement horizontal');
-
-      fen.App.ui.vider(vue);
-      e.seances = [];
-      return attendre(20);
-        });
+        fen.App.ui.vider(vue);
+        e.seances = [];
+        return attendre(20);
       });
     });
   });

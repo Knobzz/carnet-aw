@@ -973,6 +973,54 @@
            'le fléchisseur ulnaire est sur la planche de l’avant-bras antérieur');
     v.egal(A.m.plancheDuMuscle('ecu').numero, 418, 'et l’extenseur ulnaire sur la postérieure');
     v.egal(A.m.plancheDuMuscle('zzz'), null, 'un muscle inconnu n’a pas de planche');
+    /* --- les planches comme CARTE ---
+       Le schéma dessiné à la main a été retiré : les gravures le remplacent,
+       avec des polygones posés dessus. Une zone qui nomme un muscle
+       inexistant, ou une carte qui renvoie à une planche absente, donnerait
+       un trou que personne ne verrait avant le téléphone. */
+    v.egal(A.m.CARTES.length, 5, 'cinq faces : aucune planche ne montre le membre entier');
+    var mauvaises = A.m.CARTES.filter(function (ct) { return !A.m.planche(ct.planche); })
+                              .map(function (ct) { return ct.id; });
+    v.egal(mauvaises.join(', '), '', 'chaque carte renvoie à une planche qui existe');
+    var zonesFausses = [];
+    A.m.CARTES.forEach(function (ct) {
+      ct.zones.forEach(function (z) {
+        if (!A.m.muscle(z.muscle)) zonesFausses.push(ct.id + '/' + z.muscle);
+        var pts = String(z.points || '').trim().split(/\s+/);
+        if (pts.length < 4) zonesFausses.push(ct.id + '/' + z.muscle + ' (trop peu de points)');
+        pts.forEach(function (pt) {
+          var xy = pt.split(',');
+          if (xy.length !== 2 || !isFinite(+xy[0]) || !isFinite(+xy[1])
+              || +xy[0] < 0 || +xy[0] > 100 || +xy[1] < 0 || +xy[1] > 100) {
+            zonesFausses.push(ct.id + '/' + z.muscle + ' (' + pt + ')');
+          }
+        });
+      });
+    });
+    v.egal(zonesFausses.join(', '), '',
+           'chaque zone nomme un muscle réel et tient dans la planche, en pourcentage');
+
+    /* L'invariant qui compte : AUCUN muscle n'est absent de la carte. Un
+       muscle qui n'y figure nulle part ne serait atteignable que par les
+       barres, et seulement s'il a des séries. */
+    var sur = A.m.musclesCartographies();
+    var absents = A.m.MUSCLES.filter(function (m) { return sur.indexOf(m.id) < 0; })
+                             .map(function (m) { return m.nom; });
+    v.egal(absents.join(', '), '',
+           'les vingt-deux muscles sont sur la carte (absents : '
+         + (absents.join(', ') || 'aucun') + ')');
+    v.egal(A.m.carte('avb_av').nom, 'Avant-bras', 'une carte se lit par identifiant');
+    v.egal(A.m.carte('zzz'), null, 'et un identifiant inconnu ne rend rien');
+    var doublons = [];
+    A.m.CARTES.forEach(function (ct) {
+      var vus = {};
+      ct.zones.forEach(function (z) {
+        if (vus[z.muscle]) doublons.push(ct.id + '/' + z.muscle);
+        vus[z.muscle] = 1;
+      });
+    });
+    v.egal(doublons.join(', '), '', 'et aucun muscle n’a deux zones sur la même face');
+
     var pl = A.m.PLANCHES.map(function (x) { return x.id; });
     v.egal(pl.filter(function (x, i) { return pl.indexOf(x) !== i; }).join(','), '',
            'aucune planche en double');
