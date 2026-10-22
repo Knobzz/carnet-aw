@@ -870,8 +870,48 @@
            'la pronation propose les deux pronateurs, et rien d’autre');
 
     var side = A.m.musclesProposes(['side_pressure']);
-    v.egal(side.source, 'a_verifier',
-           'une DIRECTION DE POUSSÉE n’est pas une action articulaire : à vérifier');
+    /* --- la source est NOMMÉE, et vérifiable ---
+       « À vérifier » tout court ne dit pas QUI l'affirme : c'est un avis
+       qu'on ne peut pas contredire. Toute source qui n'est pas de l'anatomie
+       de manuel porte donc `dit` (qui) et `lien` (où le vérifier). */
+    var anonymes = Object.keys(A.m.MUSCLES_PAR_MOUVEMENT).filter(function (f) {
+      var p = A.m.MUSCLES_PAR_MOUVEMENT[f];
+      return p.source !== 'anatomie' && !(p.dit && p.lien);
+    });
+    v.egal(anonymes.join(', '), '',
+           'une source qui n’est pas du manuel NOMME qui l’affirme, et où le vérifier');
+    /* Écrit d'abord `…dit.length > 3` : quand `dit` manquait, ça levait une
+       TypeError qui emportait les CENT ET UN contrôles du bloc. Un contrôle
+       doit échouer, pas planter — sinon il masque ce qu'il devait prouver. */
+    var sbp = A.m.sourceDuMouvement('back_pressure');
+    v.vrai(!!sbp.dit && sbp.dit.length > 3,
+           'et l’accesseur le rend à l’écran');
+    v.egal(A.m.sourceDuMouvement('cupping').dit, null,
+           'l’anatomie de manuel n’a personne à nommer');
+    v.egal(A.m.sourceDuMouvement('zzz'), null, 'un mouvement inconnu ne rend rien');
+
+    /* Une DIRECTION DE POUSSÉE n'est pas une action articulaire : sa source
+       ne peut jamais être 'anatomie'. Le contrôle épinglait 'a_verifier' ;
+       depuis qu'un troisième niveau existe, il mesure la RÈGLE plutôt que la
+       valeur — sinon il faudrait le réécrire à chaque fois qu'une source est
+       mieux renseignée, ce qui n'est pas ce qu'il garde. */
+    var poussees = ['rising', 'back_pressure', 'side_pressure'];
+    var enDur = poussees.filter(function (f) {
+      return A.m.MUSCLES_PAR_MOUVEMENT[f].source === 'anatomie';
+    });
+    v.egal(enDur.join(', '), '',
+           'une DIRECTION DE POUSSÉE n’est jamais donnée pour de l’anatomie');
+    var articulaires = ['cupping', 'pronation', 'supination'].filter(function (f) {
+      return A.m.MUSCLES_PAR_MOUVEMENT[f].source !== 'anatomie';
+    });
+    v.egal(articulaires.join(', '), '',
+           '[temoin] et une ACTION ARTICULAIRE l’est toujours : c’est du manuel, '
+         + 'et ça ne dépend d’aucune source à nommer');
+    v.vrai(poussees.every(function (f) {
+             var x = A.m.sourceDuMouvement(f);
+             return !!(x.dit && x.lien);
+           }),
+           'les trois poussées nomment qui les affirme, et où le vérifier');
 
     var mixte = A.m.musclesProposes(['cupping', 'side_pressure']);
     v.egal(mixte.source, 'mixte', 'mélanger les deux se dit « mixte », pas « anatomie »');

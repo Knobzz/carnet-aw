@@ -380,7 +380,35 @@ case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 | | les noms classiques comptent : « long supinateur », « grand palmaire », « cubital antérieur » | ceux des planches françaises |
 | **le mouvement** | cupping = flexion du poignet, pronation, supination | manuel d'anatomie |
 | **la prise** | fermée = on serre = fléchisseurs des doigts | définition de serrer |
-| **le mouvement, suite** | rising, back pressure, side pressure | **à vérifier** : une seule étude EMG, et ce ne sont pas des actions articulaires |
+| **le mouvement, suite** | rising, back pressure, side pressure | **le terrain** : les compétiteurs et les fédérations, plus la seule étude EMG qui existe |
+
+#### Trois niveaux de source, et chacun NOMME qui parle
+
+| niveau | ce que c'est | attribution |
+|---|---|---|
+| `anatomie` | le mouvement **est** une action articulaire, et ses muscles sont du manuel | personne à nommer |
+| `a_verifier` | une mesure, mais une seule | `dit` + `lien` |
+| `terrain` | ce que disent les compétiteurs, les entraîneurs, les fédérations | `dit` + `lien` |
+
+Le niveau `terrain` existe parce qu'il n'y a **qu'une** étude EMG sur ce sport. Refuser la
+parole des compétiteurs reviendrait à refuser presque tout ce qui s'en sait. Elle ne vaut
+pas de l'anatomie de manuel — c'est pour ça qu'elle a son niveau à elle, et pas pour
+diluer les deux autres.
+
+**Toute source qui n'est pas du manuel porte `dit` et `lien`** : qui l'affirme, et où le
+vérifier. L'écran le dit — « d'après Voice of Armwrestling, et une étude EMG sur bras de
+fer simulé » — au lieu d'un « à vérifier » anonyme. Un avis sans auteur est un avis qu'on
+ne peut pas contredire. Un contrôle refuse toute entrée anonyme.
+
+**Quand deux sources divergent, le modèle porte les deux et le dit.** L'étude EMG nomme le
+grand pectoral en premier pour le back pressure ; Voice of Armwrestling ne le nomme pas et
+ajoute le brachio-radial et le deltoïde postérieur. Les deux y sont. Arbitrer en silence
+reviendrait à faire passer un choix pour un fait.
+
+**Une direction de poussée n'est jamais donnée pour de l'anatomie**, et une action
+articulaire l'est toujours. Un contrôle mesure cette **règle**, pas la valeur du champ —
+sinon il faudrait le réécrire chaque fois qu'une source est mieux renseignée, ce qui n'est
+pas ce qu'il garde.
 
 > **« back pressure » et « side pressure » ne sont PAS des mots du nom, et c'est voulu.**
 > Ils allumaient le grand pectoral jusqu'en 1.23.2 — mais par accident : « pressure »

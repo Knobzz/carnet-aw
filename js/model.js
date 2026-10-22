@@ -432,9 +432,17 @@
                     poignet ; pronation et supination = rotation de l'avant-bras.
        'a_verifier' le mouvement est une DIRECTION DE POUSSEE, pas une action
                     articulaire. Ce qui suit vient d'une seule etude EMG sur
-                    le bras de fer — grand pectoral donne comme le plus
-                    important, FCU comme determinant pour prendre l'avantage —
-                    et merite d'etre corrige par qui tire.
+                    le bras de fer.
+       'terrain'    ce que disent les competiteurs, les entraineurs et les
+                    federations. Il n'existe qu'UNE etude EMG sur ce sport :
+                    refuser cette parole reviendrait a refuser presque tout
+                    ce qui s'en sait. Elle ne vaut pas de l'anatomie de
+                    manuel, et c'est pour ca qu'elle a son niveau a elle.
+
+     Toute entree qui n'est pas 'anatomie' porte `dit` et `lien` : QUI
+     l'affirme, et OU on peut le verifier. Un avis anonyme est un avis qu'on
+     ne peut pas contredire — et l'ecran affiche le nom, pas juste « a
+     verifier ».
 
      Rien n'est ecrit sur l'exercice sans un geste : la proposition remplit
      les cases, l'utilisateur garde la main. */
@@ -442,9 +450,38 @@
     cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'long_palmaire', 'flechisseurs_doigts'] },
     pronation:     { source: 'anatomie',   muscles: ['rond_pronateur', 'carre_pronateur'] },
     supination:    { source: 'anatomie',   muscles: ['supinateur', 'biceps'] },
-    rising:        { source: 'a_verifier', muscles: ['biceps', 'brachial', 'brachio_radial', 'deltoide'] },
-    back_pressure: { source: 'a_verifier', muscles: ['grand_dorsal', 'grand_pectoral', 'biceps'] },
-    side_pressure: { source: 'a_verifier', muscles: ['grand_pectoral', 'deltoide', 'fcu'] }
+    /* Les quatre premiers viennent de l'etude EMG ; la main vient de Larratt,
+       qui decrit le POUCE COMME UN LEVIER et parle de monter « par les
+       doigts ». Les abducteurs du pouce restent dehors : ils l'ECARTENT, et
+       ce n'est pas le geste. */
+    rising:        { source: 'terrain',
+                     dit: 'Devon Larratt, et une étude EMG pour les quatre premiers',
+                     lien: 'https://podcasts.happyscribe.com/the-joe-rogan-experience/2510-devon-larratt',
+                     muscles: ['biceps', 'brachial', 'brachio_radial', 'deltoide',
+                               'flechisseurs_doigts', 'long_flechisseur_pouce',
+                               'court_flechisseur_pouce', 'adducteur_pouce'] },
+    /* DEUX sources, et elles ne disent pas la meme chose. L'etude EMG nomme
+       le grand pectoral en premier ; Voice of Armwrestling ne le nomme pas
+       et ajoute le brachio-radial et le deltoide posterieur. On garde les
+       deux plutot que d'arbitrer en silence — et l'ecran dit que deux
+       sources parlent.
+
+       Le subscapulaire vient de l'etude, qui le nomme parmi les rotateurs
+       internes agissant sur l'humerus pendant le sport. */
+    back_pressure: { source: 'terrain',
+                     dit: 'Voice of Armwrestling, et une étude EMG sur bras de fer simulé',
+                     lien: 'https://voaarmwrestling.com/blogs/training/toproll-technique-and-exercises',
+                     muscles: ['grand_pectoral', 'grand_dorsal', 'subscapulaire',
+                               'deltoide', 'biceps', 'brachio_radial'] },
+    /* « L'epaule et le torse delivrent la pression et PROTEGENT L'HUMERUS » :
+       c'est exactement le role du subscapulaire, rotateur interne principal,
+       que l'etude nomme parmi ceux qui agissent sur l'humerus pendant le
+       sport. Le grand dorsal, l'autre gros rotateur interne, reste dehors :
+       aucune source ne le rattache a la pression laterale. */
+    side_pressure: { source: 'terrain',
+                     dit: 'Voice of Armwrestling, et une étude EMG sur bras de fer simulé',
+                     lien: 'https://voaarmwrestling.com/blogs/training/toproll-technique-and-exercises',
+                     muscles: ['grand_pectoral', 'subscapulaire', 'deltoide', 'fcu'] }
   };
 
   /* Ce qu'un NOM d'exercice dit deja. « Curl biceps prise ouverte » contient
@@ -575,6 +612,14 @@
     'curl':       ['brachio_radial', 'ecrl', 'ecrb']
   };
 
+  /* Qui affirme ce qu'un mouvement propose, et ou le verifier. Rendu meme
+     pour 'anatomie', ou il n'y a personne a nommer : c'est du manuel. */
+  function sourceDuMouvement(id) {
+    var p = MUSCLES_PAR_MOUVEMENT[id];
+    if (!p) return null;
+    return { source: p.source, dit: p.dit || null, lien: p.lien || null };
+  }
+
   function musclesDuNom(nom) {
     var s = slug(nom);
     if (!s) return [];
@@ -683,12 +728,14 @@
     var ordonne = [];
     MUSCLES.forEach(function (m) { if (vus[m.id]) ordonne.push(m.id); });
     var nb = (sources.nom ? 1 : 0) + (sources.anatomie ? 1 : 0)
-           + (sources.a_verifier ? 1 : 0) + (sources.reglage ? 1 : 0);
+           + (sources.a_verifier ? 1 : 0) + (sources.terrain ? 1 : 0)
+           + (sources.reglage ? 1 : 0);
     var source = nb > 1 ? 'mixte'
                : (sources.reglage ? 'reglage'
                : (sources.nom ? 'nom'
                : (sources.anatomie ? 'anatomie'
-               : (sources.a_verifier ? 'a_verifier' : null))));
+               : (sources.a_verifier ? 'a_verifier'
+               : (sources.terrain ? 'terrain' : null)))));
     return { muscles: ordonne, source: source };
   }
 
@@ -2458,6 +2505,7 @@
     imageDuMuscle: imageDuMuscle, musclesSansImage: musclesSansImage,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
+    sourceDuMouvement: sourceDuMouvement,
     chargeParMuscle: chargeParMuscle,
     musclesParMouvement: musclesParMouvement, chargeEpicondyle: chargeEpicondyle,
     chargeParArticulation: chargeParArticulation,

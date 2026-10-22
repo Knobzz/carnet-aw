@@ -533,11 +533,14 @@
             exo.muscles = A.m.muscles({ muscles: fusion });
             rafraichirMuscles();
             if (neufs.length) {
+              /* La source est NOMMÉE. « À vérifier » tout court ne dit pas
+                 qui l'affirme, donc ne se vérifie pas : c'est un avis qu'on
+                 ne peut pas contredire. Ici on nomme, et on dit toujours
+                 que ça se corrige en dessous. */
               A.ui.toast(neufs.map(A.m.nomCourtMuscle).join(', ')
-                + (pm.source === 'a_verifier'
-                    ? ' — à vérifier : une seule étude, et ce n’est pas une '
-                      + 'action articulaire.'
-                    : ' — d’après l’anatomie. Corrige en dessous si besoin.'));
+                + (pm.dit ? ' — d’après ' + pm.dit + '.'
+                          : ' — d’après l’anatomie.')
+                + ' Corrige en dessous si besoin.');
             }
           } else if (pm && !coche) {
             /* Décocher retire ce que CE mouvement avait posé. Pas les muscles
@@ -601,7 +604,8 @@
            mouvements » alors qu'on lit le nom serait une petite malhonnêteté,
            et c'est exactement ce que le reste de l'app refuse. */
         var depuis = { nom: 'le nom', anatomie: 'l’anatomie',
-                       a_verifier: 'les mouvements', reglage: 'le réglage de l’outil',
+                       a_verifier: 'les mouvements', terrain: 'les compétiteurs',
+                       reglage: 'le réglage de l’outil',
                        mixte: 'ce qui est renseigné' };
         btProposer.textContent = !prop.muscles.length
           ? 'Rien à proposer : donne un nom, ou coche un mouvement'
