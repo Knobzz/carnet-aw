@@ -464,13 +464,13 @@
   bloc('Autocomplétion : ce qui est visible', function (v) {
     var e = A.store.vide();
 
-    /* Le geste réel : « Ajouter mon matériel » pose huit outils d'un coup… */
+    /* Le geste réel : huit outils saisis coup sur coup, dans la même seconde. */
     ['Golden Grip N2', 'Golden Grip N3', 'Golden Grip N4', 'Élastique de rééducation',
      'Fat grip', 'Ceinture de judo', 'Titan Grip Iron Wrist 60 mm',
      'Titan Grip Pronator Ellipsoid'].forEach(function (n) {
       A.m.majCatalogueOutils(e, n, 'Matériel');
     });
-    v.egal(e.outils.length, 8, '[temoin] les huit outils du raccourci sont en catalogue');
+    v.egal(e.outils.length, 8, '[temoin] les huit outils sont en catalogue');
 
     /* …puis « + Ajouter un outil » en pose un neuvième, le même jour. */
     A.m.majCatalogueOutils(e, 'Poulie haute', 'Poulies');
@@ -1141,6 +1141,65 @@
      Le même Titan Grip, mousqueton à l'extérieur ou à l'intérieur, ne charge
      pas la même chose. Ce n'est ni un autre outil, ni un autre exercice.
      ================================================================ */
+  /* ================================================================
+     « Où ça tire ? »
+
+     Les noms des muscles ne parlent pas à qui ne les a pas appris. Une
+     perception, si.
+     ================================================================ */
+  bloc('Où ça tire', function (v) {
+    v.egal(A.m.ZONES_RESSENTIES.length, 12, 'douze zones ressenties');
+
+    var muets = A.m.ZONES_RESSENTIES.filter(function (z) {
+      return !z.nom || !z.aide || !(z.muscles || []).length;
+    }).map(function (z) { return z.id; });
+    v.egal(muets.join(', '), '',
+           'chacune a un nom, une explication en mots de tous les jours, et des muscles');
+
+    var fantomes = [];
+    A.m.ZONES_RESSENTIES.forEach(function (z) {
+      z.muscles.forEach(function (m) { if (!A.m.muscle(m)) fantomes.push(z.id + '/' + m); });
+    });
+    v.egal(fantomes.join(', '), '', 'et ne nomme aucun muscle inexistant');
+
+    /* L'invariant qui compte : AUCUN muscle ne doit être hors d'atteinte par
+       ce chemin, sinon il resterait réservé à qui connaît déjà les noms. */
+    var couverts = {};
+    A.m.ZONES_RESSENTIES.forEach(function (z) {
+      z.muscles.forEach(function (m) { couverts[m] = 1; });
+    });
+    var horsAtteinte = A.m.MUSCLES.filter(function (m) { return !couverts[m.id]; })
+                                  .map(function (m) { return m.nom; });
+    v.egal(horsAtteinte.join(', '), '',
+           'chaque muscle est atteignable sans connaître son nom (hors d’atteinte : '
+         + (horsAtteinte.join(', ') || 'aucun') + ')');
+
+    v.egal(A.m.zoneRessentie('bord_pouce').nom, 'Le bord du pouce', 'une zone se lit par id');
+    v.egal(A.m.zoneRessentie('zzz'), null, 'et un id inconnu ne rend rien');
+
+    v.egal(A.m.musclesDesZones(['bord_auriculaire']).join(','),
+           'fcu,ecu,extenseur_petit_doigt',
+           'le bord du petit doigt, c’est le fléchisseur et l’extenseur ulnaires');
+    v.egal(A.m.musclesDesZones(['serrer']).join(','), 'flechisseurs_doigts',
+           'serrer, ce sont les fléchisseurs des doigts — et c’est tout');
+    v.egal(A.m.musclesDesZones(['paume_bas']).join(','), 'rond_pronateur,carre_pronateur',
+           'tourner la paume vers le bas, ce sont les deux pronateurs');
+
+    /* Deux zones se recouvrent : on ne doit pas compter deux fois. */
+    var deux = A.m.musclesDesZones(['avb_dessus', 'bord_auriculaire']);
+    v.egal(deux.filter(function (x, i) { return deux.indexOf(x) !== i; }).join(','), '',
+           'deux zones qui se recouvrent ne donnent pas de doublon');
+    v.vrai(deux.indexOf('fcu') >= 0 && deux.indexOf('ecrl') >= 0,
+           'et les deux apports sont là');
+
+    var ordre = A.m.musclesDesZones(['tendre_coude', 'epaule']);
+    v.egal(ordre.join(','), 'deltoide,coraco_brachial,triceps,ancone',
+           'l’ordre est celui du tableau, pas celui des appuis');
+
+    v.egal(A.m.musclesDesZones(['zzz']).length, 0, 'une zone inconnue n’apporte rien');
+    v.egal(A.m.musclesDesZones().length, 0, 'et rien du tout non plus');
+  });
+
   bloc('Réglages d’outil', function (v) {
     var e = A.store.vide();
     A.m.majCatalogueOutils(e, 'Titan Grip Iron Wrist 60', 'Poignées AW');

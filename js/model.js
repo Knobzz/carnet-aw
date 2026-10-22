@@ -690,8 +690,8 @@
      tout horodatage du meme jour, ce qui est exactement ce qu'on veut.
 
      Il est STRICTEMENT croissant, et pas seulement lu a l'horloge : huit outils
-     poses d'un meme geste — le raccourci « Ajouter mon matériel » — tombent
-     dans la meme milliseconde, et seraient de nouveau a egalite. Le banc l'a
+     poses coup sur coup tombent dans la meme milliseconde, et seraient de
+     nouveau a egalite. Le banc l'a
      fait tomber avant qu'on le croie. Le decalage introduit se compte en
      millisecondes, et `vuLe` ne sert qu'a classer. */
   var dernierVu = '';
@@ -773,6 +773,75 @@
       o.vuLe = maintenant();
     }
     return o;
+  }
+
+  /* ---------- « où ça tire ? » ----------
+
+     Les noms des muscles ne parlent pas à qui ne les a pas appris, et une
+     case qu'on ne sait pas cocher reste vide. Mais TOUT LE MONDE sait dire
+     où ça tire : le dessus de l'avant-bras, le bord du pouce, la main qui
+     serre. Ça, c'est une perception, pas un savoir.
+
+     Chaque zone ressentie désigne les muscles qui y travaillent. Ce n'est
+     pas une opinion : c'est de l'anatomie de description, la même que celle
+     des planches. Et ça n'écrit rien tout seul — ça REMPLIT la liste, qui
+     reste corrigeable.
+
+     `aide` dit la zone en mots de tous les jours : « la face poilue » situe
+     mieux que « face postérieure » pour qui n'a jamais ouvert un manuel. */
+  var ZONES_RESSENTIES = [
+    { id: 'avb_dessus', nom: 'Le dessus de l’avant-bras',
+      aide: 'la face poilue, dans le prolongement du dos de la main',
+      muscles: ['ecrl', 'ecrb', 'ecu', 'extenseurs_doigts', 'extenseur_petit_doigt', 'ancone'] },
+    { id: 'avb_dessous', nom: 'Le dessous de l’avant-bras',
+      aide: 'la face pâle, dans le prolongement de la paume',
+      muscles: ['rond_pronateur', 'fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts'] },
+    { id: 'bord_pouce', nom: 'Le bord du pouce',
+      aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir',
+      muscles: ['brachio_radial', 'ecrl', 'ecrb', 'fcr', 'extenseurs_pouce'] },
+    { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
+      aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y partir',
+      muscles: ['ecu', 'fcu', 'extenseur_petit_doigt'] },
+    { id: 'serrer', nom: 'La main qui serre',
+      aide: 'les doigts se referment sur la poignée',
+      muscles: ['flechisseurs_doigts'] },
+    { id: 'ouvrir', nom: 'La main qui s’ouvre',
+      aide: 'les doigts s’écartent, ou résistent à se refermer',
+      muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce'] },
+    { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
+      aide: 'la pronation', muscles: ['rond_pronateur', 'carre_pronateur'] },
+    { id: 'paume_haut', nom: 'Tourner la paume vers le haut',
+      aide: 'la supination', muscles: ['supinateur', 'biceps'] },
+    { id: 'plier_coude', nom: 'Plier le coude',
+      aide: 'ramener la main vers l’épaule, ou résister à son ouverture',
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    { id: 'tendre_coude', nom: 'Tendre le coude',
+      aide: 'pousser la main loin de l’épaule',
+      muscles: ['triceps', 'ancone'] },
+    { id: 'epaule', nom: 'L’épaule',
+      aide: 'le bras entier bouge, pas seulement l’avant-bras',
+      muscles: ['deltoide', 'coraco_brachial'] },
+    { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
+      aide: 'le torse travaille avec le bras',
+      muscles: ['grand_pectoral', 'grand_dorsal'] }
+  ];
+
+  function zoneRessentie(id) {
+    for (var i = 0; i < ZONES_RESSENTIES.length; i++) {
+      if (ZONES_RESSENTIES[i].id === id) return ZONES_RESSENTIES[i];
+    }
+    return null;
+  }
+
+  /* Les muscles d'une ou plusieurs zones ressenties, dans l'ordre du tableau
+     et sans doublon. Une zone inconnue n'apporte rien et ne plante pas. */
+  function musclesDesZones(ids) {
+    var l = [];
+    (ids || []).forEach(function (id) {
+      var z = zoneRessentie(id);
+      if (z) z.muscles.forEach(function (m) { l.push(m); });
+    });
+    return muscles({ muscles: l });
   }
 
   /* ---------- les réglages d'un outil ----------
@@ -951,19 +1020,30 @@
   }
 
   /* La liste est TRONQUEE a `limite` : le classement decide donc ce qui est
-     visible, pas seulement ce qui vient en premier. */
+     visible, pas seulement ce qui vient en premier.
+
+     `limite <= 0` veut dire TOUT. L'equipement d'une personne est un
+     inventaire borne — une vingtaine d'outils, pas des centaines — et une
+     coupe a huit cachait silencieusement le reste : on ouvrait la liste et
+     on croyait avoir perdu son materiel. Le signalement est venu d'un vrai
+     telephone, apres avoir ajoute onze outils d'un coup. La liste deroulante
+     defile deja (max-height + overflow), donc rien ne deborde.
+
+     Les EXERCICES gardent leur coupe : leur catalogue peut compter des
+     centaines d'entrees, et on les retrouve en tapant. */
   function suggestionsOutils(etat, saisie, dejaPris, limite) {
     var q = slug(saisie);
     var pris = (dejaPris || []).map(slug);
     var l = parRecence(etat.outils.filter(function (o) { return pris.indexOf(o.slug) < 0; }));
-    if (!q) return l.slice(0, limite || 8);
+    var n = limite == null ? 8 : (limite <= 0 ? l.length : limite);
+    if (!q) return l.slice(0, n);
     var debut = [], dedans = [];
     for (var i = 0; i < l.length; i++) {
       var p = l[i].slug.indexOf(q);
       if (p === 0) debut.push(l[i]);
       else if (p > 0) dedans.push(l[i]);
     }
-    return debut.concat(dedans).slice(0, limite || 8);
+    return debut.concat(dedans).slice(0, n);
   }
 
   /* Suggestions pour l'autocomplétion : ce que j'ai déjà employé, rien d'autre.
@@ -2094,6 +2174,8 @@
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,
     categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie, SANS_CATEGORIE: SANS_CATEGORIE,
+    ZONES_RESSENTIES: ZONES_RESSENTIES, zoneRessentie: zoneRessentie,
+    musclesDesZones: musclesDesZones,
     reglagesOutil: reglagesOutil, trouverReglage: trouverReglage,
     majReglageOutil: majReglageOutil, supprimerReglageOutil: supprimerReglageOutil,
     reglageDe: reglageDe, poserReglage: poserReglage, reglagesPortes: reglagesPortes,

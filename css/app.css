@@ -1212,6 +1212,24 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   cursor: pointer;
 }
 .muscle-liste .muscle-ligne:first-child { border-top: 0; }
+
+/* « Ou ca tire ? » : la meme ligne que les muscles, mais elle AJOUTE au lieu
+   de basculer — donc pas de coche, pas d'etat presse. Replie par defaut :
+   qui connait les noms n'a rien a lire. */
+.ouca { margin-bottom: 8px; }
+.ouca-corps { border: 1px solid var(--trait); border-radius: var(--r-s); margin-top: 7px; }
+.ouca-corps[hidden] { display: none; }
+.ouca-corps > .item-resume { padding: 0 10px; }
+.ouca-ligne {
+  appearance: none; display: flex; align-items: center; width: 100%;
+  min-height: var(--tap); padding: 7px 10px;
+  border: 0; border-top: 1px solid var(--trait);
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.ouca-ligne:hover .ouca-texte b { color: var(--laiton); }
+.ouca-texte { flex: 1; min-width: 0; }
+.ouca-texte b { display: block; font-size: .86rem; font-weight: 600; }
+.ouca-texte span { display: block; font-size: .74rem; color: var(--texte-2); }
 .muscle-texte { flex: 1; min-width: 0; }
 .muscle-texte b { display: block; font-size: .86rem; font-weight: 600; }
 .muscle-texte span { display: block; font-size: .74rem; color: var(--texte-2); }

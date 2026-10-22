@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **683 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **722 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **449 contrôles, 24 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **234 contrôles, 13 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **463 contrôles, 25 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **259 contrôles, 15 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -166,6 +166,7 @@ mouvements · la durée par série, le temps sous tension et les colonnes choisi
 la migration d'un carnet d'avant · la récupération quotidienne et sa régularité ·
 le côté et le recoupement douleur / bras qui l'a chargée · **la règle des 24 h** ·
 **les réglages d'un outil, et ce qu'ils proposent** ·
+**« où ça tire », pour cocher des muscles sans en connaître les noms** ·
 **la progression en récupération · **les muscles, la prise, et la carte du bras**.
 
 Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
@@ -181,7 +182,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quarante-sept défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Cinquante-quatre défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -235,6 +236,13 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | le réglage absent du nom affiché de l'outil | `l'outil se DIT avec — attendu "Titan Grip · Dehors"` |
 | la source « réglage » non nommée au bouton | `la source est NOMMÉE — attendu "reglage", obtenu "nom"` |
 | la rangée de réglages montrée sans réglage à offrir | `un outil SANS réglage ne montre rien — attendu 0, obtenu 63` |
+| la coupe à huit remise sur l'équipement | `TOUT l'équipement est proposé — attendu 15, obtenu 8` |
+| un muscle qu'aucune zone ressentie ne nomme | `chaque muscle est atteignable sans connaître son nom (Supinateur)` |
+| une zone qui nomme un muscle inexistant | `ne nomme aucun muscle inexistant — obtenu "serrer/zzz"` |
+| une zone qui remplace la sélection au lieu de l'enrichir | `une seconde zone S'AJOUTE — attendu true, obtenu false` |
+| le bloc « je ne connais pas les noms » déplié d'office | `il est REPLIÉ au départ — attendu 0, obtenu 611` |
+| la liste de muscles non rafraîchie après un appui | `la liste en dessous le MONTRE — attendu 4, obtenu 0` |
+| la ligne d'outil redevenue un div cliquable | `chaque ligne est un BOUTON — un div ne s'atteint pas au clavier` |
 | l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
@@ -279,8 +287,10 @@ leur libellé dit pourquoi.
 2. **Rien en dur.** Aucun programme, aucun exercice, aucun outil livré, et pas davantage
    de routine de récupération. Les trois catalogues (exercices, outils, catégories)
    n'existent que par ce qui a été saisi.
-   Seule exception, explicite et volontaire : un bouton « Ajouter mon matériel » dans
-   Réglages, qui n'écrit rien tant qu'on ne l'a pas touché.
+   Il y avait **une exception** — un bouton « Ajouter mon matériel » posant douze outils
+   écrits dans le code. Elle a été **retirée** : opt-in ou non, une liste écrite dans le
+   code est une liste imposée, et elle revenait indéfiniment pour tout outil supprimé.
+   Remonter un équipement d'un coup, c'est le travail de l'import d'une sauvegarde.
 3. **Ni `confirm()` ni `alert()`.** Deux formes : le bouton qui s'arme et se désarme
    seul après 4 s (`A.ui.confirmer2`), et la feuille de choix (`A.ui.feuille`) qui
    nomme ce qui va disparaître.

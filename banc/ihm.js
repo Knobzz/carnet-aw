@@ -86,7 +86,7 @@
       + '<nav class="onglets" role="tablist" aria-label="Sections">' + barre + '</nav>'
       + s('store.js') + s('model.js') + s('ui.js') + s('panneau.js')
       + s('vue-exercice.js') + s('vue-suivi.js') + s('vue-seance.js')
-      + s('vue-programmes.js') + s('vue-recup.js')
+      + s('vue-programmes.js') + s('vue-recup.js') + s('vue-reglages.js')
       + '</body></html>';
   }
 
@@ -432,8 +432,13 @@
      'Titan Grip Pronator Ellipsoid'].forEach(function (n) {
       fen.App.m.majCatalogueOutils(e, n, 'Matériel');
     });
+    ['Barre droite', 'Barre EZ', 'Poulie haute', 'Dumbbell', 'Haltère 10 kg',
+     'Sangle de pronation'].forEach(function (n) {
+      fen.App.m.majCatalogueOutils(e, n, 'Matériel');
+    });
     fen.App.m.majCatalogueOutils(e, 'Poulie basse', 'Poulies');
-    v.egal(e.outils.length, 9, '[temoin] neuf outils en catalogue');
+    v.egal(e.outils.length, 15, '[temoin] quinze outils en catalogue — '
+                              + 'un inventaire réaliste, pas trois');
 
     var brouillon = fen.App.m.exerciceProgramme({});
     fen.App.panneau.editerExercice(brouillon, { titre: 'Ajouter un exercice' }, function () {});
@@ -451,7 +456,13 @@
         var liste = pan.querySelector('.multi .auto-liste');
         var noms = Array.prototype.map.call(liste.querySelectorAll('.auto-opt b'),
           function (b) { return b.textContent; });
-        v.egal(noms.length, 8, 'huit suggestions au plus, pour tenir sur l’écran');
+        /* La coupe à huit cachait la moitié de l'équipement SANS RIEN DIRE :
+           on ouvrait la liste et on croyait avoir perdu son matériel. Le
+           signalement est venu d'un vrai téléphone, après avoir ajouté onze
+           outils d'un coup. L'équipement est un inventaire borné : on le
+           montre en entier, et la liste défile. */
+        v.egal(noms.length, 15,
+               'TOUT l’équipement est proposé, pas les huit premiers');
         v.vrai(noms.indexOf('Poulie basse') >= 0,
                'l’outil ajouté juste avant est VISIBLE sans rien taper');
         v.egal(noms[0], 'Poulie basse', 'et il arrive en tête');
@@ -460,6 +471,14 @@
         var r = liste.getBoundingClientRect();
         v.vrai(r.left >= 0 && r.right <= LARGEUR,
                'la liste déroulante tient dans la largeur');
+
+        /* Et montrer tout ne doit pas faire une liste qui dépasse l'écran :
+           elle DÉFILE. Sans ça, la correction du cachage en créerait un autre. */
+        v.vrai(r.height <= HAUTEUR,
+               'elle ne dépasse pas la hauteur de l’écran ('
+             + Math.round(r.height) + ' px pour ' + HAUTEUR + ')');
+        v.vrai(liste.scrollHeight > liste.clientHeight + 1,
+               'elle défile : le reste est atteignable, pas perdu');
 
         /* Choisir une suggestion la pose en jeton, et la retire des suivantes. */
         liste.querySelector('.auto-opt').click();
@@ -1128,6 +1147,158 @@
       return attendre(80).then(function () {
         e.outils = [];
         e.exercices = [];
+      });
+    });
+  });
+
+  /* ================================================================
+     « Où ça tire ? », et l'équipement atteignable au doigt
+
+     Les noms latins ne parlent pas à tout le monde, et une case qu'on ne
+     sait pas cocher reste vide.
+     ================================================================ */
+  bloc('Où ça tire, à l’écran', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var brouillon = fen.App.m.exerciceProgramme({ nom: 'Essai B' });
+    fen.App.panneau.editerExercice(brouillon, { titre: 'Essai' }, function () {});
+
+    return attendre(140).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+
+      var bloc2 = pan.querySelector('.ouca');
+      v.vrai(!!bloc2, 'le raccourci « je ne connais pas les noms » est là');
+      if (!bloc2) return;
+
+      var corps = bloc2.querySelector('.ouca-corps');
+      v.egal(corps.getBoundingClientRect().height, 0,
+             'et il est REPLIÉ au départ : qui connaît les noms n’a rien à lire');
+
+      var entete = bloc2.querySelector('button');
+      entete.click();
+      return attendre(60).then(function () {
+        v.vrai(corps.getBoundingClientRect().height > 0, 'un appui le déplie');
+        var lignes = corps.querySelectorAll('.ouca-ligne');
+        v.egal(lignes.length, fen.App.m.ZONES_RESSENTIES.length,
+               'une ligne par zone ressentie');
+
+        var pasBoutons = Array.prototype.filter.call(lignes, function (n) {
+          return n.tagName !== 'BUTTON';
+        }).length;
+        v.egal(pasBoutons, 0, 'et ce sont des boutons');
+
+        var minH = 999, sort = 0, coupes = 0;
+        Array.prototype.forEach.call(lignes, function (n) {
+          var r = n.getBoundingClientRect();
+          minH = Math.min(minH, r.height);
+          if (r.right > LARGEUR + 1) sort += 1;
+          if (n.scrollWidth > n.clientWidth + 1) coupes += 1;
+        });
+        v.vrai(minH >= 44, 'chacune se touche (mesuré : ' + Math.round(minH) + ' px)');
+        v.egal(sort, 0, 'aucune ne sort de l’écran à 320 px');
+        v.egal(coupes, 0, 'et aucune n’est tronquée');
+
+        v.vrai(corps.textContent.indexOf('la face poilue') >= 0,
+               'l’explication est en mots de tous les jours, pas en latin');
+
+        /* Appuyer COCHE, et n'écrit rien d'autre. */
+        var cible = null;
+        Array.prototype.forEach.call(lignes, function (n) {
+          if (n.textContent.indexOf('Le bord du petit doigt') === 0) cible = n;
+        });
+        v.vrai(!!cible, 'on retrouve « Le bord du petit doigt »');
+        if (!cible) return;
+        cible.click();
+        var l = fen.App.m.muscles(brouillon);
+        v.egal(l.join(','), 'fcu,ecu,extenseur_petit_doigt',
+               'un appui coche les muscles de la zone, dans l’ordre du tableau');
+
+        /* Deux zones s'ajoutent, elles ne se remplacent pas : sinon le second
+           appui effacerait le premier sans prévenir. */
+        var autre = null;
+        Array.prototype.forEach.call(lignes, function (n) {
+          if (n.textContent.indexOf('La main qui serre') === 0) autre = n;
+        });
+        autre.click();
+        var l2 = fen.App.m.muscles(brouillon);
+        v.vrai(l2.indexOf('fcu') >= 0 && l2.indexOf('flechisseurs_doigts') >= 0,
+               'une seconde zone S’AJOUTE, elle ne remplace pas la première');
+
+        /* La liste des muscles doit suivre : cocher sans le voir ne vaut rien. */
+        var presses = pan.querySelectorAll('.muscle-ligne[aria-pressed="true"]');
+        v.egal(presses.length, l2.length,
+               'et la liste en dessous le MONTRE, case cochée');
+
+        var corpsPan = pan.querySelector('.panneau-corps');
+        v.vrai(corpsPan.scrollWidth <= corpsPan.clientWidth + 1,
+               'aucun débordement horizontal à 320 px');
+
+        var fermer = pan.querySelector('.panneau-entete .bt-icone');
+        if (fermer) fermer.click();
+        return attendre(80);
+      });
+    });
+  });
+
+  /* ================================================================
+     Mon équipement, dans Réglages
+
+     Une ligne qui s'ouvre doit être un bouton : atteignable au clavier,
+     annoncée aux lecteurs d'écran, et touchable à 44 px. Elle était un div
+     avec un curseur.
+     ================================================================ */
+  bloc('Mon équipement, au doigt', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    fen.App.m.majCatalogueOutils(e, 'Titan Grip Iron Wrist 60 mm', 'Poignées AW');
+    fen.App.m.majCatalogueOutils(e, 'Poulie basse', 'Poulies');
+
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(160).then(function () {
+      var texte = vue.textContent;
+      v.vrai(texte.indexOf('Titan Grip Iron Wrist') >= 0, 'l’équipement est listé');
+
+      /* La liste en dur a été retirée : plus rien ne propose du matériel
+         que l'utilisateur n'a pas saisi lui-même. */
+      v.egal(texte.indexOf('Ajouter mon matériel'), -1,
+             'aucun raccourci ne propose une liste d’outils écrite dans le code');
+      v.egal(texte.indexOf('Golden Grip'), -1,
+             'et aucun nom d’outil non saisi n’apparaît');
+
+      var lignes = [];
+      Array.prototype.forEach.call(vue.querySelectorAll('.item-ligne'), function (n) {
+        if (n.textContent.indexOf('Titan Grip Iron Wrist') === 0
+         || n.textContent.indexOf('Poulie basse') === 0) lignes.push(n);
+      });
+      v.egal(lignes.length, 2, 'les deux outils ont leur ligne');
+      var pasBoutons = lignes.filter(function (n) { return n.tagName !== 'BUTTON'; })
+                             .map(function (n) { return n.textContent; });
+      v.egal(pasBoutons.join(', '), '',
+             'et chaque ligne est un BOUTON — un div avec un curseur ne '
+           + 's’atteint pas au clavier');
+      var petites = lignes.filter(function (n) {
+        return n.getBoundingClientRect().height < 44;
+      }).length;
+      v.egal(petites, 0, 'chacune fait au moins 44 px de haut');
+
+      lignes[0].click();
+      return attendre(140).then(function () {
+        var pan = doc.querySelector('.panneau');
+        v.vrai(!!pan, 'un appui ouvre la fiche de l’outil');
+        if (pan) {
+          v.vrai(pan.textContent.indexOf('Réglages') >= 0,
+                 'et elle propose d’y poser des réglages');
+          var fermer = pan.querySelector('.panneau-entete .bt-icone');
+          if (fermer) fermer.click();
+        }
+        return attendre(80).then(function () {
+          fen.App.ui.vider(vue);
+          e.outils.length = 0;
+        });
       });
     });
   });

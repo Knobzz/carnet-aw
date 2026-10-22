@@ -399,7 +399,9 @@
       function rafraichirOutils() {
         A.ui.vider(boiteOutils);
         boiteOutils.appendChild(A.ui.champMulti(exo.outils || [], function (q, deja) {
-          return A.m.suggestionsOutils(etat(), q, deja, 8).map(function (o) {
+          /* Zéro = TOUT. L'équipement est un inventaire borné, et une coupe
+             à huit en cachait la moitié sans rien dire. La liste défile. */
+          return A.m.suggestionsOutils(etat(), q, deja, 0).map(function (o) {
             o.jetons = o.categorie ? [{ texte: o.categorie }] : [];
             return o;
           });
@@ -583,7 +585,17 @@
           : 'Proposé — à vérifier : les directions de poussée ne sont pas des actions articulaires.');
       });
 
-      var grMuscles = A.ui.groupe('Muscles sollicités', boiteMuscles);
+      /* L'entrée de secours : les noms latins ne parlent pas à tout le monde,
+         et une case qu'on ne sait pas cocher reste vide. */
+      var ouCaTire = A.ui.selecteurOuCaTire(function (ajoutes) {
+        var fusion = A.m.muscles(exo).slice();
+        ajoutes.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
+        exo.muscles = A.m.muscles({ muscles: fusion });
+        rafraichirMuscles();
+      });
+
+      var grMuscles = A.ui.groupe('Muscles sollicités', ouCaTire);
+      grMuscles.appendChild(boiteMuscles);
       grMuscles.appendChild(btProposer);
       grMuscles.appendChild(aideMuscles);
       c.appendChild(grMuscles);

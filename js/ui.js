@@ -608,6 +608,51 @@
      latins sans explication ne se cochent pas : on apprend en appuyant, ou
      on ne coche rien. Les muscles de la masse flexo-pronatrice portent une
      marque — c'est eux qui tirent sur l'epicondyle medial. */
+  /* « Où ça tire ? » — l'entrée pour qui ne connaît pas les noms.
+
+     Les noms des muscles ne parlent pas à qui ne les a pas appris, et une
+     case qu'on ne sait pas cocher reste vide. Mais tout le monde sait dire
+     où ça tire. Chaque ligne AJOUTE ses muscles à la sélection ; elle n'en
+     retire jamais, parce que deux zones se recouvrent et qu'un décochage
+     ferait disparaître ce qu'une autre avait posé. On corrige juste en
+     dessous, dans la liste.
+
+     Le bloc est REPLIÉ par défaut : qui connaît les noms n'a rien à lire. */
+  function selecteurOuCaTire(onAjout) {
+    var corps = h('div', { class: 'ouca-corps', hidden: true });
+    var entete = h('button', { type: 'button', class: 'bt', style: 'width:100%',
+                               'aria-expanded': 'false',
+                               text: 'Je ne connais pas les noms →' });
+    entete.addEventListener('click', function () {
+      var ouvert = entete.getAttribute('aria-expanded') === 'true';
+      entete.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+      corps.hidden = ouvert;
+      entete.textContent = ouvert ? 'Je ne connais pas les noms →'
+                                  : 'Je ne connais pas les noms ↓';
+    });
+
+    corps.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 0 2px',
+      text: 'Appuie sur ce que tu sens travailler. Les muscles correspondants '
+          + 'se cochent en dessous, et tu corriges.' }));
+
+    A.m.ZONES_RESSENTIES.forEach(function (z) {
+      var b = h('button', { type: 'button', class: 'ouca-ligne' },
+        h('span', { class: 'ouca-texte' },
+          h('b', { text: z.nom }),
+          h('span', { text: z.aide })));
+      b.addEventListener('click', function () {
+        var ajoutes = A.m.musclesDesZones([z.id]);
+        onAjout(ajoutes);
+        toast(ajoutes.length + ' muscle' + (ajoutes.length > 1 ? 's' : '')
+            + ' coché' + (ajoutes.length > 1 ? 's' : '') + ' : '
+            + ajoutes.map(A.m.nomCourtMuscle).join(', ') + '.');
+      });
+      corps.appendChild(b);
+    });
+
+    return h('div', { class: 'ouca' }, entete, corps);
+  }
+
   function selecteurMuscles(valeurs, onChange) {
     var sel = (valeurs || []).slice();
     var boite = h('div');
@@ -764,6 +809,7 @@
     selecteurForces: selecteurForces, selecteurStructures: selecteurStructures,
     selecteurCote: selecteurCote, selecteurPrise: selecteurPrise,
     selecteurUnique: selecteurUnique, selecteurMuscles: selecteurMuscles,
+    selecteurOuCaTire: selecteurOuCaTire,
     choisirIntensite: choisirIntensite,
     notificationsPossibles: notificationsPossibles,
     demanderNotifications: demanderNotifications,

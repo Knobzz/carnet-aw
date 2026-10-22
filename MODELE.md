@@ -490,6 +490,28 @@ retrouve.
 **Retirer un réglage du catalogue ne touche pas les exercices qui le portaient.** Leur
 mention reste : on n'efface pas ce qui a été fait. Il ne propose simplement plus rien.
 
+### « Où ça tire ? »
+
+Les noms des muscles ne parlent pas à qui ne les a pas appris, et **une case qu'on ne sait
+pas cocher reste vide** — exactement le défaut que les trois sources de proposition
+essayaient déjà de contourner. Mais tout le monde sait dire **où ça tire**.
+
+Douze **zones ressenties**, en mots de tous les jours : « le dessus de l'avant-bras — la
+face poilue, dans le prolongement du dos de la main », « le bord du petit doigt », « la
+main qui serre ». Chacune désigne les muscles qui y travaillent. Ce n'est pas une opinion :
+c'est de l'anatomie de description, la même que celle des planches.
+
+Trois décisions tenues par des contrôles :
+
+- **Chaque appui AJOUTE, il ne remplace jamais.** Deux zones se recouvrent ; un décochage
+  ferait disparaître ce qu'une autre avait posé, sans prévenir.
+- **Tout muscle doit être atteignable par ce chemin.** Un muscle qu'aucune zone ne nomme
+  resterait réservé à qui connaît déjà les termes — le banc le vérifie sur les 22.
+- **Le bloc est replié par défaut.** Qui connaît les noms n'a rien à lire.
+
+Il est au même endroit dans la fiche d'exercice et dans la fiche d'un réglage d'outil :
+c'est le même problème aux deux endroits.
+
 ### La quatrième source de proposition
 
 Un réglage peut porter des muscles, et c'est tout son intérêt : **c'est l'utilisateur qui

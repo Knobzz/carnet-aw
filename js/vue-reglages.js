@@ -115,20 +115,20 @@
   }
 
   /* Le matériel que tu as listé dans la spec — proposé, jamais imposé. */
-  var MATERIEL = [
-    { nom: 'Golden Grip N2',                categorie: 'Grippers' },
-    { nom: 'Golden Grip N3',                categorie: 'Grippers' },
-    { nom: 'Golden Grip N4',                categorie: 'Grippers' },
-    { nom: 'Élastique de rééducation',      categorie: 'Élastiques' },
-    { nom: 'Fat grip',                      categorie: 'Poignées' },
-    { nom: 'Ceinture de judo',              categorie: 'Sangles' },
-    { nom: 'Titan Grip Iron Wrist 60 mm',   categorie: 'Poignées AW' },
-    { nom: 'Titan Grip Pronator Ellipsoid', categorie: 'Poignées AW' },
-    { nom: 'Barre droite',                  categorie: 'Barres' },
-    { nom: 'Barre EZ',                      categorie: 'Barres' },
-    { nom: 'Poulie haute',                  categorie: 'Poulies' },
-    { nom: 'Poulie basse',                  categorie: 'Poulies' }
-  ];
+  /* Il y avait ici une liste de matériel en dur — douze outils, les miens —
+     et un bouton « Ajouter mon matériel ». Elle a été RETIRÉE.
+
+     Elle était pourtant opt-in : rien ne s'ajoutait sans un appui. Mais elle
+     revenait indéfiniment pour tout outil retiré, et surtout elle
+     contredisait ce que cette app dit partout ailleurs : le catalogue n'a
+     jamais de liste imposée, il se construit avec ce qui est saisi. Une
+     liste écrite dans le code est une liste imposée, même derrière un
+     bouton.
+
+     Ce qu'elle rendait service à faire — remonter un équipement d'un coup —
+     est déjà fait par l'import d'une sauvegarde, qui rend TOUT et pas
+     seulement douze noms choisis par quelqu'un d'autre. */
+
 
   /* Combien d'exercices DISTINCTS emploient cet outil. On compte les slugs,
      pas les occurrences : le même exercice présent dans un programme et dans
@@ -166,10 +166,26 @@
       c.appendChild(A.ui.groupe('Nom du réglage', champ,
         'Comment l’outil est monté : ce qui change ce qu’il sollicite.'));
 
-      c.appendChild(A.ui.groupe('Muscles sollicités',
-        A.ui.selecteurMuscles(choisis, function (l) { choisis = l; }),
-        'Facultatif. S’ils sont cochés, la fiche d’exercice les proposera '
-      + 'quand ce réglage est retenu.'));
+      /* Les noms ne parlent pas à tout le monde. « Où ça tire ? » demande
+         une PERCEPTION — le dessus de l'avant-bras, le bord du pouce — et
+         coche les muscles correspondants, qu'on corrige ensuite. */
+      var boiteM = h('div');
+      function rendreM() {
+        A.ui.vider(boiteM);
+        boiteM.appendChild(A.ui.selecteurMuscles(choisis, function (l) { choisis = l; }));
+      }
+      rendreM();
+      var ouCaTire = A.ui.selecteurOuCaTire(function (ajoutes) {
+        var fusion = choisis.slice();
+        ajoutes.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
+        choisis = A.m.muscles({ muscles: fusion });
+        rendreM();
+      });
+      var grM = A.ui.groupe('Muscles sollicités', ouCaTire,
+        'Facultatif — un réglage qui n’est qu’une étiquette distingue déjà '
+      + 'deux séances. S’ils sont cochés, la fiche d’exercice les proposera.');
+      grM.insertBefore(boiteM, grM.lastChild);
+      c.appendChild(grM);
 
       if (!neuf) {
         c.appendChild(A.ui.confirmer2(
@@ -505,7 +521,10 @@
         corps3.appendChild(h('div', { class: 'sous-titre', style: 'margin:0 0 6px', text: g.categorie }));
         g.outils.forEach(function (o) {
           var combien = compterUsages(e, o);
-          var ligne = h('div', { class: 'item-ligne', style: 'align-items:center;padding:6px 0;cursor:pointer' },
+          /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre
+             doit s'atteindre au clavier, s'annoncer aux lecteurs d'écran et
+             faire 44 px de haut comme tout ce qui se touche ici. */
+          var ligne = h('button', { type: 'button', class: 'item-ligne item-bouton' },
             h('b', { text: o.nom }),
             h('span', { text: combien ? combien + ' exo' + (combien > 1 ? 's' : '') : 'non employé' }));
           ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
@@ -514,24 +533,6 @@
         c3.appendChild(corps3);
         hote.appendChild(c3);
       });
-    }
-
-    /* Ton matériel, tel que tu l'as listé, rangé par catégorie. Ce n'est PAS
-       pré-chargé : c'est un geste volontaire, et tout reste modifiable ensuite. */
-    var manquants = MATERIEL.filter(function (m) { return !A.m.trouverOutil(e, A.m.slug(m.nom)); });
-    if (manquants.length) {
-      var btMat = h('button', { class: 'bt bt-large', style: 'margin-top:4px',
-                                text: 'Ajouter mon matériel (' + manquants.length + ')' });
-      btMat.addEventListener('click', function () {
-        manquants.forEach(function (m) { A.m.majCatalogueOutils(e, m.nom, m.categorie); });
-        A.store.sauver(true);
-        rendre(hote);
-        A.ui.toast(manquants.length + ' outils ajoutés.');
-      });
-      hote.appendChild(btMat);
-      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0',
-        text: 'Raccourci unique : ' + manquants.map(function (m) { return m.nom; }).join(', ')
-            + '. Rien ne s’ajoute sans cet appui.' }));
     }
 
     /* --- remise à zéro --- */
