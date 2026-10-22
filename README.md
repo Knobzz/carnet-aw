@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **848 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **903 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **516 contrôles, 26 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **332 contrôles, 17 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **553 contrôles, 28 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **350 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -278,6 +278,21 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | la liste de muscles non rafraîchie après un appui | `la liste en dessous le MONTRE — attendu 4, obtenu 0` |
 | la ligne d'outil redevenue un div cliquable | `chaque ligne est un BOUTON — un div ne s'atteint pas au clavier` |
 | les régions de muscles dépliées d'office | `toutes sont fermées — attendu 0, obtenu 6` — 2 contrôles rouges |
+| « Épaule et tronc » refondue en une seule région | `« tronc » n’existe plus — attendu -1, obtenu 0` — 14 contrôles rouges |
+| un muscle laissé dans l’ancien groupe | `aucun muscle dans un groupe qui n’est pas une région — attendu "", obtenu "tronc"` |
+| une région déclarée que rien ne remplit | `aucune région sans muscle — attendu "", obtenu "nuque"` |
+| un muscle perdu en route | `les 36 muscles sont toujours là — attendu 36, obtenu 35` |
+| l’axe du Suivi figé au lieu de suivre les régions | `autant de clés qu’il y a de régions — attendu 7, obtenu 5` |
+| la semaine commencée le dimanche | `chaque semaine rendue commence un LUNDI` — huit dimanches nommés |
+| un pas de 14 jours entre les semaines | `deux semaines voisines sont à SEPT jours` — sept lundis nommés |
+| le lundi rangé dans la semaine précédente | `une séance SUR le premier lundi est dans la fenêtre — attendu 4, obtenu 2` |
+| une région du catalogue sans forme sur le buste | `attendu "", obtenu "epaule"` |
+| une forme portant un id hors catalogue | `attendu "", obtenu "tronc"` |
+| le triceps posé aussi sur la vue de face | `le bras arrière ne s’allume QUE sur la vue de dos — attendu true, obtenu false` |
+| le total pris sur la dernière semaine seule | `attendu 88, obtenu 8` |
+| les semaines vides escamotées de la piste | `douze semaines, pleines ou vides — attendu 12, obtenu 11` |
+| le « jamais » peint en bleu pâle | `une région jamais travaillée est grise — attendu 2, obtenu 0` |
+| le buste rétréci sous la cible du doigt | `la plus petite région reste touchable (avant_bras_av : 10 px)` |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

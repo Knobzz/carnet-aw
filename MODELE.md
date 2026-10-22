@@ -771,6 +771,65 @@ posait une question là où un en-tête doit nommer ; « Choisir par sensation �
 état d'esprit. Celui qui reste annonce la **méthode** — on va désigner un endroit du
 corps, pas un nom latin — et c'est tout ce qu'un en-tête a besoin de faire.
 
+### Sept régions, et pourquoi l’épaule a quitté le tronc
+
+`REGIONS_MUSCLE` tient **sept** régions pour 36 muscles : épaule (4), torse (2),
+bras avant (2), bras arrière (2), avant-bras antérieur (6), avant-bras postérieur (10),
+main et doigts (10).
+
+L’épaule et le torse n’ont fait qu’un jusqu’au **2026-10-22**, sous l’étiquette
+« Épaule et tronc ». La séparation a été **mesurée avant d’être faite**, et la première
+mesure disait non : sur les six mouvements du carnet, un seul distingue les deux ; sur
+les treize zones ressenties, une seule. Signal faible.
+
+C’est le troisième chemin qui a tranché — les **mots des exercices** qu’on saisit :
+
+| | |
+|---|---|
+| mots du carnet touchant cette zone | **21** |
+| qui n’allument que l’épaule | 9 — `élévation latérale`, `shoulder press`, `épaule`, `deltoïde`… |
+| qui n’allument que le torse | 12 — `développé`, `bench`, `pec`, `tirage`, `rowing`, `traction`, `lat`… |
+| **qui allument les deux** | **0** |
+
+Fondues, ces deux lignes s’annulaient : un tirage et une élévation latérale rendaient la
+même. La coupe retenue est anatomique — **scapulo-huméral** d’un côté (deltoïde, grand
+rond, subscapulaire, coraco-brachial), **thoraco-huméral** de l’autre (grand pectoral,
+grand dorsal).
+
+La séparation est **réversible sans migration** : `groupe` et les ids de région
+n’existent que dans les tables de `js/model.js`, et aucune donnée sauvegardée n’en porte
+— les régions sont dérivées à la lecture.
+
+### Le buste du Suivi
+
+Deux silhouettes, de face et de dos, parce que **quatre des sept régions ne se montrent
+que d’un côté** : le biceps et le triceps sont le *même* segment vu des deux côtés, et
+une silhouette unique devrait en cacher un.
+
+Le contour est dessiné **une fois** et sert de **découpe** (`clip-path`) à toutes les
+régions : chaque région n’est qu’un polygone grossier que le contour taille au bord réel.
+Les seules limites que le dessin **affirme** sont les trois coupes internes, et chacune a
+son repère — insertion du deltoïde, pli du coude, pli du poignet.
+
+L’épaule n’a pas la même forme des deux côtés, et c’est ce qui la rend honnête : de face
+elle tient le deltoïde et le creux de l’aisselle, de dos le deltoïde et l’omoplate, là où
+s’insèrent le grand rond et le subscapulaire.
+
+Le buste s’arrête aux hanches : **aucun des 36 muscles n’est dans les jambes**, elles ne
+portaient rien. Proportions au canon classique — 7,5 têtes de haut, bras à 0,44 de la
+hauteur. La première version en faisait 9,7 avec des bras de 5,8 têtes, et ne ressemblait
+à personne.
+
+Deux schémas ont échoué ici avant, tous deux à chercher les contours de chaque *muscle*
+sur une gravure exacte : l’œil voyait la vraie limite juste à côté de la fausse. Sept
+régions sur un schéma autonome font disparaître ce mécanisme-là.
+
+Le total, le tableau et les semaines sortent **tous** de `chargeParSemaine` — une seule
+source. Une fenêtre en jours et une fenêtre en semaines ISO ne couvrent déjà pas les mêmes
+jours : douze semaines valent entre 78 et 84 jours selon le jour où l’on regarde. Le banc
+avait justement un contrôle qui comparait les deux ; il passait parce que son décor
+n’avait aucune séance dans l’écart.
+
 ### Les régions de muscles se replient
 
 Trente-cinq muscles d'affilée font un mur : on ne voit plus ce qu'on a coché, et le reste de
@@ -779,7 +838,7 @@ l'équipement — mêmes classes, même chevron.
 
 Une région qui **porte déjà un muscle coché s'ouvre**, sinon il faudrait rouvrir six blocs
 pour vérifier. Le **compte reste visible fermé** (`2 / 4`), pour n'avoir justement pas à
-ouvrir. Le banc mesure que les 35 muscles tiennent alors en moins de 400 px.
+ouvrir. Le banc mesure que les 36 muscles tiennent alors en moins de 400 px.
 
 ### Un mouvement coche ses muscles
 
