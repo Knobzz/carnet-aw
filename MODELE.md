@@ -529,8 +529,20 @@ ouvrir. Le banc mesure que les 22 muscles tiennent alors en moins de 400 px.
 Cocher « Cupping » coche directement les muscles du cupping. C'est le geste, et il n'en
 faut pas un second — le bouton de proposition reste pour le nom, la prise et le réglage.
 
-**Le décocher ne les retire pas.** Plusieurs mouvements partagent des muscles ; un retrait
-effacerait ce qu'un autre avait posé. Même raisonnement que les zones ressenties.
+**Le décocher les retire** — mais seulement **ce que ce mouvement-là avait posé**. La fiche
+retient, par mouvement, les muscles qui n'y étaient **pas encore** au moment du clic
+(`neufs`) : c'est exactement la provenance qu'il faut, et elle ne coûte rien à tenir.
+
+Deux pièges, tenus par des contrôles :
+
+- un muscle **coché à la main** qui figure aussi dans la liste du mouvement **survit** au
+  décochage : il n'était pas dans `neufs` ;
+- deux mouvements qui **partagent** un muscle (rising et supination portent le biceps) :
+  décocher le second ne reprend pas ce que le premier avait posé.
+
+La première version ne retirait rien, par prudence. C'était une prudence déplacée : elle
+laissait une liste qu'on ne pouvait plus défaire autrement qu'à la main, muscle par
+muscle.
 
 Le message qui suit dit **la source**, qui n'est pas la même pour tous : cupping, pronation
 et supination sont des actions articulaires ; rising, back et side pressure viennent d'une
@@ -543,8 +555,11 @@ d'anatomie. Elles ne décrivent pas le travail mais ce qui **encaisse** — le v
 la douleur — et servent au recoupement dans Suivi. C'est utile et c'est rare : ça ne doit
 pas être le troisième écran qu'on traverse.
 
-Aucune aide sous ce groupe : elle a été retirée sur demande. Elle a été **remise ici même**
-« pour expliquer », et c'est le contrôle du banc qui l'a arrêtée.
+Elle est **le tout dernier groupe**, après « Repos ». L'aide sous ce groupe a été retirée
+sur demande, puis **redemandée, courte** : ce qui était reproché était le bavardage, pas
+l'explication. Deux contrôles tiennent le résultat — l'aide existe, et elle fait moins de
+120 signes. Entre les deux, une version longue a été remise ici « pour expliquer » et c'est
+le banc qui l'a arrêtée.
 
 Il est au même endroit dans la fiche d'exercice et dans la fiche d'un réglage d'outil :
 c'est le même problème aux deux endroits.

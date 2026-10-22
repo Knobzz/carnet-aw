@@ -333,17 +333,28 @@
       v.vrai(libelles.indexOf('Structures chargées') > libelles.indexOf('Muscles sollicités'),
              'et après « Muscles sollicités » : c’est le vocabulaire de la '
            + 'douleur, pas celui du travail');
+      v.egal(libelles[libelles.length - 1], 'Structures chargées',
+             'c’est même le TOUT dernier groupe de la fiche, après le repos');
       v.egal(libelles.indexOf('Forces de Larratt'), -1,
              '« Forces de Larratt » n’apparaît plus nulle part dans la fiche');
 
-      /* L'aide sous ces deux groupes a été retirée : la fiche était bavarde. */
+      /* L'aide sous « Outils » a été retirée : la fiche était bavarde. Celle
+         sous « Structures chargées » a été retirée puis REDEMANDÉE, courte :
+         ce qui était reproché était le bavardage, pas l'explication. */
       var gOutils = groupe('Outils');
       var gStruct = groupe('Structures chargées');
       v.vrai(!!gOutils && !!gStruct, '[temoin] les deux groupes sont là');
       if (gOutils) v.egal(gOutils.querySelectorAll('.item-resume').length, 0,
                           'plus d’aide sous « Outils »');
-      if (gStruct) v.egal(gStruct.querySelectorAll('.item-resume').length, 0,
-                          'plus d’aide sous « Structures chargées »');
+      if (gStruct) {
+        var aide = gStruct.querySelector('.item-resume');
+        v.vrai(!!aide, 'une aide sous « Structures chargées » — elle a été redemandée');
+        v.vrai(aide && aide.textContent.length <= 120,
+               'et elle est COURTE (' + (aide ? aide.textContent.length : -1)
+             + ' signes) : c’est le bavardage qui était reproché');
+        v.vrai(aide && aide.textContent.indexOf('encaisse') >= 0,
+               'elle dit la seule chose utile : ce n’est pas ce qui travaille');
+      }
 
       /* Les six mouvements, et leur cible tactile à 320 px. */
       var gMouv = groupe('Mouvements');
@@ -434,9 +445,9 @@
       v.egal(sortM, 0, 'et aucune ne sort de l’écran à 320 px');
 
       /* Cocher un mouvement COCHE ses muscles : c'est le geste, et il n'en
-         faut pas un second. Le décocher ne les retire pas — plusieurs
-         mouvements partagent des muscles, et un retrait effacerait ce qu'un
-         autre avait posé. */
+         faut pas un second. Le décocher les RETIRE — mais seulement ceux que
+         ce mouvement-là avait posés. Un muscle coché à la main, ou déjà posé
+         par un autre mouvement, ne lui appartient pas. */
       var puceCup = null;
       Array.prototype.forEach.call(pan.querySelectorAll('.puce'), function (p) {
         if (p.textContent === 'Cupping') puceCup = p;
@@ -458,10 +469,57 @@
                'et la région qui les contient s’ouvre — cocher sans le voir ne vaut rien');
 
         puceCup.click();
-        v.egal(fen.App.m.muscles(brouillon).join(','), apres.join(','),
-               'décocher le mouvement NE RETIRE PAS les muscles : un autre '
-             + 'mouvement pouvait les avoir posés');
-        v.egal((brouillon.forces || []).length, 0, 'mais le mouvement, lui, est décoché');
+        v.egal(fen.App.m.muscles(brouillon).length, 0,
+               'décocher le mouvement RETIRE ses muscles');
+        v.egal((brouillon.forces || []).length, 0, 'et le mouvement est décoché');
+
+        /* Le vrai piège : un muscle coché À LA MAIN qui se trouve AUSSI dans
+           la liste du mouvement. Retirer « la liste du mouvement » le
+           prendrait au passage ; retirer « ce que ce mouvement a posé » le
+           laisse, parce qu'il y était déjà. */
+        function ligneDe(nom) {
+          var t = null;
+          Array.prototype.forEach.call(pan.querySelectorAll('.muscle-ligne'), function (n) {
+            if (n.querySelector('b').textContent === nom) t = n;
+          });
+          return t;
+        }
+        var lFcu = ligneDe('Fléchisseur ulnaire du carpe');
+        v.vrai(!!lFcu, '[temoin] la ligne du fléchisseur ulnaire est atteignable');
+        lFcu.click();
+        v.egal(fen.App.m.muscles(brouillon).join(','), 'fcu',
+               '[temoin] coché à la main, et il est DANS la liste du cupping');
+        puceCup.click();
+        v.vrai(fen.App.m.muscles(brouillon).length > 1,
+               '[temoin] le cupping pose les autres');
+        puceCup.click();
+        v.egal(fen.App.m.muscles(brouillon).join(','), 'fcu',
+               'décocher ne reprend QUE ce que le mouvement avait posé : '
+             + 'ce qui était coché à la main survit');
+
+        /* Second piège : deux mouvements qui partagent un muscle. Rising et
+           supination portent tous deux le biceps ; décocher le second ne doit
+           pas emporter ce que le premier avait posé. */
+        if (ligneDe('Fléchisseur ulnaire du carpe')) ligneDe('Fléchisseur ulnaire du carpe').click();
+        v.egal(fen.App.m.muscles(brouillon).length, 0, '[temoin] on repart de zéro');
+        var puceSup = null, puceRis = null;
+        Array.prototype.forEach.call(pan.querySelectorAll('.puce'), function (p) {
+          if (p.textContent === 'Supination') puceSup = p;
+          if (p.textContent === 'Rising') puceRis = p;
+        });
+        puceSup.click();
+        v.vrai(fen.App.m.muscles(brouillon).indexOf('biceps') >= 0,
+               '[temoin] la supination pose le biceps');
+        puceRis.click();
+        puceRis.click();
+        v.vrai(fen.App.m.muscles(brouillon).indexOf('biceps') >= 0,
+               'décocher « Rising » ne reprend pas le biceps : c’est la '
+             + 'supination qui l’avait posé');
+        v.egal(fen.App.m.muscles(brouillon).indexOf('deltoide'), -1,
+               'mais ce que « Rising » avait posé, lui, est bien parti');
+        puceSup.click();
+        v.egal(fen.App.m.muscles(brouillon).length, 0,
+               'et décocher la supination finit de vider');
       }
 
       /* Rien ne doit déborder horizontalement, nulle part dans le panneau. */

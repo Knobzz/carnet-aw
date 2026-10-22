@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **752 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **764 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -149,7 +149,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **469 contrôles, 25 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **283 contrôles, 15 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **295 contrôles, 15 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -182,7 +182,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Soixante-trois défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Soixante-huit défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -247,11 +247,14 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |
-| décocher un mouvement qui retire les muscles | `NE RETIRE PAS les muscles : un autre mouvement pouvait les avoir posés` |
+| décocher un mouvement qui ne retire rien | `décocher le mouvement RETIRE ses muscles — attendu 0, obtenu 4` |
+| décocher qui reprend toute la liste du mouvement | `ce qui était coché à la main survit — attendu "fcu", obtenu ""` |
+| la provenance confondue entre deux mouvements | `décocher « Rising » ne reprend pas le biceps : c'est la supination qui l'avait posé` |
 | « Structures chargées » remontée dans la fiche | `passe APRÈS « Mouvements » — attendu true, obtenu false` |
 | le groupe de réglages muet sur un outil sans réglage | `il dit pourquoi la rangée est vide` |
 | l'entrée voisine non signalée | `l'app DIT lequel les porte, au lieu de laisser chercher` |
-| une aide remise sous « Structures chargées » | `plus d'aide sous « Structures chargées » — attendu 0, obtenu 1` |
+| une aide LONGUE sous « Structures chargées » | `elle est COURTE (214 signes) : c'est le bavardage qui était reproché` |
+| « Structures chargées » plus en dernier | `c'est même le TOUT dernier groupe de la fiche, après le repos` |
 | l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à

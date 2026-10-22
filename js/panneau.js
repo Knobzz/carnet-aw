@@ -504,6 +504,12 @@
 
       var boiteForces = h('div');
       var surChangementForces = null;
+      /* Ce que CHAQUE mouvement a posé, et lui seul. Décocher doit retirer ce
+         que ce mouvement avait coché — et rien d'autre : un muscle coché à la
+         main, ou déjà posé par un autre mouvement, n'est pas à lui.
+         `neufs` ne contient que ce qui n'y était pas : c'est exactement la
+         provenance dont on a besoin, et elle ne coûte rien à tenir. */
+      var posePar = {};
       function rafraichirForces() {
         A.ui.vider(boiteForces);
         selForces = A.ui.selecteurForces(exo.forces || [], function (v, quoi, coche) {
@@ -517,23 +523,35 @@
              même pour tous : cupping, pronation et supination sont des
              actions articulaires ; rising, back et side pressure viennent
              d'une seule étude EMG et restent à vérifier. */
-          if (coche) {
-            var pm = A.m.MUSCLES_PAR_MOUVEMENT[quoi];
-            if (pm) {
-              var fusion = A.m.muscles(exo).slice();
-              var neufs = [];
-              pm.muscles.forEach(function (id) {
-                if (fusion.indexOf(id) < 0) { fusion.push(id); neufs.push(id); }
+          var pm = A.m.MUSCLES_PAR_MOUVEMENT[quoi];
+          if (pm && coche) {
+            var fusion = A.m.muscles(exo).slice();
+            var neufs = [];
+            pm.muscles.forEach(function (id) {
+              if (fusion.indexOf(id) < 0) { fusion.push(id); neufs.push(id); }
+            });
+            posePar[quoi] = neufs;
+            exo.muscles = A.m.muscles({ muscles: fusion });
+            rafraichirMuscles();
+            if (neufs.length) {
+              A.ui.toast(neufs.map(A.m.nomCourtMuscle).join(', ')
+                + (pm.source === 'a_verifier'
+                    ? ' — à vérifier : une seule étude, et ce n’est pas une '
+                      + 'action articulaire.'
+                    : ' — d’après l’anatomie. Corrige en dessous si besoin.'));
+            }
+          } else if (pm && !coche) {
+            /* Décocher retire ce que CE mouvement avait posé. Pas les muscles
+               cochés à la main, pas ceux qu'un autre mouvement avait déjà
+               posés : ils n'étaient pas dans `neufs`. */
+            var aRetirer = posePar[quoi] || [];
+            delete posePar[quoi];
+            if (aRetirer.length) {
+              exo.muscles = A.m.muscles(exo).filter(function (id) {
+                return aRetirer.indexOf(id) < 0;
               });
-              exo.muscles = A.m.muscles({ muscles: fusion });
               rafraichirMuscles();
-              if (neufs.length) {
-                A.ui.toast(neufs.map(A.m.nomCourtMuscle).join(', ')
-                  + (pm.source === 'a_verifier'
-                      ? ' — à vérifier : une seule étude, et ce n’est pas une '
-                        + 'action articulaire.'
-                      : ' — d’après l’anatomie. Corrige en dessous si besoin.'));
-              }
+              A.ui.toast('Décoché : ' + aRetirer.map(A.m.nomCourtMuscle).join(', ') + '.');
             }
           }
           if (surChangementForces) surChangementForces();
@@ -542,8 +560,8 @@
       }
       rafraichirForces();
       c.appendChild(A.ui.groupe('Mouvements', boiteForces,
-        'Cocher un mouvement coche aussi les muscles qu’il fait travailler. '
-      + 'Le décocher ne les retire pas : à toi de corriger en dessous.'));
+        'Cocher un mouvement coche les muscles qu’il fait travailler ; le '
+      + 'décocher les retire. Ceux que tu as cochés toi-même restent.'));
 
       /* ---- les muscles, proposés depuis les mouvements ----
          On ne peut pas demander de cocher vingt-deux muscles à qui ne connaît pas
@@ -644,22 +662,6 @@
         placeholder: 'Tenue 3 s en haut, excentrique 4 s. Prise pronation serrée.' });
       champConsigne.value = exo.consigne || '';
       champConsigne.addEventListener('input', function () { exo.consigne = champConsigne.value; });
-      /* Les structures chargées, EN DERNIER des groupes d'anatomie : elles ne
-         servent pas à décrire l'exercice mais à répondre, dans Suivi, à
-         « quand ai-je chargé lourd le médial ». C'est utile et c'est rare —
-         donc ça ne doit pas être le troisième écran qu'on traverse. */
-      var boiteStructures = h('div');
-      function rafraichirStructures() {
-        A.ui.vider(boiteStructures);
-        boiteStructures.appendChild(A.ui.selecteurStructures(exo.structures || [],
-          function (v) { exo.structures = v; }));
-      }
-      rafraichirStructures();
-      /* Pas d'aide sous ce groupe : elle a été retirée sur demande, et le
-         banc tient ce choix. La remettre « pour expliquer » a été tenté ici
-         même, et c'est le contrôle qui l'a arrêtée. */
-      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures));
-
       c.appendChild(A.ui.groupe('Consigne d’exécution', champConsigne,
         'Tempo, tenue, prise. Affichée en clair pendant la séance.'));
 
@@ -671,6 +673,25 @@
       });
       c.appendChild(A.ui.groupe('Repos (secondes)', champRepos,
         'Durée lancée par le ✓ d’une série.'));
+
+      /* Les structures chargées, TOUT en bas — après le repos. Elles ne
+         décrivent pas l'exercice : elles nomment ce qui ENCAISSE, dans le
+         vocabulaire des douleurs, et ne servent qu'au recoupement dans Suivi.
+         C'est utile et c'est rare.
+
+         L'aide avait été retirée d'ici, puis redemandée, courte. Les deux
+         demandes sont du même utilisateur et la seconde gagne : ce qui était
+         reproché était le bavardage, pas l'explication. */
+      var boiteStructures = h('div');
+      function rafraichirStructures() {
+        A.ui.vider(boiteStructures);
+        boiteStructures.appendChild(A.ui.selecteurStructures(exo.structures || [],
+          function (v) { exo.structures = v; }));
+      }
+      rafraichirStructures();
+      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures,
+        'Ce qui encaisse, pas ce qui travaille. Sert à relier une douleur aux '
+      + 'séances qui l’ont chargée.'));
 
       valider = function () {
         var nom = champNom.value.trim();
