@@ -545,8 +545,8 @@
         detail.textContent = m.nom + (m.aussi ? ' (' + m.aussi + ')' : '')
           + ' — ' + n + ' série' + (n > 1 ? 's' : '')
           + ' · ' + m.quoi
-          + (m.medial ? ' · tire sur l’épicondyle médial' : '')
-          + (m.lateral ? ' · tire sur l’épicondyle latéral' : '');
+          + (m.medial ? ' · insertion médiale' : '')
+          + (m.lateral ? ' · insertion latérale' : '');
       }
       p.addEventListener('click', montrer);
       p.addEventListener('keydown', function (ev) {
@@ -577,14 +577,16 @@
     });
     corps.appendChild(barres);
 
-    /* --- l'épicondyle médial : le lien direct avec la douleur suivie --- */
+    /* L'insertion commune se compte, et se dit en une ligne. Elle est utile
+       pour relier la carte à une douleur de coude — pas pour en faire le
+       sujet de l'écran. */
     var ep = A.m.chargeEpicondyle(e, 28);
-    if (ep.medial) {
-      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px' },
-        h('b', { text: ep.medial + ' séries sur l’épicondyle médial. ' }),
-        'Rond pronateur, fléchisseurs du poignet et des doigts partagent un seul tendon '
-      + 'd’origine, à cet endroit — c’est ce que charge le cupping et la pronation, et '
-      + 'c’est là que se loge une épicondylite médiale.'));
+    if (ep.medial || ep.lateral) {
+      var dits = [];
+      if (ep.medial) dits.push(ep.medial + ' sur l’insertion médiale');
+      if (ep.lateral) dits.push(ep.lateral + ' sur la latérale');
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px',
+        text: 'Séries : ' + dits.join(', ') + '.' }));
     }
     if (c.sansMuscle) {
       corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:6px',

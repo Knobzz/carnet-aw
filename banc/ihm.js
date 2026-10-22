@@ -628,8 +628,8 @@
       v.vrai(detail.indexOf('Fléchisseur ulnaire du carpe') >= 0, 'un appui nomme le muscle');
       v.vrai(detail.indexOf('cubital antérieur') >= 0,
              'et donne son nom classique — c’est celui des planches françaises');
-      v.vrai(detail.indexOf('épicondyle médial') >= 0,
-             'et dit qu’il tire sur l’épicondyle médial');
+      v.vrai(detail.indexOf('insertion médiale') >= 0,
+             'et situe son insertion — une information d’anatomie, dite sans insistance');
 
       v.vrai(svg.getBoundingClientRect().width <= LARGEUR,
              'la carte tient dans la largeur');

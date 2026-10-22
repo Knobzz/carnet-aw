@@ -274,9 +274,7 @@
         boiteCote.appendChild(A.ui.selecteurCote(exo.cote, function (v) { exo.cote = v; }));
       }
       rafraichirCote();
-      c.appendChild(A.ui.groupe('Côté', boiteCote,
-        'Facultatif. C’est ce qui permet à Suivi de relier une douleur au bras qui l’a chargée — '
-      + 'sans lui, le recoupement croise les deux.'));
+      c.appendChild(A.ui.groupe('Côté', boiteCote));
 
       var boitePrise = h('div');
       function rafraichirPrise() {
@@ -287,9 +285,7 @@
         }));
       }
       rafraichirPrise();
-      c.appendChild(A.ui.groupe('Prise', boitePrise,
-        'Facultatif. Main ouverte, on pousse ; doigts refermés, on serre — et serrer fait '
-      + 'travailler les fléchisseurs des doigts, qui naissent eux aussi de l’épicondyle médial.'));
+      c.appendChild(A.ui.groupe('Prise', boitePrise));
 
       A.m.TYPES_CHARGE.forEach(function (t) {
         selCharge.appendChild(h('option', { value: t.id, text: t.nom }));
@@ -440,11 +436,10 @@
           var lat = l.filter(function (id) { return (A.m.muscle(id) || {}).lateral; })
                      .map(A.m.nomMuscle);
           bouts.push(l.length + ' muscle' + (l.length > 1 ? 's' : '') + '.');
-          if (med.length) {
-            bouts.push('Tire sur l’ÉPICONDYLE MÉDIAL (' + med.join(', ')
-                     + ') — c’est l’insertion commune des fléchisseurs et pronateurs.');
-          }
-          if (lat.length) bouts.push('Et sur l’épicondyle latéral (' + lat.join(', ') + ').');
+          /* L'insertion est une information d'anatomie, dite une fois et sans
+             insistance : on ne rappelle pas une blessure à chaque fiche. */
+          if (med.length) bouts.push('Insertion médiale : ' + med.join(', ') + '.');
+          if (lat.length) bouts.push('Insertion latérale : ' + lat.join(', ') + '.');
         }
         aideMuscles.textContent = bouts.join(' ');
 

@@ -626,8 +626,8 @@
             /* Le nom classique des planches françaises : « long supinateur »,
                « grand palmaire ». C'est celui qu'on reconnaît. */
             h('span', { text: m.quoi + (m.aussi ? ' · dit aussi ' + m.aussi : '') })),
-          m.medial ? h('span', { class: 'jeton jeton-medial', text: 'médial' })
-                   : (m.lateral ? h('span', { class: 'jeton', text: 'latéral' }) : null));
+          m.medial ? h('span', { class: 'jeton jeton-medial', text: 'ins. médiale' })
+                   : (m.lateral ? h('span', { class: 'jeton jeton-medial', text: 'ins. latérale' }) : null));
         b.addEventListener('click', function () {
           var i = sel.indexOf(m.id);
           if (i >= 0) sel.splice(i, 1); else sel.push(m.id);

@@ -1186,7 +1186,8 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   border-bottom: 2px solid var(--fond-2);
   transform: translateY(-1px) rotate(-45deg);
 }
-.jeton-medial { border-color: var(--tendon); color: var(--tendon); background: transparent; }
+/* Neutre : l'insertion est une information d'anatomie, pas une alerte. */
+.jeton-medial { border-color: var(--trait-fort); color: var(--texte-2); background: transparent; }
 
 /* La ligne de la question du lendemain : le nom de la zone sur son propre
    rang, parce qu'en ligne avec un bouton de taille fixe il se reduisait a
