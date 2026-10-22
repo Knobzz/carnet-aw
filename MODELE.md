@@ -361,31 +361,39 @@ ce qui est stocké reste une décision, pas une déduction. Et la quatrième sou
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
 coche qu'une fois.
 
-### La carte : les planches de Gray
+### La carte : une illustration par muscle
 
-Il y a eu ici un **schéma de bandes dessiné à la main**, puis des **polygones cliquables
-posés sur les gravures**, teintés selon la charge. Les deux ont été retirés.
+Il y a eu ici, successivement : un **schéma de bandes dessiné à la main**, puis des
+**polygones cliquables posés sur les gravures**. Les deux ont été retirés, et les trois
+méthodes essayées pour faire suivre les contours réels ont échoué — remplissage depuis une
+graine (la tache fuit par les hachures, les traits de Gray ne sont pas fermés), direction
+des fibres (sépare les groupes, pas les muscles voisins, qui sont parallèles), ligne
+médiane + bord d'encre (correct sur les avant-bras, faux sur le bras, qui est en diagonale).
 
-Le schéma ne ressemblait pas à un bras. Les polygones, eux, ne suivaient pas les contours
-réels — et un découpage approximatif posé sur une gravure exacte **gêne plus qu'il ne
-renseigne** : l'œil voit la vraie limite du muscle juste à côté de la fausse.
+Le problème est résolu **autrement** : chaque muscle a maintenant **sa propre
+illustration** — le membre entier, lui seul teinté en rouge. La forme y est **juste par
+construction**, puisque c'est la planche elle-même qui porte la teinte. Rien à découper.
 
-Trois méthodes ont été essayées pour les faire suivre l'anatomie, et c'est l'échec qui est
-instructif :
+```
+Muscle
+  image   : 'icones/muscle-fcu.png'   l'illustration propre, ou absente
+  planche : 'avb_av'                  la planche générale, toujours présente
+```
 
-| méthode | résultat |
-|---|---|
-| polygones posés à l'œil | des pavés |
-| remplissage depuis une graine prise sur l'étiquette latine | **échec** : la tache fuit par les hachures — 0 % ou 60 % de la planche selon le seuil, car les traits de Gray ne sont pas fermés |
-| direction des fibres (tenseur de structure) | sépare les **groupes**, pas les muscles : les fléchisseurs voisins sont parallèles, c'est de l'anatomie |
-| ligne médiane + bord d'encre le plus proche | correct sur les avant-bras (rubans verticaux), **faux sur le bras** : il est en diagonale, un balayage horizontal coupe le pectoral en travers |
+**Dix-neuf des vingt-deux** en ont une. Les trois autres — grand pectoral, grand dorsal,
+triceps — retombent sur la **planche générale**, où ils sont nommés en latin.
+`musclesSansImage()` les nomme plutôt que de les laisser se fondre dans le lot : c'est ce
+qui reste à trouver, et le banc en tient la liste exacte.
 
-Restent donc **les gravures seules**, feuilletées par **cinq faces** — aucune planche de
-Gray ne montre le membre entier, c'est un atlas, pas une affiche.
+L'onglet Suivi montre l'illustration du **muscle le plus sollicité**, en vignette
+(un avant-bras fait 420 × 1283 : à pleine largeur il mange l'écran et on ne voit plus les
+barres). Le nom de chaque barre ouvre la même image pour le sien, en grand.
 
-Les chiffres sont dans les barres, et le **nom de chaque barre est un bouton** : il ouvre
-la planche en grand, avec le nom latin, ce que le muscle fait et ce qu'il mobilise. C'est
-tout ce que le découpage prétendait apporter, **sans le mensonge du contour**.
+**Poids.** Les fichiers d'origine pesaient 12,9 Mo pour 32 images — jusqu'à 740 ko pièce,
+en RGBA. Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles font 3,5 Mo au
+total et sont **indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des
+photos. Elles ne sont pas pré-chargées ; le service worker les met en cache à la première
+consultation.
 
 ### Les planches de Gray
 

@@ -758,49 +758,50 @@
       v.vrai(!!carte, 'la carte est dessinée');
       if (!carte) return;
 
-      /* --- les faces ---
-         Les zones cliquables ont été retirées : un découpage approximatif
-         posé sur une gravure exacte gêne plus qu'il ne renseigne. Restent
-         les planches, qu'on feuillette. */
-      var faces = doc.querySelectorAll('.planche-faces .puce');
-      v.egal(faces.length, fen.App.m.FACES.length,
-             'une puce par face : aucune planche de Gray ne montre le membre entier');
-      var choisies = Array.prototype.filter.call(faces, function (p) {
-        return p.getAttribute('aria-pressed') === 'true';
-      });
-      v.egal(choisies.length, 1, 'une seule face est montrée à la fois');
-      v.egal(choisies[0].textContent, fen.App.m.FACES[0].nom, 'et c’est la première au départ');
-
+      /* --- l'illustration du muscle le plus sollicité ---
+         Chaque muscle a la sienne : le membre entier, lui seul en rouge.
+         C'est ce que le découpage essayait de fabriquer sans y arriver. */
       var img = carte.querySelector('img.planche-fond');
-      v.vrai(!!img, 'la gravure est montrée');
+      v.vrai(!!img, 'une illustration est montrée');
       v.egal(carte.querySelectorAll('svg').length, 0,
-             'et rien n’est posé dessus : la gravure est le sujet, pas un fond');
+             'et rien n’est posé dessus : l’image est le sujet, pas un fond');
       if (!img) return;
 
-      var avant = img.getAttribute('src');
-      faces[2].click();
-      return attendre(80).then(function () {
-        var carte2 = doc.querySelector('.planche-carte');
-        var img2 = carte2.querySelector('img.planche-fond');
-        v.vrai(img2.getAttribute('src') !== avant, 'changer de face change la gravure');
-        v.egal(doc.querySelectorAll('.planche-faces .puce[aria-pressed="true"]').length, 1,
-               'et une seule puce reste retenue');
-        v.vrai(carte2.parentNode.textContent.indexOf('Gray') >= 0,
-               'la source reste citée sous la carte');
+      /* Le fléchisseur ulnaire est le plus chargé du jeu d'essai : c'est LUI
+         qui doit s'afficher, pas une planche générale ni le premier venu. */
+      v.egal(img.getAttribute('src'), fen.App.m.imageDuMuscle('fcu'),
+             'c’est l’illustration du muscle le PLUS sollicité');
+      v.vrai(carte.parentNode.textContent.indexOf('Fléchisseur ulnaire du carpe') >= 0,
+             'et il est nommé dessous');
+      v.vrai(carte.parentNode.textContent.indexOf('9 séries') >= 0,
+             'avec son compte');
 
-        v.vrai(carte2.getBoundingClientRect().width <= LARGEUR,
-               'la carte tient dans la largeur');
-        v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
-               'et ne provoque aucun défilement horizontal');
+      v.egal(carte.tagName, 'BUTTON',
+             'l’image s’ouvre en grand d’un appui : c’est un BOUTON');
+      v.vrai(carte.getBoundingClientRect().width <= LARGEUR,
+             'elle tient dans la largeur');
+      v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
+             'et ne provoque aucun défilement horizontal');
 
-        return new Promise(function (ok) {
-          if (img2.complete) return ok();
-          img2.addEventListener('load', function () { ok(); });
-          img2.addEventListener('error', function () { ok(); });
-          fen.setTimeout(ok, 3000);
-        }).then(function () {
-          v.vrai(img2.naturalWidth > 0, 'et la gravure se charge pour de bon ('
-               + img2.naturalWidth + ' × ' + img2.naturalHeight + ')');
+      return new Promise(function (ok) {
+        if (img.complete) return ok();
+        img.addEventListener('load', function () { ok(); });
+        img.addEventListener('error', function () { ok(); });
+        fen.setTimeout(ok, 3000);
+      }).then(function () {
+        v.vrai(img.naturalWidth > 0, 'et l’image se charge pour de bon ('
+             + img.naturalWidth + ' × ' + img.naturalHeight + ')');
+
+        /* Toutes les illustrations annoncées doivent exister : une image
+           cassée ne se verrait pas avant le téléphone. */
+        var fichiers = fen.App.m.MUSCLES.filter(function (m) { return m.image; })
+                          .map(function (m) { return m.image; });
+        return Promise.all(fichiers.map(function (f) {
+          return fen.fetch(f).then(function (r) { return r.ok ? null : f; },
+                                   function () { return f; });
+        })).then(function (ratees) {
+          v.egal(ratees.filter(Boolean).join(', '), '',
+                 'les ' + fichiers.length + ' illustrations existent vraiment dans le dépôt');
         });
       }).then(function () {
         /* --- les barres, et le chemin vers la planche en grand --- */

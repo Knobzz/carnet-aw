@@ -408,49 +408,43 @@
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
-    /* --- les planches, qu'on feuillette ---
-       Il y a eu ici des polygones cliquables teintés selon la charge. Ils
-       ont été retirés : impossible de les faire suivre les contours réels,
-       et un découpage approximatif posé sur une gravure exacte gêne plus
-       qu'il ne renseigne. Les chiffres sont dans les barres, et le détail
-       d'un muscle s'ouvre par son nom. */
+    /* --- le muscle le plus sollicité, en image ---
+       Il y a eu ici un schéma dessiné à la main, puis des polygones
+       cliquables posés sur les gravures : les deux ont échoué à suivre les
+       contours réels. Le problème est résolu autrement — chaque muscle a
+       maintenant SON illustration, le membre entier avec lui seul en rouge.
+       La forme y est juste par construction, puisque c'est la planche qui
+       porte la teinte.
+
+       On montre donc celui qui travaille le plus, et les barres mènent aux
+       autres. */
     var maxM = A.m.MUSCLES.reduce(function (m, x) {
       return Math.max(m, c.parMuscle[x.id] || 0);
     }, 0) || 1;
 
-    var enrobe = h('div', { class: 'planche-carte' });
-    var legende = h('div', { class: 'item-resume', style: 'margin-top:2px' });
-    var puces = [];
-
-    function montrerFace(idFace) {
-      var f2 = A.m.face(idFace);
-      var pl = A.m.planche(f2.planche);
-      A.ui.vider(enrobe);
-      puces.forEach(function (x) {
-        x.bouton.setAttribute('aria-pressed', x.id === idFace ? 'true' : 'false');
-      });
-      enrobe.appendChild(h('img', { class: 'planche-fond', src: pl.fichier,
-        alt: 'Planche de Gray numéro ' + pl.numero + ' : ' + pl.nom }));
-      legende.textContent = pl.nom + ' — Gray, 1918.';
-    }
-
-    var rangee = h('div', { class: 'puces planche-faces' });
-    A.m.FACES.forEach(function (f2) {
-      var b = h('button', { type: 'button', class: 'puce', text: f2.nom,
-                            'aria-pressed': 'false' });
-      b.addEventListener('click', function () { montrerFace(f2.id); });
-      puces.push({ id: f2.id, bouton: b });
-      rangee.appendChild(b);
+    var tete = null;
+    A.m.MUSCLES.forEach(function (m) {
+      if ((c.parMuscle[m.id] || 0) === maxM && !tete) tete = m;
     });
 
-    corps.appendChild(rangee);
-    corps.appendChild(enrobe);
-    corps.appendChild(legende);
-    corps.appendChild(h('div', { class: 'item-resume',
-      text: 'Les chiffres sont dans les barres. Appuie sur le nom d’un muscle '
-          + 'pour sa planche, son nom latin et ce qu’il fait.' }));
-
-    montrerFace(A.m.FACES[0].id);
+    if (tete) {
+      var img = A.m.imageDuMuscle(tete.id);
+      var pl = A.m.plancheDuMuscle(tete.id);
+      var bt = h('button', { type: 'button', class: 'planche-carte planche-bouton',
+                             'aria-label': 'Voir ' + tete.nom + ' en grand' },
+        h('img', { class: 'planche-fond', src: img || pl.fichier,
+          alt: img ? tete.nom + ', teinté en rouge sur le membre supérieur'
+                   : 'Planche de Gray : ' + pl.nom }));
+      bt.addEventListener('click', function () { A.panneau.voirPlanche(tete.id); });
+      corps.appendChild(bt);
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:2px' },
+        h('b', { text: 'Le plus sollicité : ' + tete.nom }),
+        h('span', { text: ' — ' + maxM + ' série' + (maxM > 1 ? 's' : '') + '. '
+                        + (img ? 'En rouge sur le membre.' : 'Sur la planche générale.') })));
+      corps.appendChild(h('div', { class: 'item-resume',
+        text: 'Appuie sur le nom d’un muscle, dans les barres, pour la même '
+            + 'image du sien.' }));
+    }
 
     /* --- les chiffres, muscle par muscle --- */
     var barres = h('div', { class: 'barres barres-serrees barres-muscles', style: 'margin-top:12px' });

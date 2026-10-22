@@ -973,21 +973,24 @@
            'le fléchisseur ulnaire est sur la planche de l’avant-bras antérieur');
     v.egal(A.m.plancheDuMuscle('ecu').numero, 418, 'et l’extenseur ulnaire sur la postérieure');
     v.egal(A.m.plancheDuMuscle('zzz'), null, 'un muscle inconnu n’a pas de planche');
-    /* --- les faces qu'on feuillette ---
-       Il y a eu des polygones cliquables posés sur les gravures. Retirés :
-       impossible de leur faire suivre les contours réels. Restent les
-       planches, et il faut que chaque face en désigne une qui existe. */
-    v.egal(A.m.FACES.length, 5, 'cinq faces : aucune planche ne montre le membre entier');
-    var sansPl = A.m.FACES.filter(function (f) { return !A.m.planche(f.planche); })
-                          .map(function (f) { return f.id; });
-    v.egal(sansPl.join(', '), '', 'chaque face renvoie à une planche qui existe');
-    var sansNom = A.m.FACES.filter(function (f) { return !f.nom; }).map(function (f) { return f.id; });
-    v.egal(sansNom.join(', '), '', 'et porte un nom lisible');
-    var idf = A.m.FACES.map(function (f) { return f.id; });
-    v.egal(idf.filter(function (x, i) { return idf.indexOf(x) !== i; }).join(','), '',
-           'aucune face en double');
-    v.egal(A.m.face('avb_av').nom, 'Avant-bras', 'une face se lit par identifiant');
-    v.egal(A.m.face('zzz'), null, 'et un identifiant inconnu ne rend rien');
+    /* --- l'illustration propre à chaque muscle ---
+       Le membre entier, ce muscle-là en rouge. C'est ce que le découpage
+       essayait de fabriquer sans y arriver : ici la forme est juste par
+       construction. Un fichier annoncé mais absent donnerait une image
+       cassée que personne ne verrait avant le téléphone. */
+    v.egal(A.m.musclesSansImage().join(', '), 'grand_pectoral, grand_dorsal, triceps',
+           'trois muscles n’ont pas encore leur illustration, et on les NOMME');
+    var malFichu = A.m.MUSCLES.filter(function (m) {
+      return m.image && m.image.indexOf('icones/muscle-') !== 0;
+    }).map(function (m) { return m.id; });
+    v.egal(malFichu.join(', '), '', 'chaque illustration est rangée au même endroit');
+    v.egal(A.m.imageDuMuscle('fcu'), 'icones/muscle-fcu.png',
+           'l’illustration se lit par identifiant');
+    v.egal(A.m.imageDuMuscle('triceps'), null,
+           'un muscle sans illustration rend null, pas une chaîne vide trompeuse');
+    v.egal(A.m.imageDuMuscle('zzz'), null, 'et un muscle inconnu non plus');
+    v.vrai(!!A.m.plancheDuMuscle('triceps'),
+           'mais il garde sa planche générale : il y est, nommé en latin');
 
     var pl = A.m.PLANCHES.map(function (x) { return x.id; });
     v.egal(pl.filter(function (x, i) { return pl.indexOf(x) !== i; }).join(','), '',

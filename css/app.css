@@ -833,11 +833,18 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .planche { display: block; width: 100%; height: auto; margin: 8px 0;
            border-radius: 8px; background: #fff; border: 1px solid var(--bord); }
 
-/* Les planches qu'on feuillette. Il y a eu des polygones cliquables posés
-   dessus : retires, faute de pouvoir les faire suivre les contours reels. */
-.planche-faces { margin-bottom: 7px; }
+/* L'illustration d'un muscle : le membre entier, lui seul en rouge. Elle
+   s'ouvre en grand d'un appui, donc c'est un BOUTON — et il ne doit pas
+   ressembler a un bouton, juste se toucher. */
 .planche-carte { display: block; margin: 0 auto; max-width: 290px; background: #fff;
                  border: 1px solid var(--bord); border-radius: 8px; overflow: hidden; }
+.planche-bouton { width: 100%; padding: 0; border: 1px solid var(--bord);
+                  font: inherit; cursor: pointer; }
+/* Un avant-bras fait 420 x 1283 : a pleine largeur il mange tout l'ecran et
+   on ne voit plus les barres. En vignette, le rouge reste parfaitement
+   lisible — c'est lui qu'on regarde — et l'appui ouvre l'image en grand. */
+.planche-bouton .planche-fond { max-height: 400px; width: auto; margin: 0 auto; }
+.planche-bouton:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
 .planche-fond { display: block; width: 100%; height: auto; }
 .bt-planche { font-size: .74rem; padding: 4px 9px; }
 /* Le latin est une CITATION de la planche, pas une etiquette de l'app :
