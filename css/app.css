@@ -798,6 +798,15 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .barre-piste .gen { background: var(--bleu); }
 .barre-val { font-variant-numeric: tabular-nums; color: var(--texte-2); min-width: 4.2em; text-align: right; }
 
+/* Des pistes de longueurs differentes ne se comparent pas : une piste courte
+   remplie a fond parait plus basse qu'une piste longue a moitie. Tant que
+   chaque .barre est sa propre grille, la colonne du libelle depend du mot le
+   plus long de SA ligne. Ici les lignes partagent la grille du groupe, et
+   toutes les pistes commencent au meme endroit. Le banc le mesure. */
+.barres-serrees { display: grid; grid-template-columns: minmax(4.2rem, max-content) 1fr auto;
+                  align-items: center; column-gap: 8px; row-gap: 7px; }
+.barres-serrees .barre { display: contents; }
+
 .legende { display: flex; gap: 12px; font-size: .74rem; color: var(--texte-2); margin-top: 9px; }
 .legende span { display: flex; align-items: center; gap: 5px; }
 .legende i { width: 11px; height: 11px; border-radius: 2px; display: block; }
@@ -1188,6 +1197,9 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 }
 /* Neutre : l'insertion est une information d'anatomie, pas une alerte. */
 .jeton-medial { border-color: var(--trait-fort); color: var(--texte-2); background: transparent; }
+.jeton-art { border-color: var(--bleu); color: var(--bleu); background: transparent; }
+.muscle-marques { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.muscle-marques .jeton { font-size: .66rem; }
 
 /* La ligne de la question du lendemain : le nom de la zone sur son propre
    rang, parce qu'en ligne avec un bouton de taille fixe il se reduisait a

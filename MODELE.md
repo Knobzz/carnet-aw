@@ -294,18 +294,38 @@ Les **structures** disent ce qui encaisse — poignet, coude médial : c'est le 
 de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'exercice,
 et c'est leur croisement qui rend la carte lisible.
 
-Treize muscles, chacun avec **ce qu'il fait** : treize noms latins sans explication ne se
-cochent pas, et une case qu'on ne coche pas laisse la carte vide. Ceux qui portent deux
-noms affichent les deux — « Brachio-radial · dit aussi long supinateur » — parce que c'est
-le second qu'on lit sur les planches françaises. Attention au piège : **« long supinateur »
-désigne le brachio-radial, pas le supinateur.** Les confondre enverrait la charge au
-mauvais muscle.
+**Vingt-deux muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
+profonds qu'elle ne montre pas — coraco-brachial, brachial, carré pronateur, supinateur.
+La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce qui tire sur le
+bras (grand dorsal, grand pectoral).
+
+Chacun porte **quatre informations**, parce qu'une liste de noms latins ne se coche pas :
+
+| champ | ce que c'est | pourquoi |
+|---|---|---|
+| `nom` | « Fléchisseur ulnaire du carpe » | le nom actuel, celui des manuels |
+| `court` | « Fléch. ulnaire » | les barres n'ont pas 190 px pour un nom entier à 320 px |
+| `aussi` | « cubital antérieur » | le nom classique, celui des planches françaises |
+| `quoi` | « plie le poignet, côté auriculaire » | **ce qu'il fait** — la seule entrée pour qui ne connaît pas l'anatomie |
+| `articulation` | `poignet` | ce qu'il mobilise, pour le compte par articulation |
+
+Et deux marques : `profond: true` (sous un autre muscle, donc invisible au toucher) et
+`medial` / `lateral` pour l'insertion commune au coude.
+
+Attention au piège : **« long supinateur » désigne le brachio-radial, pas le
+supinateur.** Les confondre enverrait la charge au mauvais muscle. Le banc tient un
+contrôle là-dessus.
 
 **`medial: true` marque la masse flexo-pronatrice.** Rond pronateur, fléchisseur radial du
-carpe, long palmaire, fléchisseur superficiel des doigts et fléchisseur ulnaire du carpe
-partagent **un seul tendon d'origine, sur l'épicondyle médial**. Leur surmenage est
-exactement ce qu'on appelle épicondylite médiale. C'est ce qui relie la carte à la
-douleur, et ce n'est pas une opinion : c'est de l'anatomie.
+carpe, long palmaire, fléchisseurs des doigts et fléchisseur ulnaire du carpe partagent
+**un seul tendon d'origine, sur l'épicondyle médial** — cinq muscles, et le banc vérifie
+que la liste ne bouge pas. `lateral: true` fait de même pour les radiaux, l'extenseur
+ulnaire, les extenseurs des doigts et le supinateur, qui naissent de l'épicondyle
+latéral.
+
+C'est de l'anatomie, pas une opinion, et ça reste **une marque parmi d'autres** : l'app
+compte les séries sur chaque insertion et le dit en une ligne. Elle n'en fait pas le
+sujet de l'écran, et ne colore plus les barres en fonction.
 
 Le **carré pronateur** (distal) et le **brachio-radial** (crête supracondylaire) ne
 portent aucune marque. Les ranger avec les autres aurait été plus simple à lire et faux —
@@ -320,8 +340,8 @@ même chose.
 
 ### Les trois sources de proposition
 
-On ne peut pas demander de cocher treize muscles à qui ne connaît pas les termes : la case
-resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
+On ne peut pas demander de cocher vingt-deux muscles à qui ne connaît pas les termes : la
+case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 
 | source | d'où | solidité |
 |---|---|---|
@@ -359,8 +379,22 @@ donné trois amas de formes détachées. On décrit donc le **contour** du membr
 largeur. Les régions se touchent par construction, et restent justes quand on déplace un
 point du contour.
 
-Le **deltoïde** et la **main** sont dessinés sans être suivis : ils ne font pas partie des
-treize, mais sans eux le membre ne se reconnaît pas. Ils ne répondent pas au doigt.
+**Chaque muscle a un ventre, pas un rectangle.** Une bande peut se resserrer vers son axe
+à l'une ou l'autre extrémité (`pointeHaut`, `pointeBas`) et glisser en biais le long du
+membre (une fraction `[début, fin]`). Sans ça le dessin lit « pile de briques » : c'est
+ce qu'il faisait, et c'est ce que le fuseau corrige. Le rond pronateur traverse en
+diagonale parce qu'en vrai il traverse en diagonale.
+
+**Tous les muscles n'ont pas de territoire lisible à 190 px de large.** L'anconé, le long
+palmaire ou l'extenseur du petit doigt y tiendraient sur trois pixels. Ceux-là vivent
+**dans les barres**, et la légende sous le dessin les nomme — mais seulement quand ils ont
+des séries, sinon on listerait pour lister. La liste `SANS_TRACE_ATTENDUS` est exposée au
+banc, qui vérifie le **recouvrement exact** : tout muscle est soit une région du schéma,
+soit déclaré hors dessin. Un muscle oublié des deux serait invisible ; une région sans
+muscle serait un mensonge.
+
+La **main** est le seul décor : elle sert à reconnaître le membre et ne répond pas au
+doigt. Le deltoïde, lui, est devenu un muscle suivi comme les autres.
 
 Ce que ce n'est **pas** : une planche médicale. Les contours sont approximatifs, en
 particulier les insertions. Des régions nettes, nommées et à la bonne place valent mieux
@@ -376,6 +410,27 @@ n'est pas du travail, c'est de la sollicitation.
 
 Les séries d'un exercice **sans muscle renseigné** sont comptées à part et l'écran le dit :
 elles ne sont nulle part sur la carte.
+
+### Ce que tu mobilises
+
+`chargeParArticulation()` répond à une autre question. Un compte par muscle dit *lequel
+travaille* ; celui-ci dit *qu'est-ce que je fais travailler* — épaule, coude, rotation de
+l'avant-bras, poignet, doigts, pouce. C'est la question d'un programme, et un **zéro y est
+une information** : un poignet jamais sollicité se voit.
+
+**Une série s'y compte une fois par articulation**, même si l'exercice coche trois muscles
+du coude. Additionner les muscles donnerait des nombres plus grands que le nombre de
+séries faites — un compte que personne ne peut relire. Un exercice qui mobilise deux
+articulations compte en revanche pour les deux : c'est vrai.
+
+### Des barres qui se comparent
+
+Les lignes d'un même groupe **partagent la grille du groupe** (`.barres-serrees`,
+`display: contents` sur la ligne). Tant que chaque ligne était sa propre grille, la
+colonne du libellé dépendait du mot le plus long de *sa* ligne : une piste courte remplie
+à fond paraissait plus basse qu'une piste longue à moitié. Le banc mesure que toutes les
+pistes d'un groupe commencent au même endroit, font la même longueur, et qu'il en reste
+assez pour comparer.
 
 ## Zones de douleur, et leur intensité
 

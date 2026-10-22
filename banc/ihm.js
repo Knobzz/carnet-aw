@@ -352,6 +352,47 @@
         v.egal(debord, 0, 'et aucune ne sort de l’écran à 320 px : elles passent à la ligne');
       }
 
+      /* --- la liste des muscles ---
+         Elle est rangée par région, et une région oubliée du tableau rendrait
+         ses muscles INVISIBLES : la case resterait vide sans que rien ne le
+         dise. On compte donc les lignes contre le tableau du modèle. */
+      var lignesM = pan.querySelectorAll('.muscle-ligne');
+      v.egal(lignesM.length, fen.App.m.MUSCLES.length,
+             'chaque muscle a sa ligne dans la fiche — une région oubliée les '
+           + 'ferait disparaître sans bruit');
+      var nomsM = Array.prototype.map.call(lignesM, function (l) {
+        return l.querySelector('b').textContent;
+      });
+      var absents = fen.App.m.MUSCLES.filter(function (m) {
+        return nomsM.indexOf(m.nom) < 0;
+      }).map(function (m) { return m.nom; });
+      v.egal(absents.join(', '), '', 'et c’est bien chacun le sien');
+
+      /* Chaque ligne dit ce que le muscle MOBILISE : c'est la seule entrée
+         pour qui ne connaît pas les termes. */
+      var sansJeton = Array.prototype.filter.call(lignesM, function (l) {
+        var j = l.querySelector('.jeton-art');
+        return !j || !j.textContent;
+      }).length;
+      v.egal(sansJeton, 0, 'chaque ligne dit l’articulation mobilisée');
+      var texteM = pan.textContent;
+      v.vrai(texteM.indexOf('Rotation de l’avant-bras') >= 0,
+             'nommée en clair — « Rotation de l’avant-bras », pas « avant_bras »');
+      v.vrai(texteM.indexOf('profond') >= 0,
+             'et les muscles profonds sont signalés comme tels');
+      v.vrai(texteM.indexOf('dit aussi long supinateur') >= 0,
+             'le nom des planches françaises est donné : c’est celui qu’on reconnaît');
+
+      var hautM = 999, sortM = 0;
+      Array.prototype.forEach.call(lignesM, function (l) {
+        var r = l.getBoundingClientRect();
+        hautM = Math.min(hautM, r.height);
+        if (r.right > LARGEUR + 1) sortM += 1;
+      });
+      v.vrai(hautM >= 44, 'chaque ligne reste touchable (mesuré : '
+                        + Math.round(hautM) + ' px)');
+      v.egal(sortM, 0, 'et aucune ne sort de l’écran à 320 px');
+
       /* Rien ne doit déborder horizontalement, nulle part dans le panneau. */
       var corps = pan.querySelector('.panneau-corps');
       v.vrai(corps.scrollWidth <= corps.clientWidth + 1,
@@ -560,7 +601,10 @@
                    programmeId: null, programmeNom: 'P', dureeMin: null, rpeGlobal: null,
                    note: '', douleurs: [],
                    exercices: [exo('A', ['fcu'], 9), exo('B', ['biceps'], 3),
-                               exo('C', ['grand_pectoral'], 1)] }];
+                               exo('C', ['grand_pectoral'], 1),
+                               /* Les noms les plus longs du tableau : sans eux, la
+                                  mesure de largeur des pistes ne prouverait rien. */
+                               exo('D', ['fcr', 'ecrb', 'ecrl'], 2)] }];
     fen.App.vues.suivi.rendre(vue);
 
     return attendre(150).then(function () {
@@ -569,21 +613,34 @@
       if (!svg) return;
 
       var zones = svg.querySelectorAll('.region-bras');
-      v.egal(zones.length, fen.App.m.MUSCLES.length,
-             'une région par muscle — ni plus, ni moins');
 
-      /* Chaque muscle du modèle a sa région, et chaque région un muscle :
-         un muscle sans région serait invisible, une région sans muscle
-         serait un mensonge. */
+      /* L'invariant du dessin : tout muscle du modèle est SOIT une région du
+         schéma, SOIT déclaré « dit dans les barres seulement ». Un muscle
+         oublié des deux listes serait invisible, et une région sans muscle
+         serait un mensonge. C'est ce recouvrement exact qu'on mesure — pas un
+         nombre, qui se contenterait de bouger avec le code. */
+      var horsDessin = fen.App.vues.suivi.SANS_TRACE_ATTENDUS;
       var etiquettes = Array.prototype.map.call(zones, function (z) {
         return z.getAttribute('aria-label').split(',')[0];
       });
-      var manquants = fen.App.m.MUSCLES.filter(function (m) {
-        return etiquettes.indexOf(m.nom) < 0;
+      v.egal(zones.length + horsDessin.length, fen.App.m.MUSCLES.length,
+             'autant de régions et de muscles hors dessin que de muscles');
+      var invisibles = fen.App.m.MUSCLES.filter(function (m) {
+        return etiquettes.indexOf(m.nom) < 0 && horsDessin.indexOf(m.id) < 0;
       }).map(function (m) { return m.nom; });
-      v.egal(manquants.length, 0,
-             'aucun muscle ne manque sur le dessin (absents : '
-           + (manquants.join(', ') || 'aucun') + ')');
+      v.egal(invisibles.length, 0,
+             'aucun muscle n’est invisible : il a sa région, ou il est déclaré '
+           + 'hors dessin (oubliés : ' + (invisibles.join(', ') || 'aucun') + ')');
+      var fantomes = horsDessin.filter(function (id) {
+        return etiquettes.indexOf(fen.App.m.nomMuscle(id)) >= 0;
+      });
+      v.egal(fantomes.length, 0,
+             'et aucun n’est déclaré hors dessin alors qu’il y figure (fantômes : '
+           + (fantomes.join(', ') || 'aucun') + ')');
+      var inconnus = horsDessin.filter(function (id) { return !fen.App.m.muscle(id); });
+      v.egal(inconnus.length, 0,
+             'la liste hors dessin ne nomme aucun muscle inexistant (inconnus : '
+           + (inconnus.join(', ') || 'aucun') + ')');
 
       /* Les tracés doivent être valides : un `d` vide ou NaN donne une forme
          invisible, et le navigateur ne s'en plaint pas. */
@@ -611,12 +668,15 @@
       v.vrai(chaleurDe('Biceps') === '1' || chaleurDe('Biceps') === '2',
              'et un muscle moyennement sollicité est entre les deux');
 
-      /* Le décor ne doit pas répondre au doigt : le deltoïde et la main sont
-         dessinés sans être suivis. */
+      /* Le décor ne doit pas répondre au doigt : la main est dessinée pour
+         reconnaître le membre, sans rien suivre. Le deltoïde, lui, est devenu
+         un muscle suivi — il n'est plus du décor. */
       var inertes = svg.querySelectorAll('.bras-inerte');
-      v.vrai(inertes.length >= 2, 'le deltoïde et la main sont dessinés');
+      v.egal(inertes.length, 1, 'la main est dessinée, et elle seule est inerte');
       v.egal(fen.getComputedStyle(inertes[0]).pointerEvents, 'none',
-             'mais ils ne répondent pas au doigt — ils ne sont pas suivis');
+             'elle ne répond pas au doigt — elle n’est pas suivie');
+      v.vrai(etiquettes.indexOf('Deltoïde') >= 0,
+             'le deltoïde, lui, est une région comme les autres');
 
       /* Appuyer dit le nom, la fonction, et l'insertion quand elle compte. */
       var fcu = null;
@@ -630,8 +690,70 @@
              'et donne son nom classique — c’est celui des planches françaises');
       v.vrai(detail.indexOf('insertion médiale') >= 0,
              'et situe son insertion — une information d’anatomie, dite sans insistance');
+      v.vrai(detail.indexOf('plie le poignet') >= 0,
+             'et dit ce que le muscle FAIT — c’est ce qui sert quand on ne connaît '
+           + 'pas l’anatomie');
 
-      v.vrai(svg.getBoundingClientRect().width <= LARGEUR,
+      /* Les muscles sans tracé qui ont des séries doivent être NOMMÉS sous le
+         dessin, sinon leur absence passerait pour un oubli. */
+      var legende = svg.parentNode.parentNode.textContent;
+      e.seances[0].exercices.push(exo('E', ['ecu'], 2));
+      fen.App.ui.vider(vue);
+      fen.App.vues.suivi.rendre(vue);
+      return attendre(120).then(function () {
+        var svg2 = doc.querySelector('.carte-bras');
+        var dit = svg2.parentNode.parentNode.textContent;
+        v.vrai(dit.indexOf('Extenseur ulnaire du carpe') >= 0,
+               'un muscle hors dessin mais travaillé est nommé sous le schéma');
+        v.vrai(legende.indexOf('Extenseur ulnaire du carpe') < 0,
+               'et ne l’est pas quand il n’a aucune série — on ne liste pas pour lister');
+
+        /* Ce que tu mobilises : par articulation. */
+        var lignes = doc.querySelectorAll('.barres-art .barre');
+        v.egal(lignes.length, fen.App.m.ARTICULATIONS.length,
+               'chaque articulation a sa barre, zéro compris');
+        var textes = Array.prototype.map.call(lignes, function (l) { return l.textContent; });
+        v.vrai(textes.join(' ').indexOf('Rotation de l’avant-bras') >= 0,
+               'et porte un nom lisible, pas un identifiant');
+
+        /* Les lignes partagent la grille du groupe : on mesure les libellés,
+           pas la ligne — avec display:contents elle n'a plus de boîte. */
+        function coupes(sel) {
+          return Array.prototype.filter.call(doc.querySelectorAll(sel), function (n) {
+            return n.scrollWidth > n.clientWidth + 1;
+          }).map(function (n) { return n.textContent; });
+        }
+        v.egal(coupes('.barres-art .barre > span:first-child').join(', '), '',
+               'aucun nom d’articulation n’est coupé à 320 px');
+        v.egal(coupes('.barres-muscles .barre > span:first-child').join(', '), '',
+               'ni aucun nom de muscle — c’est à ça que servent les noms courts');
+
+        /* Une piste courte remplie à fond paraît plus basse qu’une piste
+           longue à moitié : des barres qui ne commencent pas au même endroit
+           ne se comparent pas. */
+        function pistes(sel) {
+          return Array.prototype.map.call(doc.querySelectorAll(sel), function (n) {
+            var r = n.getBoundingClientRect();
+            return Math.round(r.left) + '/' + Math.round(r.width);
+          });
+        }
+        var pm = pistes('.barres-muscles .barre-piste');
+        v.vrai(pm.length >= 3, 'il y a bien une piste par muscle sollicité');
+        v.vrai(parseInt(pm[0].split('/')[1], 10) >= 70,
+               'et la piste garde de quoi comparer des longueurs ('
+             + pm[0].split('/')[1] + ' px)');
+        v.egal(pm.filter(function (x, i) { return x !== pm[0]; }).length, 0,
+               'toutes les pistes de muscles commencent au même endroit et font '
+             + 'la même longueur (vues : ' + pm.filter(function (x, i) {
+                 return pm.indexOf(x) === i;
+               }).join(' ') + ')');
+        var pa = pistes('.barres-art .barre-piste');
+        v.egal(pa.filter(function (x) { return x !== pa[0]; }).length, 0,
+               'et celles des articulations aussi');
+        return svg2;
+      }).then(function (svg2) {
+
+      v.vrai(svg2.getBoundingClientRect().width <= LARGEUR,
              'la carte tient dans la largeur');
       v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
              'et ne provoque aucun défilement horizontal');
@@ -639,6 +761,7 @@
       fen.App.ui.vider(vue);
       e.seances = [];
       return attendre(20);
+      });
     });
   });
 

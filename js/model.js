@@ -190,33 +190,88 @@
      ne portent AUCUNE des deux marques : les mettre avec les autres aurait
      ete plus simple a lire et faux. */
   var MUSCLES = [
-    { id: 'rond_pronateur', nom: 'Rond pronateur', groupe: 'avant_bras_av',
-      quoi: 'tourne la paume vers le bas', medial: true },
-    { id: 'fcr', nom: 'Fléchisseur radial du carpe', aussi: 'grand palmaire',
-      groupe: 'avant_bras_av', quoi: 'plie le poignet, côté pouce', medial: true },
-    { id: 'fcu', nom: 'Fléchisseur ulnaire du carpe', aussi: 'cubital antérieur',
-      groupe: 'avant_bras_av', quoi: 'plie le poignet, côté auriculaire', medial: true },
-    { id: 'flechisseurs_doigts', nom: 'Fléchisseurs des doigts', groupe: 'main',
-      quoi: 'serrent la main', medial: true },
-    { id: 'carre_pronateur', nom: 'Carré pronateur', groupe: 'avant_bras_av',
-      quoi: 'tourne l’avant-bras, près du poignet' },
-    { id: 'supinateur', nom: 'Supinateur', groupe: 'avant_bras_ar',
-      quoi: 'tourne la paume vers le haut', lateral: true },
-    { id: 'extenseurs_poignet', nom: 'Extenseurs du poignet', aussi: '1er et 2e radial',
-      groupe: 'avant_bras_ar', quoi: 'relèvent le poignet', lateral: true },
-    { id: 'brachio_radial', nom: 'Brachio-radial', aussi: 'long supinateur',
-      groupe: 'avant_bras_ar', quoi: 'fléchit le coude, prise marteau' },
-    { id: 'biceps', nom: 'Biceps', groupe: 'bras_av',
-      quoi: 'fléchit le coude et supine' },
-    { id: 'brachial', nom: 'Brachial', aussi: 'brachial antérieur', groupe: 'bras_av',
-      quoi: 'fléchit le coude, quelle que soit la prise' },
-    { id: 'triceps', nom: 'Triceps', groupe: 'bras_ar',
-      quoi: 'tend le coude' },
-    { id: 'grand_pectoral', nom: 'Grand pectoral', aussi: 'pectoral', groupe: 'tronc',
-      quoi: 'ramène le bras vers soi' },
-    { id: 'grand_dorsal', nom: 'Grand dorsal', groupe: 'tronc',
-      quoi: 'tire le bras vers l’arrière et le bas' }
+    /* --- épaule et tronc --- */
+    { id: 'grand_pectoral', nom: 'Grand pectoral', court: 'Pectoral', aussi: 'pectoral',
+      groupe: 'tronc', quoi: 'ramène le bras vers soi', articulation: 'epaule' },
+    { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
+      groupe: 'tronc', quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
+    { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde', groupe: 'tronc',
+      quoi: 'élève le bras et tient l’épaule', articulation: 'epaule' },
+    { id: 'coraco_brachial', nom: 'Coraco-brachial', court: 'Coraco-brach.', groupe: 'tronc',
+      quoi: 'amène le bras vers l’avant et vers soi', articulation: 'epaule', profond: true },
+
+    /* --- bras --- */
+    { id: 'biceps', nom: 'Biceps brachial', court: 'Biceps', aussi: 'biceps',
+      groupe: 'bras_av', quoi: 'fléchit le coude et supine', articulation: 'coude' },
+    { id: 'brachial', nom: 'Brachial', court: 'Brachial', aussi: 'brachial antérieur',
+      groupe: 'bras_av', quoi: 'fléchit le coude, quelle que soit la prise',
+      articulation: 'coude', profond: true },
+    { id: 'triceps', nom: 'Triceps brachial', court: 'Triceps', aussi: 'triceps',
+      groupe: 'bras_ar', quoi: 'tend le coude', articulation: 'coude' },
+    { id: 'ancone', nom: 'Anconé', court: 'Anconé', groupe: 'bras_ar',
+      quoi: 'assiste l’extension et tient le coude', articulation: 'coude' },
+
+    /* --- avant-bras, face antérieure : la masse flexo-pronatrice --- */
+    { id: 'rond_pronateur', nom: 'Rond pronateur', court: 'Rond pronat.',
+      groupe: 'avant_bras_av', quoi: 'tourne la paume vers le bas',
+      articulation: 'avant_bras', medial: true },
+    { id: 'fcr', nom: 'Fléchisseur radial du carpe', court: 'Fléch. radial',
+      aussi: 'grand palmaire', groupe: 'avant_bras_av',
+      quoi: 'plie le poignet, côté pouce', articulation: 'poignet', medial: true },
+    { id: 'long_palmaire', nom: 'Long palmaire', court: 'Long palmaire',
+      aussi: 'petit palmaire', groupe: 'avant_bras_av',
+      quoi: 'plie faiblement le poignet — absent chez une personne sur six',
+      articulation: 'poignet', medial: true },
+    { id: 'fcu', nom: 'Fléchisseur ulnaire du carpe', court: 'Fléch. ulnaire',
+      aussi: 'cubital antérieur', groupe: 'avant_bras_av',
+      quoi: 'plie le poignet, côté auriculaire', articulation: 'poignet', medial: true },
+    { id: 'flechisseurs_doigts', nom: 'Fléchisseurs des doigts', court: 'Fléch. doigts',
+      groupe: 'main', quoi: 'serrent la main', articulation: 'doigts', medial: true },
+    { id: 'carre_pronateur', nom: 'Carré pronateur', court: 'Carré pronat.',
+      groupe: 'avant_bras_av', quoi: 'tourne l’avant-bras, près du poignet',
+      articulation: 'avant_bras', profond: true },
+
+    /* --- avant-bras, face postérieure --- */
+    { id: 'brachio_radial', nom: 'Brachio-radial', court: 'Brachio-radial',
+      aussi: 'long supinateur', groupe: 'avant_bras_ar',
+      quoi: 'fléchit le coude, prise marteau', articulation: 'coude' },
+    { id: 'ecrl', nom: 'Long extenseur radial du carpe', court: 'Long ext. radial',
+      aussi: '1er radial', groupe: 'avant_bras_ar',
+      quoi: 'relève le poignet, côté pouce', articulation: 'poignet', lateral: true },
+    { id: 'ecrb', nom: 'Court extenseur radial du carpe', court: 'Court ext. radial',
+      aussi: '2e radial', groupe: 'avant_bras_ar', quoi: 'relève le poignet',
+      articulation: 'poignet', lateral: true },
+    { id: 'ecu', nom: 'Extenseur ulnaire du carpe', court: 'Ext. ulnaire',
+      aussi: 'cubital postérieur', groupe: 'avant_bras_ar',
+      quoi: 'relève le poignet, côté auriculaire', articulation: 'poignet', lateral: true },
+    { id: 'extenseurs_doigts', nom: 'Extenseurs des doigts', court: 'Ext. doigts',
+      groupe: 'avant_bras_ar', quoi: 'ouvrent la main', articulation: 'doigts', lateral: true },
+    { id: 'extenseur_petit_doigt', nom: 'Extenseur du petit doigt', court: 'Ext. auriculaire',
+      groupe: 'avant_bras_ar', quoi: 'ouvre l’auriculaire', articulation: 'doigts', lateral: true },
+    { id: 'extenseurs_pouce', nom: 'Extenseurs du pouce', court: 'Ext. pouce',
+      groupe: 'avant_bras_ar', quoi: 'ouvrent et écartent le pouce', articulation: 'pouce' },
+    { id: 'supinateur', nom: 'Supinateur', court: 'Supinateur', groupe: 'avant_bras_ar',
+      quoi: 'tourne la paume vers le haut', articulation: 'avant_bras',
+      lateral: true, profond: true }
   ];
+
+  /* Ce que chaque muscle MOBILISE. C'est la question qu'on se pose vraiment
+     devant un programme — « qu'est-ce que je fais travailler » — et à
+     laquelle ni l'insertion ni la region ne repondent. */
+  var ARTICULATIONS = [
+    { id: 'epaule',     nom: 'Épaule' },
+    { id: 'coude',      nom: 'Coude' },
+    { id: 'avant_bras', nom: 'Rotation de l’avant-bras' },
+    { id: 'poignet',    nom: 'Poignet' },
+    { id: 'doigts',     nom: 'Doigts' },
+    { id: 'pouce',      nom: 'Pouce' }
+  ];
+
+  function nomArticulation(id) {
+    for (var i = 0; i < ARTICULATIONS.length; i++) if (ARTICULATIONS[i].id === id) return ARTICULATIONS[i].nom;
+    return '';
+  }
+
 
   /* Les regions du schema. Treize muscles sur un bras de 290 px seraient
      illisibles : le dessin montre SIX regions, et les chiffres exacts se
@@ -246,12 +301,12 @@
      Rien n'est ecrit sur l'exercice sans un geste : la proposition remplit
      les cases, l'utilisateur garde la main. */
   var MUSCLES_PAR_MOUVEMENT = {
-    cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'flechisseurs_doigts'] },
+    cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'long_palmaire', 'flechisseurs_doigts'] },
     pronation:     { source: 'anatomie',   muscles: ['rond_pronateur', 'carre_pronateur'] },
     supination:    { source: 'anatomie',   muscles: ['supinateur', 'biceps'] },
-    rising:        { source: 'a_verifier', muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    rising:        { source: 'a_verifier', muscles: ['biceps', 'brachial', 'brachio_radial', 'deltoide'] },
     back_pressure: { source: 'a_verifier', muscles: ['grand_dorsal', 'grand_pectoral', 'biceps'] },
-    side_pressure: { source: 'a_verifier', muscles: ['grand_pectoral', 'fcu'] }
+    side_pressure: { source: 'a_verifier', muscles: ['grand_pectoral', 'deltoide', 'fcu'] }
   };
 
   /* Ce qu'un NOM d'exercice dit deja. « Curl biceps prise ouverte » contient
@@ -281,7 +336,16 @@
        OUTILS, et le banc l'a attrape. Un mot qui apparait dans un nom de
        materiel ne designe pas un muscle. */
     flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'doigts', 'pinch', 'serrer'],
-    extenseurs_poignet:  ['extension poignet', 'extenseur', 'reverse curl', 'reverse wrist'],
+    ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
+    ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
+    ecu:                 ['cubital posterieur', 'extenseur ulnaire'],
+    extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main', 'extensor band'],
+    extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
+    extenseurs_pouce:    ['pouce', 'thumb'],
+    deltoide:            ['deltoide', 'epaule', 'elevation laterale', 'shoulder press'],
+    coraco_brachial:     ['coraco'],
+    ancone:              ['ancone'],
+    long_palmaire:       ['petit palmaire', 'long palmaire'],
     grand_pectoral:      ['pectoral', 'pec', 'developpe', 'bench', 'press'],
     grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat']
   };
@@ -304,14 +368,33 @@
     for (var i = 0; i < MUSCLES.length; i++) if (MUSCLES[i].id === id) return MUSCLES[i];
     return null;
   }
+  /* Le nom court sert aux barres, où la place manque : « Court ext. radial »
+     tient sur une ligne là où « Court extenseur radial du carpe » mangerait
+     la piste. Le nom entier reste sur la fiche et au doigt sur le schéma. */
+  function nomCourtMuscle(id) {
+    var m = muscle(id);
+    return m ? (m.court || m.nom) : '';
+  }
+
   function nomMuscle(id) {
     var m = muscle(id);
     return m ? m.nom : id;
   }
   /* Remet une liste de muscles dans l'ordre du tableau, sans doublon ni
      inconnu — meme discipline que les colonnes. */
+  /* Un identifiant d'avant : « extenseurs_poignet » designait les DEUX
+     radiaux, qui ont maintenant chacun le leur. Converti a la lecture, comme
+     tout le reste : un carnet deja renseigne ne perd rien. */
+  var MUSCLES_RENOMMES = { extenseurs_poignet: ['ecrl', 'ecrb'] };
+
   function muscles(exo) {
-    var voulus = (exo && exo.muscles) || [];
+    var bruts = (exo && exo.muscles) || [];
+    var voulus = [];
+    bruts.forEach(function (id) {
+      var r = MUSCLES_RENOMMES[id];
+      if (r) r.forEach(function (x) { voulus.push(x); });
+      else voulus.push(id);
+    });
     var l = [];
     MUSCLES.forEach(function (m) { if (voulus.indexOf(m.id) >= 0) l.push(m.id); });
     return l;
@@ -1390,6 +1473,42 @@
              total: total, sansMuscle: sansMuscle };
   }
 
+  /* Ce qu'on MOBILISE, par articulation. Un compte par muscle répond à
+     « lequel travaille » ; celui-ci répond à « qu'est-ce que je fais
+     travailler », qui est la question d'un programme.
+
+     Une série se compte UNE FOIS par articulation, même si l'exercice coche
+     trois muscles du poignet. Additionner les muscles donnerait des nombres
+     plus grands que le nombre de séries faites — un compte que personne ne
+     peut relire. */
+  function chargeParArticulation(etat, depuisJours) {
+    var par = {}, total = 0;
+    ARTICULATIONS.forEach(function (x) { par[x.id] = 0; });
+
+    (etat.seances || []).forEach(function (se) {
+      if (!se || (se.type !== 'muscu' && se.type !== 'recup')) return;
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!n) return;
+        var vues = [];
+        muscles(ex).forEach(function (id) {
+          var m = muscle(id);
+          if (!m || par[m.articulation] == null) return;
+          if (vues.indexOf(m.articulation) >= 0) return;
+          vues.push(m.articulation);
+          par[m.articulation] += n;
+          total += n;
+        });
+      });
+    });
+
+    return ARTICULATIONS.map(function (x) {
+      return { articulation: x.id, nom: x.nom, series: par[x.id],
+               part: total ? par[x.id] / total : 0 };
+    });
+  }
+
   /* Le croisement que la carte rend possible : pour chaque mouvement, ce
      qu'il a REELLEMENT fait travailler — d'apres les exercices tels qu'ils
      sont renseignes, pas d'apres la table de proposition. C'est la difference
@@ -1732,12 +1851,15 @@
     FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
     COTES: COTES, COTE_INCONNU: COTE_INCONNU,
     PRISES: PRISES, priseValide: priseValide, nomPrise: nomPrise,
+    ARTICULATIONS: ARTICULATIONS, nomArticulation: nomArticulation,
     MUSCLES: MUSCLES, REGIONS_MUSCLE: REGIONS_MUSCLE,
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
-    muscle: muscle, nomMuscle: nomMuscle, muscles: muscles,
+    muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
+    muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     chargeParMuscle: chargeParMuscle,
     musclesParMouvement: musclesParMouvement, chargeEpicondyle: chargeEpicondyle,
+    chargeParArticulation: chargeParArticulation,
     coteValide: coteValide, nomCote: nomCote, courtCote: courtCote,
     cotesCouverts: cotesCouverts,
     COLONNES: COLONNES, COLONNES_DEFAUT: COLONNES_DEFAUT,

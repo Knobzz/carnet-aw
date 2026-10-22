@@ -413,7 +413,7 @@
         'Facultatif. Sert à repérer, dans Suivi, un mouvement qu’un programme néglige.'));
 
       /* ---- les muscles, proposés depuis les mouvements ----
-         On ne peut pas demander de cocher treize muscles à qui ne connaît pas
+         On ne peut pas demander de cocher vingt-deux muscles à qui ne connaît pas
          les termes : la case resterait vide, et la carte aussi. Les
          mouvements déjà cochés proposent donc une première liste, et on dit
          D'OÙ elle vient — du manuel d'anatomie pour les trois mouvements qui

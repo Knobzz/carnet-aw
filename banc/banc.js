@@ -837,7 +837,7 @@
      ================================================================ */
 
   bloc('Muscles et prise', function (v) {
-    v.egal(A.m.MUSCLES.length, 13, 'treize muscles');
+    v.egal(A.m.MUSCLES.length, 22, 'vingt-deux muscles — toute la planche, plus les profonds qu’elle ne montre pas');
     v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
     v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
     v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
@@ -846,14 +846,15 @@
        et se tromper là rendrait tout le reste faux. */
     var medial = A.m.MUSCLES.filter(function (m) { return m.medial; })
                             .map(function (m) { return m.id; }).sort();
-    v.egal(medial.join(','), 'fcr,fcu,flechisseurs_doigts,rond_pronateur',
-           'quatre muscles naissent de l’épicondyle médial, et pas un de plus');
+    v.egal(medial.join(','), 'fcr,fcu,flechisseurs_doigts,long_palmaire,rond_pronateur',
+           'cinq muscles naissent de l’épicondyle médial, et pas un de plus');
     v.vrai(!A.m.muscle('carre_pronateur').medial,
            'le carré pronateur est DISTAL : le ranger avec les autres aurait été plus '
          + 'simple à lire et faux');
     v.vrai(!A.m.muscle('supinateur').medial, 'le supinateur non plus');
     v.vrai(A.m.muscle('supinateur').lateral, 'il est du côté latéral');
-    v.vrai(A.m.muscle('extenseurs_poignet').lateral, 'les extenseurs aussi');
+    v.vrai(A.m.muscle('ecrb').lateral, 'les radiaux aussi');
+    v.vrai(A.m.muscle('ecu').lateral, 'et le cubital postérieur');
     v.vrai(!A.m.muscle('brachio_radial').medial && !A.m.muscle('brachio_radial').lateral,
            'et le brachio-radial ne porte aucune des deux marques — crête supracondylaire');
 
@@ -933,9 +934,49 @@
     v.vrai(troisSources.muscles.indexOf('fcu') >= 0, 'depuis le mouvement');
     v.vrai(troisSources.muscles.indexOf('flechisseurs_doigts') >= 0, 'et depuis la prise');
 
+    /* --- ce que chaque muscle mobilise --- */
+    v.egal(A.m.ARTICULATIONS.length, 6, 'six articulations nommées');
+    v.egal(A.m.nomArticulation('avant_bras'), 'Rotation de l’avant-bras',
+           'la rotation de l’avant-bras en est une — c’est elle que travaille la pronation');
+    v.egal(A.m.nomArticulation('zzz'), '', 'une articulation inconnue ne rend rien');
+    var sansArt = A.m.MUSCLES.filter(function (m) {
+      return !A.m.nomArticulation(m.articulation);
+    }).map(function (m) { return m.nom; });
+    v.egal(sansArt.length, 0,
+           'chaque muscle dit ce qu’il mobilise (muets : ' + (sansArt.join(', ') || 'aucun') + ')');
+    var sansQuoi = A.m.MUSCLES.filter(function (m) { return !m.quoi; }).map(function (m) { return m.nom; });
+    v.egal(sansQuoi.length, 0,
+           'et chacun dit ce qu’il fait (muets : ' + (sansQuoi.join(', ') || 'aucun') + ')');
+    /* Les barres n'ont pas la place des noms entiers : chaque muscle doit
+       avoir un nom court, et deux muscles ne peuvent pas porter le même —
+       sur un graphique, deux lignes « Fléch. » ne se distinguent plus. */
+    var sansCourt = A.m.MUSCLES.filter(function (m) { return !m.court; })
+                               .map(function (m) { return m.nom; });
+    v.egal(sansCourt.join(', '), '', 'chaque muscle a un nom court pour les barres');
+    var courts = A.m.MUSCLES.map(function (m) { return m.court; });
+    v.egal(courts.filter(function (x, i) { return courts.indexOf(x) !== i; }).join(', '), '',
+           'et deux muscles ne portent pas le même');
+    v.egal(A.m.nomCourtMuscle('ecrb'), 'Court ext. radial', 'le nom court se lit par identifiant');
+    v.egal(A.m.nomCourtMuscle('zzz'), '', 'et un inconnu ne rend rien');
+    var tropLong = A.m.MUSCLES.filter(function (m) { return m.court.length > 18; })
+                              .map(function (m) { return m.court; });
+    v.egal(tropLong.join(', '), '', 'aucun nom court ne dépasse 18 signes');
+
+    var idsM = A.m.MUSCLES.map(function (m) { return m.id; });
+    v.egal(idsM.filter(function (x, i) { return idsM.indexOf(x) !== i; }).join(','), '',
+           'aucun identifiant en double');
+
+    /* --- un carnet d'avant : l'identifiant disparu se convertit --- */
+    v.egal(A.m.muscles({ muscles: ['extenseurs_poignet'] }).join(','), 'ecrl,ecrb',
+           '« extenseurs du poignet » désignait les DEUX radiaux : il devient les deux, '
+         + 'plutôt que de disparaître du carnet');
+    v.egal(A.m.muscles({ muscles: ['extenseurs_poignet', 'ecrl'] }).join(','), 'ecrl,ecrb',
+           'et sans doubler celui qui était déjà là');
+
     /* L'ordre est celui du tableau, jamais celui de la saisie. */
-    v.egal(A.m.muscles({ muscles: ['triceps', 'fcu'] }).join(','), 'fcu,triceps',
-           'les muscles sont remis dans l’ordre du tableau');
+    v.egal(A.m.muscles({ muscles: ['fcu', 'triceps'] }).join(','), 'triceps,fcu',
+           'les muscles sont remis dans l’ordre du tableau — de l’épaule vers la main, '
+         + 'quel que soit l’ordre de saisie');
     v.egal(A.m.muscles({ muscles: ['fcu', 'fcu'] }).join(','), 'fcu', 'sans doublon');
     v.egal(A.m.muscles({ muscles: ['zzz'] }).length, 0, 'et sans inconnu');
     v.egal(A.m.muscles({}).length, 0, 'un exercice sans muscle n’en a aucun — pas de défaut');
@@ -968,6 +1009,41 @@
     v.egal(c.parCote['biceps|gauche'], 2, '…et à gauche, comme pour les structures');
     v.egal(c.parRegion.bras_av, 5, 'les régions du schéma additionnent leurs muscles');
 
+    /* Ce qui est mobilisé : un muscle ne compte que pour SON articulation. */
+    var arts = A.m.chargeParArticulation(e, 28);
+    function art(id) { return arts.filter(function (x) { return x.articulation === id; })[0]; }
+    v.egal(arts.length, A.m.ARTICULATIONS.length, 'chaque articulation a sa ligne');
+    v.egal(art('coude').series, 5, 'le biceps fléchit le coude');
+    v.egal(art('poignet').series, 3, 'le fléchisseur ulnaire plie le poignet');
+    v.egal(art('pouce').series, 0, 'une articulation jamais mobilisée vaut ZÉRO, pas rien');
+    v.egal(art('coude').nom, 'Coude', 'et la ligne porte son nom lisible');
+    v.vrai(art('coude').part > art('poignet').part, 'la part relative se calcule');
+
+    /* Le piège : trois muscles du coude cochés sur le même exercice ne font
+       pas trois fois le travail. Une série se compte UNE fois par
+       articulation, sinon le total dépasse le nombre de séries faites. */
+    var deuxDuCoude = etatAvec([
+      seance(jourIlYA(1), [exoM('Curl marteau', ['biceps', 'brachial', 'brachio_radial'], 'droit', 4)])
+    ]);
+    var a2 = A.m.chargeParArticulation(deuxDuCoude, 28);
+    v.egal(a2.filter(function (x) { return x.articulation === 'coude'; })[0].series, 4,
+           'quatre séries restent quatre, même avec trois muscles du coude cochés');
+    v.egal(a2.reduce(function (t, x) { return t + x.series; }, 0), 4,
+           'et le total ne dépasse pas les séries réellement faites');
+
+    /* Mais un exercice qui mobilise DEUX articulations compte pour les deux. */
+    var deuxArts = etatAvec([
+      seance(jourIlYA(1), [exoM('Cupping', ['fcu', 'flechisseurs_doigts'], 'droit', 4)])
+    ]);
+    var a3 = A.m.chargeParArticulation(deuxArts, 28);
+    v.egal(a3.filter(function (x) { return x.articulation === 'poignet'; })[0].series, 4,
+           'le poignet compte ses quatre séries…');
+    v.egal(a3.filter(function (x) { return x.articulation === 'doigts'; })[0].series, 4,
+           '…et les doigts aussi : l’exercice fait travailler les deux');
+    v.egal(A.m.chargeParArticulation(etatAvec([]), 28).filter(function (x) {
+      return x.part !== 0;
+    }).length, 0, 'un carnet vide ne donne aucune part — pas de division par zéro');
+
     /* L'épicondyle médial : le lien avec la douleur, sans saisie de plus. */
     var ep = A.m.chargeEpicondyle(e, 28);
     v.egal(ep.medial, 3, 'ce qui tire sur l’épicondyle médial se compte tout seul');
@@ -997,13 +1073,13 @@
       note: '', douleurs: [],
       exercices: [{ id: 'xr', ordre: 0, nom: 'Élastique', slug: 'elastique', aw: false,
                     typeCharge: 'elastique', colonnes: ['reps'], cote: 'droit', prise: null,
-                    muscles: ['extenseurs_poignet'], forces: [], structures: [], outils: [],
+                    muscles: ['ecrb'], forces: [], structures: [], outils: [],
                     consigne: '', reposSecondes: 0,
                     series: [{ id: 'sr', type: 'normale', repsCible: '', chargeCible: '',
                                dureeCible: '', repsReel: '30', chargeReel: '', dureeReel: '',
                                rpe: null, faite: true, faiteA: null }] }]
     }];
-    v.egal(A.m.chargeParMuscle(avecRecup, 28).parMuscle.extenseurs_poignet, 1,
+    v.egal(A.m.chargeParMuscle(avecRecup, 28).parMuscle.ecrb, 1,
            'la récupération sollicite les muscles, même si elle ne pèse rien');
     v.egal(A.m.volumeParSemaine(avecRecup, 8).length, 0,
            '[temoin] et elle reste hors du volume de travail');

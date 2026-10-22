@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **559 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **606 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **377 contrôles, 23 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **182 contrôles, 12 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **402 contrôles, 23 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **204 contrôles, 12 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -173,13 +173,15 @@ sort-il entièrement de l'écran, et laisse-t-il la barre d'onglets atteignable 
 d'exercice affiche-t-elle ce qu'elle doit, et plus ce qu'elle ne doit plus · 44 px sur
 chaque puce et chaque bouton · aucun débordement horizontal · la suggestion la plus récente
 est-elle lisible sans rien taper · une ligne de série à trois champs reste-t-elle
-saisissable · **chaque muscle a-t-il sa région sur le schéma** · six onglets tiennent-ils
+saisissable · **chaque muscle est-il quelque part — une région du schéma, ou la liste
+déclarée des muscles qui ne vivent que dans les barres** · **les pistes d'un même groupe
+commencent-elles au même endroit, et en reste-t-il assez pour comparer** · six onglets tiennent-ils
 dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Vingt et un blocs ont été vus
-rougir, en réintroduisant volontairement le défaut qu'ils surveillent :
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Trente-quatre défauts ont été
+réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
 |---|---|
@@ -205,6 +207,21 @@ rougir, en réintroduisant volontairement le défaut qu'ils surveillent :
 | carré pronateur compté comme médial | `il est distal, et le compter là ferait accuser la mauvaise insertion — attendu 0, obtenu 6` |
 | un muscle sans région sur le schéma | `aucun muscle ne manque (absents : Supinateur) — attendu 0, obtenu 1` |
 | un tracé plat, invisible sans erreur | `aucun tracé vide, NaN ou plat (fautifs : Carré pronateur (plat))` |
+| un muscle oublié de la liste hors dessin | `aucun muscle n'est invisible (oubliés : Extenseur ulnaire du carpe)` — 2 contrôles rouges |
+| un muscle dessiné ET déclaré hors dessin | `aucun n'est déclaré hors dessin alors qu'il y figure (fantômes : biceps)` |
+| un identifiant inexistant dans cette liste | `la liste hors dessin ne nomme aucun muscle inexistant (inconnus : zzz)` |
+| l'ancien `extenseurs_poignet` perdu au lieu d'être converti | `il devient les deux — attendu "ecrl,ecrb", obtenu ""` |
+| un muscle sans articulation déclarée | `chaque muscle dit ce qu'il mobilise (muets : Triceps brachial)` |
+| un muscle compté pour toutes les articulations | `le fléchisseur ulnaire plie le poignet — attendu 3, obtenu 8` — 3 contrôles rouges |
+| une série comptée par muscle du coude, pas une fois | `quatre séries restent quatre — attendu 4, obtenu 12` — 2 contrôles rouges |
+| une articulation à zéro cachée | `chaque articulation a sa barre, zéro compris — attendu 6, obtenu 5` |
+| le nom court d'un muscle oublié | `chaque muscle a un nom court` puis `la piste garde de quoi comparer (27 px)` |
+| deux muscles au même nom court | `deux muscles ne portent pas le même — obtenu "Fléch. ulnaire"` |
+| ce que le muscle FAIT retiré du détail | `il dit ce que le muscle FAIT — attendu true, obtenu false` |
+| les hors dessin listés même sans série | `et ne l'est pas quand il n'a aucune série — attendu true, obtenu false` |
+| une grille par ligne au lieu d'une par groupe | `toutes les pistes commencent au même endroit (vues : 204/27 176/55)` — 2 contrôles rouges |
+| une région de muscles oubliée du tableau | `chaque muscle a sa ligne dans la fiche — attendu 22, obtenu 19` |
+| l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans

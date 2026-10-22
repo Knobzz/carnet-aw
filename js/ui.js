@@ -625,9 +625,15 @@
             h('b', { text: m.nom }),
             /* Le nom classique des planches françaises : « long supinateur »,
                « grand palmaire ». C'est celui qu'on reconnaît. */
-            h('span', { text: m.quoi + (m.aussi ? ' · dit aussi ' + m.aussi : '') })),
-          m.medial ? h('span', { class: 'jeton jeton-medial', text: 'ins. médiale' })
-                   : (m.lateral ? h('span', { class: 'jeton jeton-medial', text: 'ins. latérale' }) : null));
+            h('span', { text: m.quoi + (m.aussi ? ' · dit aussi ' + m.aussi : '') }),
+            /* Ce que le muscle MOBILISE, et son insertion quand elle est
+               commune. Deux informations d'anatomie qui ne demandent aucune
+               saisie et qui rendent la liste lisible à qui ne la connaît pas. */
+            h('span', { class: 'muscle-marques' },
+              h('span', { class: 'jeton jeton-art', text: A.m.nomArticulation(m.articulation) }),
+              m.medial ? h('span', { class: 'jeton jeton-medial', text: 'ins. médiale' })
+                       : (m.lateral ? h('span', { class: 'jeton jeton-medial', text: 'ins. latérale' }) : null),
+              m.profond ? h('span', { class: 'jeton jeton-medial', text: 'profond' }) : null)));
         b.addEventListener('click', function () {
           var i = sel.indexOf(m.id);
           if (i >= 0) sel.splice(i, 1); else sel.push(m.id);
