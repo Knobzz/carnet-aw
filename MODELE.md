@@ -361,45 +361,31 @@ ce qui est stocké reste une décision, pas une déduction. Et la quatrième sou
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
 coche qu'une fois.
 
-### La carte : les planches de Gray, cliquables
+### La carte : les planches de Gray
 
-Il y avait ici un **schéma de bandes dessiné à la main**. Il a été retiré. Il ne ressemblait
-pas à un bras, ça a été dit deux fois, et le remplacer par des contours calculés l'avait
-rendu moins laid sans le rendre plus juste.
+Il y a eu ici un **schéma de bandes dessiné à la main**, puis des **polygones cliquables
+posés sur les gravures**, teintés selon la charge. Les deux ont été retirés.
 
-Ce sont maintenant les **gravures**, avec des **polygones transparents posés dessus** :
-teintés selon la charge, cliquables. On garde donc ce qu'une image matricielle ne sait pas
-faire — se teinter muscle par muscle — sans renoncer à l'anatomie réelle.
+Le schéma ne ressemblait pas à un bras. Les polygones, eux, ne suivaient pas les contours
+réels — et un découpage approximatif posé sur une gravure exacte **gêne plus qu'il ne
+renseigne** : l'œil voit la vraie limite du muscle juste à côté de la fausse.
 
-**Cinq faces** (bras devant/derrière, avant-bras devant/derrière, plan profond), parce
-qu'aucune planche de Gray ne montre le membre entier : c'est un atlas, pas une affiche. Un
-muscle peut figurer sur plusieurs — le brachio-radial se voit de devant comme de derrière.
-Les 22 muscles sont sur la carte, et le banc le vérifie.
-
-Les points sont en **pourcentage** de la planche, et le SVG est posé en
-`viewBox="0 0 100 100"` avec **`preserveAspectRatio="none"`** : il s'étire exactement sur
-l'image. Sans ce réglage il se centrerait et **toutes les zones glisseraient en silence** —
-un contrôle du banc le tient.
-
-#### Comment les tracés ont été obtenus
-
-Trois méthodes essayées, une retenue :
+Trois méthodes ont été essayées pour les faire suivre l'anatomie, et c'est l'échec qui est
+instructif :
 
 | méthode | résultat |
 |---|---|
-| polygones posés à l'œil | des pavés : « ça ne suit pas la forme », et c'était vrai |
-| remplissage depuis une graine, borné par les traits | **échec** : la tache fuit par les hachures (0 % ou 60 % de la planche) |
-| direction des fibres (tenseur de structure) | sépare les **groupes**, pas les muscles : les fléchisseurs voisins sont parallèles |
-| **ligne médiane + bord d'encre le plus proche** | **retenue** — c'est la gravure qui fixe les bords, pas moi |
+| polygones posés à l'œil | des pavés |
+| remplissage depuis une graine prise sur l'étiquette latine | **échec** : la tache fuit par les hachures — 0 % ou 60 % de la planche selon le seuil, car les traits de Gray ne sont pas fermés |
+| direction des fibres (tenseur de structure) | sépare les **groupes**, pas les muscles : les fléchisseurs voisins sont parallèles, c'est de l'anatomie |
+| ligne médiane + bord d'encre le plus proche | correct sur les avant-bras (rubans verticaux), **faux sur le bras** : il est en diagonale, un balayage horizontal coupe le pectoral en travers |
 
-La méthode retenue part d'une ligne médiane (quelques ancres lues sur l'étiquette latine,
-qui est imprimée **sur** le muscle) et, à chaque ligne de balayage, cherche le trait sombre
-le plus proche à gauche et à droite. Elle marche sur les **avant-bras**, dont les muscles
-sont des rubans verticaux. Elle échoue sur le **bras**, qui est en diagonale : un balayage
-horizontal y coupe le pectoral en travers. Les deux planches du bras gardent donc des
-contours posés à la main.
+Restent donc **les gravures seules**, feuilletées par **cinq faces** — aucune planche de
+Gray ne montre le membre entier, c'est un atlas, pas une affiche.
 
-Ce que ce n'est **pas** : une dissection. Les zones **situent** un muscle sur la gravure.
+Les chiffres sont dans les barres, et le **nom de chaque barre est un bouton** : il ouvre
+la planche en grand, avec le nom latin, ce que le muscle fait et ce qu'il mobilise. C'est
+tout ce que le découpage prétendait apporter, **sans le mensonge du contour**.
 
 ### Les planches de Gray
 

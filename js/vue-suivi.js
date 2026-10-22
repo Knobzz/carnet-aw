@@ -379,17 +379,16 @@
      affiche. Cinq faces, donc, choisies par une rangée de puces, et un
      muscle peut figurer sur plusieurs.
 
-     Les polygones sont en pourcentage de la planche et le SVG s'étire
-     dessus : rien ne se décale quand la largeur de l'écran change.
+     Il y a eu une tentative de polygones cliquables posés dessus, teintés
+     selon la charge. Elle a été abandonnée : les traits de Gray ne sont pas
+     fermés, les hachures font fuir un remplissage, et la direction des
+     fibres sépare les groupes et non les muscles voisins, qui sont
+     parallèles. Un découpage approximatif posé sur une gravure exacte gêne
+     plus qu'il ne renseigne.
+
+     Reste donc la gravure seule, qu'on feuillette par faces, et les
+     chiffres dans les barres. Le détail d'un muscle s'ouvre par son nom.
      ------------------------------------------------------------------ */
-
-  var SVG_NS = 'http://www.w3.org/2000/svg';
-
-  function svgEl(nom, attrs) {
-    var n = document.createElementNS(SVG_NS, nom);
-    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
-    return n;
-  }
 
   function blocMuscles(e) {
     var f = document.createDocumentFragment();
@@ -409,106 +408,49 @@
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
-    /* --- la carte : une planche, des zones teintées --- */
+    /* --- les planches, qu'on feuillette ---
+       Il y a eu ici des polygones cliquables teintés selon la charge. Ils
+       ont été retirés : impossible de les faire suivre les contours réels,
+       et un découpage approximatif posé sur une gravure exacte gêne plus
+       qu'il ne renseigne. Les chiffres sont dans les barres, et le détail
+       d'un muscle s'ouvre par son nom. */
     var maxM = A.m.MUSCLES.reduce(function (m, x) {
       return Math.max(m, c.parMuscle[x.id] || 0);
     }, 0) || 1;
 
-    var detail = h('div', { class: 'item-resume', style: 'min-height:3.2em;margin-top:6px' });
-
-    /* Ce qu'on sait d'un muscle, dit en entier : le nom, ce qu'il fait, ce
-       qu'il mobilise, son insertion s'il en partage une, et de quoi aller
-       voir la planche en grand. C'est la même chose au doigt sur la carte et
-       sur une barre. */
-    function direMuscle(id, n) {
-      var m = A.m.muscle(id);
-      A.ui.vider(detail);
-      var marques = [m.quoi];
-      marques.push('mobilise : ' + A.m.nomArticulation(m.articulation).toLowerCase());
-      if (m.medial) marques.push('insertion médiale');
-      if (m.lateral) marques.push('insertion latérale');
-      if (m.profond) marques.push('profond');
-      detail.appendChild(h('div', null,
-        h('b', { text: m.nom }),
-        h('span', { text: ' — ' + n + ' série' + (n > 1 ? 's' : '') })));
-      detail.appendChild(h('div', { text: marques.join(' · ') }));
-      if (m.aussi) detail.appendChild(h('div', { text: 'dit aussi « ' + m.aussi + ' »' }));
-      var bt = h('button', { type: 'button', class: 'bt bt-planche',
-                             style: 'margin-top:5px',
-                             text: 'Voir ' + m.latin + ' en grand' });
-      bt.addEventListener('click', function () { A.panneau.voirPlanche(id); });
-      detail.appendChild(bt);
-    }
-
-    function chaleur(n) {
-      if (!n) return '0';
-      return n / maxM > .66 ? '3' : (n / maxM > .33 ? '2' : '1');
-    }
-
     var enrobe = h('div', { class: 'planche-carte' });
+    var legende = h('div', { class: 'item-resume', style: 'margin-top:2px' });
     var puces = [];
 
-    function montrerCarte(idCarte) {
-      var ct = A.m.carte(idCarte);
-      var pl = A.m.planche(ct.planche);
+    function montrerFace(idFace) {
+      var f2 = A.m.face(idFace);
+      var pl = A.m.planche(f2.planche);
       A.ui.vider(enrobe);
       puces.forEach(function (x) {
-        x.bouton.setAttribute('aria-pressed', x.id === idCarte ? 'true' : 'false');
+        x.bouton.setAttribute('aria-pressed', x.id === idFace ? 'true' : 'false');
       });
-
       enrobe.appendChild(h('img', { class: 'planche-fond', src: pl.fichier,
         alt: 'Planche de Gray numéro ' + pl.numero + ' : ' + pl.nom }));
-
-      /* `preserveAspectRatio="none"` : le SVG s'étire exactement sur l'image,
-         donc les pourcentages tombent au bon endroit quelle que soit la
-         largeur. Avec le réglage par défaut il se centrerait et tout
-         glisserait. */
-      var svg = svgEl('svg', { class: 'planche-zones', viewBox: '0 0 100 100',
-                               preserveAspectRatio: 'none' });
-      var zones = [];
-      ct.zones.forEach(function (z) {
-        var m = A.m.muscle(z.muscle);
-        var n = c.parMuscle[z.muscle] || 0;
-        var pg = svgEl('polygon', { points: z.points, class: 'zone-planche',
-                                    'data-chaleur': chaleur(n),
-                                    tabindex: '0', role: 'button',
-                                    'aria-label': m.nom + ', ' + n + ' séries' });
-        function montrer() {
-          zones.forEach(function (x) { x.removeAttribute('data-choisi'); });
-          pg.setAttribute('data-choisi', '1');
-          direMuscle(z.muscle, n);
-        }
-        pg.addEventListener('click', montrer);
-        pg.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); montrer(); }
-        });
-        zones.push(pg);
-        svg.appendChild(pg);
-      });
-      enrobe.appendChild(svg);
       legende.textContent = pl.nom + ' — Gray, 1918.';
     }
 
     var rangee = h('div', { class: 'puces planche-faces' });
-    A.m.CARTES.forEach(function (ct) {
-      var b = h('button', { type: 'button', class: 'puce', text: ct.nom,
+    A.m.FACES.forEach(function (f2) {
+      var b = h('button', { type: 'button', class: 'puce', text: f2.nom,
                             'aria-pressed': 'false' });
-      b.addEventListener('click', function () { montrerCarte(ct.id); });
-      puces.push({ id: ct.id, bouton: b });
+      b.addEventListener('click', function () { montrerFace(f2.id); });
+      puces.push({ id: f2.id, bouton: b });
       rangee.appendChild(b);
     });
 
-    var legende = h('div', { class: 'item-resume', style: 'margin-top:2px' });
     corps.appendChild(rangee);
     corps.appendChild(enrobe);
     corps.appendChild(legende);
     corps.appendChild(h('div', { class: 'item-resume',
-      text: 'Appuie sur un muscle de la planche pour le détail, ou sur son nom '
-          + 'dans les barres. Les zones sont posées à l’œil : elles situent, '
-          + 'elles ne dissèquent pas.' }));
-    corps.appendChild(detail);
+      text: 'Les chiffres sont dans les barres. Appuie sur le nom d’un muscle '
+          + 'pour sa planche, son nom latin et ce qu’il fait.' }));
 
-    montrerCarte(A.m.CARTES[0].id);
+    montrerFace(A.m.FACES[0].id);
 
     /* --- les chiffres, muscle par muscle --- */
     var barres = h('div', { class: 'barres barres-serrees barres-muscles', style: 'margin-top:12px' });
@@ -517,8 +459,10 @@
     }).forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
       if (!n) return;
-      /* Le libellé est un BOUTON : il ouvre la planche en grand, sans avoir
-         à deviner sur quelle face le muscle se trouve. */
+      /* Le libellé est un BOUTON : il ouvre la planche en grand, avec le nom
+         latin, ce que le muscle fait et ce qu'il mobilise. C'est le seul
+         chemin vers le détail depuis que les zones cliquables ont été
+         retirées, et il est plus sûr : il ne suppose aucun contour. */
       var lib = h('button', { type: 'button', class: 'barre-nom',
                               text: m.court || m.nom, title: m.nom });
       lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });

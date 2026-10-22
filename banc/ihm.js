@@ -758,70 +758,25 @@
       v.vrai(!!carte, 'la carte est dessinée');
       if (!carte) return;
 
-      /* --- les faces --- */
+      /* --- les faces ---
+         Les zones cliquables ont été retirées : un découpage approximatif
+         posé sur une gravure exacte gêne plus qu'il ne renseigne. Restent
+         les planches, qu'on feuillette. */
       var faces = doc.querySelectorAll('.planche-faces .puce');
-      v.egal(faces.length, fen.App.m.CARTES.length,
+      v.egal(faces.length, fen.App.m.FACES.length,
              'une puce par face : aucune planche de Gray ne montre le membre entier');
       var choisies = Array.prototype.filter.call(faces, function (p) {
         return p.getAttribute('aria-pressed') === 'true';
       });
       v.egal(choisies.length, 1, 'une seule face est montrée à la fois');
-      v.egal(choisies[0].textContent, fen.App.m.CARTES[0].nom, 'et c’est la première au départ');
+      v.egal(choisies[0].textContent, fen.App.m.FACES[0].nom, 'et c’est la première au départ');
 
       var img = carte.querySelector('img.planche-fond');
-      v.vrai(!!img, 'la gravure est posée en fond');
-      var svg = carte.querySelector('svg.planche-zones');
-      v.vrai(!!svg, 'et les zones par-dessus');
-      if (!img || !svg) return;
+      v.vrai(!!img, 'la gravure est montrée');
+      v.egal(carte.querySelectorAll('svg').length, 0,
+             'et rien n’est posé dessus : la gravure est le sujet, pas un fond');
+      if (!img) return;
 
-      /* Sans `preserveAspectRatio="none"`, le SVG se centrerait dans son
-         cadre et TOUTES les zones glisseraient — sans erreur, sans rien
-         dans la console. */
-      v.egal(svg.getAttribute('preserveAspectRatio'), 'none',
-             'le SVG s’étire sur l’image : sinon tout glisse en silence');
-      v.egal(svg.getAttribute('viewBox'), '0 0 100 100',
-             'et les points sont en pourcentage, donc indépendants de la taille du fichier');
-
-      var rImg = img.getBoundingClientRect(), rSvg = svg.getBoundingClientRect();
-      v.vrai(Math.abs(rImg.width - rSvg.width) <= 1 && Math.abs(rImg.height - rSvg.height) <= 1,
-             'les zones couvrent exactement la gravure ('
-           + Math.round(rImg.width) + '×' + Math.round(rImg.height) + ' contre '
-           + Math.round(rSvg.width) + '×' + Math.round(rSvg.height) + ')');
-
-      var zones = svg.querySelectorAll('.zone-planche');
-      v.egal(zones.length, fen.App.m.CARTES[0].zones.length,
-             'une zone par muscle de cette face');
-      var plates = Array.prototype.filter.call(zones, function (z) {
-        var r = z.getBBox();
-        return r.width < 2 || r.height < 2;
-      }).length;
-      v.egal(plates, 0, 'aucune zone plate ou invisible');
-
-      /* --- la teinte suit la charge --- */
-      function zoneDe(nom) {
-        var t = null;
-        Array.prototype.forEach.call(doc.querySelectorAll('.zone-planche'), function (z) {
-          if (z.getAttribute('aria-label').indexOf(nom) === 0) t = z;
-        });
-        return t;
-      }
-      var zPect = zoneDe('Grand pectoral');
-      v.vrai(!!zPect, 'le pectoral a sa zone sur la face « Bras »');
-      v.egal(zPect.getAttribute('data-chaleur'), '1', 'une série, donc peu de teinte');
-      var zDelt = zoneDe('Deltoïde');
-      v.egal(zDelt.getAttribute('data-chaleur'), '0',
-             'un muscle jamais sollicité reste froid, pas absent');
-
-      /* --- appuyer dit le muscle --- */
-      zPect.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
-      var detail = carte.parentNode.textContent;
-      v.vrai(detail.indexOf('Grand pectoral') >= 0, 'un appui nomme le muscle');
-      v.vrai(detail.indexOf('ramène le bras vers soi') >= 0, 'et dit ce qu’il FAIT');
-      v.vrai(detail.indexOf('Pectoralis major') >= 0,
-             'avec son nom latin, celui écrit sur la gravure');
-      v.egal(zPect.getAttribute('data-choisi'), '1', 'et la zone se marque');
-
-      /* --- changer de face --- */
       var avant = img.getAttribute('src');
       faces[2].click();
       return attendre(80).then(function () {
@@ -830,22 +785,14 @@
         v.vrai(img2.getAttribute('src') !== avant, 'changer de face change la gravure');
         v.egal(doc.querySelectorAll('.planche-faces .puce[aria-pressed="true"]').length, 1,
                'et une seule puce reste retenue');
-        v.vrai(carte2.textContent.indexOf('Gray') >= 0
-            || carte2.parentNode.textContent.indexOf('Gray') >= 0,
+        v.vrai(carte2.parentNode.textContent.indexOf('Gray') >= 0,
                'la source reste citée sous la carte');
-
-        var zFcu = zoneDe('Fléchisseur ulnaire du carpe');
-        v.vrai(!!zFcu, 'le fléchisseur ulnaire a sa zone sur l’avant-bras');
-        v.egal(zFcu.getAttribute('data-chaleur'), '3',
-               'le muscle le plus sollicité est au maximum de teinte');
 
         v.vrai(carte2.getBoundingClientRect().width <= LARGEUR,
                'la carte tient dans la largeur');
         v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
                'et ne provoque aucun défilement horizontal');
 
-        /* La gravure doit vraiment se charger : un fichier absent donnerait
-           une image vide que personne ne verrait avant le téléphone. */
         return new Promise(function (ok) {
           if (img2.complete) return ok();
           img2.addEventListener('load', function () { ok(); });

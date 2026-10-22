@@ -336,107 +336,31 @@
       nom: 'Avant-bras, face postérieure, plan profond' }
   ];
 
-  /* ---------- les planches comme CARTE ----------
+  /* ---------- les faces qu'on peut feuilleter ----------
 
-     Le schéma de bandes dessiné à la main a été retiré : il ne ressemblait à
-     rien, et ça a été dit deux fois. Les gravures de Gray le remplacent, avec
-     des polygones transparents posés PAR-DESSUS — teintés selon la charge et
-     cliquables. On garde donc ce qu'une image matricielle ne sait pas faire
-     (se teinter muscle par muscle) sans renoncer à l'anatomie réelle.
+     Il y a eu ici des polygones cliquables posés sur les gravures, teintés
+     selon la charge. Ils ont été RETIRÉS : impossible de les faire suivre
+     les contours réels — les traits de Gray ne sont pas fermés, les
+     hachures font fuir un remplissage, et la direction des fibres sépare
+     les groupes, pas les muscles voisins qui sont parallèles. Un découpage
+     approximatif posé sur une gravure exacte ne renseigne pas, il gêne.
 
-     Les points sont en POURCENTAGE de la planche, pas en pixels : le SVG est
-     posé en `viewBox="0 0 100 100"` avec `preserveAspectRatio="none"`, donc
-     il s'étire exactement sur l'image quelle que soit la largeur de l'écran.
-     Changer la taille d'un fichier ne déplace rien.
-
-     Aucune planche de Gray ne montre le membre entier : c'est un atlas, pas
-     une affiche. Cinq faces, donc, et un muscle peut figurer sur plusieurs
-     — le brachio-radial se voit de devant comme de derrière.
-
-     Les tracés sont APPROXIMATIFS. Ils ont été posés à l'œil sur la gravure
-     et vérifiés en les affichant en semi-transparent par-dessus. Ils situent
-     un muscle ; ils ne remplacent pas une dissection. */
-  var CARTES = [
-    { id: 'bras_av', planche: 'bras_av', nom: 'Bras', zones: [
-      { muscle: 'grand_pectoral',
-        points: '13,19 24,15 34,16 44,24 52,34 57,44 54,55 46,64 36,70 26,70 17,65 11,55 9,43 10,29' },
-      { muscle: 'deltoide',
-        points: '35,13 44,9 54,9 64,14 71,22 75,32 72,41 65,46 58,45 52,38 47,30 40,21' },
-      { muscle: 'coraco_brachial',
-        points: '56,39 62,37 67,42 70,50 67,58 61,58 56,51 54,44' },
-      { muscle: 'biceps',
-        points: '57,47 64,45 71,48 78,58 80,68 78,76 71,79 65,76 60,66 57,56' },
-      { muscle: 'brachial',
-        points: '75,57 82,59 88,65 89,74 85,81 79,82 75,76 74,66' },
-      { muscle: 'brachio_radial',
-        points: '83,71 89,73 94,79 96,88 93,93 87,92 83,85 81,77' }
-    ] },
-    { id: 'bras_ar', planche: 'bras_ar', nom: 'Bras, dos', zones: [
-      { muscle: 'triceps',
-        points: '44,20 52,28 46,42 38,56 30,70 22,84 15,88 11,84 18,70 26,56 33,42 38,30' },
-      { muscle: 'deltoide',
-        points: '48,10 64,5 78,7 84,13 78,20 62,22 50,18' },
-      { muscle: 'grand_dorsal',
-        points: '52,36 62,34 68,48 62,56 52,52 49,44' }
-    ] },
-    { id: 'avb_av', planche: 'avb_av', nom: 'Avant-bras', zones: [
-      { muscle: 'biceps',
-        points: '34,0 72,0 70,9 61,15 49,17 39,12' },
-      { muscle: 'rond_pronateur',
-        points: '24.0,21.0 31.5,25.0 37.4,29.0 41.4,33.0 45.7,37.0 49.9,41.0 53.2,45.0 53.7,46.0 56.5,46.0 54.3,42.0 51.9,38.0 46.4,34.0 41.6,30.0 36.7,26.0 33.8,22.0 33.5,21.0' },
-      { muscle: 'fcu',
-        points: '23.3,27.0 23.3,31.0 23.5,35.0 23.5,39.0 21.8,43.0 21.3,47.0 22.3,51.0 23.7,55.0 25.2,59.0 23.3,63.0 21.3,67.0 21.9,71.0 22.0,75.0 22.0,78.0 32.7,78.0 31.5,74.0 29.8,70.0 30.4,66.0 31.2,62.0 29.4,58.0 27.9,54.0 26.8,50.0 26.4,46.0 27.9,42.0 27.5,38.0 26.0,34.0 26.2,30.0 25.7,27.0' },
-      { muscle: 'long_palmaire',
-        points: '28.0,32.0 28.9,36.0 29.8,40.0 28.3,44.0 29.2,48.0 30.8,52.0 31.2,56.0 31.9,60.0 33.1,64.0 34.1,68.0 33.1,72.0 32.0,74.0 40.4,74.0 40.5,70.0 40.6,66.0 38.4,62.0 35.3,58.0 37.8,54.0 36.8,50.0 34.7,46.0 34.0,42.0 33.6,38.0 33.5,34.0 33.9,32.0' },
-      { muscle: 'fcr',
-        points: '33.3,32.0 34.1,36.0 36.3,40.0 37.5,44.0 38.3,48.0 39.6,52.0 38.3,56.0 38.0,60.0 40.5,64.0 38.7,68.0 39.5,72.0 39.5,72.0 44.9,72.0 44.7,68.0 44.3,64.0 45.0,60.0 44.9,56.0 42.7,52.0 43.9,48.0 41.2,44.0 42.3,40.0 42.5,36.0 40.8,32.0 40.8,32.0' },
-      { muscle: 'flechisseurs_doigts',
-        points: '39.4,46.0 41.6,50.0 43.1,54.0 43.0,58.0 43.9,62.0 45.8,66.0 47.4,70.0 47.5,74.0 47.9,76.0 52.1,76.0 52.6,72.0 52.5,68.0 50.8,64.0 49.0,60.0 49.4,56.0 51.3,52.0 50.8,48.0 50.7,46.0' },
-      { muscle: 'brachio_radial',
-        points: '69.9,18.0 69.0,22.0 70.2,26.0 69.9,30.0 68.8,34.0 68.5,38.0 70.6,42.0 72.1,46.0 70.8,50.0 71.1,54.0 71.2,58.0 69.9,62.0 68.5,66.0 67.0,70.0 67.5,74.0 66.3,78.0 66.7,82.0 66.7,82.0 71.2,82.0 73.2,78.0 72.9,74.0 73.2,70.0 74.7,66.0 80.8,62.0 84.5,58.0 84.6,54.0 82.0,50.0 77.1,46.0 81.2,42.0 83.6,38.0 84.1,34.0 83.8,30.0 84.0,26.0 83.9,22.0 80.5,18.0 80.5,18.0' }
-    ] },
-    { id: 'avb_ar', planche: 'avb_ar', nom: 'Avant-bras, dos', zones: [
-      { muscle: 'ancone',
-        points: '71.6,14.0 71.0,18.0 72.1,22.0 73.7,26.0 73.7,26.0 78.1,26.0 78.0,22.0 80.2,18.0 83.4,14.0 83.4,14.0' },
-      { muscle: 'brachio_radial',
-        points: '45.0,10.0 43.1,14.0 41.5,18.0 37.8,22.0 36.3,26.0 34.4,30.0 33.9,34.0 34.6,38.0 34.0,42.0 30.6,46.0 30.0,50.0 30.0,50.0 39.3,50.0 37.7,46.0 37.8,42.0 37.4,38.0 38.2,34.0 41.2,30.0 44.6,26.0 45.1,22.0 46.6,18.0 48.5,14.0 50.5,10.0 50.5,10.0' },
-      { muscle: 'ecrl',
-        points: '50.9,9.0 51.2,13.0 48.1,17.0 46.7,21.0 46.9,25.0 44.0,29.0 42.9,33.0 42.9,34.0 51.5,34.0 52.0,30.0 54.2,26.0 52.5,22.0 54.5,18.0 58.6,14.0 58.4,10.0 57.8,9.0' },
-      { muscle: 'ecrb',
-        points: '44.4,34.0 45.1,38.0 43.1,42.0 42.2,46.0 41.8,50.0 41.1,54.0 39.7,58.0 40.5,62.0 40.5,62.0 47.2,62.0 45.7,58.0 46.3,54.0 46.8,50.0 47.0,46.0 49.1,42.0 52.7,38.0 52.6,34.0 52.6,34.0' },
-      { muscle: 'extenseurs_doigts',
-        points: '53.9,20.0 54.2,24.0 54.3,28.0 54.7,32.0 54.1,36.0 54.3,40.0 53.6,44.0 53.9,48.0 54.9,52.0 52.3,56.0 52.3,56.0 58.9,56.0 60.0,52.0 61.5,48.0 61.6,44.0 63.0,40.0 62.5,36.0 62.6,32.0 62.4,28.0 63.5,24.0 65.9,20.0 65.9,20.0' },
-      { muscle: 'ecu',
-        points: '65.9,25.0 66.0,29.0 65.7,33.0 66.5,37.0 67.2,41.0 68.0,45.0 68.7,49.0 69.1,52.0 72.3,52.0 72.8,48.0 74.3,44.0 74.7,40.0 76.0,36.0 74.1,32.0 72.6,28.0 72.8,25.0' },
-      { muscle: 'extenseur_petit_doigt',
-        points: '62.0,50.0 63.1,54.0 63.6,58.0 62.7,62.0 62.5,64.0 67.2,64.0 68.4,60.0 67.4,56.0 65.4,52.0 64.9,50.0' },
-      { muscle: 'extenseurs_pouce',
-        points: '37.9,52.0 38.9,56.0 41.4,60.0 42.4,64.0 41.6,68.0 41.4,70.0 48.1,70.0 47.6,66.0 47.7,62.0 44.8,58.0 44.3,54.0 44.4,52.0' }
-    ] },
-    { id: 'avb_prof', planche: 'avb_av_prof', nom: 'Profond', zones: [
-      { muscle: 'supinateur',
-        points: '36,11 54,9 57,18 48,24 38,22 34,16' },
-      { muscle: 'flechisseurs_doigts',
-        points: '24,20 36,22 37,40 35,56 30,62 24,58 22,40' },
-      { muscle: 'carre_pronateur',
-        points: '29,55 56,54 57,63 30,64' }
-    ] }
+     Restent les planches elles-mêmes, qu'on feuillette. Le détail d'un
+     muscle s'ouvre par son nom dans les barres : il donne le nom latin, ce
+     que le muscle fait, ce qu'il mobilise, et la planche en grand. C'est
+     tout ce que le découpage prétendait apporter, sans le mensonge du
+     contour. */
+  var FACES = [
+    { id: 'bras_av',  planche: 'bras_av',      nom: 'Bras' },
+    { id: 'bras_ar',  planche: 'bras_ar',      nom: 'Bras, dos' },
+    { id: 'avb_av',   planche: 'avb_av',       nom: 'Avant-bras' },
+    { id: 'avb_ar',   planche: 'avb_ar',       nom: 'Avant-bras, dos' },
+    { id: 'avb_prof', planche: 'avb_av_prof',  nom: 'Profond' }
   ];
 
-  function carte(id) {
-    for (var i = 0; i < CARTES.length; i++) if (CARTES[i].id === id) return CARTES[i];
+  function face(id) {
+    for (var i = 0; i < FACES.length; i++) if (FACES[i].id === id) return FACES[i];
     return null;
-  }
-
-  /* Les muscles qui figurent sur AU MOINS une carte. Le banc s'en sert pour
-     nommer ceux qui n'y sont pas : ils ne doivent pas disparaître en silence,
-     ils vivent dans les barres et gardent leur bouton « voir la planche ». */
-  function musclesCartographies() {
-    var vus = {}, l = [];
-    CARTES.forEach(function (c) {
-      c.zones.forEach(function (z) { if (!vus[z.muscle]) { vus[z.muscle] = 1; l.push(z.muscle); } });
-    });
-    return muscles({ muscles: l });
   }
 
   function planche(id) {
@@ -2277,7 +2201,7 @@
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
     muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
     PLANCHES: PLANCHES, planche: planche, plancheDuMuscle: plancheDuMuscle,
-    CARTES: CARTES, carte: carte, musclesCartographies: musclesCartographies,
+    FACES: FACES, face: face,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     chargeParMuscle: chargeParMuscle,

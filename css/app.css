@@ -833,26 +833,12 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .planche { display: block; width: 100%; height: auto; margin: 8px 0;
            border-radius: 8px; background: #fff; border: 1px solid var(--bord); }
 
-/* La carte : la gravure, et des polygones etires dessus. Le SVG est pose en
-   absolu sur l'image, en 0-100 avec preserveAspectRatio:none — donc les
-   pourcentages tombent au bon endroit quelle que soit la largeur. */
+/* Les planches qu'on feuillette. Il y a eu des polygones cliquables posés
+   dessus : retires, faute de pouvoir les faire suivre les contours reels. */
 .planche-faces { margin-bottom: 7px; }
-.planche-carte { position: relative; display: block; margin: 0 auto;
-                 max-width: 290px; background: #fff;
+.planche-carte { display: block; margin: 0 auto; max-width: 290px; background: #fff;
                  border: 1px solid var(--bord); border-radius: 8px; overflow: hidden; }
 .planche-fond { display: block; width: 100%; height: auto; }
-.planche-zones { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-.zone-planche { cursor: pointer; stroke: rgba(20, 28, 37, .35); stroke-width: .4;
-                vector-effect: non-scaling-stroke; }
-/* La gravure doit rester LISIBLE sous la teinte : c'est elle qu'on est venu
-   voir. Les opacites sont donc basses — on lit encore les fibres et les noms
-   latins a travers la zone la plus chaude. */
-.zone-planche[data-chaleur="0"] { fill: rgba(20, 28, 37, .05); }
-.zone-planche[data-chaleur="1"] { fill: rgba(176, 124, 20, .20); }
-.zone-planche[data-chaleur="2"] { fill: rgba(176, 124, 20, .34); }
-.zone-planche[data-chaleur="3"] { fill: rgba(176, 124, 20, .48); }
-.zone-planche[data-choisi] { stroke: var(--bleu); stroke-width: 2; }
-.zone-planche:focus-visible { stroke: var(--bleu); stroke-width: 2; outline: none; }
 .bt-planche { font-size: .74rem; padding: 4px 9px; }
 /* Le latin est une CITATION de la planche, pas une etiquette de l'app :
    l'italique le dit sans ajouter un mot. */
