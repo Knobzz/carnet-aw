@@ -678,7 +678,42 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 
 .chrono-jauge { height: 3px; background: var(--laiton-doux); }
 .chrono-jauge i { display: block; height: 100%; background: var(--laiton); width: 100%; }
-.chrono-rangee { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 13px; }
+/* Le libelle de l'exercice etait ecrase a « Cu… » sur un telephone etroit :
+   en flex, le temps (3.6em) et les deux boutons prenaient 240 des 275 px
+   disponibles a 320 px, et il ne restait que 35 px au nom. Il est donc passe
+   sur son propre rang sous 420 px — il n'a pas a se battre pour la place avec
+   des boutons de taille fixe. Au-dessus, la ligne unique tient et reste. */
+.chrono-rangee {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "temps quoi plus passer";
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 13px;
+}
+.chrono-rangee > :nth-child(1) { grid-area: temps; }
+.chrono-rangee > :nth-child(2) { grid-area: quoi; }
+.chrono-rangee > :nth-child(3) { grid-area: plus; }
+.chrono-rangee > :nth-child(4) { grid-area: passer; }
+
+/* Le seuil est celui ou la place EXISTE, pas celui d'un telephone imagine :
+   le temps et les deux boutons occupent 261 px quoi qu'il arrive, et il en
+   faut environ 230 pour lire « Curl marteau fat grip · série 3 sur 4 ». La
+   ligne unique demande donc un bandeau de ~490 px, que seul un ecran d'au
+   moins 560 px fournit — c'est exactement la largeur ou .chrono-corps cesse
+   de s'etirer. En dessous, et donc sur tout telephone, deux rangs.
+
+   Premiere tentative : 419 px. Mesure a 430 px — la largeur d'un telephone
+   courant — le libelle etait encore coupe. */
+@media (max-width: 559px) {
+  .chrono-rangee {
+    grid-template-areas:
+      "temps .    plus passer"
+      "quoi  quoi quoi quoi";
+    row-gap: 1px;
+    padding-bottom: 6px;
+  }
+}
 .chrono-temps { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; min-width: 3.6em; }
 .chrono-quoi { flex: 1; min-width: 0; font-size: .76rem; color: var(--texte-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -986,6 +1021,92 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .multi .auto:first-child { margin-top: 0; }
 .multi .champ { border: 0; background: none; padding-left: 6px; min-height: var(--tap); }
 .multi .champ:focus { outline: none; }
+
+/* ---------- choisir dans tout l'equipement ----------
+   Une categorie repliable par bloc, une ligne de 44 px par outil. C'est ce
+   qui rend trente outils parcourables au pouce : on replie ce qu'on ne
+   cherche pas, au lieu de defiler a travers. */
+
+.equip-bloc {
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--fond-2);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.equip-cat {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 7px 11px;
+  border: 0;
+  background: var(--fond-3);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.equip-cat b { flex: 1; min-width: 0; font-weight: 600; font-size: .88rem; }
+.equip-compte {
+  font-size: .76rem;
+  color: var(--texte-2);
+  font-variant-numeric: tabular-nums;
+}
+.equip-chevron { transition: transform .15s ease; color: var(--texte-3); font-size: .8rem; }
+.equip-cat[aria-expanded="false"] .equip-chevron { transform: rotate(-90deg); }
+@media (prefers-reduced-motion: reduce) { .equip-chevron { transition: none; } }
+
+.equip-ligne {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 5px 11px;
+  border: 0;
+  border-top: 1px solid var(--trait);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.equip-nom { flex: 1; min-width: 0; font-size: .9rem; }
+/* `display: flex` l'emporte sur le `display: none` que le navigateur attache
+   a [hidden] : sans cette ligne, le filtre masquait les categories entieres
+   mais PAS les lignes a l'interieur d'une categorie qui, elle, correspondait.
+   « Corde triceps » restait affiche sous « poul » parce qu'il est range dans
+   Poulies. Vu a l'ecran, pas au banc — le controle ne regardait qu'une ligne
+   d'une categorie entierement masquee. */
+.equip-ligne[hidden], .equip-bloc[hidden] { display: none; }
+.equip-coche {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1.5px solid var(--trait-fort);
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+}
+.equip-ligne[aria-pressed="true"] { background: var(--bleu-doux); }
+.equip-ligne[aria-pressed="true"] .equip-nom { font-weight: 600; color: var(--bleu); }
+.equip-ligne[aria-pressed="true"] .equip-coche {
+  background: var(--bleu);
+  border-color: var(--bleu);
+}
+/* La coche est dessinee en CSS : pas de SVG a charger pour un trait. */
+.equip-ligne[aria-pressed="true"] .equip-coche::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid var(--fond-2);
+  border-bottom: 2px solid var(--fond-2);
+  transform: translateY(-1px) rotate(-45deg);
+}
 
 /* l'outil se lit dans l'en-tête d'exercice, pas seulement dans sa fiche */
 .jeton-outil { border-color: var(--trait-fort); color: var(--texte-2); background: var(--fond-3); font-weight: 550; }

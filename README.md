@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **337 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **371 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -149,7 +149,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **233 contrôles, 19 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **104 contrôles, 8 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **138 contrôles, 9 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -172,9 +172,10 @@ d'exercice affiche-t-elle ce qu'elle doit, et plus ce qu'elle ne doit plus · 44
 chaque puce et chaque bouton · aucun débordement horizontal · la suggestion la plus récente
 est-elle lisible sans rien taper · une ligne de série à trois champs reste-t-elle
 saisissable · **six onglets tiennent-ils dans la barre** · **une journée de récupération
-vide reste-t-elle hors du journal**.
+vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
+**le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Neuf blocs ont été vus rougir, en
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Onze blocs ont été vus rougir, en
 réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -188,11 +189,21 @@ réintroduisant volontairement le défaut qu'ils surveillent :
 | migration laissant les secondes dans REPS | `les secondes sont maintenant comptées — attendu 65, obtenu 0` — 4 contrôles rouges |
 | journée de récup vide gardée au journal | `vidée de tout, la journée ressort du journal — attendu 0, obtenu 1` |
 | ✓ coché indistinct en récupération | `le ✓ coché ne se confond pas avec un ✓ qui ne l'est pas — attendu true, obtenu false` |
+| libellé du chrono sur la ligne des boutons | `il a de la place pour être lu — 28 px, il en faut 150` |
+| outil hors catalogue non pré-coché | `l'outil hors catalogue est GARDÉ — attendu 1, obtenu -1` — 4 contrôles rouges |
 
-Le quatrième mérite une mention : le correctif a d'abord été écrit avec un horodatage lu à
+Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
-la même milliseconde et restaient à égalité. C'est ce qui a mené à un horodatage
-strictement croissant.
+la même milliseconde et restaient à égalité ; c'est ce qui a mené à un horodatage
+strictement croissant. Et le chrono a été corrigé deux fois : le premier seuil, 419 px,
+passait le contrôle à 320 px et **coupait encore le libellé à 430 px**, la largeur d'un
+téléphone courant. Le contrôle, lui, mesurait un libellé trop court pour s'en apercevoir —
+il mesure désormais le format réel de l'app.
+
+Un défaut a aussi échappé au banc avant d'être vu à l'écran : le filtre de l'équipement
+masquait les catégories entières mais pas les lignes d'une catégorie qui, elle,
+correspondait — `display: flex` l'emporte sur `[hidden]`. Le contrôle ne regardait qu'une
+ligne d'une catégorie entièrement masquée. Il regarde maintenant les deux cas.
 
 Les cas marqués `[temoin]` mesurent un invariant du décor et tiennent des deux côtés —
 leur libellé dit pourquoi.

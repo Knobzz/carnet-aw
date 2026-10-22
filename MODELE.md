@@ -85,6 +85,13 @@ rangement ; il n'est jamais une clé étrangère.
 Les **catégories** ne sont pas une liste fermée : elles n'existent que parce qu'une est tapée.
 Un outil sans catégorie se range sous « Sans catégorie », en bas.
 
+C'est ce qui rend le sélecteur d'équipement possible — catégories repliables, plusieurs
+outils cochés d'un coup — et c'est aussi ce qui l'oblige à une précaution : un exercice
+peut porter un nom d'outil **absent du catalogue**, saisi à la main ou retiré de
+l'équipement depuis. Le sélecteur les montre à part, en tête, et **ne les perd jamais à
+la validation**. Un outil stocké par son nom ne doit pas disparaître parce que le
+catalogue, lui, a changé.
+
 ## Programme — le modèle réutilisable
 
 ```

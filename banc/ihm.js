@@ -174,7 +174,11 @@
     var fen = h.fen, doc = h.doc;
     var chrono = fen.App.ui.chrono;
 
-    chrono.demarrer(90, 'Curl marteau · série 2');
+    /* Un libellé REPRÉSENTATIF : l'app écrit `nom de l'exercice · série n`,
+       et les noms d'exercices sont longs. Avec « Curl marteau · série 2 », le
+       contrôle passait à 430 px sur un CSS qui coupait pourtant les vrais
+       libellés — un cas de mesure trop gentil pour prouver quoi que ce soit. */
+    chrono.demarrer(90, 'Curl marteau fat grip · série 3');
 
     return attendre(GLISSADE).then(function () {
       var r = rect(doc, '.chrono');
@@ -204,9 +208,39 @@
       /* Le bandeau ne doit pas non plus déborder en largeur à 320 px. */
       v.vrai(r.width <= LARGEUR, 'il ne déborde pas de l’écran à 320 px');
 
+      /* Le NOM de l'exercice doit être lisible, pas réduit à « Cu… ». En
+         flex, le temps et les deux boutons lui laissaient 35 px. On mesure la
+         place réelle, et on la compare à ce qu'il faut pour lire quelques
+         mots — pas à zéro, qui serait toujours vrai. */
+      var quoi = doc.querySelector('.chrono-quoi');
+      var rq = quoi.getBoundingClientRect();
+      v.vrai(rq.width >= 150,
+             'le nom de l’exercice a de la place pour être lu : ' + Math.round(rq.width)
+           + ' px (il en faut au moins 150 ; le libellé mesuré en demande '
+           + quoi.scrollWidth + ')');
+      v.vrai(quoi.scrollWidth <= quoi.clientWidth + 1,
+             'et il n’est pas tronqué par des points de suspension');
+
+      /* 320 px ne suffit PAS à juger : le premier correctif passait ici et
+         coupait encore le libellé à 430 px, la largeur d'un téléphone
+         courant. On élargit l'hôte le temps de la mesure. */
+      h.cadre.style.width = '430px';
+      h.cadre.width = 430;
+      return attendre(120).then(function () {
+        var large = doc.querySelector('.chrono-quoi');
+        v.vrai(large.scrollWidth <= large.clientWidth + 1,
+               'à 430 px non plus, le nom n’est pas coupé (place : '
+             + Math.round(large.getBoundingClientRect().width) + ' px)');
+        h.cadre.style.width = LARGEUR + 'px';
+        h.cadre.width = LARGEUR;
+        return attendre(120);
+      });
+    }).then(function () {
+      if (!rect(doc, '.chrono')) return;
+
       /* --- « Passer » --- */
       var passer = null;
-      Array.prototype.forEach.call(bts, function (b) {
+      Array.prototype.forEach.call(doc.querySelectorAll('.chrono .bt-petit'), function (b) {
         if (b.textContent.indexOf('Passer') >= 0) passer = b;
       });
       v.vrai(!!passer, '[temoin] le bouton « Passer » est trouvable');
@@ -487,6 +521,157 @@
       fen.App.ui.vider(vue);
       e.seances = [];
       return attendre(20);
+    });
+  });
+
+  /* ================================================================
+     9. Choisir dans tout l'équipement
+
+     Taper le nom marche quand on le connaît. Passé une vingtaine d'outils, la
+     liste déroulante de huit ne montre que les plus récents : il faut pouvoir
+     ouvrir son équipement, le voir rangé, en cocher plusieurs d'un coup.
+     ================================================================ */
+
+  bloc('Choisir dans l’équipement', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    [['Barre droite', 'Barres'], ['Barre EZ', 'Barres'],
+     ['Poulie haute', 'Poulies'], ['Poulie basse', 'Poulies'], ['Corde triceps', 'Poulies'],
+     ['Golden Grip N2', 'Grippers'], ['Golden Grip N3', 'Grippers'],
+     ['Golden Grip N4', 'Grippers'], ['Fat grip', 'Poignées'],
+     ['Titan Grip Iron Wrist 60 mm', 'Poignées AW'], ['Élastique', '']
+    ].forEach(function (o) { fen.App.m.majCatalogueOutils(e, o[0], o[1]); });
+
+    /* Un exercice qui porte DÉJÀ un outil du catalogue, et un autre qui n'y
+       est pas — celui-là ne doit jamais disparaître en silence. */
+    var exo = fen.App.m.exerciceSeanceVierge({
+      nom: 'Curl', typeCharge: 'kg', outils: ['Fat grip', 'Sangle maison']
+    });
+
+    var rendu = null;
+    fen.App.panneau.choisirOutils(e, exo.outils, function (liste) { rendu = liste; });
+
+    return attendre(120).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'le sélecteur s’ouvre');
+      if (!pan) return;
+
+      var blocs = pan.querySelectorAll('.equip-bloc');
+      var titres = Array.prototype.map.call(blocs, function (b) {
+        return b.querySelector('.equip-cat b').textContent;
+      });
+      v.egal(titres[0], 'Sur cet exercice, hors équipement',
+             'ce qui est porté sans être au catalogue vient EN PREMIER : '
+           + 'c’est ce qu’on risquerait de perdre sans le voir');
+      v.vrai(titres.indexOf('Barres') >= 0, 'les catégories sont là');
+      v.vrai(titres.indexOf('Poulies') >= 0, 'toutes');
+      v.egal(titres[titres.length - 1], 'Sans catégorie',
+             '[temoin] et le fourre-tout reste en bas');
+
+      /* Repliable : c'est ce qui rend trente outils parcourables. */
+      var barres = null;
+      Array.prototype.forEach.call(blocs, function (b) {
+        if (b.querySelector('.equip-cat b').textContent === 'Barres') barres = b;
+      });
+      var entete = barres.querySelector('.equip-cat');
+      var liste = barres.querySelector('.equip-liste');
+      v.egal(entete.getAttribute('aria-expanded'), 'true', 'une catégorie s’ouvre dépliée');
+      v.vrai(liste.getBoundingClientRect().height > 0, '[temoin] et on voit son contenu');
+      entete.click();
+      v.egal(entete.getAttribute('aria-expanded'), 'false', 'un appui la replie');
+      v.egal(liste.getBoundingClientRect().height, 0, 'et son contenu disparaît');
+      entete.click();
+      v.vrai(liste.getBoundingClientRect().height > 0, 'un second appui la rouvre');
+
+      /* La cible tactile, à 320 px. */
+      var mini = 999;
+      Array.prototype.forEach.call(pan.querySelectorAll('.equip-ligne, .equip-cat'), function (n) {
+        mini = Math.min(mini, n.getBoundingClientRect().height);
+      });
+      v.vrai(mini >= 44, 'chaque ligne et chaque en-tête font 44 px (mesuré : '
+                       + Math.round(mini) + ')');
+      v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
+             'et rien ne déborde à 320 px');
+
+      /* Ce qui est déjà porté est coché d'avance. */
+      function ligne(nom) {
+        var trouve = null;
+        Array.prototype.forEach.call(pan.querySelectorAll('.equip-ligne'), function (b) {
+          if (b.querySelector('.equip-nom').textContent === nom) trouve = b;
+        });
+        return trouve;
+      }
+      v.egal(ligne('Fat grip').getAttribute('aria-pressed'), 'true',
+             'un outil déjà porté est coché d’avance');
+      v.egal(ligne('Sangle maison').getAttribute('aria-pressed'), 'true',
+             'celui qui est hors catalogue aussi');
+      v.egal(ligne('Barre EZ').getAttribute('aria-pressed'), 'false',
+             'et les autres ne le sont pas');
+
+      /* Plusieurs d'un coup — c'est tout l'intérêt. */
+      ligne('Barre EZ').click();
+      ligne('Poulie haute').click();
+      ligne('Golden Grip N3').click();
+      v.egal(ligne('Barre EZ').getAttribute('aria-pressed'), 'true', 'on en coche plusieurs');
+
+      /* Le filtre, pour couper court quand on sait ce qu'on veut. */
+      var filtre = pan.querySelector('input[type="search"]');
+      v.vrai(!!filtre, 'un filtre est proposé');
+      filtre.value = 'poulie';
+      filtre.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.vrai(ligne('Poulie haute').offsetParent !== null, 'il garde ce qui correspond');
+      v.vrai(ligne('Barre EZ').offsetParent === null, 'et masque le reste');
+      v.vrai(barres.hidden, 'une catégorie entièrement masquée disparaît aussi');
+      /* Le cas que le contrôle d'à côté ne voit PAS : une ligne qui ne
+         correspond pas, dans une catégorie qui, elle, correspond. « Fat grip »
+         est rangé dans Poignées ; sous « grip », sa catégorie reste ouverte,
+         et c'est là qu'une ligne non filtrée se remarque. */
+      filtre.value = 'golden';
+      filtre.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.vrai(ligne('Golden Grip N3').offsetParent !== null,
+             '[temoin] ce qui correspond est bien là');
+      v.vrai(ligne('Fat grip').offsetParent === null,
+             'et une ligne qui ne correspond pas est masquée MÊME si sa catégorie '
+           + 'reste affichée pour une autre ligne');
+      filtre.value = 'poulie';
+      filtre.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.vrai(ligne('Corde triceps').offsetParent === null,
+             'un outil rangé dans « Poulies » mais qui ne s’appelle pas « poulie » '
+           + 'est masqué lui aussi');
+      filtre.value = '';
+      filtre.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.vrai(ligne('Barre EZ').offsetParent !== null, 'vider le filtre rend tout');
+
+      /* Changer d'avis sur un outil déjà porté : le décocher puis le
+         recocher ne doit pas l'envoyer à la fin de la liste. C'est le geste
+         qui distingue « on garde l'ordre en place » d'un simple hasard
+         d'insertion. */
+      ligne('Fat grip').click();
+      ligne('Fat grip').click();
+      v.egal(ligne('Fat grip').getAttribute('aria-pressed'), 'true',
+             '[temoin] décoché puis recoché, il est bien coché');
+
+      /* Valider. */
+      var valider = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('.panneau-pied button'), function (b) {
+        if (b.textContent === 'Valider') valider = b;
+      });
+      valider.click();
+
+      return attendre(80).then(function () {
+        v.vrai(!!rendu, 'valider rend la sélection');
+        v.egal(rendu.indexOf('Sangle maison'), 1,
+               'l’outil hors catalogue est GARDÉ, et à sa place d’origine');
+        v.egal(rendu.slice(0, 2).join(','), 'Fat grip,Sangle maison',
+               'l’ordre déjà en place ne se rebat pas sous les yeux');
+        v.egal(rendu.length, 5, 'les trois outils cochés se sont ajoutés');
+        v.vrai(rendu.indexOf('Poulie haute') >= 2, 'les nouveaux viennent après');
+        v.egal(doc.querySelectorAll('.panneau').length, 0, 'et le panneau se referme');
+
+        e.outils.length = 0;
+        return attendre(20);
+      });
     });
   });
 
