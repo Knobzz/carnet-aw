@@ -224,6 +224,10 @@
       var selCharge = h('select', { class: 'champ' });
       var selForces = null;
 
+      champNom.addEventListener('input', function () {
+        if (surChangementForces) surChangementForces();
+      });
+
       A.ui.autocomplete(champNom, function (saisie) {
         return A.m.suggestions(etat(), saisie, 8).map(function (x) {
           var j = [];
@@ -239,6 +243,8 @@
         exo.typeCharge = it.typeCharge;
         exo.colonnes = A.m.colonnes(it);
         exo.cote = A.m.coteValide(it.cote);
+        exo.muscles = A.m.muscles(it);
+        exo.prise = A.m.priseValide(it.prise);
         exo.forces = (it.forces || []).slice();
         exo.outils = (it.outils || []).slice();
         exo.structures = (it.structures || []).slice();
@@ -246,6 +252,8 @@
         selCharge.value = exo.typeCharge;
         rafraichirColonnes();
         rafraichirCote();
+        rafraichirPrise();
+        rafraichirMuscles();
         if (selForces) rafraichirForces();
         rafraichirOutils();
         rafraichirStructures();
@@ -258,8 +266,8 @@
       c.appendChild(A.ui.groupe('', btAw,
         'Compté dans le volume AW, à part de la muscu générale.'));
 
-      /* Quel bras cet exercice charge. Facultatif, posé une fois : le
-         catalogue le retient avec le nom, et il revient tout seul ensuite. */
+      /* Quel bras cet exercice charge, et comment la main tient. Facultatifs,
+         posés une fois : le catalogue les retient avec le nom. */
       var boiteCote = h('div');
       function rafraichirCote() {
         A.ui.vider(boiteCote);
@@ -269,6 +277,19 @@
       c.appendChild(A.ui.groupe('Côté', boiteCote,
         'Facultatif. C’est ce qui permet à Suivi de relier une douleur au bras qui l’a chargée — '
       + 'sans lui, le recoupement croise les deux.'));
+
+      var boitePrise = h('div');
+      function rafraichirPrise() {
+        A.ui.vider(boitePrise);
+        boitePrise.appendChild(A.ui.selecteurPrise(exo.prise, function (v) {
+          exo.prise = v;
+          if (surChangementForces) surChangementForces();
+        }));
+      }
+      rafraichirPrise();
+      c.appendChild(A.ui.groupe('Prise', boitePrise,
+        'Facultatif. Main ouverte, on pousse ; doigts refermés, on serre — et serrer fait '
+      + 'travailler les fléchisseurs des doigts, qui naissent eux aussi de l’épicondyle médial.'));
 
       A.m.TYPES_CHARGE.forEach(function (t) {
         selCharge.appendChild(h('option', { value: t.id, text: t.nom }));
@@ -382,14 +403,99 @@
       c.appendChild(A.ui.groupe('Structures chargées', boiteStructures));
 
       var boiteForces = h('div');
+      var surChangementForces = null;
       function rafraichirForces() {
         A.ui.vider(boiteForces);
-        selForces = A.ui.selecteurForces(exo.forces || [], function (v) { exo.forces = v; });
+        selForces = A.ui.selecteurForces(exo.forces || [], function (v) {
+          exo.forces = v;
+          if (surChangementForces) surChangementForces();
+        });
         boiteForces.appendChild(selForces);
       }
       rafraichirForces();
       c.appendChild(A.ui.groupe('Mouvements', boiteForces,
         'Facultatif. Sert à repérer, dans Suivi, un mouvement qu’un programme néglige.'));
+
+      /* ---- les muscles, proposés depuis les mouvements ----
+         On ne peut pas demander de cocher treize muscles à qui ne connaît pas
+         les termes : la case resterait vide, et la carte aussi. Les
+         mouvements déjà cochés proposent donc une première liste, et on dit
+         D'OÙ elle vient — du manuel d'anatomie pour les trois mouvements qui
+         sont des actions articulaires, d'une seule étude EMG pour les trois
+         autres. Rien n'est écrit sans un geste. */
+      exo.muscles = A.m.muscles(exo);
+      var boiteMuscles = h('div');
+      var aideMuscles = h('div', { class: 'item-resume' });
+      var btProposer = h('button', { type: 'button', class: 'bt',
+                                     style: 'margin-top:7px;width:100%' });
+
+      function majAideMuscles() {
+        var l = A.m.muscles(exo);
+        var bouts = [];
+        if (!l.length) {
+          bouts.push('Aucun muscle renseigné : cet exercice n’apparaîtra pas sur la carte.');
+        } else {
+          var med = l.filter(function (id) { return (A.m.muscle(id) || {}).medial; })
+                     .map(A.m.nomMuscle);
+          var lat = l.filter(function (id) { return (A.m.muscle(id) || {}).lateral; })
+                     .map(A.m.nomMuscle);
+          bouts.push(l.length + ' muscle' + (l.length > 1 ? 's' : '') + '.');
+          if (med.length) {
+            bouts.push('Tire sur l’ÉPICONDYLE MÉDIAL (' + med.join(', ')
+                     + ') — c’est l’insertion commune des fléchisseurs et pronateurs.');
+          }
+          if (lat.length) bouts.push('Et sur l’épicondyle latéral (' + lat.join(', ') + ').');
+        }
+        aideMuscles.textContent = bouts.join(' ');
+
+        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value);
+        var manquants = prop.muscles.filter(function (id) { return l.indexOf(id) < 0; });
+        btProposer.disabled = !manquants.length;
+        /* Le bouton dit D'OÙ vient la proposition. Annoncer « d'après les
+           mouvements » alors qu'on lit le nom serait une petite malhonnêteté,
+           et c'est exactement ce que le reste de l'app refuse. */
+        var depuis = { nom: 'le nom', anatomie: 'l’anatomie',
+                       a_verifier: 'les mouvements', mixte: 'le nom et les mouvements' };
+        btProposer.textContent = !prop.muscles.length
+          ? 'Rien à proposer : donne un nom, ou coche un mouvement'
+          : (manquants.length
+              ? 'Proposer d’après ' + (depuis[prop.source] || 'ce qui est renseigné')
+                + ' (' + manquants.length + ')'
+              : 'Proposition déjà appliquée');
+      }
+
+      function rafraichirMuscles() {
+        A.ui.vider(boiteMuscles);
+        boiteMuscles.appendChild(A.ui.selecteurMuscles(exo.muscles, function (v) {
+          exo.muscles = v;
+          majAideMuscles();
+        }));
+        majAideMuscles();
+      }
+      rafraichirMuscles();
+
+      btProposer.addEventListener('click', function () {
+        var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value);
+        if (!prop.muscles.length) return;
+        var fusion = A.m.muscles(exo).slice();
+        prop.muscles.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });
+        exo.muscles = A.m.muscles({ muscles: fusion });
+        rafraichirMuscles();
+        A.ui.toast(prop.source === 'anatomie'
+          ? 'Proposé d’après l’anatomie. À corriger si ça ne correspond pas.'
+          : prop.source === 'nom'
+          ? 'Proposé d’après le nom que tu as écrit. À corriger si besoin.'
+          : 'Proposé — à vérifier : les directions de poussée ne sont pas des actions articulaires.');
+      });
+
+      var grMuscles = A.ui.groupe('Muscles sollicités', boiteMuscles);
+      grMuscles.appendChild(btProposer);
+      grMuscles.appendChild(aideMuscles);
+      c.appendChild(grMuscles);
+
+      /* Cocher un mouvement doit rafraîchir la proposition : sinon le bouton
+         reste à « coche un mouvement » alors qu'on vient de le faire. */
+      surChangementForces = majAideMuscles;
 
       var champConsigne = h('textarea', { class: 'champ',
         placeholder: 'Tenue 3 s en haut, excentrique 4 s. Prise pronation serrée.' });

@@ -3,7 +3,7 @@
   'use strict';
   var h = A.ui.h;
 
-  window.APP_VERSION = '1.8.0';
+  window.APP_VERSION = '1.9.0';
 
   var ONGLETS = [
     { id: 'seance',     nom: 'Séance',    icone: 'M7 7v10M17 7v10M7 12h10M3 9.5v5M21 9.5v5' },

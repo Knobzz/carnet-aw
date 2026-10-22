@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **480 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **545 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,7 +148,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **312 contrôles, 22 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **377 contrôles, 23 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **168 contrôles, 11 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
@@ -165,7 +165,7 @@ catalogues vides au départ · ce que l'autocomplétion montre vraiment · les s
 mouvements · la durée par série, le temps sous tension et les colonnes choisies ·
 la migration d'un carnet d'avant · la récupération quotidienne et sa régularité ·
 le côté et le recoupement douleur / bras qui l'a chargée · **la règle des 24 h** ·
-**la progression en récupération**.
+**la progression en récupération · **les muscles, la prise, et la carte du bras**.
 
 Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
 du style calculé, dans un iframe de **320 px** — la largeur la plus dure. Le chronomètre
@@ -177,7 +177,7 @@ saisissable · **six onglets tiennent-ils dans la barre** · **une journée de r
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Dix-sept blocs ont été vus rougir,
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Dix-neuf blocs ont été vus rougir,
 en réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -200,6 +200,8 @@ en réintroduisant volontairement le défaut qu'ils surveillent :
 | question des 24 h posée le jour même | `une douleur notée AUJOURD'HUI n'appelle rien — attendu 0, obtenu 1` |
 | relevé empilé au lieu de corrigé | `répondre deux fois CORRIGE — attendu 1, obtenu 2` |
 | nom de zone rogné dans la question | `il n'est pas tronqué — 90 px de place, il en demande 122` |
+| « grip » accepté comme mot-muscle | `« Titan Grip » est un outil — attendu -1, obtenu 1` — 3 contrôles rouges |
+| carré pronateur compté comme médial | `il est distal, et le compter là ferait accuser la mauvaise insertion — attendu 0, obtenu 6` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
@@ -215,6 +217,10 @@ corrige pas ce qui est déjà écrit — un carnet nourri avant la correction po
 seules, à égalité, et n'affichait jamais que ses huit premiers outils. Le classement
 départage désormais à égalité, et le banc mesure enfin un carnet ANCIEN, ce qu'aucun de
 ses contrôles ne faisait.
+
+Et un contrôle a été ajouté **après** avoir vu qu'un défaut passait : compter le carré
+pronateur comme médial ne faisait rougir aucun cas, parce qu'aucun n'en employait. Le
+drapeau était vérifié, le COMPTE ne l'était pas.
 
 Un autre a échappé au banc avant d'être vu à l'écran : le filtre de l'équipement
 masquait les catégories entières mais pas les lignes d'une catégorie qui, elle,

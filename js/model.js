@@ -148,6 +148,200 @@
     return [];
   }
 
+  /* ---------- la prise ----------
+
+     Main ouverte ou doigts refermes : ce n'est pas un detail de style. Une
+     prise fermee fait travailler les FLECHISSEURS DES DOIGTS, qui naissent
+     eux aussi de l'epicondyle medial ; une prise ouverte pousse sans serrer.
+     Le meme exercice, des deux facons, ne charge pas la meme chose.
+
+     Comme le cote : `null` veut dire non renseigne, et ne devient jamais une
+     valeur par defaut. */
+  var PRISES = [
+    { id: 'ouverte', nom: 'Ouverte', quoi: 'main ouverte, on pousse' },
+    { id: 'fermee',  nom: 'Fermée',  quoi: 'doigts refermés, on serre' }
+  ];
+
+  function priseValide(id) {
+    for (var i = 0; i < PRISES.length; i++) if (PRISES[i].id === id) return id;
+    return null;
+  }
+  function nomPrise(id) {
+    for (var i = 0; i < PRISES.length; i++) if (PRISES[i].id === id) return PRISES[i].nom;
+    return 'Prise non renseignée';
+  }
+
+  /* ---------- les muscles ----------
+
+     Les STRUCTURES disent ce qui encaisse (poignet, coude medial…) : c'est le
+     vocabulaire de la douleur. Les MUSCLES disent ce qui tire. Les deux sont
+     portes par l'exercice, et c'est leur croisement qui rend la carte lisible.
+
+     `medial: true` marque les muscles de la MASSE FLEXO-PRONATRICE : rond
+     pronateur, flechisseur radial du carpe, long palmaire, flechisseur
+     superficiel des doigts et flechisseur ulnaire du carpe partagent UN SEUL
+     tendon d'origine, sur l'epicondyle medial. Leur surmenage est exactement
+     ce qu'on appelle epicondylite mediale. C'est ce qui relie la carte a la
+     douleur, et ce n'est pas une opinion : c'est de l'anatomie.
+
+     `lateral: true` fait la meme chose pour l'origine des extenseurs.
+
+     Le carre pronateur (distal) et le brachio-radial (crete supracondylaire)
+     ne portent AUCUNE des deux marques : les mettre avec les autres aurait
+     ete plus simple a lire et faux. */
+  var MUSCLES = [
+    { id: 'rond_pronateur', nom: 'Rond pronateur', groupe: 'avant_bras_av',
+      quoi: 'tourne la paume vers le bas', medial: true },
+    { id: 'fcr', nom: 'Fléchisseur radial du carpe', groupe: 'avant_bras_av',
+      quoi: 'plie le poignet, côté pouce', medial: true },
+    { id: 'fcu', nom: 'Fléchisseur ulnaire du carpe', groupe: 'avant_bras_av',
+      quoi: 'plie le poignet, côté auriculaire', medial: true },
+    { id: 'flechisseurs_doigts', nom: 'Fléchisseurs des doigts', groupe: 'main',
+      quoi: 'serrent la main', medial: true },
+    { id: 'carre_pronateur', nom: 'Carré pronateur', groupe: 'avant_bras_av',
+      quoi: 'tourne l’avant-bras, près du poignet' },
+    { id: 'supinateur', nom: 'Supinateur', groupe: 'avant_bras_ar',
+      quoi: 'tourne la paume vers le haut', lateral: true },
+    { id: 'extenseurs_poignet', nom: 'Extenseurs du poignet', groupe: 'avant_bras_ar',
+      quoi: 'relèvent le poignet', lateral: true },
+    { id: 'brachio_radial', nom: 'Brachio-radial', groupe: 'avant_bras_ar',
+      quoi: 'fléchit le coude, prise marteau' },
+    { id: 'biceps', nom: 'Biceps', groupe: 'bras_av',
+      quoi: 'fléchit le coude et supine' },
+    { id: 'brachial', nom: 'Brachial', groupe: 'bras_av',
+      quoi: 'fléchit le coude, quelle que soit la prise' },
+    { id: 'triceps', nom: 'Triceps', groupe: 'bras_ar',
+      quoi: 'tend le coude' },
+    { id: 'grand_pectoral', nom: 'Grand pectoral', groupe: 'tronc',
+      quoi: 'ramène le bras vers soi' },
+    { id: 'grand_dorsal', nom: 'Grand dorsal', groupe: 'tronc',
+      quoi: 'tire le bras vers l’arrière et le bas' }
+  ];
+
+  /* Les regions du schema. Treize muscles sur un bras de 290 px seraient
+     illisibles : le dessin montre SIX regions, et les chiffres exacts se
+     lisent en barres en dessous. Le visuel sert le coup d'oeil, pas la
+     precision — c'est la division du travail entre les deux. */
+  var REGIONS_MUSCLE = [
+    { id: 'tronc',          nom: 'Épaule et tronc' },
+    { id: 'bras_av',        nom: 'Bras, avant' },
+    { id: 'bras_ar',        nom: 'Bras, arrière' },
+    { id: 'avant_bras_av',  nom: 'Avant-bras, face antérieure' },
+    { id: 'avant_bras_ar',  nom: 'Avant-bras, face postérieure' },
+    { id: 'main',           nom: 'Main et doigts' }
+  ];
+
+  /* Ce qu'un mouvement fait travailler — PROPOSÉ, jamais impose.
+
+     `source` dit d'ou vient la proposition, et l'ecran l'affiche :
+       'anatomie'   le mouvement EST une action articulaire, et les muscles
+                    qui la produisent sont du manuel. Cupping = flexion du
+                    poignet ; pronation et supination = rotation de l'avant-bras.
+       'a_verifier' le mouvement est une DIRECTION DE POUSSEE, pas une action
+                    articulaire. Ce qui suit vient d'une seule etude EMG sur
+                    le bras de fer — grand pectoral donne comme le plus
+                    important, FCU comme determinant pour prendre l'avantage —
+                    et merite d'etre corrige par qui tire.
+
+     Rien n'est ecrit sur l'exercice sans un geste : la proposition remplit
+     les cases, l'utilisateur garde la main. */
+  var MUSCLES_PAR_MOUVEMENT = {
+    cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'flechisseurs_doigts'] },
+    pronation:     { source: 'anatomie',   muscles: ['rond_pronateur', 'carre_pronateur'] },
+    supination:    { source: 'anatomie',   muscles: ['supinateur', 'biceps'] },
+    rising:        { source: 'a_verifier', muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    back_pressure: { source: 'a_verifier', muscles: ['grand_dorsal', 'grand_pectoral', 'biceps'] },
+    side_pressure: { source: 'a_verifier', muscles: ['grand_pectoral', 'fcu'] }
+  };
+
+  /* Ce qu'un NOM d'exercice dit deja. « Curl biceps prise ouverte » contient
+     le mot biceps : le proposer n'invente rien, ca relit ce qui a ete ecrit.
+     C'est la troisieme source de proposition, apres les mouvements et la
+     prise, et la seule qui ne demande AUCUNE case cochee.
+
+     Les mots sont volontairement discriminants. « Poulie » ne dit rien d'un
+     muscle, « curl » tout seul non plus — un curl marteau, un curl pronateur
+     et un wrist curl ne travaillent pas la meme chose. On ne propose que sur
+     un mot qui designe sans ambiguite. */
+  var MOTS_MUSCLE = {
+    biceps:              ['biceps'],
+    triceps:             ['triceps', 'extension coude', 'dips'],
+    brachial:            ['brachial'],
+    brachio_radial:      ['brachio radial', 'brachioradial', 'marteau', 'hammer'],
+    rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat'],
+    carre_pronateur:     ['pronation', 'pronateur', 'pronator', 'pronat'],
+    supinateur:          ['supination', 'supinateur', 'supinator', 'supinat'],
+    fcu:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet', 'flechisseur poignet'],
+    fcr:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet', 'flechisseur poignet'],
+    /* PAS « grip » tout court : « Titan Grip » et « Fat grip » sont des
+       OUTILS, et le banc l'a attrape. Un mot qui apparait dans un nom de
+       materiel ne designe pas un muscle. */
+    flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'doigts', 'pinch', 'serrer'],
+    extenseurs_poignet:  ['extension poignet', 'extenseur', 'reverse curl', 'reverse wrist'],
+    grand_pectoral:      ['pectoral', 'pec', 'developpe', 'bench', 'press'],
+    grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat']
+  };
+
+  function musclesDuNom(nom) {
+    var s = slug(nom);
+    if (!s) return [];
+    var vus = {};
+    Object.keys(MOTS_MUSCLE).forEach(function (id) {
+      MOTS_MUSCLE[id].forEach(function (mot) {
+        if (s.indexOf(slug(mot)) >= 0) vus[id] = 1;
+      });
+    });
+    var l = [];
+    MUSCLES.forEach(function (m) { if (vus[m.id]) l.push(m.id); });
+    return l;
+  }
+
+  function muscle(id) {
+    for (var i = 0; i < MUSCLES.length; i++) if (MUSCLES[i].id === id) return MUSCLES[i];
+    return null;
+  }
+  function nomMuscle(id) {
+    var m = muscle(id);
+    return m ? m.nom : id;
+  }
+  /* Remet une liste de muscles dans l'ordre du tableau, sans doublon ni
+     inconnu — meme discipline que les colonnes. */
+  function muscles(exo) {
+    var voulus = (exo && exo.muscles) || [];
+    var l = [];
+    MUSCLES.forEach(function (m) { if (voulus.indexOf(m.id) >= 0) l.push(m.id); });
+    return l;
+  }
+
+  /* Ce que les mouvements d'un exercice proposent, et d'ou ca vient. */
+  function musclesProposes(forces, prise, nom) {
+    var vus = {}, l = [], sources = {};
+
+    /* Le nom d'abord : c'est ce que l'utilisateur a ECRIT lui-meme, donc la
+       source la moins contestable des trois. */
+    musclesDuNom(nom).forEach(function (m) { vus[m] = 1; sources.nom = true; });
+    /* Une prise fermee fait travailler les flechisseurs des doigts. C'est la
+       definition de serrer, pas une interpretation. */
+    if (priseValide(prise) === 'fermee') {
+      vus.flechisseurs_doigts = 1;
+      sources.anatomie = true;
+    }
+    (forces || []).forEach(function (f) {
+      var p = MUSCLES_PAR_MOUVEMENT[f];
+      if (!p) return;
+      sources[p.source] = true;
+      p.muscles.forEach(function (m) { if (!vus[m]) { vus[m] = 1; l.push(m); } });
+    });
+    var ordonne = [];
+    MUSCLES.forEach(function (m) { if (vus[m.id]) ordonne.push(m.id); });
+    var nb = (sources.nom ? 1 : 0) + (sources.anatomie ? 1 : 0) + (sources.a_verifier ? 1 : 0);
+    var source = nb > 1 ? 'mixte'
+               : (sources.nom ? 'nom'
+               : (sources.anatomie ? 'anatomie'
+               : (sources.a_verifier ? 'a_verifier' : null)));
+    return { muscles: ordonne, source: source };
+  }
+
   var ZONES = [
     { id: 'coude_medial',  nom: 'Coude médial' },
     { id: 'coude_lateral', nom: 'Coude latéral' },
@@ -356,7 +550,8 @@
     if (!e) {
       e = { id: uid('ex'), nom: exo.nom, slug: s, aw: !!exo.aw,
             typeCharge: exo.typeCharge || 'kg', colonnes: colonnes(exo),
-            cote: coteValide(exo.cote),
+            cote: coteValide(exo.cote), prise: priseValide(exo.prise),
+            muscles: muscles(exo),
             forces: (exo.forces || []).slice(),
             structures: (exo.structures || []).slice(),
             outils: (exo.outils || []).slice(), vuLe: maintenant() };
@@ -369,6 +564,8 @@
       /* Le cote se met a jour, et peut aussi etre EFFACE : repasser un exercice
          a « non renseigne » doit pouvoir se faire. */
       e.cote = coteValide(exo.cote);
+      if (exo.muscles) e.muscles = muscles(exo);
+      e.prise = priseValide(exo.prise);
       if (exo.forces) e.forces = exo.forces.slice();
       if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
@@ -525,6 +722,8 @@
       ex.colonnes = colonnes(ex);
       /* Le cote n'est pas invente : absent, il reste null. */
       ex.cote = coteValide(ex.cote);
+      ex.muscles = muscles(ex);
+      ex.prise = priseValide(ex.prise);
 
       (ex.series || []).forEach(function (s) {
         if (!s) return;
@@ -560,6 +759,7 @@
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
       colonnes: colonnes(modele), cote: coteValide(modele.cote),
+      prise: priseValide(modele.prise), muscles: muscles(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -594,6 +794,7 @@
       nom: ep.nom, slug: ep.slug || slug(ep.nom),
       aw: !!ep.aw, typeCharge: ep.typeCharge || 'kg',
       colonnes: colonnes(ep), cote: coteValide(ep.cote),
+      prise: priseValide(ep.prise), muscles: muscles(ep),
       forces: (ep.forces || []).slice(),
       structures: (ep.structures || []).slice(),
       outils: (ep.outils || []).slice(),
@@ -619,6 +820,7 @@
       nom: modele.nom || '', slug: slug(modele.nom || ''),
       aw: !!modele.aw, typeCharge: modele.typeCharge || 'kg',
       colonnes: colonnes(modele), cote: coteValide(modele.cote),
+      prise: priseValide(modele.prise), muscles: muscles(modele),
       forces: (modele.forces || []).slice(),
       structures: (modele.structures || []).slice(),
       outils: (modele.outils || []).slice(),
@@ -784,7 +986,7 @@
     p.exercices = renumeroter((seance.exercices || []).map(function (es) {
       return exerciceProgramme({
         nom: es.nom, aw: es.aw, typeCharge: es.typeCharge, colonnes: colonnes(es),
-        cote: es.cote,
+        cote: es.cote, prise: es.prise, muscles: muscles(es),
         forces: es.forces, structures: es.structures, outils: es.outils,
         consigne: es.consigne, reposSecondes: es.reposSecondes,
         series: (es.series || []).map(function (ss) {
@@ -1141,6 +1343,92 @@
     return { parStructure: c, parCote: parCote, total: total };
   }
 
+  /* ---------- la carte des muscles ----------
+
+     Meme regles que pour les structures, parce que ce sont les memes
+     questions : on ne compte que les series VALIDEES, « les deux » compte des
+     deux cotes, et ce qui n'a pas de cote reste a part plutot que d'etre
+     reparti au hasard.
+
+     La recuperation est incluse ici, et c'est VOULU : cent repetitions
+     d'elastique chargent le flechisseur comme le reste, meme si elles n'ont
+     rien a faire dans le tonnage. Ce qu'on mesure ici n'est pas du travail,
+     c'est de la sollicitation. */
+  function chargeParMuscle(etat, depuisJours) {
+    var parMuscle = {}, parCote = {}, parRegion = {}, total = 0, sansMuscle = 0;
+    MUSCLES.forEach(function (m) { parMuscle[m.id] = 0; });
+    REGIONS_MUSCLE.forEach(function (r) { parRegion[r.id] = 0; });
+
+    (etat.seances || []).forEach(function (se) {
+      if (!se || (se.type !== 'muscu' && se.type !== 'recup')) return;
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!n) return;
+        var l = muscles(ex);
+        if (!l.length) { sansMuscle += n; return; }
+        var cotes = cotesCouverts(ex.cote);
+        if (!cotes.length) cotes = [COTE_INCONNU];
+        l.forEach(function (id) {
+          parMuscle[id] += n;
+          total += n;
+          var m = muscle(id);
+          if (m) parRegion[m.groupe] += n;
+          cotes.forEach(function (c) {
+            var cle = id + '|' + c;
+            parCote[cle] = (parCote[cle] || 0) + n;
+          });
+        });
+      });
+    });
+
+    return { parMuscle: parMuscle, parCote: parCote, parRegion: parRegion,
+             total: total, sansMuscle: sansMuscle };
+  }
+
+  /* Le croisement que la carte rend possible : pour chaque mouvement, ce
+     qu'il a REELLEMENT fait travailler — d'apres les exercices tels qu'ils
+     sont renseignes, pas d'apres la table de proposition. C'est la difference
+     entre ce que l'app suggere et ce que tu fais. */
+  function musclesParMouvement(etat, depuisJours) {
+    var par = {};
+    FORCES.forEach(function (f) { par[f.id] = { force: f.id, nom: f.nom, series: 0, parMuscle: {} }; });
+
+    (etat.seances || []).forEach(function (se) {
+      if (!se || (se.type !== 'muscu' && se.type !== 'recup')) return;
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!n) return;
+        var l = muscles(ex);
+        (ex.forces || []).forEach(function (f) {
+          if (!par[f]) return;
+          par[f].series += n;
+          l.forEach(function (id) {
+            par[f].parMuscle[id] = (par[f].parMuscle[id] || 0) + n;
+          });
+        });
+      });
+    });
+
+    return FORCES.map(function (f) { return par[f.id]; });
+  }
+
+  /* Ce qui tire sur l'epicondyle medial — la masse flexo-pronatrice — et sur
+     l'epicondyle lateral. C'est le lien direct entre la carte et la douleur
+     qu'on suit, et il ne demande aucune saisie de plus. */
+  function chargeEpicondyle(etat, depuisJours) {
+    var c = chargeParMuscle(etat, depuisJours);
+    var medial = 0, lateral = 0, nomsM = [], nomsL = [];
+    MUSCLES.forEach(function (m) {
+      var n = c.parMuscle[m.id] || 0;
+      if (!n) return;
+      if (m.medial) { medial += n; nomsM.push(m.nom); }
+      if (m.lateral) { lateral += n; nomsL.push(m.nom); }
+    });
+    return { medial: medial, lateral: lateral, musclesMedial: nomsM, musclesLateral: nomsL };
+  }
+
   /* Ce qui a charge un cote donne d'une structure, dans une liste de seances.
      C'est la brique du recoupement : une douleur au medial DROIT doit se
      croiser avec ce qui a charge le medial droit, pas avec l'autre bras.
@@ -1439,6 +1727,13 @@
     TYPES_SERIE: TYPES_SERIE, ORDRE_TYPES: ORDRE_TYPES, TYPES_CHARGE: TYPES_CHARGE,
     FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
     COTES: COTES, COTE_INCONNU: COTE_INCONNU,
+    PRISES: PRISES, priseValide: priseValide, nomPrise: nomPrise,
+    MUSCLES: MUSCLES, REGIONS_MUSCLE: REGIONS_MUSCLE,
+    MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
+    muscle: muscle, nomMuscle: nomMuscle, muscles: muscles,
+    musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
+    chargeParMuscle: chargeParMuscle,
+    musclesParMouvement: musclesParMouvement, chargeEpicondyle: chargeEpicondyle,
     coteValide: coteValide, nomCote: nomCote, courtCote: courtCote,
     cotesCouverts: cotesCouverts,
     COLONNES: COLONNES, COLONNES_DEFAUT: COLONNES_DEFAUT,

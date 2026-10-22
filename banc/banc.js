@@ -830,6 +830,204 @@
   });
 
   /* ================================================================
+     23. Les muscles, et la prise
+
+     Les STRUCTURES disent ce qui encaisse ; les MUSCLES disent ce qui tire.
+     Le pré-remplissage propose, il n'impose pas, et il dit d'où il vient.
+     ================================================================ */
+
+  bloc('Muscles et prise', function (v) {
+    v.egal(A.m.MUSCLES.length, 13, 'treize muscles');
+    v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
+    v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
+    v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
+
+    /* La masse flexo-pronatrice : c'est ce qui relie la carte à la douleur,
+       et se tromper là rendrait tout le reste faux. */
+    var medial = A.m.MUSCLES.filter(function (m) { return m.medial; })
+                            .map(function (m) { return m.id; }).sort();
+    v.egal(medial.join(','), 'fcr,fcu,flechisseurs_doigts,rond_pronateur',
+           'quatre muscles naissent de l’épicondyle médial, et pas un de plus');
+    v.vrai(!A.m.muscle('carre_pronateur').medial,
+           'le carré pronateur est DISTAL : le ranger avec les autres aurait été plus '
+         + 'simple à lire et faux');
+    v.vrai(!A.m.muscle('supinateur').medial, 'le supinateur non plus');
+    v.vrai(A.m.muscle('supinateur').lateral, 'il est du côté latéral');
+    v.vrai(A.m.muscle('extenseurs_poignet').lateral, 'les extenseurs aussi');
+    v.vrai(!A.m.muscle('brachio_radial').medial && !A.m.muscle('brachio_radial').lateral,
+           'et le brachio-radial ne porte aucune des deux marques — crête supracondylaire');
+
+    /* --- le pré-remplissage --- */
+    var cup = A.m.musclesProposes(['cupping']);
+    v.egal(cup.source, 'anatomie',
+           'le cupping EST une flexion du poignet : la proposition vient du manuel');
+    v.vrai(cup.muscles.indexOf('fcu') >= 0, 'et propose le fléchisseur ulnaire');
+    v.vrai(cup.muscles.indexOf('fcr') >= 0, 'et le radial');
+
+    var pro = A.m.musclesProposes(['pronation']);
+    v.egal(pro.muscles.sort().join(','), 'carre_pronateur,rond_pronateur',
+           'la pronation propose les deux pronateurs, et rien d’autre');
+
+    var side = A.m.musclesProposes(['side_pressure']);
+    v.egal(side.source, 'a_verifier',
+           'une DIRECTION DE POUSSÉE n’est pas une action articulaire : à vérifier');
+
+    var mixte = A.m.musclesProposes(['cupping', 'side_pressure']);
+    v.egal(mixte.source, 'mixte', 'mélanger les deux se dit « mixte », pas « anatomie »');
+
+    v.egal(A.m.musclesProposes([]).muscles.length, 0, 'sans mouvement, aucune proposition');
+    v.egal(A.m.musclesProposes([]).source, null, 'et aucune source à annoncer');
+    v.egal(A.m.musclesProposes(['zzz']).muscles.length, 0, 'un mouvement inconnu ne propose rien');
+
+    /* La prise fermée fait travailler les fléchisseurs des doigts : c'est la
+       définition de serrer, pas une interprétation. */
+    v.egal(A.m.nomPrise('fermee'), 'Fermée', 'la prise se nomme');
+    v.egal(A.m.nomPrise(null), 'Prise non renseignée', 'et son absence se DIT');
+    v.egal(A.m.priseValide('molle'), null, 'une valeur inconnue devient non renseignée');
+    var ferme = A.m.musclesProposes([], 'fermee');
+    v.egal(ferme.muscles.join(','), 'flechisseurs_doigts',
+           'une prise fermée propose les fléchisseurs des doigts, à elle seule');
+    v.egal(ferme.source, 'anatomie', 'et c’est de l’anatomie');
+    v.egal(A.m.musclesProposes([], 'ouverte').muscles.length, 0,
+           'une prise ouverte ne propose rien : on pousse, on ne serre pas');
+
+    /* --- la proposition depuis le NOM ---
+       « Curl biceps prise ouverte » contient le mot biceps : le proposer
+       n'invente rien, ça relit ce qui a été écrit. C'est la seule des trois
+       sources qui ne demande aucune case cochée. */
+    v.egal(A.m.musclesDuNom('Curl biceps prise ouverte').join(','), 'biceps',
+           'le nom « Curl biceps » propose le biceps, sans rien cocher');
+    v.egal(A.m.musclesDuNom('Curl marteau').join(','), 'brachio_radial',
+           '« marteau » désigne le brachio-radial sans ambiguïté');
+    v.egal(A.m.musclesDuNom('Pronation Titan Grip').sort().join(','),
+           'carre_pronateur,rond_pronateur', '« pronation » propose les deux pronateurs');
+    v.egal(A.m.musclesDuNom('Gripper N3').join(','), 'flechisseurs_doigts',
+           'un gripper serre : fléchisseurs des doigts');
+    v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','), 'grand_dorsal',
+           '« tirage » désigne le dorsal');
+    v.egal(A.m.musclesDuNom('CURL BICEPS').join(','), 'biceps',
+           'la casse ne change rien');
+    /* Un mot qui apparaît dans un nom d'OUTIL ne désigne pas un muscle :
+       « Titan Grip » et « Fat grip » sont du matériel. Le banc a attrapé ce
+       faux positif, et c'est ce qui a fait retirer « grip » tout court. */
+    v.egal(A.m.musclesDuNom('Pronation Titan Grip').indexOf('flechisseurs_doigts'), -1,
+           '« Titan Grip » est un outil : il ne propose aucun fléchisseur');
+    v.egal(A.m.musclesDuNom('Curl Fat grip').length, 0,
+           '« Fat grip » non plus — et « curl » seul ne dit rien');
+    v.egal(A.m.musclesDuNom('Gripper N3').join(','), 'flechisseurs_doigts',
+           '[temoin] mais « gripper », lui, désigne bien le serrage');
+
+    /* Ce qui NE doit PAS proposer : un mot ambigu ne désigne pas un muscle. */
+    v.egal(A.m.musclesDuNom('Curl').length, 0,
+           '« curl » tout seul ne propose RIEN — marteau, pronateur et wrist curl '
+         + 'ne travaillent pas la même chose');
+    v.egal(A.m.musclesDuNom('Poulie haute').length, 0, 'un outil ne désigne pas un muscle');
+    v.egal(A.m.musclesDuNom('').length, 0, 'un nom vide ne propose rien');
+    v.egal(A.m.musclesDuNom(null).length, 0, 'ni l’absence de nom');
+
+    var parNom = A.m.musclesProposes([], null, 'Curl biceps');
+    v.egal(parNom.source, 'nom', 'la source est nommée : elle vient du nom');
+    var troisSources = A.m.musclesProposes(['cupping'], 'fermee', 'Curl biceps');
+    v.egal(troisSources.source, 'mixte', 'trois sources ensemble se disent « mixte »');
+    v.vrai(troisSources.muscles.indexOf('biceps') >= 0, 'et les propositions se cumulent');
+    v.vrai(troisSources.muscles.indexOf('fcu') >= 0, 'depuis le mouvement');
+    v.vrai(troisSources.muscles.indexOf('flechisseurs_doigts') >= 0, 'et depuis la prise');
+
+    /* L'ordre est celui du tableau, jamais celui de la saisie. */
+    v.egal(A.m.muscles({ muscles: ['triceps', 'fcu'] }).join(','), 'fcu,triceps',
+           'les muscles sont remis dans l’ordre du tableau');
+    v.egal(A.m.muscles({ muscles: ['fcu', 'fcu'] }).join(','), 'fcu', 'sans doublon');
+    v.egal(A.m.muscles({ muscles: ['zzz'] }).length, 0, 'et sans inconnu');
+    v.egal(A.m.muscles({}).length, 0, 'un exercice sans muscle n’en a aucun — pas de défaut');
+
+    /* --- le comptage --- */
+    function exoM(nom, muscles, cote, n) {
+      var series = [];
+      for (var i = 0; i < (n || 1); i++) series.push(serie('normale', 20, 10));
+      var x = exo(nom, series);
+      x.muscles = muscles;
+      x.cote = cote;
+      return x;
+    }
+
+    var e = etatAvec([
+      seance(jourIlYA(1), [
+        exoM('Curl droit', ['biceps', 'fcu'], 'droit', 3),
+        exoM('Barre', ['biceps'], 'deux', 2),
+        exoM('Sans muscle', [], 'droit', 4)
+      ])
+    ]);
+    var c = A.m.chargeParMuscle(e, 28);
+    v.egal(c.parMuscle.biceps, 5, 'les séries validées se comptent par muscle');
+    v.egal(c.parMuscle.fcu, 3, 'chacun le sien');
+    v.egal(c.parMuscle.triceps, 0, 'un muscle jamais sollicité vaut ZÉRO, pas undefined');
+    v.egal(c.sansMuscle, 4,
+           'et les séries d’un exercice sans muscle sont comptées À PART — '
+         + 'elles ne sont nulle part sur la carte, et l’écran le dit');
+    v.egal(c.parCote['biceps|droit'], 5, '« les deux » compte à droite…');
+    v.egal(c.parCote['biceps|gauche'], 2, '…et à gauche, comme pour les structures');
+    v.egal(c.parRegion.bras_av, 5, 'les régions du schéma additionnent leurs muscles');
+
+    /* L'épicondyle médial : le lien avec la douleur, sans saisie de plus. */
+    var ep = A.m.chargeEpicondyle(e, 28);
+    v.egal(ep.medial, 3, 'ce qui tire sur l’épicondyle médial se compte tout seul');
+    v.egal(ep.musclesMedial.join(','), 'Fléchisseur ulnaire du carpe', 'et se nomme');
+    v.egal(ep.lateral, 0, 'le latéral reste à zéro ici');
+
+    /* Et ce qui n'est PAS médial ne doit pas y entrer. Le contrôle
+       d'au-dessus ne couvrait que le drapeau ; celui-ci couvre le COMPTE,
+       là où une erreur ferait accuser la mauvaise insertion. */
+    var pronat = etatAvec([
+      seance(jourIlYA(1), [
+        exoM('Pronation', ['carre_pronateur'], 'droit', 6),
+        exoM('Supination', ['supinateur'], 'droit', 2)
+      ])
+    ]);
+    var ep2 = A.m.chargeEpicondyle(pronat, 28);
+    v.egal(ep2.medial, 0,
+           'le carré pronateur ne tire PAS sur l’épicondyle médial : il est distal, '
+         + 'et le compter là ferait accuser la mauvaise insertion');
+    v.egal(ep2.lateral, 2, 'le supinateur, lui, compte bien du côté latéral');
+
+    /* La récupération COMPTE ici, et c'est voulu : cent répétitions
+       d'élastique chargent le fléchisseur, même hors du tonnage. */
+    var avecRecup = A.store.vide();
+    avecRecup.seances = [{
+      id: 'r1', type: 'recup', date: jourIlYA(1), heure: jourIlYA(1) + 'T20:00:00.000Z',
+      note: '', douleurs: [],
+      exercices: [{ id: 'xr', ordre: 0, nom: 'Élastique', slug: 'elastique', aw: false,
+                    typeCharge: 'elastique', colonnes: ['reps'], cote: 'droit', prise: null,
+                    muscles: ['extenseurs_poignet'], forces: [], structures: [], outils: [],
+                    consigne: '', reposSecondes: 0,
+                    series: [{ id: 'sr', type: 'normale', repsCible: '', chargeCible: '',
+                               dureeCible: '', repsReel: '30', chargeReel: '', dureeReel: '',
+                               rpe: null, faite: true, faiteA: null }] }]
+    }];
+    v.egal(A.m.chargeParMuscle(avecRecup, 28).parMuscle.extenseurs_poignet, 1,
+           'la récupération sollicite les muscles, même si elle ne pèse rien');
+    v.egal(A.m.volumeParSemaine(avecRecup, 8).length, 0,
+           '[temoin] et elle reste hors du volume de travail');
+
+    /* --- le croisement mouvements × muscles --- */
+    var e2 = etatAvec([
+      seance(jourIlYA(1), [
+        (function () {
+          var x = exoM('Cup poulie', ['fcu', 'fcr'], 'droit', 4);
+          x.forces = ['cupping'];
+          return x;
+        })()
+      ])
+    ]);
+    var croise = A.m.musclesParMouvement(e2, 28);
+    var cupping = croise.filter(function (x) { return x.force === 'cupping'; })[0];
+    v.egal(cupping.series, 4, 'un mouvement compte les séries de ses exercices');
+    v.egal(cupping.parMuscle.fcu, 4, 'et ce qu’ils font travailler');
+    var rising = croise.filter(function (x) { return x.force === 'rising'; })[0];
+    v.egal(rising.series, 0, 'un mouvement jamais travaillé vaut zéro, pas rien');
+    v.egal(Object.keys(rising.parMuscle).length, 0, 'et ne nomme aucun muscle');
+  });
+
+  /* ================================================================
      21. La règle des 24 h
 
      Ce qui renseigne n'est pas la douleur pendant l'effort — elle est

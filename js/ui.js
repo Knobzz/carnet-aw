@@ -571,8 +571,8 @@
   /* Le cote : un choix UNIQUE, et qui peut redevenir vide. Appuyer sur celui
      qui est deja actif le retire — « non renseigne » doit rester atteignable
      une fois qu'on a repondu par erreur. */
-  function selecteurCote(valeur, onChange) {
-    var sel = A.m.coteValide(valeur);
+  function selecteurUnique(liste, valeur, onChange) {
+    var sel = valeur || null;
     var boite = h('div', { class: 'enrobe' });
     var boutons = [];
 
@@ -582,8 +582,9 @@
       });
     }
 
-    A.m.COTES.forEach(function (c) {
+    liste.forEach(function (c) {
       var b = h('button', { type: 'button', class: 'puce', text: c.nom,
+                            title: c.quoi || '',
                             'aria-pressed': sel === c.id ? 'true' : 'false' });
       b.addEventListener('click', function () {
         sel = (sel === c.id) ? null : c.id;
@@ -593,6 +594,50 @@
       boutons.push({ id: c.id, noeud: b });
       boite.appendChild(b);
     });
+    return boite;
+  }
+
+  function selecteurCote(valeur, onChange) {
+    return selecteurUnique(A.m.COTES, A.m.coteValide(valeur), onChange);
+  }
+  function selecteurPrise(valeur, onChange) {
+    return selecteurUnique(A.m.PRISES, A.m.priseValide(valeur), onChange);
+  }
+
+  /* Les muscles, ranges par region, chacun avec CE QU'IL FAIT. Treize noms
+     latins sans explication ne se cochent pas : on apprend en appuyant, ou
+     on ne coche rien. Les muscles de la masse flexo-pronatrice portent une
+     marque — c'est eux qui tirent sur l'epicondyle medial. */
+  function selecteurMuscles(valeurs, onChange) {
+    var sel = (valeurs || []).slice();
+    var boite = h('div');
+
+    function rendreGroupe(region) {
+      var dedans = A.m.MUSCLES.filter(function (m) { return m.groupe === region.id; });
+      if (!dedans.length) return;
+      boite.appendChild(h('div', { class: 'muscle-region', text: region.nom }));
+      var liste = h('div', { class: 'muscle-liste' });
+      dedans.forEach(function (m) {
+        var b = h('button', { type: 'button', class: 'muscle-ligne',
+                              'aria-pressed': sel.indexOf(m.id) >= 0 ? 'true' : 'false' },
+          h('span', { class: 'equip-coche', 'aria-hidden': 'true' }),
+          h('span', { class: 'muscle-texte' },
+            h('b', { text: m.nom }),
+            h('span', { text: m.quoi })),
+          m.medial ? h('span', { class: 'jeton jeton-medial', text: 'médial' })
+                   : (m.lateral ? h('span', { class: 'jeton', text: 'latéral' }) : null));
+        b.addEventListener('click', function () {
+          var i = sel.indexOf(m.id);
+          if (i >= 0) sel.splice(i, 1); else sel.push(m.id);
+          b.setAttribute('aria-pressed', i >= 0 ? 'false' : 'true');
+          onChange(A.m.muscles({ muscles: sel }));
+        });
+        liste.appendChild(b);
+      });
+      boite.appendChild(liste);
+    }
+
+    A.m.REGIONS_MUSCLE.forEach(rendreGroupe);
     return boite;
   }
 
@@ -706,7 +751,8 @@
     empiler: empiler, depiler: depiler, garderEcranAllume: garderEcranAllume,
     jetonsDouleur: jetonsDouleur, selecteurDouleurs: selecteurDouleurs,
     selecteurForces: selecteurForces, selecteurStructures: selecteurStructures,
-    selecteurCote: selecteurCote,
+    selecteurCote: selecteurCote, selecteurPrise: selecteurPrise,
+    selecteurUnique: selecteurUnique, selecteurMuscles: selecteurMuscles,
     choisirIntensite: choisirIntensite,
     notificationsPossibles: notificationsPossibles,
     demanderNotifications: demanderNotifications,

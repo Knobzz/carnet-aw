@@ -60,6 +60,7 @@
         if ((ex.outils || []).length || (ex.structures || []).length) {
           var m2 = h('div', { class: 'exo-meta' });
           if (ex.cote) m2.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ex.cote) }));
+          if (ex.prise) m2.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(ex.prise).toLowerCase() }));
           (ex.outils || []).forEach(function (o) {
             m2.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
           });

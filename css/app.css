@@ -1108,6 +1108,77 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   transform: translateY(-1px) rotate(-45deg);
 }
 
+/* Le schema du bras : six regions teintees selon la sollicitation. C'est un
+   SCHEMA, pas une planche d'anatomie — des regions nettes et nommees valent
+   mieux qu'un realisme rate a 290 px de large. */
+.bras-enrobe { display: flex; justify-content: center; padding: 4px 0 2px; }
+.carte-bras { width: 100%; max-width: 250px; height: auto; }
+.region-bras {
+  fill: var(--fond-3);
+  stroke: var(--trait-fort);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill .15s ease;
+}
+.region-bras[data-chaleur="1"] { fill: color-mix(in srgb, var(--laiton) 22%, var(--fond-3)); }
+.region-bras[data-chaleur="2"] { fill: color-mix(in srgb, var(--laiton) 55%, var(--fond-3)); }
+.region-bras[data-chaleur="3"] { fill: var(--laiton); }
+.region-bras[data-choisi] { stroke: var(--bleu); stroke-width: 2.4; }
+.region-bras:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .region-bras { transition: none; } }
+
+/* ---------- muscles ----------
+   Treize noms latins ne se cochent pas sans ce qu'ils font : chaque ligne
+   porte le nom ET la fonction, et la marque « médial » dit lesquels tirent
+   sur l'insertion qui fait mal. */
+.muscle-region {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--texte-3);
+  margin: 12px 2px 5px;
+}
+.muscle-region:first-child { margin-top: 0; }
+.muscle-liste {
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--fond-2);
+  overflow: hidden;
+}
+.muscle-ligne {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 7px 10px;
+  border: 0;
+  border-top: 1px solid var(--trait);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.muscle-liste .muscle-ligne:first-child { border-top: 0; }
+.muscle-texte { flex: 1; min-width: 0; }
+.muscle-texte b { display: block; font-size: .86rem; font-weight: 600; }
+.muscle-texte span { display: block; font-size: .74rem; color: var(--texte-2); }
+.muscle-ligne[aria-pressed="true"] { background: var(--bleu-doux); }
+.muscle-ligne[aria-pressed="true"] .muscle-texte b { color: var(--bleu); }
+.muscle-ligne[aria-pressed="true"] .equip-coche { background: var(--bleu); border-color: var(--bleu); }
+.muscle-ligne[aria-pressed="true"] .equip-coche::after {
+  content: "";
+  width: 10px; height: 5px;
+  border-left: 2px solid var(--fond-2);
+  border-bottom: 2px solid var(--fond-2);
+  transform: translateY(-1px) rotate(-45deg);
+}
+.jeton-medial { border-color: var(--tendon); color: var(--tendon); background: transparent; }
+
 /* La ligne de la question du lendemain : le nom de la zone sur son propre
    rang, parce qu'en ligne avec un bouton de taille fixe il se reduisait a
    « Coude m… ». Meme defaut que le libelle du chrono, meme correction. */

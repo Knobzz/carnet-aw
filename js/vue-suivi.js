@@ -364,6 +364,170 @@
   }
 
   /* ------------------------------------------------------------------
+     la carte des muscles
+
+     Le schéma sert le coup d'œil, les barres servent la mesure : treize
+     muscles sur un bras de 290 px seraient illisibles, et six régions
+     teintées ne diraient pas les chiffres. Les deux, donc, et chacun son
+     travail.
+
+     Le dessin est un SCHÉMA, pas une planche d'anatomie : des régions nettes
+     et nommées valent mieux qu'un réalisme raté. Il est en SVG inline —
+     aucune image à charger, donc rien à casser hors ligne.
+     ------------------------------------------------------------------ */
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function svgEl(nom, attrs) {
+    var n = document.createElementNS(SVG_NS, nom);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+
+  /* Un bras EN POSITION DE TABLE : le bras à l'horizontale, coude posé à
+     droite, avant-bras vertical, main en haut. C'est la posture qu'il
+     connaît, et elle se reconnaît d'un coup d'œil — ce qu'un bras vu de face
+     ne faisait pas.
+
+     Les tracés se touchent bord à bord, sans intervalle : un empilement de
+     quadrilatères séparés ne lisait pas comme un membre. Le bras se divise
+     en haut / bas (face antérieure et postérieure), l'avant-bras en gauche /
+     droite, parce que dans cette posture c'est ce que l'œil sépare. */
+  var TRACES_REGION = {
+    tronc:         'M8 56 Q6 40 20 38 L32 41 L32 119 L20 122 Q6 120 8 104 Z',
+    bras_av:       'M32 41 L80 47 L80 80 L32 79 Z',
+    bras_ar:       'M32 79 L80 80 L80 119 L32 119 Z',
+    avant_bras_av: 'M80 119 L80 34 L96 30 L96 119 Z',
+    avant_bras_ar: 'M96 30 L96 119 L113 117 Q118 74 113 34 Z',
+    main:          'M80 34 Q78 11 94 7 Q112 5 113 19 L113 34 Z'
+  };
+
+  function blocMuscles(e) {
+    var f = document.createDocumentFragment();
+    var c = A.m.chargeParMuscle(e, 28);
+
+    f.appendChild(section('Muscles — 28 derniers jours',
+      'Ce qui tire, et combien. Les structures disent ce qui encaisse ; '
+    + 'les muscles disent ce qui travaille.'));
+
+    if (!c.total) {
+      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun muscle renseigné' }),
+        'Ouvre la fiche d’un exercice : coche ses mouvements, puis demande la proposition. '
+      + 'Elle remplit les muscles d’après l’anatomie, et tu corriges.'));
+      return f;
+    }
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+
+    /* --- le schéma --- */
+    var maxRegion = A.m.REGIONS_MUSCLE.reduce(function (m, r) {
+      return Math.max(m, c.parRegion[r.id] || 0);
+    }, 0) || 1;
+
+    var svg = svgEl('svg', { viewBox: '0 0 120 132', class: 'carte-bras',
+                             role: 'img',
+                             'aria-label': 'Schéma du bras, teinté par la sollicitation' });
+    var detail = h('div', { class: 'item-resume', style: 'min-height:2.4em;margin-top:6px' });
+
+    function direRegion(r) {
+      var n = c.parRegion[r.id] || 0;
+      var dedans = A.m.MUSCLES.filter(function (m) {
+        return m.groupe === r.id && (c.parMuscle[m.id] || 0) > 0;
+      }).map(function (m) { return A.m.nomMuscle(m.id) + ' ' + c.parMuscle[m.id]; });
+      detail.textContent = r.nom + ' — ' + n + ' série' + (n > 1 ? 's' : '')
+                         + (dedans.length ? ' · ' + dedans.join(', ') : ' · aucun muscle renseigné ici');
+    }
+
+    var regions = [];
+    A.m.REGIONS_MUSCLE.forEach(function (r) {
+      var n = c.parRegion[r.id] || 0;
+      var p = svgEl('path', { d: TRACES_REGION[r.id], class: 'region-bras',
+                              'data-chaleur': n === 0 ? '0'
+                                : (n / maxRegion > .66 ? '3' : (n / maxRegion > .33 ? '2' : '1')),
+                              tabindex: '0', role: 'button',
+                              'aria-label': r.nom + ', ' + n + ' séries' });
+      function montrer() {
+        regions.forEach(function (x) { x.removeAttribute('data-choisi'); });
+        p.setAttribute('data-choisi', '1');
+        direRegion(r);
+      }
+      p.addEventListener('click', montrer);
+      p.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); montrer(); }
+      });
+      regions.push(p);
+      svg.appendChild(p);
+    });
+
+    corps.appendChild(h('div', { class: 'bras-enrobe' }, svg));
+    corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:2px',
+      text: 'Appuie sur une région pour le détail.' }));
+    corps.appendChild(detail);
+
+    /* --- les chiffres, muscle par muscle --- */
+    var maxM = Object.keys(c.parMuscle).reduce(function (m, k) {
+      return Math.max(m, c.parMuscle[k]);
+    }, 0) || 1;
+    var barres = h('div', { class: 'barres', style: 'margin-top:12px' });
+    A.m.MUSCLES.slice().sort(function (a, b) {
+      return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
+    }).forEach(function (m) {
+      var n = c.parMuscle[m.id] || 0;
+      if (!n) return;
+      barres.appendChild(h('div', { class: 'barre' },
+        h('span', { text: m.nom }),
+        h('div', { class: 'barre-piste' },
+          h('i', { class: m.medial ? 'aw' : 'gen', style: 'width:' + (n / maxM * 100) + '%' })),
+        h('span', { class: 'barre-val', text: n + ' sér.' })));
+    });
+    corps.appendChild(barres);
+
+    /* --- l'épicondyle médial : le lien direct avec la douleur suivie --- */
+    var ep = A.m.chargeEpicondyle(e, 28);
+    if (ep.medial) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px' },
+        h('b', { text: ep.medial + ' séries sur l’épicondyle médial. ' }),
+        'Rond pronateur, fléchisseurs du poignet et des doigts partagent un seul tendon '
+      + 'd’origine, à cet endroit — c’est ce que charge le cupping et la pronation, et '
+      + 'c’est là que se loge une épicondylite médiale.'));
+    }
+    if (c.sansMuscle) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:6px',
+        text: c.sansMuscle + ' série(s) sur des exercices sans muscle renseigné : '
+            + 'elles ne sont nulle part sur cette carte.' }));
+    }
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+
+    /* --- le croisement mouvements × muscles --- */
+    var croise = A.m.musclesParMouvement(e, 28).filter(function (x) { return x.series > 0; });
+    if (croise.length) {
+      f.appendChild(section('Chaque mouvement, ce qu’il fait travailler',
+        'D’après tes exercices tels qu’ils sont renseignés — pas d’après la proposition.'));
+      var c2 = h('div', { class: 'carte' });
+      var corps2 = h('div', { class: 'carte-corps', style: 'padding:8px 12px 10px' });
+      croise.forEach(function (x) {
+        var ids = Object.keys(x.parMuscle).sort(function (a, b) {
+          return x.parMuscle[b] - x.parMuscle[a];
+        });
+        corps2.appendChild(h('div', { class: 'item-ligne', style: 'padding:6px 0' },
+          h('b', { text: x.nom }),
+          h('span', { text: x.series + ' sér.' })));
+        corps2.appendChild(h('div', { class: 'item-resume', style: 'margin:-4px 0 4px;font-size:.76rem',
+          text: ids.length
+            ? ids.map(function (id) { return A.m.nomMuscle(id) + ' ' + x.parMuscle[id]; }).join(', ')
+            : 'aucun muscle renseigné sur les exercices de ce mouvement' }));
+      });
+      c2.appendChild(corps2);
+      f.appendChild(c2);
+    }
+
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
      la règle des 24 h — la seule question que le carnet pose
 
      Ce qui renseigne n'est pas la douleur pendant l'effort, mais si elle est
@@ -552,6 +716,7 @@
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocRecup(e));
     hote.appendChild(blocForces(e));
+    hote.appendChild(blocMuscles(e));
   }
 
   A.vues = A.vues || {};

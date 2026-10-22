@@ -38,6 +38,8 @@ Exercice
   typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
   colonnes   : [ 'charge' | 'reps' | 'duree' ]   // ce que la ligne fait saisir
   cote       : 'droit' | 'gauche' | 'deux' | null   // quel bras, voir plus bas
+  prise      : 'ouverte' | 'fermee' | null
+  muscles    : [ string ]              // ce qui tire, voir plus bas
   forces     : [ 'rising' | 'back_pressure' | 'side_pressure'
                | 'supination' | 'cupping' | 'pronation' ]   // affiché « Mouvements »
   structures : [ string ]              // ce que l'exercice charge, voir plus bas
@@ -114,6 +116,8 @@ ExerciceProgramme
   typeCharge    : 'kg' | 'niveau' | 'elastique' | 'poids_corps'
   colonnes      : [ string ]
   cote          : string | null
+  prise         : string | null
+  muscles       : [ string ]
   forces        : [ string ]
   outils        : [ string ]           // noms, copiés — pas des références
   consigne      : string               // tempo, tenue, prise — instruction d'exécution
@@ -151,7 +155,8 @@ Seance
   exercices   : [ ExerciceSeance ]
 
 ExerciceSeance
-  id, ordre, nom, slug, aw, typeCharge, colonnes, cote, forces, outils, consigne, reposSecondes
+  id, ordre, nom, slug, aw, typeCharge, colonnes, cote, prise, muscles,
+      forces, outils, consigne, reposSecondes
   series : [ SerieSeance ]
 
 SerieSeance
@@ -282,6 +287,65 @@ hauteur. La fonctionnalité est invisible jusqu'à ce qu'on s'en serve.
 Le côté se pose **dans la feuille d'intensité**, pas dans un troisième appui : une
 feuille, deux questions. Un appui de plus en aurait fait l'information qu'on ne
 renseigne jamais.
+
+## Les muscles, et la prise
+
+Les **structures** disent ce qui encaisse — poignet, coude médial : c'est le vocabulaire
+de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'exercice,
+et c'est leur croisement qui rend la carte lisible.
+
+Treize muscles, chacun avec **ce qu'il fait** : treize noms latins sans explication ne se
+cochent pas, et une case qu'on ne coche pas laisse la carte vide.
+
+**`medial: true` marque la masse flexo-pronatrice.** Rond pronateur, fléchisseur radial du
+carpe, long palmaire, fléchisseur superficiel des doigts et fléchisseur ulnaire du carpe
+partagent **un seul tendon d'origine, sur l'épicondyle médial**. Leur surmenage est
+exactement ce qu'on appelle épicondylite médiale. C'est ce qui relie la carte à la
+douleur, et ce n'est pas une opinion : c'est de l'anatomie.
+
+Le **carré pronateur** (distal) et le **brachio-radial** (crête supracondylaire) ne
+portent aucune marque. Les ranger avec les autres aurait été plus simple à lire et faux —
+et ferait accuser la mauvaise insertion.
+
+### La prise
+
+`'ouverte' | 'fermee' | null`. Ce n'est pas un détail de style : une prise **fermée** fait
+travailler les fléchisseurs des doigts, qui naissent eux aussi de l'épicondyle médial ;
+une prise ouverte pousse sans serrer. Le même exercice, des deux façons, ne charge pas la
+même chose.
+
+### Les trois sources de proposition
+
+On ne peut pas demander de cocher treize muscles à qui ne connaît pas les termes : la case
+resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
+
+| source | d'où | solidité |
+|---|---|---|
+| **le nom** | « Curl **biceps** » contient le mot | ce que l'utilisateur a écrit lui-même |
+| **le mouvement** | cupping = flexion du poignet, pronation, supination | manuel d'anatomie |
+| **la prise** | fermée = on serre = fléchisseurs des doigts | définition de serrer |
+| **le mouvement, suite** | rising, back pressure, side pressure | **à vérifier** : une seule étude EMG, et ce ne sont pas des actions articulaires |
+
+Les mots lus dans le nom sont **volontairement discriminants**. « Curl » seul ne propose
+rien — un curl marteau, un curl pronateur et un wrist curl ne travaillent pas la même
+chose. Et « grip » a été retiré parce que « Titan Grip » et « Fat grip » sont des
+**outils** : le banc a attrapé ce faux positif.
+
+**Rien n'est écrit sans un geste.** La proposition remplit les cases quand on appuie ;
+ce qui est stocké reste une décision, pas une déduction. Et la quatrième source est
+gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
+coche qu'une fois.
+
+### Ce qui est compté
+
+`chargeParMuscle()` suit les mêmes règles que les structures : séries **validées**
+seulement, « les deux » compte des deux côtés, et ce qui n'a pas de côté reste à part.
+La **récupération y est incluse**, et c'est voulu : cent répétitions d'élastique chargent
+le fléchisseur, même si elles n'ont rien à faire dans le tonnage. Ce qu'on mesure ici
+n'est pas du travail, c'est de la sollicitation.
+
+Les séries d'un exercice **sans muscle renseigné** sont comptées à part et l'écran le dit :
+elles ne sont nulle part sur la carte.
 
 ## Zones de douleur, et leur intensité
 
