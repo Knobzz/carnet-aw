@@ -63,7 +63,10 @@
      rafraîchir uniquement l'en-tête concerné, jamais la liste entière. */
   function editerExercice(exo, options, onFini) {
     options = options || {};
-    var etat = A.store.etat();
+    /* L'etat est relu a chaque usage, jamais capture : un import (remplacer())
+       ou un effacement (vider()) remplace l'objet, et une reference prise a
+       l'ouverture ecrirait ensuite dans un orphelin — en silence. */
+    function etat() { return A.store.etat(); }
     var titre = options.titre || (exo.nom ? 'Modifier l’exercice' : 'Nouvel exercice');
 
     var valider = null;
@@ -80,7 +83,7 @@
       var selForces = null;
 
       A.ui.autocomplete(champNom, function (saisie) {
-        return A.m.suggestions(etat, saisie, 8).map(function (x) {
+        return A.m.suggestions(etat(), saisie, 8).map(function (x) {
           var j = [];
           if (x.aw) j.push({ texte: 'AW', classe: '' });
           j.push({ texte: A.m.typeCharge(x.typeCharge).nom });
@@ -121,15 +124,14 @@
       function rafraichirOutils() {
         A.ui.vider(boiteOutils);
         boiteOutils.appendChild(A.ui.champMulti(exo.outils || [], function (q, deja) {
-          return A.m.suggestionsOutils(etat, q, deja, 8).map(function (o) {
+          return A.m.suggestionsOutils(etat(), q, deja, 8).map(function (o) {
             o.jetons = o.categorie ? [{ texte: o.categorie }] : [];
             return o;
           });
         }, function (v) { exo.outils = v; }, 'Dumbbell, poulie haute, Titan Grip…'));
       }
       rafraichirOutils();
-      c.appendChild(A.ui.groupe('Outils', boiteOutils,
-        'Autant qu’il en faut : « Titan Grip » et « Poulie haute » cohabitent sur le même exercice. La liste n’est pas imposée, elle retient ce que tu saisis.'));
+      c.appendChild(A.ui.groupe('Outils', boiteOutils));
 
       /* Les structures chargees. Memes identifiants que les zones de douleur :
          c'est ce qui permet a Suivi de repondre a « quand ai-je charge lourd le
@@ -141,9 +143,7 @@
           function (v) { exo.structures = v; }));
       }
       rafraichirStructures();
-      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures,
-        'Facultatif. Les cinq premières sont les zones de douleur : les renseigner '
-        + 'permet à Suivi de relier une douleur à ce qui l’a précédée.'));
+      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures));
 
       var boiteForces = h('div');
       function rafraichirForces() {
@@ -152,8 +152,8 @@
         boiteForces.appendChild(selForces);
       }
       rafraichirForces();
-      c.appendChild(A.ui.groupe('Forces de Larratt', boiteForces,
-        'Facultatif. Sert à repérer, dans Suivi, une force qu’un programme néglige.'));
+      c.appendChild(A.ui.groupe('Mouvements', boiteForces,
+        'Facultatif. Sert à repérer, dans Suivi, un mouvement qu’un programme néglige.'));
 
       var champConsigne = h('textarea', { class: 'champ',
         placeholder: 'Tenue 3 s en haut, excentrique 4 s. Prise pronation serrée.' });
@@ -177,9 +177,9 @@
         exo.nom = nom;
         exo.slug = A.m.slug(nom);
         exo.consigne = champConsigne.value;
-        (exo.outils || []).forEach(function (o) { A.m.majCatalogueOutils(etat, o); });
+        (exo.outils || []).forEach(function (o) { A.m.majCatalogueOutils(etat(), o); });
         if (!exo.structures) exo.structures = [];
-        A.m.majCatalogue(etat, exo);
+        A.m.majCatalogue(etat(), exo);
         return true;
       };
       setTimeout(function () { if (!exo.nom) champNom.focus(); }, 60);

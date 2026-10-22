@@ -1,6 +1,10 @@
 # Modèle de données — Carnet AW
 
 Stockage : une seule clé `localStorage` → `carnet-aw-v1`, un objet JSON.
+(Une seconde existe, `carnet-aw-banc-ihm`, et c'est la raison : le banc
+d'interface fait tourner la vraie app, qui **écrit** — lancer un repos pose
+`chrono`. Il pose `window.__BANC_IHM` avant de charger `store.js`, qui choisit
+alors cette autre clé. L'isolation est structurelle, et le banc la mesure.)
 Toute lecture et toute écriture passent par `js/store.js`, enveloppées en `try/catch`.
 Si l'écriture échoue, l'app le **dit** (bandeau rouge persistant) au lieu de perdre
 silencieusement la saisie.
@@ -30,11 +34,29 @@ Exercice
   slug       : string                  // clé d'identité : minuscules, sans accents, espaces compactés
   aw         : bool
   typeCharge : 'kg' | 'niveau' | 'elastique' | 'poids_corps' | 'duree'
-  forces     : [ 'rising' | 'supination' | 'cupping' | 'pronation' ]
+  forces     : [ 'rising' | 'back_pressure' | 'side_pressure'
+               | 'supination' | 'cupping' | 'pronation' ]   // affiché « Mouvements »
   structures : [ string ]              // ce que l'exercice charge, voir plus bas
   outils     : [ string ]              // noms d'outils, voir plus bas
-  vuLe       : ISO date                // dernière fois que le nom a été employé
+  vuLe       : ISO datetime            // dernière fois que le nom a été employé
 ```
+
+**`forces` garde son nom de champ alors que l'écran dit « Mouvements ».** Le
+renommer aurait rendu muets tous les exercices déjà saisis, pour un gain nul :
+seul l'affichage avait besoin de changer. Les deux valeurs ajoutées,
+`back_pressure` et `side_pressure`, viennent s'ajouter aux quatre d'origine ; un
+carnet écrit avant les connaît simplement à zéro.
+
+**`vuLe` porte l'heure, à la milliseconde, et pas seulement la date.** Il ne sert
+qu'à classer les suggestions — et la liste étant tronquée à huit, ce classement
+décide de ce qui est **visible**. Avec la date seule, tous les outils ajoutés le
+même jour étaient à égalité : le tri stable gardait l'ordre d'insertion, et le
+dernier ajouté tombait hors des huit. Un outil neuf n'apparaissait jamais dans
+l'autocomplétion d'une fiche d'exercice, ce qui a été pris pour un bug
+d'affichage. Il est de plus **strictement croissant** : huit outils posés d'un
+même geste tombent dans la même milliseconde, et seraient de nouveau à égalité.
+Une date seule d'un ancien carnet reste comparable, et se classe avant tout
+horodatage du même jour — on ne sait pas à quelle heure elle a été posée.
 
 `slug` est la seule chose qui fait dire « c'est le même exercice ». C'est ce qui permet à
 la colonne PRÉCÉDENT de traverser les programmes.
@@ -47,7 +69,7 @@ Outil
   nom       : string                   // « Poulie haute », « Titan Grip Iron Wrist 60 mm »
   slug      : string                   // identité, mêmes règles que l'exercice
   categorie : string                   // libre : « Grippers », « Poignées AW »… ou vide
-  vuLe      : ISO date
+  vuLe      : ISO datetime             // voir plus haut : il décide de ce qui est visible
 ```
 
 Un exercice porte **autant d'outils qu'il en faut** — c'est le cas « Titan Grip **sur** poulie
@@ -247,9 +269,10 @@ aucun intervalle, et un zéro serait un mensonge.
 
 ## Trois ajouts au modèle que tu as écrit
 
-1. **`forces`** sur l'exercice (catalogue, programme et séance) — les quatre forces de
-   Larratt, que tu donnais comme « à considérer ». Elles sont là, facultatives, et l'écran
-   Suivi les compte pour montrer celle qu'un programme néglige.
+1. **`forces`** sur l'exercice (catalogue, programme et séance) — les forces de Larratt,
+   que tu donnais comme « à considérer ». Elles sont là, facultatives, et l'écran
+   Suivi les compte pour montrer celle qu'un programme néglige. Elles sont **six**
+   depuis, et s'affichent sous le nom de **Mouvements** ; le champ, lui, reste `forces`.
 2. **`outils`** sur l'exercice, et le catalogue `outils` — demandé en cours de route,
    même principe que les exercices : rien de livré, tout vient de l'usage.
    **`structures`** et l'intensité de douleur ont suivi, pour la même raison.

@@ -87,10 +87,12 @@ Trois protections, dont une mécanique.
 python outils/version.py 1.1.1
 ```
 
-Ce script pose la version aux **trois** endroits — les 12 `?v=` d'`index.html`, le nom
-du cache dans `sw.js`, `APP_VERSION` dans `js/app.js` — et **imprime le compte**.
-Un total différent de 14 veut dire qu'un fichier a bougé : il refuse alors d'écrire.
-Sans argument, il se contente de vérifier la cohérence.
+Ce script pose la version aux **quatre** endroits — les 13 `?v=` d'`index.html`, les 2
+de `banc/index.html`, le nom du cache dans `sw.js`, `APP_VERSION` dans `js/app.js` — et
+**imprime le compte**. Un total différent de **17** veut dire qu'un fichier a bougé : il
+refuse alors d'écrire. Sans argument, il se contente de vérifier la cohérence.
+(Le README annonçait trois endroits et un total de 14 ; le script en comptait 17. Il
+avait raison — c'est le texte qui était resté en arrière.)
 
 Les deux autres : le service worker installe ses fichiers avec `cache: 'reload'`
 (sinon il recopie l'ancien contenu du cache HTTP dans un cache tout neuf), et il
@@ -125,27 +127,50 @@ js/
   vue-reglages.js          thème, sauvegarde, catalogues, équipement
 outils/faire-icones.py     régénère les PNG depuis le même dessin que l'icône SVG
 outils/version.py          pose la version aux 4 endroits et compte les 17 occurrences
-banc/                      le banc de recette — une page à ouvrir
+outils/banc.js             lance les deux bancs sans tête : node outils/banc.js
+banc/index.html            banc de modèle — une page à ouvrir
+banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calculé
 ```
 
 ---
 
 ## Le banc de recette
 
+Deux pages, **192 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+
+```bash
+node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
+```
+
+À la main, c'est une page comme une autre :
+
 ```bash
 python -m http.server 8713
 ```
-puis **http://localhost:8713/banc/** — ou l'ouvrir après un `git pull`, c'est une page comme
-une autre. **116 contrôles, 11 blocs.** Il ne touche jamais au carnet : les cas travaillent
-sur des états fabriqués, et les deux blocs qui écrivent remettent l'état d'origine en place.
+- **http://localhost:8713/banc/** — le modèle. **144 contrôles, 13 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **48 contrôles, 4 blocs.**
 
-Ce qu'il mesure : lecture des nombres et des slugs · la colonne PRÉCÉDENT · le volume
-(fait vs prévu, charge non chiffrée, saisie incomplète) · l'indépendance programme/séance ·
-les douleurs et leur compatibilité descendante · structures et fenêtre 72 h · la durée
-déduite · l'historique · la fusion à l'import · le chrono persistant · les catalogues vides
-au départ.
+**Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
+fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
+`window.__BANC_IHM` avant de charger `store.js`, qui choisit alors une autre clé de
+stockage. Son premier bloc le vérifie — une isolation qu'on ne mesure pas n'est qu'une
+intention.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Trois blocs ont été vus rougir, en
+Ce que mesure le **modèle** : lecture des nombres et des slugs · la colonne PRÉCÉDENT ·
+le volume (fait vs prévu, charge non chiffrée, saisie incomplète) · l'indépendance
+programme/séance · les douleurs et leur compatibilité descendante · structures et fenêtre
+72 h · la durée déduite · l'historique · la fusion à l'import · le chrono persistant · les
+catalogues vides au départ · **ce que l'autocomplétion montre vraiment** · **les six
+mouvements**.
+
+Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
+du style calculé, dans un iframe de **320 px** — la largeur la plus dure. Le chronomètre
+sort-il entièrement de l'écran, et laisse-t-il la barre d'onglets atteignable · la fiche
+d'exercice affiche-t-elle ce qu'elle doit, et plus ce qu'elle ne doit plus · 44 px sur
+chaque puce et chaque bouton · aucun débordement horizontal · la suggestion la plus récente
+est-elle lisible sans rien taper.
+
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Cinq blocs ont été vus rougir, en
 réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -153,6 +178,13 @@ réintroduisant volontairement le défaut qu'ils surveillent :
 | PRÉCÉDENT indexé par rang brut | `attendu "20 × 12", obtenu "22 × 10"` — 4 contrôles rouges |
 | volume recomptant les cibles | `une séance pas commencée pèse ZÉRO — attendu 0, obtenu 240` |
 | intensité inconnue remplacée par 5 | `devient inconnue plutôt que fausse — attendu null, obtenu 5` |
+| `vuLe` ramené à la date seule | `l'outil ajouté À L'INSTANT est VISIBLE — attendu true, obtenu false` |
+| chrono caché par `translateY(140%)` | `haut mesuré à 679 px pour un écran de 720` — 41 px de fantôme, et la barre d'onglets injoignable |
+
+Le quatrième mérite une mention : le correctif a d'abord été écrit avec un horodatage lu à
+l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
+la même milliseconde et restaient à égalité. C'est ce qui a mené à un horodatage
+strictement croissant.
 
 Les cas marqués `[temoin]` mesurent un invariant du décor et tiennent des deux côtés —
 leur libellé dit pourquoi.

@@ -18,11 +18,17 @@
     { id: 'duree',       nom: 'Durée (isométrie)',  unite: 'kg', labelCharge: 'Charge', labelReps: 'Sec',  modeCharge: 'text',    modeReps: 'numeric', tonnage: false }
   ];
 
+  /* Les mouvements du bras de fer. La cle de stockage reste `forces` sur
+     l'exercice : renommer le champ casserait les carnets deja saisis, et
+     l'affichage seul avait besoin de changer. Ranges par axe — ce qui pousse,
+     puis ce que fait la main. */
   var FORCES = [
-    { id: 'rising',     nom: 'Rising' },
-    { id: 'supination', nom: 'Supination' },
-    { id: 'cupping',    nom: 'Cupping' },
-    { id: 'pronation',  nom: 'Pronation' }
+    { id: 'rising',        nom: 'Rising' },
+    { id: 'back_pressure', nom: 'Back pressure' },
+    { id: 'side_pressure', nom: 'Side pressure' },
+    { id: 'supination',    nom: 'Supination' },
+    { id: 'cupping',       nom: 'Cupping' },
+    { id: 'pronation',     nom: 'Pronation' }
   ];
 
   /* Structures anatomiques qu'un exercice charge. Les cinq premieres sont
@@ -175,6 +181,31 @@
   }
   function joursDepuis(iso) { return joursEntre(iso, aujourdHui()); }
 
+  /* Horodatage d'usage des catalogues, a la milliseconde.
+
+     Il valait la DATE seule, et c'etait un defaut : tous les outils ajoutes le
+     meme jour se valaient, le tri stable gardait alors l'ordre d'insertion, et
+     le dernier ajoute — celui qu'on vient de taper — tombait hors des huit
+     suggestions affichees. Avec neuf outils en catalogue, un outil neuf
+     n'apparaissait donc JAMAIS a l'ouverture de la liste.
+
+     Une date ancienne ('2026-10-21') reste comparable : elle se classe avant
+     tout horodatage du meme jour, ce qui est exactement ce qu'on veut.
+
+     Il est STRICTEMENT croissant, et pas seulement lu a l'horloge : huit outils
+     poses d'un meme geste — le raccourci « Ajouter mon matériel » — tombent
+     dans la meme milliseconde, et seraient de nouveau a egalite. Le banc l'a
+     fait tomber avant qu'on le croie. Le decalage introduit se compte en
+     millisecondes, et `vuLe` ne sert qu'a classer. */
+  var dernierVu = '';
+
+  function maintenant() {
+    var t = new Date().toISOString();
+    if (t <= dernierVu) t = new Date(new Date(dernierVu).getTime() + 1).toISOString();
+    dernierVu = t;
+    return t;
+  }
+
   /* ---------- catalogue implicite ---------- */
 
   function trouverCatalogue(etat, s) {
@@ -191,7 +222,7 @@
       e = { id: uid('ex'), nom: exo.nom, slug: s, aw: !!exo.aw,
             typeCharge: exo.typeCharge || 'kg', forces: (exo.forces || []).slice(),
             structures: (exo.structures || []).slice(),
-            outils: (exo.outils || []).slice(), vuLe: aujourdHui() };
+            outils: (exo.outils || []).slice(), vuLe: maintenant() };
       etat.exercices.push(e);
     } else {
       e.nom = exo.nom;
@@ -200,7 +231,7 @@
       if (exo.forces) e.forces = exo.forces.slice();
       if (exo.structures) e.structures = exo.structures.slice();
       if (exo.outils) e.outils = exo.outils.slice();
-      e.vuLe = aujourdHui();
+      e.vuLe = maintenant();
     }
     (exo.outils || []).forEach(function (o) { majCatalogueOutils(etat, o); });
     return e;
@@ -222,14 +253,14 @@
     var o = trouverOutil(etat, s);
     if (!o) {
       o = { id: uid('ou'), nom: String(nom).trim(), slug: s,
-            categorie: (categorie || '').trim(), vuLe: aujourdHui() };
+            categorie: (categorie || '').trim(), vuLe: maintenant() };
       etat.outils.push(o);
     } else {
       o.nom = String(nom).trim();
       /* Une catégorie vide ne doit pas effacer celle qui est déjà posée :
          l'outil saisi depuis un exercice n'en porte pas. */
       if (categorie != null && String(categorie).trim()) o.categorie = String(categorie).trim();
-      o.vuLe = aujourdHui();
+      o.vuLe = maintenant();
     }
     return o;
   }
@@ -263,6 +294,9 @@
     return ordre.map(function (c) { return { categorie: c, outils: groupes[c] }; });
   }
 
+  /* La liste est TRONQUEE a `limite` : le classement decide donc ce qui est
+     visible, pas seulement ce qui vient en premier. C'est `vuLe` qui le porte,
+     et c'est pourquoi il est horodate a la milliseconde — voir maintenant(). */
   function suggestionsOutils(etat, saisie, dejaPris, limite) {
     var q = slug(saisie);
     var pris = (dejaPris || []).map(slug);
@@ -791,7 +825,8 @@
     derniereSollicitationStructure: derniereSollicitationStructure,
     chargeParStructure: chargeParStructure,
     historiqueExercice: historiqueExercice, exercicesPratiques: exercicesPratiques,
-    aujourdHui: aujourdHui, dateCourte: dateCourte, jourSemaine: jourSemaine,
+    aujourdHui: aujourdHui, maintenant: maintenant,
+    dateCourte: dateCourte, jourSemaine: jourSemaine,
     joursDepuis: joursDepuis, joursEntre: joursEntre, semaineDe: semaineDe,
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,

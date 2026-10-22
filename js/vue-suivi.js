@@ -277,17 +277,17 @@
   }
 
   /* ------------------------------------------------------------------
-     4. forces de Larratt — ce qu'un programme néglige
+     4. mouvements — ce qu'un programme néglige
      ------------------------------------------------------------------ */
   function blocForces(e) {
     var r = A.m.repartitionForces(e, 28);
     var f = document.createDocumentFragment();
-    f.appendChild(section('Forces de Larratt — 28 derniers jours',
-      'Séries validées sur les exercices que tu as associés à chaque force. Un zéro est une information.'));
+    f.appendChild(section('Mouvements — 28 derniers jours',
+      'Séries validées sur les exercices que tu as associés à chaque mouvement. Un zéro est une information.'));
 
     if (!r.total) {
-      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucune force associée' }),
-        'Facultatif : associe une ou plusieurs forces à un exercice depuis sa fiche, et ce compte se remplira.'));
+      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun mouvement associé' }),
+        'Facultatif : associe un ou plusieurs mouvements à un exercice depuis sa fiche, et ce compte se remplira.'));
       return f;
     }
 

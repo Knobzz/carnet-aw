@@ -573,20 +573,41 @@ select.champ { appearance: none; background-image: none; }
 
 /* ---------- chronomètre de repos ---------- */
 
+/* Le bandeau sort de l'ecran par le bas, et il doit en sortir ENTIEREMENT.
+
+   translateY(140%) ne descendait que de 1,4 fois sa propre hauteur — 77 px pour
+   un bandeau de 55 px — alors qu'il est pose 64 px au-dessus du bas de l'ecran :
+   il fallait franchir 119 px. Il restait donc une quarantaine de pixels
+   visibles apres « Passer », et, sans pointer-events, ce fantome captait les
+   appuis destines a la carte du dessous.
+
+   La descente vaut maintenant sa hauteur PLUS son decalage : elle est juste
+   quelle que soit la hauteur du bandeau. visibility retire le fantome du
+   ciblage une fois la glissade finie, pas avant — sinon elle disparaitrait
+   d'un coup au lieu de descendre. */
 .chrono {
   position: fixed;
   left: 0; right: 0;
   bottom: calc(var(--barre) + 10px + env(safe-area-inset-bottom));
   z-index: 40;
-  transform: translateY(140%);
-  transition: transform .26s cubic-bezier(.2, .9, .3, 1);
+  transform: translateY(calc(100% + var(--barre) + 20px + env(safe-area-inset-bottom)));
+  transition: transform .26s cubic-bezier(.2, .9, .3, 1), visibility 0s linear .26s;
+  visibility: hidden;
+  pointer-events: none;
 }
-.chrono.visible { transform: translateY(0); }
+.chrono.visible {
+  transform: translateY(0);
+  transition: transform .26s cubic-bezier(.2, .9, .3, 1), visibility 0s linear 0s;
+  visibility: visible;
+  pointer-events: auto;
+}
 
 /* Tant que le repos tourne, la page rend la hauteur du bandeau : sinon il
    masque la derniere carte de l'ecran, et on ne peut plus l'atteindre. */
 body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-area-inset-bottom)); }
-@media (prefers-reduced-motion: reduce) { .chrono { transition: none; } }
+/* Les deux etats sont nommes : sans `.chrono.visible`, la regle du dessus
+   gardait la glissade a l'apparition malgre le reglage du systeme. */
+@media (prefers-reduced-motion: reduce) { .chrono, .chrono.visible { transition: none; } }
 
 .chrono-corps {
   max-width: 536px;
@@ -671,7 +692,15 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 /* ---------- suivi ---------- */
 
 .barres { display: flex; flex-direction: column; gap: 7px; }
-.barre { display: grid; grid-template-columns: 4.2rem 1fr auto; align-items: center; gap: 8px; font-size: .8rem; }
+/* La premiere colonne tient le libelle sur UNE ligne. Elle valait 4.2rem fixes,
+   et « Back pressure » — 86,5 px mesures — s'y coupait en deux : la colonne des
+   mouvements devenait irreguliere a 320 px. Elle se dimensionne maintenant sur
+   son contenu, avec 4.2rem comme plancher pour que les libelles courts restent
+   alignes. Une largeur en dur aurait dependu de la police du systeme ; le banc
+   d'interface mesure que rien ne se coupe, et que la barre garde de quoi
+   comparer des hauteurs. */
+.barre { display: grid; grid-template-columns: minmax(4.2rem, max-content) 1fr auto; align-items: center; gap: 8px; font-size: .8rem; }
+.barre > :first-child { white-space: nowrap; }
 .barre-piste { height: 16px; background: var(--fond-3); border-radius: 3px; overflow: hidden; display: flex; }
 .barre-piste i { display: block; height: 100%; }
 .barre-piste .aw { background: var(--laiton); }

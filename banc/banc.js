@@ -447,6 +447,113 @@
   });
 
   /* ================================================================
+     12. Ce que l'autocomplétion MONTRE — pas seulement ce qu'elle trie
+
+     La liste est tronquée à huit : le classement décide donc ce qui est
+     VISIBLE. `vuLe` valait la date seule, tous les outils ajoutés le même
+     jour étaient à égalité, le tri stable gardait l'ordre d'insertion, et le
+     dernier ajouté — celui qu'on vient de taper — tombait hors des huit.
+     Avec neuf outils en catalogue, un outil neuf n'apparaissait jamais.
+     ================================================================ */
+
+  bloc('Autocomplétion : ce qui est visible', function (v) {
+    var e = A.store.vide();
+
+    /* Le geste réel : « Ajouter mon matériel » pose huit outils d'un coup… */
+    ['Golden Grip N2', 'Golden Grip N3', 'Golden Grip N4', 'Élastique de rééducation',
+     'Fat grip', 'Ceinture de judo', 'Titan Grip Iron Wrist 60 mm',
+     'Titan Grip Pronator Ellipsoid'].forEach(function (n) {
+      A.m.majCatalogueOutils(e, n, 'Matériel');
+    });
+    v.egal(e.outils.length, 8, '[temoin] les huit outils du raccourci sont en catalogue');
+
+    /* …puis « + Ajouter un outil » en pose un neuvième, le même jour. */
+    A.m.majCatalogueOutils(e, 'Poulie haute', 'Poulies');
+    v.egal(e.outils.length, 9, '[temoin] et le neuvième aussi');
+
+    var vus = A.m.suggestionsOutils(e, '', [], 8).map(function (o) { return o.nom; });
+    v.egal(vus.length, 8, 'la liste déroulante reste bornée à huit');
+    v.vrai(vus.indexOf('Poulie haute') >= 0,
+           'l’outil ajouté À L’INSTANT est VISIBLE sans rien taper');
+    v.egal(vus[0], 'Poulie haute', 'et il arrive en tête : le plus récent d’abord');
+
+    /* Le même outil revu remonte, sans se dupliquer. */
+    A.m.majCatalogueOutils(e, 'Fat grip');
+    v.egal(e.outils.length, 9, 'revoir un outil connu ne le duplique pas');
+    v.egal(A.m.suggestionsOutils(e, '', [], 8)[0].nom, 'Fat grip',
+           'mais le remet en tête de liste');
+
+    /* Taper doit marcher aussi, et sans se laisser arrêter par les accents. */
+    v.egal(A.m.suggestionsOutils(e, 'poulie', [], 8)[0].nom, 'Poulie haute',
+           'taper le nom le propose');
+    v.egal(A.m.suggestionsOutils(e, 'elastique', [], 8)[0].nom, 'Élastique de rééducation',
+           'et les accents ne font pas obstacle');
+
+    /* Ce qui est déjà sur l'exercice ne se propose plus : sinon la liste
+       offre un doublon que champMulti refusera en silence. */
+    var sansFat = A.m.suggestionsOutils(e, '', ['Fat grip'], 8).map(function (o) { return o.nom; });
+    v.egal(sansFat.indexOf('Fat grip'), -1, 'un outil déjà porté n’est plus proposé');
+    v.vrai(sansFat.indexOf('Poulie haute') >= 0, 'et sa place profite aux autres');
+
+    /* Même histoire pour le catalogue d'exercices : même tri, même troncature. */
+    var e2 = A.store.vide();
+    for (var i = 1; i <= 9; i++) A.m.majCatalogue(e2, { nom: 'Exercice ' + i, typeCharge: 'kg' });
+    var exos = A.m.suggestions(e2, '', 8).map(function (x) { return x.nom; });
+    v.egal(exos.length, 8, 'huit exercices au plus, là aussi');
+    v.egal(exos[0], 'Exercice 9', 'et le dernier saisi est en tête, donc visible');
+
+    /* Compatibilité descendante : un carnet d'avant portait la date seule.
+       Elle doit rester comparable — et se classer AVANT un horodatage du
+       même jour, puisqu'on ne sait pas à quelle heure elle a été posée. */
+    var e3 = A.store.vide();
+    A.m.majCatalogueOutils(e3, 'Outil horodaté');
+    e3.outils.push({ id: 'vieux', nom: 'Outil d’un ancien carnet',
+                     slug: 'outil d un ancien carnet', categorie: '',
+                     vuLe: A.m.aujourdHui() });
+    v.egal(A.m.suggestionsOutils(e3, '', [], 8)[0].nom, 'Outil horodaté',
+           'une date seule se relit, et se classe avant un horodatage du même jour');
+    v.egal(A.m.suggestionsOutils(e3, '', [], 8).length, 2,
+           'les deux formes cohabitent, aucune n’est perdue');
+  });
+
+  /* ================================================================
+     13. Les mouvements — six, et la clé de stockage ne bouge pas
+     ================================================================ */
+
+  bloc('Mouvements', function (v) {
+    v.egal(A.m.FORCES.length, 6, 'six mouvements sont proposés');
+    var ids = A.m.FORCES.map(function (f) { return f.id; });
+    v.vrai(ids.indexOf('back_pressure') >= 0, 'back pressure en fait partie');
+    v.vrai(ids.indexOf('side_pressure') >= 0, 'side pressure aussi');
+    v.egal(A.m.nomForce('back_pressure'), 'Back pressure', 'et il s’affiche en clair');
+    v.egal(A.m.nomForce('side_pressure'), 'Side pressure', 'lui aussi');
+    v.egal(A.m.nomForce('rising'), 'Rising', '[temoin] les quatre d’origine sont intacts');
+    v.egal(A.m.nomForce('zzz'), 'zzz',
+           'un identifiant inconnu se rend tel quel, plutôt que de vider la ligne');
+
+    /* La clé de stockage reste `forces` : renommer le champ rendrait muets
+       les exercices déjà saisis. Seul l'affichage a changé de nom. */
+    var e = etatAvec([seance(jourIlYA(2), [
+      exo('Side pressure poulie', [serie('normale', 20, 10), serie('normale', 20, 10)],
+          { forces: ['side_pressure', 'rising'] })
+    ])]);
+    var r = A.m.repartitionForces(e, 28);
+    v.egal(r.parForce.side_pressure, 2, 'les séries d’un mouvement neuf sont comptées');
+    v.egal(r.parForce.rising, 2, 'et celles d’un mouvement d’origine aussi');
+    v.egal(r.parForce.cupping, 0, 'un mouvement jamais chargé vaut ZÉRO, pas rien');
+    v.egal(r.total, 4, 'le total additionne les deux mouvements de l’exercice');
+
+    /* Un carnet écrit avant ces deux ajouts se relit sans perte. */
+    var vieux = etatAvec([seance(jourIlYA(1), [
+      exo('Curl', [serie('normale', 20, 10)], { forces: ['supination'] })
+    ])]);
+    v.egal(A.m.repartitionForces(vieux, 28).parForce.supination, 1,
+           'un exercice d’avant garde son mouvement');
+    v.egal(A.m.repartitionForces(vieux, 28).parForce.back_pressure, 0,
+           'et les deux nouveaux y valent zéro, sans erreur');
+  });
+
+  /* ================================================================
      Exécution
      ================================================================ */
 

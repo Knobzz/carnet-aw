@@ -123,7 +123,11 @@
     { nom: 'Fat grip',                      categorie: 'Poignées' },
     { nom: 'Ceinture de judo',              categorie: 'Sangles' },
     { nom: 'Titan Grip Iron Wrist 60 mm',   categorie: 'Poignées AW' },
-    { nom: 'Titan Grip Pronator Ellipsoid', categorie: 'Poignées AW' }
+    { nom: 'Titan Grip Pronator Ellipsoid', categorie: 'Poignées AW' },
+    { nom: 'Barre droite',                  categorie: 'Barres' },
+    { nom: 'Barre EZ',                      categorie: 'Barres' },
+    { nom: 'Poulie haute',                  categorie: 'Poulies' },
+    { nom: 'Poulie basse',                  categorie: 'Poulies' }
   ];
 
   /* Combien d'exercices DISTINCTS emploient cet outil. On compte les slugs,
@@ -202,7 +206,7 @@
           outil.nom = nom;
           outil.slug = A.m.slug(nom);
           outil.categorie = cat;
-          outil.vuLe = A.m.aujourdHui();
+          outil.vuLe = A.m.maintenant();
         }
         A.store.sauver(true);
         return true;

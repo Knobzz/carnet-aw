@@ -3,7 +3,12 @@
 (function (A) {
   'use strict';
 
-  var CLE = 'carnet-aw-v1';
+  /* Le banc d'interface fait tourner la vraie app, et la vraie app ECRIT :
+     lancer un repos pose `chrono` dans le stockage. Sur le telephone, cette
+     seule ligne est ce qui empeche un banc ouvert par curiosite d'effacer un
+     carnet construit sur des mois. L'isolation est STRUCTURELLE, pas une
+     precaution que le banc doit penser a prendre — et le banc la mesure. */
+  var CLE = window.__BANC_IHM ? 'carnet-aw-banc-ihm' : 'carnet-aw-v1';
   var VERSION_DONNEES = 1;
 
   function vide() {
