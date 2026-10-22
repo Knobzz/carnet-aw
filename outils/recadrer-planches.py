@@ -72,10 +72,23 @@ LES MIETTES
     éclate en 310 points. On referme donc les hachures (rayon 4, mesuré) avant
     de garder les zones qui pèsent au moins 10 % de la plus grosse.
 
-TROIS PLANCHES NE PORTENT AUCUN MARQUAGE
-    grand_pectoral, coraco_brachial, carre_pronateur : la gravure entière est
-    orange, rien n'y est désigné. Elles ne peuvent pas être recadrées sur un
-    muscle, et ne sont pas dans la liste.
+UNE SEULE PLANCHE NE PORTE AUCUN MARQUAGE
+    grand_pectoral : sa gravure entière est d'une autre teinte, rien n'y est
+    désigné. Elle ne peut pas être recadrée sur un muscle, et n'est pas dans
+    la liste. Le carré pronateur et le coraco-brachial l'ont rejointe un
+    moment, faute d'avoir leur bonne planche — elles sont arrivées depuis.
+
+L'ARCHIVE AUSSI SE MESURE
+    `icones/planches-gray/` porte les sources d'origine, réduites à une
+    palette pour tenir dans le dépôt. Cette réduction peut DÉTRUIRE un
+    marquage : celui du carré pronateur ne couvre que 0,9 % de sa planche, et
+    32 couleurs le faisaient disparaître entièrement — converti sans que
+    personne le mesure, il serait entré au dépôt vide. Il est à 40 couleurs,
+    la plus petite palette qui le préserve (99 % du marquage, 6 ko de plus).
+
+    Un contrôle relit donc toute l'archive et exige que chaque planche porte
+    encore son marquage. C'est exactement le genre de perte qu'une conversion
+    silencieuse produit, et qu'on ne voit qu'au téléphone.
 """
 
 import os
@@ -103,7 +116,8 @@ PART_ZONE = 0.10         # une zone compte si elle pèse ça de la plus grosse
 VISIBLE_MINI = 0.97      # en dessous, la carte coupe le muscle : à recadrer
 LARGEUR_BRACHIAL = 0.55  # part de planche que sa boîte ne doit pas dépasser
 
-SANS_MARQUAGE = ('carre_pronateur', 'coraco_brachial', 'grand_pectoral')
+SANS_MARQUAGE = ('grand_pectoral',)
+ARCHIVE = os.path.join(RACINE, 'icones', 'planches-gray')
 
 
 def entrees_de_marquage(im, seuil=0.20):
@@ -358,7 +372,8 @@ def controles(casser=None):
                 pris.append('%s:(%d,%d,%d)' % (c, r, g, b))
     verifier('orange jamais pris pour du marquage', not pris,
              'retenu à tort : ' + ', '.join(pris[:4]) if pris else
-             'aucune entrée de palette au-dessus de g/r=0.30 sur les 22')
+             'aucune entrée de palette au-dessus de g/r=0.30 sur les %d'
+             % len(sources))
 
     # 6. Le brachial, défaut mesuré : sa boîte faisait 278 px de large sur une
     #    planche de 420 (66 %) à cause des miettes du thorax. Tombe si on garde
@@ -378,9 +393,28 @@ def controles(casser=None):
     #    lui, un détecteur qui ne trouve plus rien rendrait tout « visible à
     #    100 % », donc tout hors liste, et le contrôle 2 serait vert.
     muettes = sorted(c for c, v in visibles.items() if v is None)
-    verifier('19 planches marquées, 3 muettes',
-             len(muettes) == 3 and tuple(muettes) == tuple(sorted(SANS_MARQUAGE)),
+    verifier('%d planches marquées, %d muette(s)'
+             % (len(sources) - len(SANS_MARQUAGE), len(SANS_MARQUAGE)),
+             tuple(muettes) == tuple(sorted(SANS_MARQUAGE)),
              'muettes : ' + (', '.join(muettes) or 'aucune'))
+
+    # 8. L'ARCHIVE porte encore son marquage. Une conversion de palette peut
+    #    le DETRUIRE sans rien casser d'autre : c'est arrive au carre
+    #    pronateur, dont la zone ne couvre que 0,9 % de la planche. Tombe des
+    #    qu'une planche archivee ressort vide.
+    vides = []
+    if os.path.isdir(ARCHIVE):
+        for n in sorted(os.listdir(ARCHIVE)):
+            if not n.endswith('.png'):
+                continue
+            c = n[:-4]
+            if c in ('pectoralis_major', ):     # celle-la n'en a jamais porte
+                continue
+            if not marquage(Image.open(os.path.join(ARCHIVE, n))).any():
+                vides.append(c)
+    verifier('les planches archivées ont gardé leur marquage', not vides,
+             'vidées par la conversion : ' + ', '.join(vides) if vides else
+             'chaque source garde un marquage détectable')
 
     print()
     if echecs:

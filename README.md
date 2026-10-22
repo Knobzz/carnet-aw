@@ -195,7 +195,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-quinze défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-seize défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -291,6 +291,7 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | l'équipement redescendu en bas des Réglages | `l'ordre des Réglages : le catalogue puis l'équipement, tout en haut` |
 | les blocs des Réglages ouverts par défaut | `tous sont REPLIÉS au départ — attendu 0, obtenu 3` — 5 contrôles rouges |
 | le compte retiré de l'en-tête repliée | `le compte se lit sans ouvrir — attendu "3,1,1", obtenu ",,"` |
+| une planche archivée reconvertie à 32 couleurs | `les planches archivées ont gardé leur marquage — vidées par la conversion : pronator_quadratus` |
 
 Ce tableau est un **journal**, pas un inventaire : quelques lignes citent des contrôles
 qui ont disparu avec ce qu'ils mesuraient — les planches générales de l'atlas, par

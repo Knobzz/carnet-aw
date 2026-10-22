@@ -480,10 +480,22 @@ tout seul, à l'arrivée des planches de la main.
 **Poids.** `icones/planches/` porte les trente-cinq planches entières, et
 `icones/planches-gray/` les trente-sept sources d'origine sous leur nom latin. Sans elles,
 un recadrage n'est ni rejouable ni rattrapable — c'est ce qui manquait à la 1.21.0.
-Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles sont
+Recomposées sur blanc et réduites à une palette sans tramage, elles sont
 **indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des photos. Rien
 de tout ça n'est pré-chargé ni servi : le service worker ne met en cache que les
 illustrations réellement consultées.
+
+> **Une réduction de palette peut DÉTRUIRE un marquage, en silence.** Celui du carré
+> pronateur ne couvre que **0,9 %** de sa planche : à 32 couleurs il disparaissait
+> entièrement, et la planche serait entrée au dépôt vide sans que rien ne le signale.
+> Elle est à **40 couleurs**, la plus petite palette mesurée qui le préserve — 99 % du
+> marquage pour 6 ko de plus. Un contrôle relit désormais toute l'archive et exige que
+> chaque source porte encore son marquage.
+
+**Une seule planche n'en porte aucun** : le grand pectoral, dont la gravure vient d'une
+autre série. Le carré pronateur et le coraco-brachial l'ont accompagnée un moment, faute
+d'avoir leur bonne planche ; elles sont arrivées depuis, et leur muscle est désormais
+désigné — la bande distale entre radius et ulna, et le creux de l'aisselle.
 
 ### Les planches de Gray
 
