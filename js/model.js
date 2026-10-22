@@ -515,15 +515,75 @@
     grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat']
   };
 
+  /* ---------- lire un nom d'exercice ----------
+
+     Deux defauts mesures sur de vrais noms, et le second est le pire des
+     deux parce qu'il propose FAUX au lieu de ne rien proposer.
+
+     1. LES ARTICLES cassaient la correspondance. « flexion du poignet » ne
+        contient pas « flexion poignet », donc il ne proposait RIEN. Pareil
+        pour « ouverture de la main ». L'app est en francais, et le francais
+        met des articles. On tolere donc une suite de mots de liaison entre
+        deux mots du motif.
+
+     2. LA NEGATION etait ignoree. « Wrist curl inverse » contient « wrist
+        curl », donc il proposait les FLECHISSEURS — exactement les muscles
+        opposes a ceux qu'il travaille. L'app ecrivait d'ailleurs « le wrist
+        curl inverse » dans l'explication de la zone des EXTENSEURS : son
+        propre vocabulaire se contredisait.
+
+        Un nom qui porte « inverse » ou « reverse » lit donc le geste
+        RETOURNE, et ne lit plus les mots du geste droit. On prend le geste
+        le plus LONG qui corresponde : « wrist curl inverse » est un wrist
+        curl retourne, pas un curl retourne. */
+
+  var LIAISONS = '(?: (?:de|du|des|d|le|la|les|l|a|au|aux|en|sur|avec))* ';
+
+  /* `slug()` ne laisse que des lettres, des chiffres et des espaces : il ne
+     reste aucun metacaractere a echapper, et l'echappement serait du code
+     qu'aucun cas ne peut exercer. */
+  function motifDuMot(mot) {
+    return slug(mot).split(' ').join(LIAISONS);
+  }
+
+  var MARQUEURS_INVERSION = ['inverse', 'reverse'];
+
+  /* Ce qu'un geste devient quand il est RETOURNE. Les listes sont courtes et
+     sures : un wrist curl inverse releve le poignet, un curl inverse se tient
+     en pronation et charge le brachio-radial et les radiaux. */
+  var GESTES_INVERSES = {
+    'wrist curl': ['ecrl', 'ecrb', 'extenseurs_doigts'],
+    'curl':       ['brachio_radial', 'ecrl', 'ecrb']
+  };
+
   function musclesDuNom(nom) {
     var s = slug(nom);
     if (!s) return [];
     var vus = {};
+
+    var inverse = MARQUEURS_INVERSION.some(function (mk) {
+      return s.indexOf(mk) >= 0;
+    });
+    if (inverse) {
+      /* Le geste le PLUS LONG d'abord : « wrist curl » avant « curl », sinon
+         un wrist curl inverse serait lu comme un curl inverse. */
+      var base = null;
+      Object.keys(GESTES_INVERSES)
+        .sort(function (a, b) { return b.length - a.length; })
+        .forEach(function (k) {
+          if (!base && new RegExp(motifDuMot(k)).test(s)) base = k;
+        });
+      if (base) GESTES_INVERSES[base].forEach(function (id) { vus[id] = 1; });
+    }
+
     Object.keys(MOTS_MUSCLE).forEach(function (id) {
       MOTS_MUSCLE[id].forEach(function (mot) {
-        if (s.indexOf(slug(mot)) >= 0) vus[id] = 1;
+        /* Un nom retourne ne lit PAS les mots du geste droit. */
+        if (inverse && GESTES_INVERSES[slug(mot)]) return;
+        if (new RegExp(motifDuMot(mot)).test(s)) vus[id] = 1;
       });
     });
+
     var l = [];
     MUSCLES.forEach(function (m) { if (vus[m.id]) l.push(m.id); });
     return l;
@@ -955,10 +1015,12 @@
           + '— la barre épaisse, la poignée large',
       muscles: ['lombricaux', 'court_palmaire', 'opposant_pouce', 'opposant_auriculaire'] },
     { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
-      aide: 'la pronation — la poignée de pronation, la sangle',
+      aide: 'le GESTE de tourner, pas une position tenue — la poignée de '
+          + 'pronation, la sangle',
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { id: 'paume_haut', nom: 'Tourner la paume vers le haut',
-      aide: 'la supination — le curl supination, la clé',
+      aide: 'le GESTE de tourner, pas une position tenue — le curl '
+          + 'supination, la clé',
       muscles: ['supinateur', 'biceps'] },
     { id: 'plier_coude', nom: 'Plier le coude',
       aide: 'ramener la main vers l’épaule — le curl, sous toutes ses formes',

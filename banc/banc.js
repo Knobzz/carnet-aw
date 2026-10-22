@@ -939,6 +939,42 @@
          + 'court_flechisseur_pouce,adducteur_pouce',
            '[temoin] mais « gripper », lui, désigne bien le serrage');
 
+    /* --- la NEGATION, lue --- */
+    /* « Wrist curl inversé » contient « wrist curl » : il proposait les
+       FLÉCHISSEURS, soit exactement les muscles opposés à ceux qu'il
+       travaille. Une proposition fausse est pire qu'une absence : l'écran
+       coche des cases plausibles que personne ne va relire.
+
+       Et l'app se contredisait elle-même — elle écrit « le wrist curl
+       inversé » dans l'explication de la zone des EXTENSEURS. */
+    v.egal(A.m.musclesDuNom('Wrist curl inversé').join(','),
+           'ecrl,ecrb,extenseurs_doigts',
+           'un wrist curl INVERSÉ relève le poignet : ce sont les extenseurs');
+    v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('fcu'), -1,
+           'et SURTOUT pas les fléchisseurs, qui sont le geste droit');
+    v.egal(A.m.musclesDuNom('Wrist curl').join(','), 'fcr,fcu',
+           'le wrist curl droit, lui, ne bouge pas');
+
+    /* On prend le geste le plus LONG : « wrist curl inversé » est un wrist
+       curl retourné, pas un curl retourné. Sans ça il proposerait aussi le
+       brachio-radial, qui n'a rien à faire dans une flexion de poignet. */
+    v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('brachio_radial'), -1,
+           'c’est un WRIST curl inversé, pas un curl inversé');
+    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'brachio_radial,ecrl,ecrb',
+           'un curl inversé se tient en pronation : brachio-radial et radiaux');
+    v.egal(A.m.musclesDuNom('Reverse curl').join(','), 'brachio_radial,ecrl,ecrb',
+           'et « reverse curl » dit la même chose en anglais');
+
+    /* --- les ARTICLES ne cassent plus la correspondance ---
+       L'app est en français, et le français met des articles. « flexion du
+       poignet » ne contenait pas « flexion poignet » : il ne proposait RIEN. */
+    v.egal(A.m.musclesDuNom('Flexion du poignet').join(','), 'fcr,fcu',
+           '« flexion DU poignet » se lit comme « flexion poignet »');
+    v.egal(A.m.musclesDuNom('Ouverture de la main').join(','), 'extenseurs_doigts',
+           'et « ouverture DE LA main » comme « ouverture main »');
+    v.egal(A.m.musclesDuNom('Flexion poignet').join(','), 'fcr,fcu',
+           'sans article, rien ne change');
+
     /* Ce qui NE doit PAS proposer : un mot ambigu ne désigne pas un muscle. */
     v.egal(A.m.musclesDuNom('Curl').length, 0,
            '« curl » tout seul ne propose RIEN — marteau, pronateur et wrist curl '

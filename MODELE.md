@@ -387,6 +387,29 @@ rien — un curl marteau, un curl pronateur et un wrist curl ne travaillent pas 
 chose. Et « grip » a été retiré parce que « Titan Grip » et « Fat grip » sont des
 **outils** : le banc a attrapé ce faux positif.
 
+#### Deux défauts mesurés sur de vrais noms
+
+**La négation était ignorée, et c'est le pire des deux.** « Wrist curl inversé » contient
+« wrist curl », donc il proposait les **fléchisseurs** — exactement les muscles opposés à
+ceux qu'il travaille. Une proposition fausse est pire qu'une absence : l'écran coche des
+cases plausibles que personne ne va relire. L'app se contredisait d'ailleurs elle-même,
+puisqu'elle écrit « le wrist curl inversé » dans l'explication de la zone des extenseurs.
+
+Un nom qui porte **« inversé »** ou **« reverse »** lit désormais le geste *retourné*, et
+ne lit plus les mots du geste droit. On prend le geste le plus **long** qui corresponde :
+« wrist curl inversé » est un wrist curl retourné, pas un curl retourné — sans ça il
+proposerait le brachio-radial, qui n'a rien à faire dans une flexion de poignet.
+
+**Les articles cassaient la correspondance.** « Flexion **du** poignet » ne contient pas
+« flexion poignet » : il ne proposait **rien**. Pareil pour « ouverture **de la** main ».
+L'app est en français, et le français met des articles — on tolère donc une suite de mots
+de liaison entre deux mots du motif. Rien n'est ajouté à la table : c'est la lecture qui
+change.
+
+> Trouvé parce que MB a demandé « si je fais un curl inversé, ça ne fait pas travailler
+> les mêmes muscles que paume vers le haut, non ? » Il avait raison, et sa question a
+> révélé deux défauts que la table seule ne montrait pas.
+
 **Rien n'est écrit sans un geste.** La proposition remplit les cases quand on appuie ;
 ce qui est stocké reste une décision, pas une déduction. Et la quatrième source est
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
