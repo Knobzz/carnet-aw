@@ -51,6 +51,17 @@ Puis `http://localhost:8713`.
 C'est le rôle de GitHub Pages ici : *Settings ▸ Pages ▸ Deploy from a branch ▸ `main` /
 `(root)`*, aucune étape de construction. Un `git push` sur `main` suffit à publier.
 
+Le fichier vide **`.nojekyll`** à la racine dit à Pages de ne pas passer le dépôt par
+Jekyll. C'est le réglage qui correspond à ce que ce projet est — des fichiers servis tels
+quels — et il évite qu'un moteur de gabarits s'interpose un jour sur un nom de fichier
+qui lui déplaît. **Ne pas le supprimer en le croyant inutile.**
+
+> Il a été ajouté en croyant débloquer une publication qui semblait arrêtée. **Ce n'était
+> pas la cause** : la construction était simplement lente — une trentaine de minutes — et
+> elle est passée toute seule, avant même que ce fichier soit construit. Un
+> `Last-Modified` figé se lit comme une panne et n'en est pas une. Le fichier reste parce
+> qu'il est juste, pas parce qu'il a réparé quelque chose.
+
 Servie depuis un **sous-chemin** (`/carnet-aw/` et non la racine), l'app a été vérifiée
 sur l'URL réelle : aucun chemin absolu, `start_url` et `scope` en `./`, service worker
 enregistré avec la portée `https://knobzz.github.io/carnet-aw/` et 21 fichiers en cache,
