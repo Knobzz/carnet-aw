@@ -975,6 +975,32 @@
     v.egal(A.m.musclesDuNom('Flexion poignet').join(','), 'fcr,fcu',
            'sans article, rien ne change');
 
+    /* --- les mots se lisent ENTIERS ---
+       Trois faux positifs mesurés sur de vrais noms. Chacun proposait un
+       muscle qui n'a rien à y faire, et c'est pire qu'une absence. */
+    v.egal(A.m.musclesDuNom('Élévation latérale').join(','), 'deltoide',
+           '« latérale » ne contient plus « lat » : le dorsal ne s’allume pas');
+    v.egal(A.m.musclesDuNom('Lat pulldown').join(','), 'grand_dorsal',
+           'mais « lat » reste lisible quand c’est un mot entier');
+    v.egal(A.m.musclesDuNom('Pression du pouce').indexOf('grand_pectoral'), -1,
+           '« pression » ne contient plus « press » : le pectoral ne s’allume pas');
+    v.egal(A.m.musclesDuNom('Bench press').join(','), 'grand_pectoral',
+           'mais « press » reste lisible dans « bench press »');
+    v.egal(A.m.musclesDuNom('Pectoraux').join(','), 'grand_pectoral',
+           'et le pluriel irrégulier est lu : « pectoraux » n’est pas « pectorals »');
+    v.egal(A.m.musclesDuNom('Tractions').join(','), 'grand_dorsal',
+           'le pluriel régulier aussi');
+
+    /* « doigts » tout seul ne dit pas dans quel SENS ils travaillent : des
+       doigts qui s'écartent sont tenus par les EXTENSEURS. Le mot est retiré,
+       comme « grip » l'avait été. */
+    v.egal(A.m.musclesDuNom('Écartement des doigts').join(','), 'extenseurs_doigts',
+           'des doigts qui s’écartent, ce sont les extenseurs');
+    v.egal(A.m.musclesDuNom('Flexion des doigts').join(','), 'flechisseurs_doigts',
+           'et des doigts qui se plient, les fléchisseurs');
+    v.egal(A.m.musclesDuNom('Fermeture de la main').join(','), 'flechisseurs_doigts',
+           'la main qui se ferme aussi');
+
     /* Ce qui NE doit PAS proposer : un mot ambigu ne désigne pas un muscle. */
     v.egal(A.m.musclesDuNom('Curl').length, 0,
            '« curl » tout seul ne propose RIEN — marteau, pronateur et wrist curl '

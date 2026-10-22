@@ -410,6 +410,28 @@ change.
 > les mêmes muscles que paume vers le haut, non ? » Il avait raison, et sa question a
 > révélé deux défauts que la table seule ne montrait pas.
 
+#### Les mots se lisent ENTIERS
+
+Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :
+
+| nom | proposait | pourquoi |
+|---|---|---|
+| `Élévation latérale` | le **grand dorsal** | « latérale » contient `lat` |
+| `Pression du pouce` | le **grand pectoral** | « pression » contient `press` |
+| `Écartement des doigts` | les **fléchisseurs** | `doigts` ne dit pas le sens |
+
+Les deux premiers sont réglés par une **règle** : un mot ne se lit que s'il est entier.
+C'est la même famille que `grip` dans « Titan Grip », retiré pour cette raison — mais une
+règle vaut mieux qu'un mot retiré de plus à chaque fois. Le **pluriel** français est
+toléré (« tractions », « pronations »), et l'irrégulier est ajouté à la table quand il
+existe (« pectoraux »).
+
+Le troisième ne pouvait pas l'être : `doigts` **est** un mot entier. Le problème est le
+mot lui-même — il ne dit pas dans quel **sens** les doigts travaillent, et des doigts qui
+s'écartent sont tenus par les extenseurs. Il est retiré et remplacé par
+`flexion doigts` et `fermeture main`, pendant que `ecartement doigts` rejoint les
+extenseurs. **Un mot qui désigne les deux ne désigne aucun des deux.**
+
 **Rien n'est écrit sans un geste.** La proposition remplit les cases quand on appuie ;
 ce qui est stocké reste une décision, pas une déduction. Et la quatrième source est
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les

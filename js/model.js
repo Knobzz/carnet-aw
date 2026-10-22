@@ -473,7 +473,13 @@
     /* PAS « grip » tout court : « Titan Grip » et « Fat grip » sont des
        OUTILS, et le banc l'a attrape. Un mot qui apparait dans un nom de
        materiel ne designe pas un muscle. */
-    flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'doigts', 'pinch', 'serrer'],
+    /* PAS « doigts » tout seul : le mot ne dit pas dans quel SENS ils
+       travaillent, et « ecartement des doigts » proposait les flechisseurs
+       alors que des doigts qui s'ecartent sont tenus par les extenseurs.
+       Meme raison que « grip » : un mot qui designe les deux ne designe
+       aucun des deux. */
+    flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'pinch', 'serrer',
+                          'flexion doigts', 'fermeture main'],
     /* Un exercice de PINCE est d'abord un exercice de pouce : c'est lui qui
        s'oppose aux doigts, et sans lui il n'y a pas de pince du tout. Les
        mots viennent du nom que l'utilisateur a ecrit — la source la moins
@@ -488,7 +494,8 @@
     ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
     ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
     ecu:                 ['cubital posterieur', 'extenseur ulnaire'],
-    extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main', 'extensor band'],
+    extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main',
+                          'ecartement doigts', 'extensor band'],
     extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
     abducteur_auriculaire: ['petit doigt', 'auriculaire'],
     court_flechisseur_auriculaire: ['petit doigt', 'auriculaire'],
@@ -511,7 +518,11 @@
     coraco_brachial:     ['coraco'],
     ancone:              ['ancone'],
     long_palmaire:       ['petit palmaire', 'long palmaire'],
-    grand_pectoral:      ['pectoral', 'pec', 'developpe', 'bench', 'press'],
+    /* « press » est garde pour « bench press » et « shoulder press », qui
+       sont des mots entiers. Il ne s'allume plus dans « pression » depuis
+       que les mots se lisent entiers. « pectoraux » est ajoute : le pluriel
+       francais est irregulier, et le `s?` ne le couvre pas. */
+    grand_pectoral:      ['pectoral', 'pectoraux', 'pec', 'developpe', 'bench', 'press'],
     grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat']
   };
 
@@ -542,8 +553,16 @@
   /* `slug()` ne laisse que des lettres, des chiffres et des espaces : il ne
      reste aucun metacaractere a echapper, et l'echappement serait du code
      qu'aucun cas ne peut exercer. */
+  /* Les mots se lisent ENTIERS. « lat » ne doit pas s'allumer dans
+     « elevation laterale », ni « press » dans « pression » : les deux
+     proposaient un muscle qui n'a rien a y faire. C'est la meme famille que
+     « grip » dans « Titan Grip », deja retire pour cette raison — mais une
+     regle vaut mieux qu'un mot retire de plus a chaque fois.
+
+     Le pluriel francais est tolere, sinon « tractions » et « pronations »
+     cesseraient de se lire. */
   function motifDuMot(mot) {
-    return slug(mot).split(' ').join(LIAISONS);
+    return '(?:^| )' + slug(mot).split(' ').join(LIAISONS) + 's?(?: |$)';
   }
 
   var MARQUEURS_INVERSION = ['inverse', 'reverse'];
