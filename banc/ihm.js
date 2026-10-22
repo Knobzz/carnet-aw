@@ -1394,6 +1394,18 @@
     return attendre(200).then(function () {
       v.vrai(vue.textContent.indexOf('Envoyer un retour') >= 0,
              'la section est là');
+      /* L'ORDRE de l'écran est une décision, pas un hasard du code —
+         « Ajouter un outil » doit tomber sous le pouce tout de suite, parce
+         qu'on ajoute un outil bien plus souvent qu'on n'exporte un carnet.
+         Un contrôle le tient, comme pour l'onglet Suivi. */
+      var titres = [];
+      Array.prototype.forEach.call(vue.children, function (n) {
+        if (n.classList && n.classList.contains('sous-titre')) titres.push(n.textContent);
+      });
+      v.egal(titres.join(' · '),
+             'Thème · En salle · Équipement · Sauvegarde · État du stockage · '
+           + 'Envoyer un retour · Exercices connus · Tout effacer',
+             'l’ordre des Réglages : l’équipement juste après « En salle »');
 
       /* 7. Le bloc technique est VISIBLE EN ENTIER. On mesure sa HAUTEUR
          reelle : un bloc a zero pixel ne se lit pas, et on ne peut pas

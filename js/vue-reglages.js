@@ -536,6 +536,47 @@
     hote.appendChild(btNotif);
     hote.appendChild(etatNotif);
 
+    /* L'équipement vient AVANT la sauvegarde et le reste : c'est ce qu'on
+       ouvre le plus souvent dans cet écran — on ajoute un outil bien plus
+       souvent qu'on n'exporte un carnet. Un ordre d'écran est une décision,
+       pas un hasard du code, et le banc le tient. */
+    /* --- équipement --- */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Équipement' }));
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      text: 'Rien n’est livré avec l’app. Un exercice peut porter plusieurs outils — « Titan Grip » et « Poulie haute » ensemble, par exemple. Les catégories sont les tiennes : tape-en une nouvelle et elle existe.' }));
+
+    var btOutilNeuf = h('button', { class: 'bt bt-large', style: 'margin-bottom:10px',
+                                    text: '+ Ajouter un outil' });
+    btOutilNeuf.addEventListener('click', function () {
+      editerOutil(null, function () { rendre(hote); });
+    });
+    hote.appendChild(btOutilNeuf);
+
+    if (!e.outils.length) {
+      hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun outil' }),
+        'Ajoute-le ici, ou saisis-le directement dans la fiche d’un exercice : il entrera tout seul.'));
+    } else {
+      A.m.outilsParCategorie(e).forEach(function (g) {
+        var c3 = h('div', { class: 'carte' });
+        var corps3 = h('div', { class: 'carte-corps' });
+        corps3.appendChild(h('div', { class: 'sous-titre', style: 'margin:0 0 6px', text: g.categorie }));
+        g.outils.forEach(function (o) {
+          var combien = compterUsages(e, o);
+          /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre
+             doit s'atteindre au clavier, s'annoncer aux lecteurs d'écran et
+             faire 44 px de haut comme tout ce qui se touche ici. */
+          var ligne = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+            h('b', { text: o.nom }),
+            h('span', { text: combien ? combien + ' exo' + (combien > 1 ? 's' : '') : 'non employé' }));
+          ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
+          corps3.appendChild(ligne);
+        });
+        c3.appendChild(corps3);
+        hote.appendChild(c3);
+      });
+    }
+
+
     /* --- sauvegarde --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde' }));
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
@@ -622,42 +663,6 @@
       });
       c2.appendChild(corps2);
       hote.appendChild(c2);
-    }
-
-    /* --- équipement --- */
-    hote.appendChild(h('div', { class: 'sous-titre', text: 'Équipement' }));
-    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Rien n’est livré avec l’app. Un exercice peut porter plusieurs outils — « Titan Grip » et « Poulie haute » ensemble, par exemple. Les catégories sont les tiennes : tape-en une nouvelle et elle existe.' }));
-
-    var btOutilNeuf = h('button', { class: 'bt bt-large', style: 'margin-bottom:10px',
-                                    text: '+ Ajouter un outil' });
-    btOutilNeuf.addEventListener('click', function () {
-      editerOutil(null, function () { rendre(hote); });
-    });
-    hote.appendChild(btOutilNeuf);
-
-    if (!e.outils.length) {
-      hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun outil' }),
-        'Ajoute-le ici, ou saisis-le directement dans la fiche d’un exercice : il entrera tout seul.'));
-    } else {
-      A.m.outilsParCategorie(e).forEach(function (g) {
-        var c3 = h('div', { class: 'carte' });
-        var corps3 = h('div', { class: 'carte-corps' });
-        corps3.appendChild(h('div', { class: 'sous-titre', style: 'margin:0 0 6px', text: g.categorie }));
-        g.outils.forEach(function (o) {
-          var combien = compterUsages(e, o);
-          /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre
-             doit s'atteindre au clavier, s'annoncer aux lecteurs d'écran et
-             faire 44 px de haut comme tout ce qui se touche ici. */
-          var ligne = h('button', { type: 'button', class: 'item-ligne item-bouton' },
-            h('b', { text: o.nom }),
-            h('span', { text: combien ? combien + ' exo' + (combien > 1 ? 's' : '') : 'non employé' }));
-          ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
-          corps3.appendChild(ligne);
-        });
-        c3.appendChild(corps3);
-        hote.appendChild(c3);
-      });
     }
 
     /* --- remise à zéro --- */

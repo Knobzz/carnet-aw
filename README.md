@@ -53,7 +53,7 @@ C'est le rôle de GitHub Pages ici : *Settings ▸ Pages ▸ Deploy from a branc
 
 Servie depuis un **sous-chemin** (`/carnet-aw/` et non la racine), l'app a été vérifiée
 sur l'URL réelle : aucun chemin absolu, `start_url` et `scope` en `./`, service worker
-enregistré avec la portée `https://knobzz.github.io/carnet-aw/` et 19 fichiers en cache,
+enregistré avec la portée `https://knobzz.github.io/carnet-aw/` et 21 fichiers en cache,
 tous sous `/carnet-aw/`.
 
 Les données restent sur l'appareil, dans le stockage du navigateur de cette origine —
@@ -87,12 +87,16 @@ Trois protections, dont une mécanique.
 python outils/version.py 1.1.1
 ```
 
-Ce script pose la version aux **quatre** endroits — les 13 `?v=` d'`index.html`, les 2
+Ce script pose la version aux **quatre** endroits — les 14 `?v=` d'`index.html`, les 2
 de `banc/index.html`, le nom du cache dans `sw.js`, `APP_VERSION` dans `js/app.js` — et
-**imprime le compte**. Un total différent de **17** veut dire qu'un fichier a bougé : il
+**imprime le compte**. Un total différent de **18** veut dire qu'un fichier a bougé : il
 refuse alors d'écrire. Sans argument, il se contente de vérifier la cohérence.
-(Le README annonçait trois endroits et un total de 14 ; le script en comptait 17. Il
-avait raison — c'est le texte qui était resté en arrière.)
+(Ce texte a annoncé 14, puis 17, pendant que le script en comptait un autre. Chaque fois
+c'est le script qui avait raison, et le texte qui était resté en arrière — c'est
+précisément pourquoi il imprime le compte plutôt que de le supposer.)
+
+`banc/ihm.html` n'y figure pas, et c'est voulu : il charge `ihm.js` avec un horodatage à
+chaque appel, donc il ne peut pas servir une copie périmée.
 
 Les deux autres : le service worker installe ses fichiers avec `cache: 'reload'`
 (sinon il recopie l'ancien contenu du cache HTTP dans un cache tout neuf), et il
@@ -125,9 +129,13 @@ js/
   vue-journal.js           journal daté, muscu et sparring mêlés
   vue-exercice.js          historique d'un exercice : la pente, les records
   vue-suivi.js             sollicitation, structures, douleurs et leurs 72 h, pentes, volume
-  vue-reglages.js          thème, sauvegarde, catalogues, équipement
+  vue-reglages.js          thème, équipement, sauvegarde, état du stockage,
+                           envoyer un retour, catalogues
+icones/planches/           les 35 planches entières : la SOURCE des illustrations
+icones/planches-gray/      les 37 gravures d'origine, sous leur nom latin
 outils/faire-icones.py     régénère les PNG depuis le même dessin que l'icône SVG
-outils/version.py          pose la version aux 4 endroits et compte les 17 occurrences
+outils/recadrer-planches.py  dérive icones/muscle-*.png des planches entières
+outils/version.py          pose la version aux 4 endroits et compte les 18 occurrences
 outils/banc.js             lance les deux bancs sans tête : node outils/banc.js
 banc/index.html            banc de modèle — une page à ouvrir
 banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calculé
@@ -137,7 +145,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **765 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **799 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +156,12 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **467 contrôles, 25 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **298 contrôles, 15 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **489 contrôles, 26 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **310 contrôles, 16 blocs.**
+
+**Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
+*lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
+c'est comme ça que la 1.22.0 a été vérifiée.
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -182,7 +194,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-trois défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-treize défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -266,6 +278,21 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | une aide LONGUE sous « Structures chargées » | `elle est COURTE (214 signes) : c'est le bavardage qui était reproché` |
 | « Structures chargées » plus en dernier | `c'est même le TOUT dernier groupe de la fiche, après le repos` |
 | l'articulation retirée des lignes de la fiche | `chaque ligne dit l'articulation mobilisée — attendu 0, obtenu 22` |
+| les lombricaux et l'hypothénar remis dans la prise fermée | `et ni les lombricaux ni l'hypothénar : la source ne le dit pas — attendu "", obtenu "opposant_auriculaire,lombricaux"` |
+| les noms d'exercices qui fuient dans le retour | `le contexte ne porte AUCUNE donnée d'entraînement — attendu "", obtenu "Pronation Titan Grip, Curl marteau"` |
+| un champ retiré du contexte technique | `et ils sont bien dix — attendu 10, obtenu 9` |
+| le texte du testeur qui ne part plus | `le texte du testeur part — attendu true, obtenu false` |
+| la garde du retour vide retirée | `un retour vide ne part pas — attendu null` — 3 contrôles rouges |
+| le corps du ticket concaténé brut | `et il ne part jamais brut — attendu -1, obtenu 60` |
+| le plafond d'URL retiré | `un retour trop long rend null — obtenu "https://github.com/…"` |
+| le bloc technique replié à zéro pixel | `il est VISIBLE, pas replié (hauteur mesurée : 0 px)` |
+| « Copier » qui perd sa classe `.bt` | `chacun fait au moins 44 px de haut — attendu "", obtenu "Copier"` |
+| l'équipement redescendu en bas des Réglages | `l'ordre des Réglages : l'équipement juste après « En salle »` |
+
+Ce tableau est un **journal**, pas un inventaire : quelques lignes citent des contrôles
+qui ont disparu avec ce qu'ils mesuraient — les planches générales de l'atlas, par
+exemple, supprimées depuis que chaque muscle a son illustration propre. Elles restent
+parce qu'elles disent ce qui a été payé, pas ce qui tourne aujourd'hui.
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
@@ -290,6 +317,20 @@ Un autre a échappé au banc avant d'être vu à l'écran : le filtre de l'équi
 masquait les catégories entières mais pas les lignes d'une catégorie qui, elle,
 correspondait — `display: flex` l'emporte sur `[hidden]`. Le contrôle ne regardait qu'une
 ligne d'une catégorie entièrement masquée. Il regarde maintenant les deux cas.
+
+Et un contrôle a **refusé de tomber** sur le défaut qu'on lui destinait : réduire la
+hauteur de « Copier » en ligne le laissait vert, parce que `.bt` porte `min-height: 44px`
+qui l'emporte. Le défaut réaliste n'était pas « un bouton plus petit » mais « un bouton
+qui n'est plus un `.bt` » — la même régression que la ligne d'outil redevenue un `div`.
+Tant qu'on n'avait pas trouvé ce défaut-là, ce contrôle ne prouvait rien.
+
+`outils/recadrer-planches.py` porte ses **sept contrôles** à lui, avec les mêmes règles :
+`--controle liste` lui ajoute une planche qui n'en a pas besoin, `--controle plancher`
+retire le minimum de 296×400, `--controle seuil` laisse l'orange passer pour du marquage,
+`--controle miettes` garde les pixels rouges égarés. Chacun fait rougir. Le plus utile
+**refait la mesure** et exige qu'elle corresponde à la liste des planches recadrées, dans
+les deux sens — c'est lui qui a trouvé l'opposant de l'auriculaire tout seul, à l'arrivée
+des planches de la main.
 
 Les cas marqués `[temoin]` mesurent un invariant du décor et tiennent des deux côtés —
 leur libellé dit pourquoi.
@@ -323,6 +364,23 @@ leur libellé dit pourquoi.
 5. **Mobile d'abord.** Vérifié à 320 px : aucun défilement horizontal sur les cinq
    écrans ni dans les panneaux, et aucun contrôle sous 44 px.
 6. **Thème clair et sombre**, déduits du système, surchargeables dans Réglages.
+
+---
+
+## Envoyer un retour
+
+Réglages porte un bouton pour les bêta-testeurs : une zone de texte, un bloc de contexte
+**technique** généré tout seul — version, écran, navigateur, installée ou non, et des
+comptes — puis **Copier** ou **Ouvrir un ticket GitHub** pré-rempli.
+
+**Aucune donnée d'entraînement n'en sort** : jamais un nom d'exercice, d'outil ou de
+programme, jamais une charge, jamais une douleur. Le banc le mesure sur un carnet
+fabriqué avec des noms reconnaissables.
+
+**Rien ne part tout seul**, et le texte est lisible en entier avant — un contrôle mesure
+la hauteur réelle du bloc, pas son attribut `hidden`. Le ticket est le **seul endroit de
+l'app qui mène dehors** : pas une requête, une navigation vers `github.com` déclenchée par
+un appui. Détail du dessin : [MODELE.md](MODELE.md).
 
 ---
 

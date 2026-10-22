@@ -294,10 +294,16 @@ Les **structures** disent ce qui encaisse — poignet, coude médial : c'est le 
 de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'exercice,
 et c'est leur croisement qui rend la carte lisible.
 
-**Vingt-deux muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
-profonds qu'elle ne montre pas — coraco-brachial, brachial, carré pronateur, supinateur.
-La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce qui tire sur le
-bras (grand dorsal, grand pectoral).
+**Trente-cinq muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
+profonds qu'elle ne montre pas — coraco-brachial, brachial, carré pronateur, supinateur,
+subscapulaire. La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce
+qui tire sur le bras (grand dorsal, grand pectoral).
+
+Elle est descendue **jusqu'à la main** en 1.22.0 : neuf muscles du thénar, de
+l'hypothénar et de la paume, plus trois de l'avant-bras profond qui commandent le pouce
+et l'index. Ce n'est pas du décor sur un carnet de bras de fer — la pression du pouce et
+la main qui serre sont exactement ça. Ils étaient restés dehors parce que leurs planches
+n'avaient jamais été versées au dépôt, pas par décision.
 
 Chacun porte **quatre informations**, parce qu'une liste de noms latins ne se coche pas :
 
@@ -338,9 +344,34 @@ travailler les fléchisseurs des doigts, qui naissent eux aussi de l'épicondyle
 une prise ouverte pousse sans serrer. Le même exercice, des deux façons, ne charge pas la
 même chose.
 
+**Et le pouce, depuis 1.22.0 — mais seulement ce qu'une source dit.** Une étude EMG de
+1970 (JBJS, 115 sujets) établit que les muscles **extrinsèques** font la force d'une
+prise de force, les intrinsèques assistant, et que le **thénar** y est employé dans
+toutes ses formes. Une prise fermée propose donc aussi le long et le court fléchisseur du
+pouce, le court abducteur, l'opposant et l'adducteur.
+
+Ce qui reste **dehors** l'est pour la même raison : la même étude donne les **lombricaux**
+comme *non employés* dans une prise de force, et l'hypothénar n'y est pas documenté. On ne
+comble pas un trou de la source avec une intuition, et un contrôle tient ce refus.
+
+> **Faux ami, écrit dans le code.** La « hook grip » de cette étude est la prise à quatre
+> doigts sans pouce du chirurgien de la main, **pas le hook du bras de fer**. Les
+> confondre ferait dire à l'étude ce qu'elle ne dit pas — même piège que « long
+> supinateur » pour le brachio-radial.
+
+**Aucun des muscles de la main n'est rattaché aux six mouvements.** Il n'existe pas
+d'étude qui attribue le bras de fer à des muscles intrinsèques, et l'EMG de surface de
+l'avant-bras souffre d'une diaphonie qui rend l'attribution à un muscle donné peu fiable.
+Ce que l'app sait dire, elle le dit ; le reste, elle ne l'invente pas.
+
+En revanche un exercice **nommé** « pince », « pinch », « gripper », « serrage » ou
+« serrer » propose le pouce : c'est la source « le nom », ce que l'utilisateur a écrit
+lui-même, et pas une mesure sur le bras de fer. « pouce » et « thumb » restent au groupe
+qui l'**ouvre** — un même mot pour les six muscles du pouce noierait la proposition.
+
 ### Les trois sources de proposition
 
-On ne peut pas demander de cocher vingt-deux muscles à qui ne connaît pas les termes : la
+On ne peut pas demander de cocher trente-cinq muscles à qui ne connaît pas les termes : la
 case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 
 | source | d'où | solidité |
@@ -376,14 +407,19 @@ construction**, puisque c'est la planche elle-même qui porte la teinte. Rien à
 
 ```
 Muscle
-  image   : 'icones/muscle-fcu.png'   l'illustration propre, ou absente
-  planche : 'avb_av'                  la planche générale, toujours présente
+  image : 'icones/muscle-fcu.png'     l'illustration propre, ou absente
 ```
 
-**Les vingt-deux** en ont une. Le repli sur la planche générale reste codé : il a servi
-avant que le pectoral, le dorsal et le triceps n'arrivent, et il resservira si un muscle
-est ajouté au carnet avant son image. `musclesSansImage()` nomme les manquants plutôt que
-de les laisser se fondre dans le lot.
+**Les trente-cinq** en ont une. `musclesSansImage()` nomme les manquants plutôt que de
+les laisser se fondre dans le lot, et le banc va chercher chaque fichier dans le dépôt :
+une illustration annoncée mais absente donnerait une image cassée que personne ne verrait
+avant le téléphone.
+
+Un champ `planche` a longtemps désigné, à côté, la planche générale de l'atlas. Ces
+planches ont été supprimées avec leur code de repli, et le champ a survécu **dix-neuf
+commits sans être lu une seule fois** — déclaré partout, utilisé nulle part. C'est le
+piège n° 5 appliqué au modèle, celui-là même que la section « Ce qui a changé après
+coup » revendique d'avoir corrigé. Il est retiré.
 
 ### Les faire défiler au doigt
 
@@ -404,26 +440,55 @@ Deux gestes sur la même zone, donc, et il faut les distinguer :
 - **les flèches du clavier font la même chose.** Le glissement ne doit pas être le seul
   chemin, et le nom de chaque barre ouvre toujours directement l'image du sien.
 
-La vignette est plafonnée en hauteur : un avant-bras fait 420 × 1283, à pleine largeur il
+La vignette est plafonnée en hauteur : un avant-bras fait 406 × 1241, à pleine largeur il
 mange l'écran et on ne voit plus les barres.
 
-**Recadrées sur le rouge.** Plusieurs images noyaient le muscle dans une vue du thorax —
-le biceps était un filet rouge dans une cage thoracique. Chaque image est donc **recadrée
-sur sa zone rouge**, automatiquement : le marquage est exactement `(255, 0, 0)` quand
-l'orange de la gravure a toujours du vert, donc les deux se séparent proprement. Les
-centiles 2–98 servent de cadre pour que trois pixels égarés ne le fassent pas exploser, et
-un garde-fou empêche les lamelles illisibles (jamais plus haut que 3,2 fois la largeur).
+### Trois recadrées sur trente-cinq
 
-**Poids.** Les fichiers d'origine pesaient 12,9 Mo pour 32 images — jusqu'à 740 ko pièce,
-en RGBA. Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles font **752 ko** au
-total et sont **indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des
-photos. Elles ne sont pas pré-chargées ; le service worker les met en cache à la première
-consultation.
+Deux versions ont recadré **toutes** les planches sur leur zone rouge, sans que personne
+ait compté qui en avait besoin. La mesure, faite après coup, dans le navigateur :
+
+> la carte fait 290 px (`.planche-carte`) et coupe **à droite** (`overflow: hidden`) ; la
+> vignette s'affiche à sa taille naturelle, plafonnée à 400 px de haut. Sur la planche
+> entière, le muscle marqué est donc **visible à 100 % pour trente-deux muscles sur
+> trente-cinq**.
+
+Trois exceptions, et elles seules : le **brachial** (5 % du muscle visible), le **biceps**
+(40 %) et l'**opposant de l'auriculaire** (35 %). Leurs planches sont plus larges que la
+carte, et c'est le muscle lui-même qui sort du cadre. Quatre autres débordent aussi —
+grand pectoral, coraco-brachial, triceps, deltoïde — mais ce qui est coupé y est du
+décor.
+
+La justification d'origine ne tenait pas à la mesure non plus : elle disait « le biceps
+était un filet rouge dans une cage thoracique », alors que le biceps occupe **54 %** de la
+carte. Le problème était le *clipping*, pas la taille du muscle.
+
+**Le marquage ne se devine pas.** Les planches sont des PNG à **palette de 32 couleurs**.
+On y cherche l'amas rouge franc — `r > 120`, `g < 0.20·r`, `b < 40` — nettement séparé de
+l'orange de la gravure, qui vit à `g/r ≈ 0.34`. La version 1.21.0 affirmait que « le
+marquage est exactement `(255, 0, 0)` » : c'est **faux en entrée**, quinze des vingt-deux
+sources n'en portaient aucun pixel. Ce rouge pur n'existait que dans la **sortie**,
+fabriqué par la re-quantification qui suivait le découpage — un critère vérifié là où il
+ne pouvait pas tomber. On recadre désormais l'image à palette **telle quelle**, et les
+planches non recadrées sont copiées **octet pour octet**.
+
+`outils/recadrer-planches.py` porte sept contrôles. Le plus utile **refait la mesure** et
+exige qu'elle corresponde à la liste, dans les deux sens : rien hors liste qui soit coupé,
+rien dans la liste qui ne le soit pas. C'est lui qui a trouvé l'opposant de l'auriculaire,
+tout seul, à l'arrivée des planches de la main.
+
+**Poids.** `icones/planches/` porte les trente-cinq planches entières, et
+`icones/planches-gray/` les trente-sept sources d'origine sous leur nom latin. Sans elles,
+un recadrage n'est ni rejouable ni rattrapable — c'est ce qui manquait à la 1.21.0.
+Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles sont
+**indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des photos. Rien
+de tout ça n'est pré-chargé ni servi : le service worker ne met en cache que les
+illustrations réellement consultées.
 
 ### Les planches de Gray
 
 Le schéma répond à *combien*. Il ne répondra jamais à *à quoi ça ressemble, et où est-ce
-exactement* — c'est un schéma de bandes, et c'est écrit à l'écran. Neuf gravures de
+exactement* — c'est un schéma de bandes, et c'est écrit à l'écran. Les gravures de
 **Henry Gray, Anatomy of the Human Body, 1918** répondent à ça, et à rien d'autre.
 
 **1918, domaine public** : c'est la seule raison de ces planches-là. Une planche trouvée au
@@ -434,18 +499,22 @@ c'est le seul mot **écrit sur la gravure**. Chercher « fléchisseur ulnaire »
 planche de 1918 ne donne rien ; chercher *Flexor carpi ulnaris* le trouve.
 
 Elles ne sont **pas pré-chargées**. Le service worker met en cache tout ce qui passe, donc
-une planche consultée une fois reste disponible hors ligne — mais tant qu'on ne l'ouvre
-pas, elle ne coûte rien à l'installation. 680 ko précachés pour des images qu'on regarde
-trois fois seraient payés par tout le monde, tout le temps.
+une illustration consultée une fois reste disponible hors ligne — mais tant qu'on ne
+l'ouvre pas, elle ne coûte rien à l'installation.
 
-Le libellé de chaque barre est un **bouton** : c'est le seul chemin vers les sept muscles
-qui n'ont pas de tracé sur le schéma, qui seraient sinon des noms sans visage.
+**Attention** : elles ne sont pas non plus dans la liste de pré-cache de `sw.js`, qui ne
+porte que la coque et les icônes de l'app. En **mode avion**, une illustration jamais
+ouverte ne se chargera pas. C'est un choix de poids, pas un oubli, mais il se paie en
+salle et il faut le savoir.
 
-Le banc **va chercher les huit fichiers** : une planche nommée mais absente donnerait une
-image cassée que personne ne verrait avant le téléphone. Et l'iframe du banc d'interface
-porte `<base href="../">`, pour que `icones/Gray414.png` s'y résolve **exactement comme
-dans `index.html`** — sans ça, une planche trouvée au banc pourrait être introuvable en
-production.
+Le libellé de chaque barre est un **bouton** : c'est le seul chemin vers les muscles qui
+n'ont pas de tracé sur le schéma, qui seraient sinon des noms sans visage.
+
+Le banc **va chercher chaque fichier annoncé** : une illustration nommée mais absente
+donnerait une image cassée que personne ne verrait avant le téléphone. Et l'iframe du banc
+d'interface porte `<base href="../">`, pour que `icones/muscle-fcu.png` s'y résolve
+**exactement comme dans `index.html`** — sans ça, une planche trouvée au banc pourrait
+être introuvable en production.
 
 Ce que ce n'est **pas** : une planche médicale. Les contours sont approximatifs, en
 particulier les insertions. Des régions nettes, nommées et à la bonne place valent mieux
@@ -520,7 +589,7 @@ Les noms des muscles ne parlent pas à qui ne les a pas appris, et **une case qu
 pas cocher reste vide** — exactement le défaut que les trois sources de proposition
 essayaient déjà de contourner. Mais tout le monde sait dire **où ça tire**.
 
-Douze **zones ressenties** : « le dessus de l'avant-bras — côté dos de la main, le wrist
+Treize **zones ressenties** : « le dessus de l'avant-bras — côté dos de la main, le wrist
 curl inversé », « plier le coude — le curl, sous toutes ses formes », « la main qui
 serre ». Chacune désigne les muscles qui y travaillent. Ce n'est pas une opinion : c'est de
 l'anatomie de description, la même que celle des planches.
@@ -540,13 +609,13 @@ Trois décisions tenues par des contrôles :
 
 ### Les régions de muscles se replient
 
-Vingt-deux muscles d'affilée font un mur : on ne voit plus ce qu'on a coché, et le reste de
+Trente-cinq muscles d'affilée font un mur : on ne voit plus ce qu'on a coché, et le reste de
 la fiche part sous l'écran. Chaque région se replie donc, comme les catégories de
 l'équipement — mêmes classes, même chevron.
 
 Une région qui **porte déjà un muscle coché s'ouvre**, sinon il faudrait rouvrir six blocs
 pour vérifier. Le **compte reste visible fermé** (`2 / 4`), pour n'avoir justement pas à
-ouvrir. Le banc mesure que les 22 muscles tiennent alors en moins de 400 px.
+ouvrir. Le banc mesure que les 35 muscles tiennent alors en moins de 400 px.
 
 ### Un mouvement coche ses muscles
 
@@ -619,6 +688,58 @@ La rangée de choix **n'apparaît que** si un outil retenu a des réglages décl
 vide de plus serait une case de plus à ignorer — et le banc mesure la **hauteur réelle** du
 groupe, pas l'attribut `hidden` : le filtre de l'équipement avait déjà été battu par un
 `display: flex` qui l'emportait sur `[hidden]`.
+
+## Le retour d'un testeur
+
+Les bêta-testeurs rapportent depuis WhatsApp ou Discord : c'est comme ça que les gens le
+font, et leur demander d'ouvrir un compte GitHub serait perdre le retour. **Copier** est
+donc le chemin principal ; le ticket pré-rempli est l'autre.
+
+Un rapport utile tient en deux morceaux : ce que la personne a vu, et le **décor** dans
+lequel elle l'a vu. Le second, personne ne le donne de mémoire — ni sa version, ni la
+largeur réelle de son écran, ni si l'app tourne installée ou dans un onglet.
+
+```
+contexte : version · écran et densité · navigateur · installée ou onglet
+           séances · exercices · programmes · outils
+           taille des données · stockage durable
+```
+
+**Aucune donnée d'entraînement n'y entre.** Que des comptes et des états : jamais un nom
+d'exercice, d'outil ou de programme, jamais une charge, jamais une douleur. C'est une
+promesse faite à l'écran, donc le banc la mesure — il fabrique un carnet avec des noms
+reconnaissables et exige qu'aucun ne ressorte. Ce qui n'est pas connu se **dit** (« non
+renseigné »), jamais une valeur par défaut : même principe que `null` partout ailleurs.
+
+**Rien ne part tout seul, et le texte est visible en entier avant.** Le bloc technique
+n'est ni replié ni caché derrière un « voir » : si on ne peut pas le lire, on ne peut pas
+consentir à l'envoyer. Un contrôle mesure sa **hauteur réelle**, pas son attribut
+`hidden` — déjà battu ici par un `display: flex`.
+
+C'est **le seul endroit de l'app qui mène dehors**. Pas une requête : aucun `fetch`,
+aucun XHR. Une navigation vers `github.com`, déclenchée par un appui, avec le texte lu
+avant. L'écran le dit en une ligne.
+
+Trois fonctions pures portent tout ça — `contexteTechnique(etat, env)`,
+`texteRetour(saisie, contexte)` et `lienTicket(titre, corps)` — et ne lisent **rien** du
+navigateur : l'écran relève le décor et le passe en argument. C'est ce qui permet de les
+mesurer sur un état fabriqué et un décor fabriqué.
+
+Deux gardes, chacune pour une panne silencieuse : `encodeURIComponent` sur le corps, parce
+qu'un « & » ou un « # » tapé dans le retour tronquerait le ticket sans que personne le
+voie ; et un plafond d'URL à **6 000 signes**, au-delà duquel on rend `null` plutôt que
+d'ouvrir un onglet sur une erreur 414. Ce plafond est une borne **conservatrice**, pas une
+mesure, et c'est écrit tel quel dans le code.
+
+## L'ordre des Réglages
+
+Thème, En salle, **Équipement**, Sauvegarde, État du stockage, Envoyer un retour,
+Exercices connus, Tout effacer.
+
+L'équipement est remonté juste après « En salle » : on ajoute un outil bien plus souvent
+qu'on n'exporte un carnet, et « Ajouter un outil » doit tomber sous le pouce tout de
+suite. Un ordre d'écran est une **décision**, pas un hasard du code — le banc le tient,
+comme il tient celui de l'onglet Suivi.
 
 ## Zones de douleur, et leur intensité
 
