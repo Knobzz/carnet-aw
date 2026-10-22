@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **545 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **559 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -149,7 +149,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **377 contrôles, 23 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **168 contrôles, 11 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **182 contrôles, 12 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -173,12 +173,13 @@ sort-il entièrement de l'écran, et laisse-t-il la barre d'onglets atteignable 
 d'exercice affiche-t-elle ce qu'elle doit, et plus ce qu'elle ne doit plus · 44 px sur
 chaque puce et chaque bouton · aucun débordement horizontal · la suggestion la plus récente
 est-elle lisible sans rien taper · une ligne de série à trois champs reste-t-elle
-saisissable · **six onglets tiennent-ils dans la barre** · **une journée de récupération
+saisissable · **chaque muscle a-t-il sa région sur le schéma** · six onglets tiennent-ils
+dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Dix-neuf blocs ont été vus rougir,
-en réintroduisant volontairement le défaut qu'ils surveillent :
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Vingt et un blocs ont été vus
+rougir, en réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
 |---|---|
@@ -202,6 +203,8 @@ en réintroduisant volontairement le défaut qu'ils surveillent :
 | nom de zone rogné dans la question | `il n'est pas tronqué — 90 px de place, il en demande 122` |
 | « grip » accepté comme mot-muscle | `« Titan Grip » est un outil — attendu -1, obtenu 1` — 3 contrôles rouges |
 | carré pronateur compté comme médial | `il est distal, et le compter là ferait accuser la mauvaise insertion — attendu 0, obtenu 6` |
+| un muscle sans région sur le schéma | `aucun muscle ne manque (absents : Supinateur) — attendu 0, obtenu 1` |
+| un tracé plat, invisible sans erreur | `aucun tracé vide, NaN ou plat (fautifs : Carré pronateur (plat))` |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans

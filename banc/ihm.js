@@ -525,6 +525,124 @@
   });
 
   /* ================================================================
+     12. La carte du bras
+
+     Un dessin peut mentir sans qu'aucun test de modèle s'en aperçoive : un
+     muscle sans région est invisible, une région sans muscle est un
+     mensonge. On mesure la correspondance, pas l'esthétique.
+     ================================================================ */
+
+  bloc('Carte du bras', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+
+    function jourIlYA(n) {
+      var d = new Date();
+      d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function exo(nom, muscles, n) {
+      var series = [];
+      for (var i = 0; i < n; i++) {
+        series.push({ id: 's' + nom + i, type: 'normale', repsCible: '', chargeCible: '',
+                      dureeCible: '', chargeReel: '20', repsReel: '10', dureeReel: '',
+                      rpe: null, faite: true, faiteA: null });
+      }
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: nom.toLowerCase(), aw: true,
+               typeCharge: 'kg', colonnes: ['charge', 'reps'], cote: 'droit', prise: null,
+               muscles: muscles, forces: [], structures: [], outils: [], consigne: '',
+               reposSecondes: 90, series: series };
+    }
+
+    e.seances = [{ id: 'm1', type: 'muscu', date: jourIlYA(1), heure: jourIlYA(1) + 'T18:00:00.000Z',
+                   programmeId: null, programmeNom: 'P', dureeMin: null, rpeGlobal: null,
+                   note: '', douleurs: [],
+                   exercices: [exo('A', ['fcu'], 9), exo('B', ['biceps'], 3),
+                               exo('C', ['grand_pectoral'], 1)] }];
+    fen.App.vues.suivi.rendre(vue);
+
+    return attendre(150).then(function () {
+      var svg = doc.querySelector('.carte-bras');
+      v.vrai(!!svg, 'la carte est dessinée');
+      if (!svg) return;
+
+      var zones = svg.querySelectorAll('.region-bras');
+      v.egal(zones.length, fen.App.m.MUSCLES.length,
+             'une région par muscle — ni plus, ni moins');
+
+      /* Chaque muscle du modèle a sa région, et chaque région un muscle :
+         un muscle sans région serait invisible, une région sans muscle
+         serait un mensonge. */
+      var etiquettes = Array.prototype.map.call(zones, function (z) {
+        return z.getAttribute('aria-label').split(',')[0];
+      });
+      var manquants = fen.App.m.MUSCLES.filter(function (m) {
+        return etiquettes.indexOf(m.nom) < 0;
+      }).map(function (m) { return m.nom; });
+      v.egal(manquants.length, 0,
+             'aucun muscle ne manque sur le dessin (absents : '
+           + (manquants.join(', ') || 'aucun') + ')');
+
+      /* Les tracés doivent être valides : un `d` vide ou NaN donne une forme
+         invisible, et le navigateur ne s'en plaint pas. */
+      var casses = [];
+      Array.prototype.forEach.call(zones, function (z) {
+        var d = z.getAttribute('d') || '';
+        if (!d || d.indexOf('NaN') >= 0 || d.length < 20) casses.push(z.getAttribute('aria-label'));
+        var r = z.getBBox();
+        if (r.width < 2 || r.height < 2) casses.push(z.getAttribute('aria-label') + ' (plat)');
+      });
+      v.egal(casses.length, 0,
+             'aucun tracé vide, NaN ou plat (fautifs : ' + (casses.join(' / ') || 'aucun') + ')');
+
+      /* La teinte doit suivre la charge, sinon le dessin ne dit rien. */
+      function chaleurDe(nom) {
+        var t = null;
+        Array.prototype.forEach.call(zones, function (z) {
+          if (z.getAttribute('aria-label').indexOf(nom) === 0) t = z.getAttribute('data-chaleur');
+        });
+        return t;
+      }
+      v.egal(chaleurDe('Fléchisseur ulnaire du carpe'), '3',
+             'le muscle le plus sollicité est au maximum de teinte');
+      v.egal(chaleurDe('Triceps'), '0', 'un muscle jamais sollicité reste froid');
+      v.vrai(chaleurDe('Biceps') === '1' || chaleurDe('Biceps') === '2',
+             'et un muscle moyennement sollicité est entre les deux');
+
+      /* Le décor ne doit pas répondre au doigt : le deltoïde et la main sont
+         dessinés sans être suivis. */
+      var inertes = svg.querySelectorAll('.bras-inerte');
+      v.vrai(inertes.length >= 2, 'le deltoïde et la main sont dessinés');
+      v.egal(fen.getComputedStyle(inertes[0]).pointerEvents, 'none',
+             'mais ils ne répondent pas au doigt — ils ne sont pas suivis');
+
+      /* Appuyer dit le nom, la fonction, et l'insertion quand elle compte. */
+      var fcu = null;
+      Array.prototype.forEach.call(zones, function (z) {
+        if (z.getAttribute('aria-label').indexOf('Fléchisseur ulnaire') === 0) fcu = z;
+      });
+      fcu.dispatchEvent(new fen.MouseEvent('click', { bubbles: true }));
+      var detail = svg.parentNode.parentNode.textContent;
+      v.vrai(detail.indexOf('Fléchisseur ulnaire du carpe') >= 0, 'un appui nomme le muscle');
+      v.vrai(detail.indexOf('cubital antérieur') >= 0,
+             'et donne son nom classique — c’est celui des planches françaises');
+      v.vrai(detail.indexOf('épicondyle médial') >= 0,
+             'et dit qu’il tire sur l’épicondyle médial');
+
+      v.vrai(svg.getBoundingClientRect().width <= LARGEUR,
+             'la carte tient dans la largeur');
+      v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
+             'et ne provoque aucun défilement horizontal');
+
+      fen.App.ui.vider(vue);
+      e.seances = [];
+      return attendre(20);
+    });
+  });
+
+  /* ================================================================
      11. La question du lendemain, à 320 px
 
      Même défaut que le libellé du chrono : un nom en ligne avec un bouton de

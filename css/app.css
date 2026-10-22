@@ -1112,11 +1112,11 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    SCHEMA, pas une planche d'anatomie — des regions nettes et nommees valent
    mieux qu'un realisme rate a 290 px de large. */
 .bras-enrobe { display: flex; justify-content: center; padding: 4px 0 2px; }
-.carte-bras { width: 100%; max-width: 250px; height: auto; }
+.carte-bras { width: 100%; max-width: 190px; height: auto; }
 .region-bras {
   fill: var(--fond-3);
   stroke: var(--trait-fort);
-  stroke-width: 1.2;
+  stroke-width: 0.9;
   stroke-linejoin: round;
   cursor: pointer;
   transition: fill .15s ease;
@@ -1124,7 +1124,16 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .region-bras[data-chaleur="1"] { fill: color-mix(in srgb, var(--laiton) 22%, var(--fond-3)); }
 .region-bras[data-chaleur="2"] { fill: color-mix(in srgb, var(--laiton) 55%, var(--fond-3)); }
 .region-bras[data-chaleur="3"] { fill: var(--laiton); }
-.region-bras[data-choisi] { stroke: var(--bleu); stroke-width: 2.4; }
+.region-bras[data-choisi] { stroke: var(--bleu); stroke-width: 2.6; }
+/* Le deltoide et la main : dessines, pas suivis. Ils ne se teintent pas et
+   ne repondent pas au doigt — ils servent a reconnaitre le membre. */
+.bras-inerte {
+  fill: var(--fond-3);
+  stroke: var(--trait);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
 .region-bras:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .region-bras { transition: none; } }
 

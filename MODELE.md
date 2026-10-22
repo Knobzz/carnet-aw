@@ -295,7 +295,11 @@ de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'e
 et c'est leur croisement qui rend la carte lisible.
 
 Treize muscles, chacun avec **ce qu'il fait** : treize noms latins sans explication ne se
-cochent pas, et une case qu'on ne coche pas laisse la carte vide.
+cochent pas, et une case qu'on ne coche pas laisse la carte vide. Ceux qui portent deux
+noms affichent les deux — « Brachio-radial · dit aussi long supinateur » — parce que c'est
+le second qu'on lit sur les planches françaises. Attention au piège : **« long supinateur »
+désigne le brachio-radial, pas le supinateur.** Les confondre enverrait la charge au
+mauvais muscle.
 
 **`medial: true` marque la masse flexo-pronatrice.** Rond pronateur, fléchisseur radial du
 carpe, long palmaire, fléchisseur superficiel des doigts et fléchisseur ulnaire du carpe
@@ -322,6 +326,7 @@ resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 | source | d'où | solidité |
 |---|---|---|
 | **le nom** | « Curl **biceps** » contient le mot | ce que l'utilisateur a écrit lui-même |
+| | les noms classiques comptent : « long supinateur », « grand palmaire », « cubital antérieur » | ceux des planches françaises |
 | **le mouvement** | cupping = flexion du poignet, pronation, supination | manuel d'anatomie |
 | **la prise** | fermée = on serre = fléchisseurs des doigts | définition de serrer |
 | **le mouvement, suite** | rising, back pressure, side pressure | **à vérifier** : une seule étude EMG, et ce ne sont pas des actions articulaires |
@@ -335,6 +340,31 @@ chose. Et « grip » a été retiré parce que « Titan Grip » et « Fat grip �
 ce qui est stocké reste une décision, pas une déduction. Et la quatrième source est
 gratuite : le catalogue retient les muscles **avec le nom de l'exercice**, donc on ne les
 coche qu'une fois.
+
+### Le schéma
+
+Un membre supérieur en **vue antérieure**, épaule en haut, main en bas — la vue des
+planches d'anatomie, et celle qui laisse la place de montrer **un muscle par région**
+plutôt que six zones.
+
+Il est dessiné en **SVG inline**, pas importé. Une planche trouvée sur le web poserait
+trois problèmes : une licence invérifiable sur une app publiée, un poids qui dépasse
+celui de l'app entière, et l'impossibilité de **teinter un muscle** — une image
+matricielle ne change pas de couleur. Le SVG, lui, pèse quelques kilo-octets, reste net
+à toute taille et se teinte muscle par muscle.
+
+**Les tracés sont construits, pas écrits à la main.** Trois tentatives de dessin libre ont
+donné trois amas de formes détachées. On décrit donc le **contour** du membre — sa largeur
+à chaque hauteur — et chaque muscle occupe une bande de ce contour, en fractions de
+largeur. Les régions se touchent par construction, et restent justes quand on déplace un
+point du contour.
+
+Le **deltoïde** et la **main** sont dessinés sans être suivis : ils ne font pas partie des
+treize, mais sans eux le membre ne se reconnaît pas. Ils ne répondent pas au doigt.
+
+Ce que ce n'est **pas** : une planche médicale. Les contours sont approximatifs, en
+particulier les insertions. Des régions nettes, nommées et à la bonne place valent mieux
+qu'un réalisme raté à 170 px de large.
 
 ### Ce qui est compté
 

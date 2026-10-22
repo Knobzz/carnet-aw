@@ -623,7 +623,9 @@
           h('span', { class: 'equip-coche', 'aria-hidden': 'true' }),
           h('span', { class: 'muscle-texte' },
             h('b', { text: m.nom }),
-            h('span', { text: m.quoi })),
+            /* Le nom classique des planches françaises : « long supinateur »,
+               « grand palmaire ». C'est celui qu'on reconnaît. */
+            h('span', { text: m.quoi + (m.aussi ? ' · dit aussi ' + m.aussi : '') })),
           m.medial ? h('span', { class: 'jeton jeton-medial', text: 'médial' })
                    : (m.lateral ? h('span', { class: 'jeton', text: 'latéral' }) : null));
         b.addEventListener('click', function () {
