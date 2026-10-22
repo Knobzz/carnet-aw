@@ -1379,6 +1379,70 @@
   });
 
   /* ================================================================
+     Envoyer un retour, a 320 px
+
+     Deux choses que le modele ne peut pas voir : le bloc technique est-il
+     VISIBLE — sa hauteur reelle, pas son attribut `hidden`, qui a deja ete
+     battu ici par un `display: flex` — et les deux boutons tiennent-ils a
+     44 px sans deborder.
+     ================================================================ */
+  bloc('Envoyer un retour, à 320 px', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(200).then(function () {
+      v.vrai(vue.textContent.indexOf('Envoyer un retour') >= 0,
+             'la section est là');
+
+      /* 7. Le bloc technique est VISIBLE EN ENTIER. On mesure sa HAUTEUR
+         reelle : un bloc a zero pixel ne se lit pas, et on ne peut pas
+         consentir a envoyer ce qu'on ne lit pas. */
+      var pre = vue.querySelector('.retour-contexte');
+      v.vrai(!!pre, 'le bloc technique est dans la page');
+      var r = pre ? pre.getBoundingClientRect() : { height: 0, width: 0 };
+      v.vrai(r.height > 40,
+             'il est VISIBLE, pas replié (hauteur mesurée : ' + Math.round(r.height) + ' px)');
+      v.vrai((pre ? pre.textContent : '').indexOf('- Version : ') >= 0,
+             'et on y lit la version');
+
+      /* Il ne deborde pas : l'agent utilisateur est long et sans espace. */
+      v.vrai(r.width <= 320, 'il tient dans les 320 px (' + Math.round(r.width) + ')');
+      v.egal(doc.documentElement.scrollWidth > 320, false,
+             'et la page ne défile pas en largeur');
+
+      /* 8. Les deux boutons se touchent : 44 px, et pleine largeur. */
+      var bts = [];
+      Array.prototype.forEach.call(vue.querySelectorAll('button'), function (b) {
+        var x = b.textContent.trim();
+        if (x === 'Copier' || x === 'Ouvrir un ticket GitHub') bts.push(b);
+      });
+      v.egal(bts.length, 2, 'les deux boutons sont là : copier, et ouvrir un ticket');
+      var petits = bts.filter(function (b) {
+        return b.getBoundingClientRect().height < 44;
+      }).map(function (b) { return b.textContent.trim(); });
+      v.egal(petits.join(', '), '', 'chacun fait au moins 44 px de haut');
+      var deborde = bts.filter(function (b) {
+        return b.getBoundingClientRect().width > 320;
+      }).length;
+      v.egal(deborde, 0, 'et aucun ne déborde en largeur');
+
+      /* Un retour vide ne part pas : l'ecran le DIT au lieu d'ouvrir un
+         ticket que personne ne pourra traiter. */
+      var champ = vue.querySelector('.champ-retour');
+      v.vrai(!!champ, 'la zone de texte est là');
+      if (champ) champ.value = '';
+      if (bts[0]) bts[0].click();
+      return attendre(120).then(function () {
+        var t = doc.body.textContent;
+        v.vrai(t.indexOf('Écris d’abord') >= 0,
+               'appuyer avec un retour vide le DIT, au lieu de ne rien faire');
+        fen.App.ui.vider(vue);
+      });
+    });
+  });
+
+  /* ================================================================
      Mon équipement, dans Réglages
 
      Une ligne qui s'ouvre doit être un bouton : atteignable au clavier,

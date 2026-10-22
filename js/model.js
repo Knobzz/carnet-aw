@@ -474,24 +474,37 @@
        OUTILS, et le banc l'a attrape. Un mot qui apparait dans un nom de
        materiel ne designe pas un muscle. */
     flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'doigts', 'pinch', 'serrer'],
+    /* Un exercice de PINCE est d'abord un exercice de pouce : c'est lui qui
+       s'oppose aux doigts, et sans lui il n'y a pas de pince du tout. Les
+       mots viennent du nom que l'utilisateur a ecrit — la source la moins
+       contestable des quatre — et pas d'une mesure sur le bras de fer. */
+    adducteur_pouce:     ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
+                          'adducteur du pouce', 'adducteur pouce'],
+    court_flechisseur_pouce: ['pince', 'pinch', 'serrage', 'gripper', 'serrer'],
+    long_flechisseur_pouce:  ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
+                              'long flechisseur du pouce', 'flechisseur du pouce'],
+    opposant_pouce:      ['pince', 'pinch', 'opposant du pouce', 'opposition du pouce',
+                          'opposant pouce'],
     ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
     ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
     ecu:                 ['cubital posterieur', 'extenseur ulnaire'],
     extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main', 'extensor band'],
     extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
+    abducteur_auriculaire: ['petit doigt', 'auriculaire'],
+    court_flechisseur_auriculaire: ['petit doigt', 'auriculaire'],
+    opposant_auriculaire:  ['petit doigt', 'auriculaire'],
     extenseurs_pouce:    ['pouce', 'thumb'],
+    /* « pouce » et « thumb » designent le groupe qui l'OUVRE : les mots de la
+       pince, plus haut, couvrent l'autre sens. Un meme mot pour les six
+       muscles du pouce noierait la proposition au lieu de l'aider. */
+    long_abducteur_pouce: ['pouce', 'thumb', 'long abducteur'],
+    court_abducteur_pouce:['pouce', 'thumb', 'court abducteur'],
     deltoide:            ['deltoide', 'epaule', 'elevation laterale', 'shoulder press'],
     /* « pouce » tout seul reste aux extenseurs du pouce, ou il etait deja :
        six muscles du pouce qui repondraient tous au meme mot noieraient la
        proposition au lieu de l'aider. On ne propose que sur un mot qui
        designe sans ambiguite. */
-    long_abducteur_pouce:  ['long abducteur'],
-    court_abducteur_pouce: ['court abducteur'],
-    long_flechisseur_pouce:['long flechisseur du pouce', 'flechisseur du pouce'],
-    court_flechisseur_pouce:['court flechisseur du pouce'],
-    adducteur_pouce:       ['adducteur du pouce', 'adducteur pouce'],
-    opposant_pouce:        ['opposant du pouce', 'opposition du pouce', 'opposant pouce'],
-    extenseur_index:       ['extenseur index', 'extenseur de l index'],
+    extenseur_index:       ['extenseur index', 'extenseur de l index', 'index'],
     lombricaux:            ['lombricaux', 'lombrical'],
     court_palmaire:        ['court palmaire'],
     subscapulaire:         ['subscapulaire', 'sous scapulaire'],
@@ -2265,6 +2278,90 @@
     return { parForce: c, total: total };
   }
 
+  /* ---------- le retour d'un testeur ----------
+
+     Un rapport utile tient en deux morceaux : ce que la personne a vu, et le
+     DECOR dans lequel elle l'a vu. Le second, personne ne le donne de
+     memoire — ni sa version, ni la largeur reelle de son ecran, ni si l'app
+     tourne installee ou dans un onglet — et c'est exactement ce qui manque
+     dans un message envoye depuis WhatsApp.
+
+     AUCUNE DONNEE D'ENTRAINEMENT N'Y ENTRE. Que des comptes et des etats :
+     jamais un nom d'exercice, d'outil ou de programme, jamais une charge,
+     jamais une douleur. C'est une promesse faite a l'ecran, donc le banc la
+     tient — il cherche ces noms dans le texte produit.
+
+     Les trois fonctions sont PURES. L'ecran releve le decor du navigateur et
+     le passe en argument ; elles n'interrogent rien elles-memes. C'est ce qui
+     permet de les mesurer sur un etat fabrique ET un decor fabrique, sans
+     navigateur sous la main. */
+
+  var CHAMPS_CONTEXTE = ['Version', 'Écran', 'Navigateur', 'Affichage',
+                         'Séances', 'Exercices connus', 'Programmes', 'Outils',
+                         'Taille des données', 'Stockage durable'];
+
+  function contexteTechnique(etat, env) {
+    var e = etat || {}, d = env || {};
+    var inconnu = 'non renseigné';
+    function compte(l) { return String((l || []).length); }
+    /* Chaque ligne commence par « - » : c'est une liste en markdown pour le
+       ticket GitHub, et ca reste lisible tel quel dans un message. Sans ca,
+       GitHub recollerait les dix lignes en un seul paragraphe. */
+    var valeurs = {
+      'Version': d.version || inconnu,
+      'Écran': (d.largeur && d.hauteur)
+             ? d.largeur + ' × ' + d.hauteur + ' px'
+               + (d.ratio ? ' · densité ×' + d.ratio : '')
+             : inconnu,
+      'Navigateur': d.navigateur || inconnu,
+      'Affichage': d.installee === true ? 'installée (écran d’accueil)'
+                 : d.installee === false ? 'onglet du navigateur' : inconnu,
+      'Séances': compte(e.seances),
+      'Exercices connus': compte(e.exercices),
+      'Programmes': compte(e.programmes),
+      'Outils': compte(e.outils),
+      'Taille des données': d.tailleKo == null ? inconnu : d.tailleKo + ' Ko',
+      'Stockage durable': d.durable === true ? 'accordé'
+                        : d.durable === false ? 'refusé' : inconnu
+    };
+    return CHAMPS_CONTEXTE.map(function (c) {
+      return '- ' + c + ' : ' + valeurs[c];
+    }).join('\n');
+  }
+
+  /* Le texte complet : celui qu'on copie ET celui qu'on envoie sont le MEME,
+     sinon ce qu'on a lu n'est pas ce qui part.
+
+     Un retour vide rend `null`. Envoyer un contexte technique sans une phrase
+     de la personne, c'est ouvrir un ticket que personne ne peut traiter —
+     l'ecran le DIT au lieu de l'envoyer. */
+  function texteRetour(saisie, contexte) {
+    var s = String(saisie == null ? '' : saisie).trim();
+    if (!s) return null;
+    return s + '\n\n---\nContexte technique — aucune donnée d’entraînement\n'
+             + (contexte || '');
+  }
+
+  var LIEN_TICKETS = 'https://github.com/Knobzz/carnet-aw/issues/new';
+
+  /* GitHub refuse une URL trop longue (414). Le plafond exact n'a PAS ete
+     mesure : 6 000 est une borne conservatrice, et le dire vaut mieux qu'un
+     chiffre qui aurait l'air mesure. Au-dela on rend `null`, et l'ecran
+     renvoie vers « Copier » — ouvrir un onglet sur une page d'erreur serait
+     pire que de ne rien ouvrir.
+
+     `encodeURIComponent` n'est pas une precaution de style : un « & » ou un
+     « # » tape dans le retour tronquerait le corps du ticket en silence, et
+     la moitie du rapport arriverait sans que personne le remarque. */
+  var URL_TICKET_MAX = 6000;
+
+  function lienTicket(titre, corps) {
+    var u = LIEN_TICKETS
+          + '?title=' + encodeURIComponent(String(titre == null ? '' : titre))
+          + '&body='  + encodeURIComponent(String(corps == null ? '' : corps));
+    return u.length > URL_TICKET_MAX ? null : u;
+  }
+
   A.m = {
     TYPES_SERIE: TYPES_SERIE, ORDRE_TYPES: ORDRE_TYPES, TYPES_CHARGE: TYPES_CHARGE,
     FORCES: FORCES, ZONES: ZONES, STYLES: STYLES, STRUCTURES: STRUCTURES,
@@ -2329,6 +2426,10 @@
     dernierePerf: dernierePerf, texteDernierePerf: texteDernierePerf,
     derniereSollicitation: derniereSollicitation, zoneDelai: zoneDelai,
     fenetreAvant: fenetreAvant, episodesDouleur: episodesDouleur,
-    volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces
+    volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
+    CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
+    URL_TICKET_MAX: URL_TICKET_MAX,
+    contexteTechnique: contexteTechnique, texteRetour: texteRetour,
+    lienTicket: lienTicket
   };
 })(window.App || (window.App = {}));

@@ -335,6 +335,129 @@
     ]);
   }
 
+
+  /* ---------- envoyer un retour ----------
+
+     Les betateseurs rapportent depuis WhatsApp ou Discord : c'est comme ca
+     que les gens le font, et leur demander d'ouvrir un compte GitHub serait
+     perdre le retour. « Copier » est donc le chemin principal ; le ticket
+     est l'autre, pour qui a deja un compte.
+
+     RIEN NE PART TOUT SEUL, et le texte est visible EN ENTIER avant. Le bloc
+     technique n'est ni replie ni cache derriere un « voir » : si on ne peut
+     pas le lire, on ne peut pas consentir a l'envoyer.
+
+     C'est le seul endroit de l'app qui mene dehors. Pas une requete —
+     aucun fetch, aucun XHR — une NAVIGATION vers github.com, declenchee par
+     un appui, avec le texte lu avant. */
+
+  /* Le decor du navigateur, releve ICI. Le modele ne l'interroge pas : il
+     recoit ce qu'on lui donne, ce qui le rend mesurable sans navigateur. */
+  function decorNavigateur() {
+    var ko = null;
+    try {
+      var brut = (window.localStorage.getItem(A.store.CLE) || '').length;
+      ko = Math.round(brut / 1024 * 10) / 10;
+    } catch (err) { ko = null; }
+    var installee = null;
+    try {
+      installee = !!((window.matchMedia
+                   && window.matchMedia('(display-mode: standalone)').matches)
+                  || window.navigator.standalone === true);
+    } catch (err) { installee = null; }
+    return {
+      version: window.APP_VERSION || null,
+      largeur: window.innerWidth, hauteur: window.innerHeight,
+      ratio: window.devicePixelRatio || null,
+      navigateur: (window.navigator && navigator.userAgent) || null,
+      installee: installee,
+      tailleKo: ko,
+      durable: A.store.estPersistant()
+    };
+  }
+
+  /* Copier sans se taire en cas d'echec. Le presse-papier refuse dans un
+     contexte non securise, sans permission, ou simplement parce que le
+     navigateur ne l'a pas : on selectionne alors le texte pour que le geste
+     manuel reste possible, et on DIT quoi faire. */
+  function copierTexte(texte, hote) {
+    function secours() {
+      var zone = h('textarea', { class: 'champ retour-secours', readonly: 'readonly' });
+      zone.value = texte;
+      hote.appendChild(zone);
+      try { zone.focus(); zone.select(); zone.setSelectionRange(0, texte.length); } catch (e) {}
+      A.ui.toast('Le navigateur a refusé le presse-papier. Le texte est '
+               + 'sélectionné juste en dessous : copie-le à la main.');
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texte).then(function () {
+          A.ui.toast('Copié. Colle-le dans WhatsApp ou Discord.');
+        }, secours);
+        return;
+      }
+    } catch (err) { /* on tombe dans le secours */ }
+    secours();
+  }
+
+  function sectionRetour(hote) {
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Envoyer un retour' }));
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      text: 'Décris ce que tu faisais, ce que tu attendais, et ce qui s’est passé. '
+          + 'Le bloc en dessous est ajouté automatiquement : il dit la version et le '
+          + 'décor, jamais ton entraînement. Rien ne part tout seul.' }));
+
+    var champ = h('textarea', { class: 'champ champ-retour', rows: '5',
+      placeholder: 'J’ai appuyé sur…, je m’attendais à…, et à la place…' });
+    hote.appendChild(champ);
+
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:10px 2px 5px',
+      text: 'Ce qui sera joint, en entier :' }));
+    var contexte = A.m.contexteTechnique(etat(), decorNavigateur());
+    var bloc = h('pre', { class: 'retour-contexte', text: contexte });
+    hote.appendChild(bloc);
+
+    /* « Stockage durable » arrive en differe, comme dans la carte au-dessus :
+       on relit une fois plutot que de joindre « non renseigné » pour toujours. */
+    if (A.store.estPersistant() === null) {
+      setTimeout(function () {
+        contexte = A.m.contexteTechnique(etat(), decorNavigateur());
+        bloc.textContent = contexte;
+      }, 900);
+    }
+
+    var boite = h('div');
+
+    var btCopier = h('button', { class: 'bt bt-large bt-primaire',
+                                 style: 'margin-bottom:8px', text: 'Copier' });
+    btCopier.addEventListener('click', function () {
+      var t = A.m.texteRetour(champ.value, contexte);
+      if (!t) { A.ui.toast('Écris d’abord ce que tu as vu.'); champ.focus(); return; }
+      copierTexte(t, boite);
+    });
+    hote.appendChild(btCopier);
+
+    var btTicket = h('button', { class: 'bt bt-large', text: 'Ouvrir un ticket GitHub' });
+    btTicket.addEventListener('click', function () {
+      var t = A.m.texteRetour(champ.value, contexte);
+      if (!t) { A.ui.toast('Écris d’abord ce que tu as vu.'); champ.focus(); return; }
+      var lien = A.m.lienTicket('Retour — Carnet AW ' + (window.APP_VERSION || ''), t);
+      if (!lien) {
+        A.ui.toast('Ce retour est trop long pour tenir dans un lien. '
+                 + 'Appuie sur « Copier » et colle-le dans le ticket.');
+        return;
+      }
+      window.open(lien, '_blank', 'noopener');
+    });
+    hote.appendChild(btTicket);
+    hote.appendChild(boite);
+
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 0',
+      text: 'Le ticket ouvre github.com avec ce texte déjà écrit — c’est le seul '
+          + 'endroit de l’app qui mène dehors, et il faut un compte GitHub. '
+          + 'Sans compte, « Copier » fait aussi bien.' }));
+  }
+
   function rendre(hote) {
     A.ui.vider(hote);
     var e = etat();
@@ -469,6 +592,8 @@
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0',
       text: '« Stockage durable » refusé veut dire que le navigateur peut effacer le carnet s’il manque de place. '
           + 'Installer l’app depuis l’écran d’accueil l’accorde presque toujours — et un export régulier reste le seul vrai filet.' }));
+
+    sectionRetour(hote);
 
     /* --- catalogue --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Exercices connus' }));

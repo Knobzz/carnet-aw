@@ -856,6 +856,25 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .planche-bouton:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
 .planche-fond { display: block; width: 100%; height: auto; }
 .bt-planche { font-size: .74rem; padding: 4px 9px; }
+/* ---------- envoyer un retour ----------
+   Le bloc technique est SOUS LES YEUX : replie ou cache, il ne serait pas
+   « visible en entier avant l'envoi », et on ne peut pas consentir a envoyer
+   ce qu'on ne lit pas. */
+.champ-retour { width: 100%; min-height: 108px; resize: vertical;
+                font: inherit; line-height: 1.45; }
+.retour-contexte {
+  margin: 0 0 10px; padding: 9px 11px;
+  background: var(--fond-2); border: 1px solid var(--bord); border-radius: 8px;
+  color: var(--texte-2);
+  font: .74rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* L'agent utilisateur est long et ne porte aucune espace utile : sans
+     ces deux regles il deborde en largeur, ce que l'app refuse partout
+     ailleurs — et le banc le mesure a 320 px. */
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+/* Montre apres un refus du presse-papier, avec le texte deja selectionne. */
+.retour-secours { width: 100%; min-height: 96px; margin-top: 8px; font: inherit; }
+
 /* Le latin est une CITATION de la planche, pas une etiquette de l'app :
    l'italique le dit sans ajouter un mot. */
 .jeton-latin { font-style: italic; }

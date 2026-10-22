@@ -916,8 +916,13 @@
            '« marteau » désigne le brachio-radial sans ambiguïté');
     v.egal(A.m.musclesDuNom('Pronation Titan Grip').sort().join(','),
            'carre_pronateur,rond_pronateur', '« pronation » propose les deux pronateurs');
-    v.egal(A.m.musclesDuNom('Gripper N3').join(','), 'flechisseurs_doigts',
-           'un gripper serre : fléchisseurs des doigts');
+    /* Un gripper ne serre pas qu'avec les doigts : le pouce s'oppose, et
+       sans lui il n'y a pas de prise. Le controle a ete elargi avec la
+       table des mots, pas aligne apres coup sur sa sortie. */
+    v.egal(A.m.musclesDuNom('Gripper N3').join(','),
+           'flechisseurs_doigts,long_flechisseur_pouce,'
+         + 'court_flechisseur_pouce,adducteur_pouce',
+           'un gripper serre : les fléchisseurs des doigts ET le pouce');
     v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','), 'grand_dorsal',
            '« tirage » désigne le dorsal');
     v.egal(A.m.musclesDuNom('CURL BICEPS').join(','), 'biceps',
@@ -929,7 +934,9 @@
            '« Titan Grip » est un outil : il ne propose aucun fléchisseur');
     v.egal(A.m.musclesDuNom('Curl Fat grip').length, 0,
            '« Fat grip » non plus — et « curl » seul ne dit rien');
-    v.egal(A.m.musclesDuNom('Gripper N3').join(','), 'flechisseurs_doigts',
+    v.egal(A.m.musclesDuNom('Gripper N3').join(','),
+           'flechisseurs_doigts,long_flechisseur_pouce,'
+         + 'court_flechisseur_pouce,adducteur_pouce',
            '[temoin] mais « gripper », lui, désigne bien le serrage');
 
     /* Ce qui NE doit PAS proposer : un mot ambigu ne désigne pas un muscle. */
@@ -1164,6 +1171,84 @@
      Les noms des muscles ne parlent pas à qui ne les a pas appris. Une
      perception, si.
      ================================================================ */
+  /* ================================================================
+     Le retour d'un testeur
+
+     Deux promesses tiennent cet ecran, et ce sont elles qu'on mesure : le
+     bloc technique ne porte AUCUNE donnee d'entrainement, et ce qu'on lit
+     est exactement ce qui part.
+     ================================================================ */
+  bloc('Envoyer un retour', function (v) {
+    /* Un carnet fabrique avec des noms RECONNAISSABLES : si l'un d'eux
+       ressort dans le contexte technique, la promesse est trahie. */
+    var e = {
+      exercices:  [{ nom: 'Pronation Titan Grip', slug: 'pronation titan grip' },
+                   { nom: 'Curl marteau', slug: 'curl marteau' }],
+      programmes: [{ nom: 'Semaine lourde' }],
+      outils:     [{ nom: 'Poulie basse' }, { nom: 'Gripper N3' }],
+      seances:    [{ date: '2026-10-20', note: 'coude douloureux' },
+                   { date: '2026-10-21', note: '' },
+                   { date: '2026-10-22', note: '' }]
+    };
+    var decor = { version: '1.21.0', largeur: 320, hauteur: 720, ratio: 3,
+                  navigateur: 'Mozilla/5.0 (Linux; Android 13)', installee: true,
+                  tailleKo: 42.5, durable: true };
+    var ctx = A.m.contexteTechnique(e, decor);
+
+    /* 1. AUCUNE donnee d'entrainement. C'est la promesse de l'ecran. */
+    var fuites = ['Pronation Titan Grip', 'Curl marteau', 'Semaine lourde',
+                  'Poulie basse', 'Gripper N3', 'coude douloureux', '2026-10-20']
+      .filter(function (x) { return ctx.indexOf(x) >= 0; });
+    v.egal(fuites.join(', '), '',
+           'le contexte ne porte AUCUNE donnée d’entraînement');
+
+    /* 2. Les dix champs sont la, et ils disent les bons nombres. */
+    var manquants = A.m.CHAMPS_CONTEXTE.filter(function (c) {
+      return ctx.indexOf('- ' + c + ' : ') < 0;
+    });
+    v.egal(manquants.join(', '), '', 'les dix champs du contexte sont présents');
+    v.egal(A.m.CHAMPS_CONTEXTE.length, 10, 'et ils sont bien dix');
+    v.vrai(ctx.indexOf('- Séances : 3') >= 0, 'il compte les séances');
+    v.vrai(ctx.indexOf('- Exercices connus : 2') >= 0, 'et les exercices');
+    v.vrai(ctx.indexOf('- Écran : 320 × 720 px') >= 0, 'il donne la largeur réelle');
+    v.vrai(ctx.indexOf('installée') >= 0, 'et dit si l’app est installée');
+
+    /* Un decor vide ne s'invente pas : « non renseigné », jamais une valeur
+       par defaut — meme principe que `null` partout ailleurs. */
+    var vide = A.m.contexteTechnique({}, {});
+    v.vrai(vide.indexOf('- Version : non renseigné') >= 0,
+           'ce qui n’est pas connu se DIT, au lieu d’être inventé');
+    v.vrai(vide.indexOf('- Séances : 0') >= 0, 'un carnet vide compte zéro, pas rien');
+
+    /* 3. Ce qu'on lit est ce qui part : le texte du testeur ET le bloc. */
+    var t = A.m.texteRetour('  le chrono reste affiché  ', ctx);
+    v.vrai(t.indexOf('le chrono reste affiché') >= 0, 'le texte du testeur part');
+    v.vrai(t.indexOf('- Version : 1.21.0') >= 0, 'et le contexte avec lui');
+    v.vrai(t.indexOf('aucune donnée d’entraînement') >= 0,
+           'et le texte DIT ce qu’il ne contient pas');
+
+    /* 4. Un retour vide ne part pas : un contexte sans une phrase ouvre un
+       ticket que personne ne peut traiter. */
+    v.egal(A.m.texteRetour('', ctx), null, 'un retour vide ne part pas');
+    v.egal(A.m.texteRetour('   \n  ', ctx), null, 'ni un retour fait d’espaces');
+    v.egal(A.m.texteRetour(null, ctx), null, 'ni une saisie absente');
+
+    /* 5. Le lien encode son corps. Un « & » ou un « # » tape dans le retour
+       tronquerait le ticket en silence, et personne ne le verrait. */
+    var lien = A.m.lienTicket('Retour', 'charge & reps #3 = 50%');
+    v.vrai(lien.indexOf('charge%20%26%20reps%20%233') >= 0,
+           'le corps du ticket est encodé : « & » et « # » ne le tronquent pas');
+    v.egal(lien.indexOf('body=charge & reps'), -1, 'et il ne part jamais brut');
+    v.vrai(lien.indexOf(A.m.LIEN_TICKETS) === 0, 'il pointe le dépôt du carnet');
+
+    /* 6. Un texte trop long ne part pas : GitHub refuse l'URL, et ouvrir un
+       onglet sur une erreur 414 serait pire que de renvoyer vers « Copier ». */
+    var court = A.m.lienTicket('Retour', new Array(500).join('a'));
+    v.vrai(!!court, 'un retour ordinaire tient dans un lien');
+    var long = A.m.lienTicket('Retour', new Array(A.m.URL_TICKET_MAX + 10).join('a'));
+    v.egal(long, null, 'un retour trop long rend null, au lieu d’ouvrir une erreur');
+  });
+
   bloc('Où ça tire', function (v) {
     v.egal(A.m.ZONES_RESSENTIES.length, 13, 'treize zones ressenties');
 
