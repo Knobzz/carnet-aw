@@ -382,6 +382,14 @@ case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 | **la prise** | fermée = on serre = fléchisseurs des doigts | définition de serrer |
 | **le mouvement, suite** | rising, back pressure, side pressure | **à vérifier** : une seule étude EMG, et ce ne sont pas des actions articulaires |
 
+> **« back pressure » et « side pressure » ne sont PAS des mots du nom, et c'est voulu.**
+> Ils allumaient le grand pectoral jusqu'en 1.23.2 — mais par accident : « pressure »
+> contenait `press`, le mot du développé couché. La bonne réponse au bout du mauvais
+> chemin. Les remettre dans la table ferait porter par la source « le nom » — *ce que
+> l'utilisateur a écrit lui-même*, la moins contestable des quatre — une affirmation qui
+> vient d'une seule étude EMG. C'est la case **Mouvements** qui les porte, avec sa source
+> marquée *à vérifier*. Décision de MB, 1.23.2 : inutile de combler ce « trou ».
+
 Les mots lus dans le nom sont **volontairement discriminants**. « Curl » seul ne propose
 rien — un curl marteau, un curl pronateur et un wrist curl ne travaillent pas la même
 chose. Et « grip » a été retiré parce que « Titan Grip » et « Fat grip » sont des
