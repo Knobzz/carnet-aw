@@ -395,6 +395,34 @@ parole des compétiteurs reviendrait à refuser presque tout ce qui s'en sait. E
 pas de l'anatomie de manuel — c'est pour ça qu'elle a son niveau à elle, et pas pour
 diluer les deux autres.
 
+#### Les fédérations ne disent rien des muscles — mesuré, pas supposé
+
+Le règlement **WAF 2024** a été téléchargé et dépouillé. Sur ses 19 pages et 43 840
+signes :
+
+| mot cherché | occurrences |
+|---|---|
+| `muscle`, `biceps`, `technique` | **0** |
+| `top roll`, `hook`, `cupping`, `rising`, `pronation`, `supination` | **0** |
+| `grip` | 31 · `shoulder` | 14 · `wrist` | 13 |
+
+C'est un **règlement** : prises légales, positions, fautes. L'EAF, de son côté, confie
+bien à son comité technique la préparation de « matériels d'instruction sur les
+techniques d'entraînement » — mais ces matériels ne sont pas publiés.
+
+**Conclusion : les fédérations n'ont rien à apporter aux six mouvements.** Inutile de
+refaire cette recherche.
+
+> **Faux ami, et il vient du règlement officiel.** Pour la WAF, « back pressure » n'est
+> **pas une technique : c'est une faute** — *« Back pressure to the extent that it pulls
+> your opponent arm across the marked centre of the table will not be allowed. This
+> infraction will be deemed the same as a false start »* (5.3.2), et elle figure parmi les
+> mouvements interdits avant le départ (8.2.3). Le mouvement que ce modèle nomme
+> `back_pressure` est celui des compétiteurs : tirer l'adversaire vers soi **pendant** le
+> match. Même mot, deux sens, et le règlement est le plus officiel des deux — à savoir si
+> on lit l'un en pensant à l'autre. Troisième faux ami consigné ici, après la
+> « hook grip » du chirurgien et le « long supinateur » qui désigne le brachio-radial.
+
 **Toute source qui n'est pas du manuel porte `dit` et `lien`** : qui l'affirme, et où le
 vérifier. L'écran le dit — « d'après Voice of Armwrestling, et une étude EMG sur bras de
 fer simulé » — au lieu d'un « à vérifier » anonyme. Un avis sans auteur est un avis qu'on
