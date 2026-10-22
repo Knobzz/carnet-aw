@@ -197,6 +197,14 @@
     { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
       latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', groupe: 'tronc',
       quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
+    /* L'auxiliaire du grand dorsal : meme action sur l'humerus, et les deux
+       sont nommes ensemble aussi bien par l'etude EMG — parmi les rotateurs
+       internes agissant pendant le sport — que par les competiteurs, qui les
+       donnent prioritaires pour tirer la main de l'adversaire vers soi. */
+    { id: 'grand_rond', nom: 'Grand rond', court: 'Grand rond',
+      latin: 'Teres major', image: 'icones/muscle-grand_rond.png', groupe: 'tronc',
+      quoi: 'ramène le bras vers l’arrière et le tourne vers l’intérieur',
+      articulation: 'epaule' },
     { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde',
       latin: 'Deltoideus', image: 'icones/muscle-deltoide.png', groupe: 'tronc',
       quoi: 'élève le bras et tient l’épaule', articulation: 'epaule' },
@@ -471,8 +479,9 @@
     back_pressure: { source: 'terrain',
                      dit: 'Voice of Armwrestling, et une étude EMG sur bras de fer simulé',
                      lien: 'https://voaarmwrestling.com/blogs/training/toproll-technique-and-exercises',
-                     muscles: ['grand_pectoral', 'grand_dorsal', 'subscapulaire',
-                               'deltoide', 'biceps', 'brachio_radial'] },
+                     muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
+                               'subscapulaire', 'deltoide', 'biceps',
+                               'brachio_radial'] },
     /* « L'epaule et le torse delivrent la pression et PROTEGENT L'HUMERUS » :
        c'est exactement le role du subscapulaire, rotateur interne principal,
        que l'etude nomme parmi ceux qui agissent sur l'humerus pendant le
@@ -560,7 +569,8 @@
        que les mots se lisent entiers. « pectoraux » est ajoute : le pluriel
        francais est irregulier, et le `s?` ne le couvre pas. */
     grand_pectoral:      ['pectoral', 'pectoraux', 'pec', 'developpe', 'bench', 'press'],
-    grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat']
+    grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat'],
+    grand_rond:          ['grand rond', 'teres major']
   };
 
   /* ---------- lire un nom d'exercice ----------
@@ -1099,7 +1109,7 @@
       muscles: ['deltoide', 'coraco_brachial', 'subscapulaire'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
       aide: 'le torse travaille avec le bras — le tirage, le pull-over',
-      muscles: ['grand_pectoral', 'grand_dorsal'] }
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond'] }
   ];
 
   function zoneRessentie(id) {

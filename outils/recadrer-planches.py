@@ -27,6 +27,7 @@ POURQUOI DEUX, ET PAS VINGT-DEUX
             brachial              413 px pour 290 —  5 % du muscle visible
             biceps                413 px pour 290 — 40 %
             opposant_auriculaire  385 px pour 290 — 35 %
+            grand_rond            421 px pour 290 — 47 %
 
     La troisième n'a pas été vue à l'œil : elle est arrivée avec les treize
     muscles de la main, et c'est le CONTRÔLE qui l'a trouvée en refaisant la
@@ -115,7 +116,7 @@ SORTIE = os.path.join(RACINE, 'icones')
 
 # Les deux seules planches où la carte coupe le MUSCLE. Décidé en les
 # regardant, puis vérifié par le contrôle « la liste correspond à la mesure ».
-A_RECADRER = ('biceps', 'brachial', 'opposant_auriculaire')
+A_RECADRER = ('biceps', 'brachial', 'opposant_auriculaire', 'grand_rond')
 
 CARTE_L = 290            # .planche-carte max-width, et elle coupe à droite
 VIGNETTE_H = 400         # .planche-bouton .planche-fond max-height

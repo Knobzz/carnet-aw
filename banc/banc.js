@@ -837,7 +837,7 @@
      ================================================================ */
 
   bloc('Muscles et prise', function (v) {
-    v.egal(A.m.MUSCLES.length, 35, 'trente-cinq muscles — toute la planche, les profonds qu’elle ne montre pas, et la main');
+    v.egal(A.m.MUSCLES.length, 36, 'trente-six muscles — toute la planche, les profonds qu’elle ne montre pas, la main, et le grand rond');
     v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
     v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
     v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
@@ -895,6 +895,25 @@
        depuis qu'un troisième niveau existe, il mesure la RÈGLE plutôt que la
        valeur — sinon il faudrait le réécrire à chaque fois qu'une source est
        mieux renseignée, ce qui n'est pas ce qu'il garde. */
+    /* Le contenu du back pressure, et D'OÙ vient chaque nom. Deux sources le
+       renseignent et elles ne disent pas la même chose : l'étude EMG nomme le
+       grand pectoral en premier, Voice of Armwrestling ne le nomme pas et
+       ajoute le brachio-radial et le deltoïde postérieur. Les deux y sont.
+
+       Le grand rond est le seul nom que les DEUX donnent : l'étude parmi les
+       rotateurs internes agissant sur l'humérus pendant le sport, les
+       compétiteurs comme prioritaire pour tirer la main de l'adversaire vers
+       soi. C'est pour lui qu'un trente-sixième muscle est entré au modèle. */
+    v.egal(A.m.MUSCLES_PAR_MOUVEMENT.back_pressure.muscles.join(','),
+           'grand_pectoral,grand_dorsal,grand_rond,subscapulaire,deltoide,'
+         + 'biceps,brachio_radial',
+           'le back pressure porte ce que les DEUX sources nomment');
+    v.vrai(A.m.MUSCLES_PAR_MOUVEMENT.back_pressure.muscles.indexOf('grand_rond') >= 0,
+           'dont le grand rond, nommé par l’étude ET par les compétiteurs');
+    v.vrai(A.m.MUSCLES_PAR_MOUVEMENT.back_pressure.muscles.indexOf('grand_pectoral') >= 0,
+           'et le grand pectoral, que seule l’étude nomme : on ne tranche pas '
+         + 'en silence entre deux sources');
+
     var poussees = ['rising', 'back_pressure', 'side_pressure'];
     var enDur = poussees.filter(function (f) {
       return A.m.MUSCLES_PAR_MOUVEMENT[f].source === 'anatomie';

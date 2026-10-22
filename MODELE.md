@@ -294,10 +294,16 @@ Les **structures** disent ce qui encaisse — poignet, coude médial : c'est le 
 de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'exercice,
 et c'est leur croisement qui rend la carte lisible.
 
-**Trente-cinq muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
+**Trente-six muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
 profonds qu'elle ne montre pas — coraco-brachial, brachial, carré pronateur, supinateur,
-subscapulaire. La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce
+subscapulaire, grand rond. La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce
 qui tire sur le bras (grand dorsal, grand pectoral).
+
+Le **grand rond** est arrivé en dernier, en 1.24.1, et pour une raison précise : c'est le
+seul nom que **les deux sources du back pressure donnent toutes les deux** — l'étude EMG
+parmi les rotateurs internes agissant sur l'humérus pendant le sport, les compétiteurs
+comme prioritaire pour tirer la main de l'adversaire vers soi. C'est l'auxiliaire du grand
+dorsal, et il fait la même chose que lui sur l'humérus.
 
 Elle est descendue **jusqu'à la main** en 1.22.0 : neuf muscles du thénar, de
 l'hypothénar et de la paume, plus trois de l'avant-bras profond qui commandent le pouce

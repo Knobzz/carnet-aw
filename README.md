@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **845 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **848 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **513 contrôles, 26 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **516 contrôles, 26 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **332 contrôles, 17 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
@@ -206,7 +206,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Cent quatre défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Cent cinq défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -311,6 +311,7 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | « doigts » tout seul remis aux fléchisseurs | `des doigts qui s'écartent, ce sont les extenseurs — obtenu "flechisseurs_doigts,extenseurs_doigts"` |
 | une source rendue anonyme | `une source qui n'est pas du manuel NOMME qui l'affirme — attendu "", obtenu "back_pressure"` — 2 contrôles rouges |
 | une poussée donnée pour de l'anatomie | `une DIRECTION DE POUSSÉE n'est jamais donnée pour de l'anatomie — obtenu "side_pressure"` — 2 contrôles rouges |
+| deux sources arbitrées en silence | `on ne tranche pas en silence entre deux sources — attendu true, obtenu false` — 2 contrôles rouges |
 
 Ce tableau est un **journal**, pas un inventaire : quelques lignes citent des contrôles
 qui ont disparu avec ce qu'ils mesuraient — les planches générales de l'atlas, par
