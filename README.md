@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **371 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **377 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,7 +148,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **233 contrôles, 19 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **239 contrôles, 19 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **138 contrôles, 9 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
@@ -191,6 +191,7 @@ réintroduisant volontairement le défaut qu'ils surveillent :
 | ✓ coché indistinct en récupération | `le ✓ coché ne se confond pas avec un ✓ qui ne l'est pas — attendu true, obtenu false` |
 | libellé du chrono sur la ligne des boutons | `il a de la place pour être lu — 28 px, il en faut 150` |
 | outil hors catalogue non pré-coché | `l'outil hors catalogue est GARDÉ — attendu 1, obtenu -1` — 4 contrôles rouges |
+| classement sans départage à égalité | `dans un carnet d'AVANT, le dernier outil posé est visible — attendu true, obtenu false` — 4 contrôles rouges |
 
 Deux méritent une mention. Le correctif du tri a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
@@ -200,7 +201,14 @@ passait le contrôle à 320 px et **coupait encore le libellé à 430 px**, la l
 téléphone courant. Le contrôle, lui, mesurait un libellé trop court pour s'en apercevoir —
 il mesure désormais le format réel de l'app.
 
-Un défaut a aussi échappé au banc avant d'être vu à l'écran : le filtre de l'équipement
+Un défaut est passé **deux fois** : l'autocomplétion des outils, corrigée en horodatant
+`vuLe`, puis constatée encore fautive sur un vrai téléphone. Corriger l'écriture ne
+corrige pas ce qui est déjà écrit — un carnet nourri avant la correction porte des dates
+seules, à égalité, et n'affichait jamais que ses huit premiers outils. Le classement
+départage désormais à égalité, et le banc mesure enfin un carnet ANCIEN, ce qu'aucun de
+ses contrôles ne faisait.
+
+Un autre a échappé au banc avant d'être vu à l'écran : le filtre de l'équipement
 masquait les catégories entières mais pas les lignes d'une catégorie qui, elle,
 correspondait — `display: flex` l'emporte sur `[hidden]`. Le contrôle ne regardait qu'une
 ligne d'une catégorie entièrement masquée. Il regarde maintenant les deux cas.

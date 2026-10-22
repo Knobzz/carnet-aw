@@ -502,6 +502,50 @@
     v.egal(exos.length, 8, 'huit exercices au plus, là aussi');
     v.egal(exos[0], 'Exercice 9', 'et le dernier saisi est en tête, donc visible');
 
+    /* LE CAS QU'ON AVAIT MANQUÉ, et qui s'est vu sur un vrai téléphone :
+       un carnet nourri AVANT que vuLe soit horodaté. Toutes ses entrées
+       portent la même date, elles sont à égalité, et le tri stable garde
+       alors l'ordre d'INSERTION — soit l'inverse de ce qu'on veut. Corriger
+       l'écriture ne corrige pas ce qui est déjà écrit : il a fallu un
+       départage au classement.
+
+       Les quatre premiers contrôles d'au-dessus passaient tous ; celui-ci
+       est le seul qui regarde un carnet ancien. */
+    var vieux = A.store.vide();
+    ['Golden Grip N2', 'Golden Grip N3', 'Golden Grip N4', 'Élastique',
+     'Fat grip', 'Ceinture de judo', 'Titan Grip Iron Wrist', 'Titan Grip Pronator',
+     'Barre droite', 'Barre EZ', 'Poulie haute', 'Poulie basse'].forEach(function (n) {
+      vieux.outils.push({ id: 'ou_' + n, nom: n, slug: A.m.slug(n),
+                          categorie: '', vuLe: A.m.aujourdHui() });   // DATE SEULE
+    });
+    var vus = A.m.suggestionsOutils(vieux, '', [], 8).map(function (o) { return o.nom; });
+    v.egal(vus.length, 8, '[temoin] huit suggestions, comme toujours');
+    v.vrai(vus.indexOf('Poulie basse') >= 0,
+           'dans un carnet d’AVANT, le dernier outil posé est visible lui aussi');
+    v.egal(vus[0], 'Poulie basse', 'et il passe en tête : à égalité, le dernier posé gagne');
+    v.egal(vus.indexOf('Golden Grip N2'), -1,
+           'ce sont les PREMIERS posés qui sortent de la fenêtre, pas les derniers');
+
+    /* Même histoire pour les exercices d'un carnet ancien. */
+    var vieuxExos = A.store.vide();
+    for (var k = 1; k <= 10; k++) {
+      vieuxExos.exercices.push({ id: 'ex' + k, nom: 'Exercice ' + k, slug: 'exercice ' + k,
+                                 aw: false, typeCharge: 'kg', colonnes: ['charge', 'reps'],
+                                 forces: [], structures: [], outils: [],
+                                 vuLe: A.m.aujourdHui() });
+    }
+    v.egal(A.m.suggestions(vieuxExos, '', 8)[0].nom, 'Exercice 10',
+           'le dernier exercice saisi d’un carnet ancien est visible, lui aussi');
+
+    /* Un horodatage reste prioritaire sur une date seule du même jour : se
+       servir d'un outil ancien doit le remonter devant les autres. */
+    var melange = A.store.vide();
+    melange.outils.push({ id: 'a', nom: 'Ancien', slug: 'ancien', categorie: '',
+                          vuLe: A.m.aujourdHui() });
+    A.m.majCatalogueOutils(melange, 'Repris');
+    v.egal(A.m.suggestionsOutils(melange, '', [], 8)[0].nom, 'Repris',
+           'un outil dont on vient de se servir passe devant une date seule');
+
     /* Compatibilité descendante : un carnet d'avant portait la date seule.
        Elle doit rester comparable — et se classer AVANT un horodatage du
        même jour, puisqu'on ne sait pas à quelle heure elle a été posée. */

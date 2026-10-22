@@ -386,14 +386,36 @@
     return ordre.map(function (c) { return { categorie: c, outils: groupes[c] }; });
   }
 
+  /* Classement par recence, avec un departage qui compte.
+
+     `vuLe` horodate suffit pour ce qui est ecrit depuis, mais PAS pour un
+     carnet d'avant : ses entrees portent une date seule, celles d'un meme jour
+     sont a egalite, et le tri stable garde alors l'ordre d'INSERTION — soit
+     exactement l'inverse de ce qu'on veut. Un carnet nourri en une journee
+     n'affichait donc que ses huit premiers outils, et jamais les suivants.
+     Le symptome a ete constate sur un vrai telephone apres coup : corriger
+     l'ecriture ne corrige pas ce qui est deja ecrit.
+
+     A egalite, le dernier POSE passe donc devant. C'est vrai des deux cotes :
+     pour un carnet ancien c'est la seule information d'ordre disponible, et
+     pour un carnet recent le cas ne se presente pas, les horodatages etant
+     strictement croissants. */
+  function parRecence(liste) {
+    return liste
+      .map(function (x, i) { return { x: x, i: i }; })
+      .sort(function (a, b) {
+        var d = (b.x.vuLe || '').localeCompare(a.x.vuLe || '');
+        return d !== 0 ? d : b.i - a.i;
+      })
+      .map(function (p) { return p.x; });
+  }
+
   /* La liste est TRONQUEE a `limite` : le classement decide donc ce qui est
-     visible, pas seulement ce qui vient en premier. C'est `vuLe` qui le porte,
-     et c'est pourquoi il est horodate a la milliseconde — voir maintenant(). */
+     visible, pas seulement ce qui vient en premier. */
   function suggestionsOutils(etat, saisie, dejaPris, limite) {
     var q = slug(saisie);
     var pris = (dejaPris || []).map(slug);
-    var l = etat.outils.filter(function (o) { return pris.indexOf(o.slug) < 0; });
-    l.sort(function (a, b) { return (b.vuLe || '').localeCompare(a.vuLe || ''); });
+    var l = parRecence(etat.outils.filter(function (o) { return pris.indexOf(o.slug) < 0; }));
     if (!q) return l.slice(0, limite || 8);
     var debut = [], dedans = [];
     for (var i = 0; i < l.length; i++) {
@@ -408,8 +430,7 @@
      Classement : commence par la saisie d'abord, puis le plus récemment vu. */
   function suggestions(etat, saisie, limite) {
     var q = slug(saisie);
-    var l = etat.exercices.slice();
-    l.sort(function (a, b) { return (b.vuLe || '').localeCompare(a.vuLe || ''); });
+    var l = parRecence(etat.exercices);
     if (!q) return l.slice(0, limite || 8);
     var debut = [], dedans = [];
     for (var i = 0; i < l.length; i++) {
