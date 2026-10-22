@@ -731,15 +731,32 @@ voie ; et un plafond d'URL à **6 000 signes**, au-delà duquel on rend `null` p
 d'ouvrir un onglet sur une erreur 414. Ce plafond est une borne **conservatrice**, pas une
 mesure, et c'est écrit tel quel dans le code.
 
-## L'ordre des Réglages
+## L'ordre des Réglages, et le repli
 
-Thème, En salle, **Équipement**, Sauvegarde, État du stockage, Envoyer un retour,
-Exercices connus, Tout effacer.
+Thème, En salle, **Exercices connus**, **Équipement**, Sauvegarde, État du stockage,
+Envoyer un retour, Tout effacer.
 
-L'équipement est remonté juste après « En salle » : on ajoute un outil bien plus souvent
-qu'on n'exporte un carnet, et « Ajouter un outil » doit tomber sous le pouce tout de
-suite. Un ordre d'écran est une **décision**, pas un hasard du code — le banc le tient,
-comme il tient celui de l'onglet Suivi.
+Les deux catalogues sont remontés juste après « En salle » : on cherche « qu'est-ce que
+j'ai déjà saisi » bien plus souvent qu'on n'exporte un carnet, et l'exercice se tape avant
+l'outil qui le sert. Un ordre d'écran est une **décision**, pas un hasard du code — le
+banc le tient, comme il tient celui de l'onglet Suivi.
+
+**Le catalogue et chaque catégorie d'outils se replient**, avec les mêmes classes que les
+catégories de l'équipement dans le sélecteur et les régions de muscles dans la fiche :
+`equip-cat` pour l'en-tête, `equip-compte`, `equip-chevron`. Il y avait déjà deux endroits
+où ça se replie ; en inventer un troisième aurait donné trois chevrons différents.
+
+**Fermés au départ**, et le **compte reste lisible fermé** (`3`, `1`…). Sans lui, replier
+serait cacher. Un catalogue de cinquante exercices pousse tout le reste sous l'écran, et
+on ne cherche pas un exercice à chaque passage dans Réglages.
+
+`hidden` seul ne suffit pas ici : un `display` l'emporte, et ça s'est déjà payé sur le
+filtre de l'équipement. La règle `.reglages-repli[hidden]` est explicite dans la feuille,
+et le banc mesure la **hauteur réelle du rectangle**, jamais l'attribut.
+
+C'est ce repli qui a fait tomber un contrôle voisin : « Mon équipement, au doigt »
+mesurait la hauteur des lignes d'outils, désormais repliées — « chacune fait au moins
+44 px, attendu 0, obtenu 2 ». Il ouvre maintenant avant de mesurer.
 
 ## Zones de douleur, et leur intensité
 

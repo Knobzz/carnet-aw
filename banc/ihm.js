@@ -1403,9 +1403,9 @@
         if (n.classList && n.classList.contains('sous-titre')) titres.push(n.textContent);
       });
       v.egal(titres.join(' · '),
-             'Thème · En salle · Équipement · Sauvegarde · État du stockage · '
-           + 'Envoyer un retour · Exercices connus · Tout effacer',
-             'l’ordre des Réglages : l’équipement juste après « En salle »');
+             'Thème · En salle · Exercices connus · Équipement · Sauvegarde · '
+           + 'État du stockage · Envoyer un retour · Tout effacer',
+             'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
 
       /* 7. Le bloc technique est VISIBLE EN ENTIER. On mesure sa HAUTEUR
          reelle : un bloc a zero pixel ne se lit pas, et on ne peut pas
@@ -1455,6 +1455,74 @@
   });
 
   /* ================================================================
+     Les Reglages se replient
+
+     Demande de MB, « par souci de visibilite » : le catalogue d'exercices et
+     chaque categorie d'outils doivent pouvoir se reduire et s'agrandir.
+
+     Ce que le modele ne peut pas voir : la HAUTEUR REELLE du bloc replie. Un
+     `hidden` se fait battre par un `display`, et ca s'est deja paye ici sur
+     le filtre de l'equipement — on mesure donc le rectangle.
+     ================================================================ */
+  bloc('Les Réglages se replient', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.exercices.length = 0;
+    e.outils.length = 0;
+    ['Curl marteau', 'Wrist curl', 'Pronation Titan Grip'].forEach(function (n) {
+      fen.App.m.majCatalogue(e, { nom: n });
+    });
+    fen.App.m.majCatalogueOutils(e, 'Poulie basse', 'Poulies');
+    fen.App.m.majCatalogueOutils(e, 'Titan Grip', 'Poignées AW');
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(200).then(function () {
+      var entetes = Array.prototype.slice.call(vue.querySelectorAll('.equip-cat'));
+      var corps = Array.prototype.slice.call(vue.querySelectorAll('.reglages-repli'));
+      v.egal(entetes.length, 3,
+             'le catalogue et les deux catégories d’outils ont leur en-tête');
+      v.egal(corps.length, 3, 'et leur bloc repliable');
+
+      var ouverts = corps.filter(function (c) {
+        return c.getBoundingClientRect().height > 0;
+      }).length;
+      v.egal(ouverts, 0, 'tous sont REPLIÉS au départ : c’est ce qui rend l’écran lisible');
+
+      /* Le compte reste lisible FERMÉ — sans lui, replier serait cacher. */
+      var comptes = entetes.map(function (b) {
+        var c = b.querySelector('.equip-compte');
+        return c ? c.textContent : '';
+      });
+      v.egal(comptes.join(','), '3,1,1',
+             'le compte se lit sans ouvrir (catalogue, puis chaque catégorie)');
+
+      var petits = entetes.filter(function (b) {
+        return b.getBoundingClientRect().height < 44;
+      }).length;
+      v.egal(petits, 0, 'chaque en-tête fait au moins 44 px');
+
+      entetes[0].click();
+      return attendre(120).then(function () {
+        v.vrai(corps[0].getBoundingClientRect().height > 0,
+               'un appui OUVRE le bloc (hauteur mesurée)');
+        v.egal(entetes[0].getAttribute('aria-expanded'), 'true',
+               'et il le dit aux lecteurs d’écran');
+        v.egal(corps[1].getBoundingClientRect().height, 0,
+               'ouvrir l’un n’ouvre pas les autres');
+        entetes[0].click();
+        return attendre(120).then(function () {
+          v.egal(corps[0].getBoundingClientRect().height, 0,
+                 'un second appui le REFERME');
+          fen.App.ui.vider(vue);
+          e.exercices.length = 0;
+          e.outils.length = 0;
+        });
+      });
+    });
+  });
+
+  /* ================================================================
      Mon équipement, dans Réglages
 
      Une ligne qui s'ouvre doit être un bouton : atteignable au clavier,
@@ -1474,6 +1542,14 @@
     return attendre(160).then(function () {
       var texte = vue.textContent;
       v.vrai(texte.indexOf('Titan Grip Iron Wrist') >= 0, 'l’équipement est listé');
+      /* Les catégories se replient depuis 1.22.2, et elles sont FERMÉES au
+         départ : une ligne repliée mesure zéro. On les ouvre donc avant de
+         mesurer, sinon ce bloc mesurerait le repli au lieu des lignes.
+         (C'est ce contrôle qui l'a dit : « chacune fait au moins 44 px —
+         attendu 0, obtenu 2 ».) */
+      Array.prototype.forEach.call(vue.querySelectorAll('.equip-cat'), function (b) {
+        if (b.getAttribute('aria-expanded') !== 'true') b.click();
+      });
 
       /* La liste en dur a été retirée : plus rien ne propose du matériel
          que l'utilisateur n'a pas saisi lui-même. */

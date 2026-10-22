@@ -458,6 +458,38 @@
           + 'Sans compte, « Copier » fait aussi bien.' }));
   }
 
+
+  /* Un bloc qui se replie, avec le compte visible FERME.
+
+     Les memes classes que les categories de l'equipement dans le selecteur et
+     que les regions de muscles dans la fiche : `equip-cat` pour l'entete,
+     `equip-compte`, `equip-chevron`. Il y avait deja deux endroits ou ca se
+     replie — en inventer un troisieme aurait donne trois chevrons differents.
+
+     FERME au depart : c'est la demande, « par souci de visibilite ». Un
+     catalogue de cinquante exercices pousse tout le reste sous l'ecran, et on
+     ne cherche pas un exercice a chaque passage dans Reglages. Le compte reste
+     lisible sans ouvrir — c'est ce qui rend le repli supportable.
+
+     `hidden` SEUL ne suffit pas dans cette app : un `display` l'emporte, et ca
+     s'est deja paye ici sur le filtre de l'equipement. La regle
+     `.reglages-repli[hidden]` est dans la feuille, et le banc mesure la
+     HAUTEUR REELLE, pas l'attribut. */
+  function blocRepliable(titre, nbr) {
+    var compte = h('span', { class: 'equip-compte', text: String(nbr) });
+    var chevron = h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '▾' });
+    var entete = h('button', { type: 'button', class: 'equip-cat',
+                               'aria-expanded': 'false' },
+      h('b', { text: titre }), compte, chevron);
+    var corps = h('div', { class: 'carte-corps reglages-repli', hidden: true });
+    entete.addEventListener('click', function () {
+      var ouvert = entete.getAttribute('aria-expanded') === 'true';
+      entete.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+      corps.hidden = ouvert;
+    });
+    return { carte: h('div', { class: 'carte' }, entete, corps), corps: corps };
+  }
+
   function rendre(hote) {
     A.ui.vider(hote);
     var e = etat();
@@ -536,6 +568,39 @@
     hote.appendChild(btNotif);
     hote.appendChild(etatNotif);
 
+    /* Le CATALOGUE vient avant l'équipement, et les deux avant le reste.
+       On cherche « qu'est-ce que j'ai déjà saisi » plus souvent qu'on
+       n'exporte un carnet, et l'exercice se tape avant l'outil qui le
+       sert. Un ordre d'écran est une décision, pas un hasard du code. */
+    /* --- catalogue --- */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Exercices connus' }));
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      text: 'Le carnet n’a jamais de liste imposée : ce catalogue est seulement ce que tu as déjà saisi. Il alimente l’autocomplétion.' }));
+
+    if (!e.exercices.length) {
+      hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Catalogue vide' }),
+        'Il se remplira au premier exercice que tu saisiras.'));
+    } else {
+      var bloc2 = blocRepliable('Catalogue', e.exercices.length);
+      var corps2 = bloc2.corps;
+      e.exercices.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (x) {
+        var sup = h('button', { class: 'bt-icone', text: '✕', 'aria-label': 'Oublier ' + x.nom });
+        A.ui.confirmer2(sup, '✓ ?', function () {
+          var i = e.exercices.indexOf(x);
+          if (i >= 0) e.exercices.splice(i, 1);
+          A.store.sauver(true);
+          rendre(hote);
+          A.ui.toast('Retiré de l’autocomplétion. Les séances passées sont intactes.');
+        });
+        corps2.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' },
+          h('b', { text: x.nom }),
+          x.aw ? h('span', { class: 'jeton', text: 'AW' }) : null,
+          h('span', { text: A.m.typeCharge(x.typeCharge).nom }),
+          sup));
+      });
+      hote.appendChild(bloc2.carte);
+    }
+
     /* L'équipement vient AVANT la sauvegarde et le reste : c'est ce qu'on
        ouvre le plus souvent dans cet écran — on ajoute un outil bien plus
        souvent qu'on n'exporte un carnet. Un ordre d'écran est une décision,
@@ -557,9 +622,8 @@
         'Ajoute-le ici, ou saisis-le directement dans la fiche d’un exercice : il entrera tout seul.'));
     } else {
       A.m.outilsParCategorie(e).forEach(function (g) {
-        var c3 = h('div', { class: 'carte' });
-        var corps3 = h('div', { class: 'carte-corps' });
-        corps3.appendChild(h('div', { class: 'sous-titre', style: 'margin:0 0 6px', text: g.categorie }));
+        var bloc3 = blocRepliable(g.categorie, g.outils.length);
+        var corps3 = bloc3.corps;
         g.outils.forEach(function (o) {
           var combien = compterUsages(e, o);
           /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre
@@ -571,8 +635,7 @@
           ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
           corps3.appendChild(ligne);
         });
-        c3.appendChild(corps3);
-        hote.appendChild(c3);
+        hote.appendChild(bloc3.carte);
       });
     }
 
@@ -635,35 +698,6 @@
           + 'Installer l’app depuis l’écran d’accueil l’accorde presque toujours — et un export régulier reste le seul vrai filet.' }));
 
     sectionRetour(hote);
-
-    /* --- catalogue --- */
-    hote.appendChild(h('div', { class: 'sous-titre', text: 'Exercices connus' }));
-    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Le carnet n’a jamais de liste imposée : ce catalogue est seulement ce que tu as déjà saisi. Il alimente l’autocomplétion.' }));
-
-    if (!e.exercices.length) {
-      hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Catalogue vide' }),
-        'Il se remplira au premier exercice que tu saisiras.'));
-    } else {
-      var c2 = h('div', { class: 'carte' }), corps2 = h('div', { class: 'carte-corps' });
-      e.exercices.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (x) {
-        var sup = h('button', { class: 'bt-icone', text: '✕', 'aria-label': 'Oublier ' + x.nom });
-        A.ui.confirmer2(sup, '✓ ?', function () {
-          var i = e.exercices.indexOf(x);
-          if (i >= 0) e.exercices.splice(i, 1);
-          A.store.sauver(true);
-          rendre(hote);
-          A.ui.toast('Retiré de l’autocomplétion. Les séances passées sont intactes.');
-        });
-        corps2.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' },
-          h('b', { text: x.nom }),
-          x.aw ? h('span', { class: 'jeton', text: 'AW' }) : null,
-          h('span', { text: A.m.typeCharge(x.typeCharge).nom }),
-          sup));
-      });
-      c2.appendChild(corps2);
-      hote.appendChild(c2);
-    }
 
     /* --- remise à zéro --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Tout effacer' }));

@@ -72,7 +72,8 @@ C'est l'usage principal, et ces points-là ne sont pas du décor :
 | **Clavier** | « Suivant » passe de la charge aux reps, « Terminé » valide la série et referme le clavier. Deux gestes, pouce jamais levé. |
 | **Clavier qui masque** | Le champ actif remonte **seulement** s'il est réellement recouvert, via `visualViewport`. Pas de saut de page à chaque appui. |
 | **Tirer pour recharger** | Désactivé : c'est le geste qu'on fait sans y penser, et il rechargeait la page en pleine série. |
-| **Stockage durable** | `navigator.storage.persist()` est demandé au démarrage, puis rejoué à la première touche (il aboutit bien mieux après un geste). Sans lui, un navigateur de téléphone peut **évincer** le carnet quand la place manque. Réglages affiche l'état réel : accordé / refusé. |
+| **Stockage durable** | `navigator.storage.persist()` est demandé au démarrage, puis rejoué à la première touche (il aboutit bien mieux après un geste). Sans lui, un navigateur de téléphone peut **évincer** le carnet quand la place manque. Réglages affiche l'état réel : accordé / refusé. **Mesuré sur un vrai téléphone en 1.22.1, app installée : accordé.** |
+| **Mode avion** | La coque et les icônes sont pré-cachées (21 fichiers) ; les illustrations de muscles ne le sont pas — le service worker les garde à la première consultation. **Essayé en salle en 1.22.1 : concluant.** Les 35 illustrations pèsent 2 Mo : les pré-cacher les ferait payer à chaque installation, y compris à qui ne regarde jamais la carte. |
 | **Vibration** | Courte à la fin du repos, pour ne pas avoir à regarder l'écran. |
 | **Cibles tactiles** | 44 px partout, vérifié sur les cinq écrans et dans les panneaux, à 320 px de large. |
 
@@ -145,7 +146,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **799 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **808 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -157,7 +158,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **489 contrôles, 26 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **310 contrôles, 16 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **319 contrôles, 17 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -194,7 +195,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-treize défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-quinze défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -287,7 +288,9 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | le plafond d'URL retiré | `un retour trop long rend null — obtenu "https://github.com/…"` |
 | le bloc technique replié à zéro pixel | `il est VISIBLE, pas replié (hauteur mesurée : 0 px)` |
 | « Copier » qui perd sa classe `.bt` | `chacun fait au moins 44 px de haut — attendu "", obtenu "Copier"` |
-| l'équipement redescendu en bas des Réglages | `l'ordre des Réglages : l'équipement juste après « En salle »` |
+| l'équipement redescendu en bas des Réglages | `l'ordre des Réglages : le catalogue puis l'équipement, tout en haut` |
+| les blocs des Réglages ouverts par défaut | `tous sont REPLIÉS au départ — attendu 0, obtenu 3` — 5 contrôles rouges |
+| le compte retiré de l'en-tête repliée | `le compte se lit sans ouvrir — attendu "3,1,1", obtenu ",,"` |
 
 Ce tableau est un **journal**, pas un inventaire : quelques lignes citent des contrôles
 qui ont disparu avec ce qu'ils mesuraient — les planches générales de l'atlas, par

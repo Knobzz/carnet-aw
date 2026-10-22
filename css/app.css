@@ -1164,6 +1164,10 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    Poulies. Vu a l'ecran, pas au banc — le controle ne regardait qu'une ligne
    d'une categorie entierement masquee. */
 .equip-ligne[hidden], .equip-bloc[hidden] { display: none; }
+/* Meme precaution pour les blocs repliables des Reglages : `hidden` seul se
+   fait battre par un `display`, et ca s'est deja paye ici. */
+.reglages-repli[hidden] { display: none; }
+.carte > .equip-cat { border-radius: 0; }
 .equip-coche {
   width: 22px;
   height: 22px;
