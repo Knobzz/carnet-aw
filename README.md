@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **903 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **922 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **553 contrôles, 28 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **350 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **564 contrôles, 28 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **358 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -293,6 +293,9 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | les semaines vides escamotées de la piste | `douze semaines, pleines ou vides — attendu 12, obtenu 11` |
 | le « jamais » peint en bleu pâle | `une région jamais travaillée est grise — attendu 2, obtenu 0` |
 | le buste rétréci sous la cible du doigt | `la plus petite région reste touchable (avant_bras_av : 10 px)` |
+| le torse refondu en une seule région | `« torse » fondu n’existe plus — attendu -1, obtenu 1` — 12 contrôles rouges |
+| le même torse posé sur les deux vues | `de dos, il porte le dorsal — et pas le pectoral` |
+| l’ancienne échelle bleu → rouge | `chaque teinte est CHAUDE — attendu 0, obtenu 3` |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

@@ -1450,10 +1450,12 @@
   /* ================================================================
      L'epaule n'est pas le torse
 
-     Separees le 2026-10-22. La mesure qui l'a decidee : sur les 21 mots
-     d'exercice du carnet qui touchent cette zone, AUCUN n'allume les deux
-     cotes — « elevation laterale » va a l'epaule, « tirage » au torse.
-     Fondus, ils rendaient la meme ligne.
+     Separees le 2026-10-22, puis le torse coupe en deux le 2026-10-23. La
+     mesure qui l'a decidee : sur les 21 mots d'exercice du carnet qui
+     touchent cette zone, AUCUN n'allume deux cotes a la fois —
+     « elevation laterale » va a l'epaule, « developpe » au torse avant,
+     « tirage » au torse arriere. Fondus, ils rendaient UNE SEULE ligne, et
+     un tirage y annulait un developpe.
 
      Ce bloc garde les deux bords. Le premier est le piege de la moitie
      livree : une region declaree sans muscle, ou un muscle range dans un
@@ -1464,8 +1466,11 @@
     var ids = A.m.REGIONS_MUSCLE.map(function (r) { return r.id; });
     v.egal(ids.indexOf('tronc'), -1,
            '« tronc » n’existe plus : la region fondue a bien ete retiree');
-    v.vrai(ids.indexOf('epaule') >= 0 && ids.indexOf('torse') >= 0,
-           'l’epaule et le torse sont deux regions');
+    v.egal(ids.indexOf('torse'), -1,
+           '« torse » fondu n’existe plus non plus : il s’est coupe en deux');
+    ['epaule', 'torse_av', 'torse_ar'].forEach(function (id) {
+      v.vrai(ids.indexOf(id) >= 0, id + ' est une region a part entiere');
+    });
 
     /* Les DEUX SENS, parce qu'une seule direction laisse passer la moitie
        de la faute : un groupe sans region perd sa charge, une region sans
@@ -1480,6 +1485,20 @@
     v.egal(vides.join(','), '', 'aucune region sans muscle');
     v.egal(A.m.MUSCLES.length, 36, 'les 36 muscles sont toujours la');
 
+    /* Les noms courts ne doivent escamoter personne : la liste du contenu
+       est DERIVEE des MUSCLES, jamais ecrite a cote. */
+    v.egal(A.m.musclesDeLaRegion('bras_ar').join(', '), 'Triceps, Anconé',
+           '« Triceps » dit qu’il tient aussi l’ancone');
+    v.egal(A.m.musclesDeLaRegion('torse_av').length, 1,
+           '« Pectoraux » est EXACT : la region ne tient que lui');
+    v.egal(A.m.musclesDeLaRegion('torse_ar').length, 1,
+           '« Dorsaux » aussi');
+    var sansContenu = A.m.REGIONS_MUSCLE.filter(function (r) {
+      return !A.m.musclesDeLaRegion(r.id).length;
+    }).map(function (r) { return r.id; });
+    v.egal(sansContenu.join(','), '',
+           'et chaque region sait nommer ce qu’elle contient');
+
     /* La coupe est anatomique : scapulo-humeral d'un cote, thoraco-humeral
        de l'autre. On la nomme muscle par muscle, sinon « separes » ne veut
        rien dire. */
@@ -1490,9 +1509,14 @@
     ['deltoide', 'grand_rond', 'subscapulaire', 'coraco_brachial'].forEach(function (id) {
       v.egal(groupeDe(id), 'epaule', id + ' tient a l’omoplate : il est a l’epaule');
     });
-    ['grand_pectoral', 'grand_dorsal'].forEach(function (id) {
-      v.egal(groupeDe(id), 'torse', id + ' tient au thorax : il est au torse');
-    });
+    /* Le torse coupe en deux : les deux muscles ne sont pas sur la meme
+       FACE, et fondus ils etaient peints de la meme couleur des deux cotes.
+       Sur les douze mots du carnet qui les touchent, six vont a l'un, six a
+       l'autre, et AUCUN aux deux. */
+    v.egal(groupeDe('grand_pectoral'), 'torse_av',
+           'le grand pectoral est sur le thorax : torse AVANT');
+    v.egal(groupeDe('grand_dorsal'), 'torse_ar',
+           'le grand dorsal est sur le dos : torse ARRIERE');
 
     /* Et la preuve par l'usage : une elevation laterale et un tirage, le
        meme jour, doivent tomber dans DEUX lignes differentes. C'est ce que
@@ -1508,13 +1532,19 @@
     var e = etatAvec([
       seance(jourIlYA(1), [
         exoMuscle('Élévation latérale', ['deltoide'], 4),
-        exoMuscle('Tirage poulie', ['grand_dorsal'], 6)
+        exoMuscle('Tirage poulie', ['grand_dorsal'], 6),
+        exoMuscle('Développé couché', ['grand_pectoral'], 5)
       ])
     ]);
     var r = A.m.chargeParMuscle(e, 28).parRegion;
     v.egal(r.epaule, 4, 'l’elevation laterale compte a l’epaule');
-    v.egal(r.torse, 6, 'le tirage compte au torse');
-    v.vrai(r.epaule !== r.torse, 'les deux lignes bougent SEPAREMENT');
+    v.egal(r.torse_ar, 6, 'le tirage compte au torse ARRIERE');
+    v.egal(r.torse_av, 5, 'le developpe couche compte au torse AVANT');
+    /* TROIS lignes distinctes la ou il n'y en avait qu'une : c'est ce que la
+       separation promet a l'ecran, le reste n'est que declaration. */
+    v.egal([r.epaule, r.torse_av, r.torse_ar].filter(function (x, i, t) {
+      return t.indexOf(x) === i;
+    }).length, 3, 'les trois lignes bougent SEPAREMENT');
 
     /* La meme chose vue par l'axe du Suivi : si la region neuve n'arrive
        pas jusqu'a chargeParSemaine, le buste l'affichera a zero pour
@@ -1523,11 +1553,13 @@
     var cles = sem.cles.map(function (c) { return c.id; });
     v.egal(cles.length, A.m.REGIONS_MUSCLE.length,
            'l’axe « region » rend AUTANT de cles qu’il y a de regions');
-    v.vrai(cles.indexOf('epaule') >= 0 && cles.indexOf('torse') >= 0,
-           'l’epaule et le torse arrivent jusqu’a la serie par semaine');
-    var derniere = sem.semaines[sem.semaines.length - 1];
+    ['epaule', 'torse_av', 'torse_ar'].forEach(function (id) {
+      v.vrai(cles.indexOf(id) >= 0, id + ' arrive jusqu’a la serie par semaine');
+    });
+    var derniere = sem.semaines[sem.semaines.length - 1] || { par: {} };
     v.egal(derniere.par.epaule, 4, 'et la charge de l’epaule y est juste');
-    v.egal(derniere.par.torse, 6, 'celle du torse aussi');
+    v.egal(derniere.par.torse_ar, 6, 'celle du torse arriere aussi');
+    v.egal(derniere.par.torse_av, 5, 'celle du torse avant aussi');
   });
 
   /* ================================================================

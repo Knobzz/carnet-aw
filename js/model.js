@@ -198,12 +198,20 @@
        region, un tirage et une elevation laterale rendaient la meme ligne.
        La coupe est anatomique : scapulo-humeral d'un cote (deltoide,
        grand rond, subscapulaire, coraco-brachial), thoraco-humeral de
-       l'autre (grand pectoral, grand dorsal). */
+       l'autre (grand pectoral, grand dorsal).
+
+       Le torse s'est coupe en deux le 2026-10-23, sur la meme mesure et
+       pour une raison de plus : les douze mots qui le touchent se partagent
+       SIX contre SIX sans aucun recouvrement — « developpe », « bench »,
+       « pec » d'un cote, « tirage », « rowing », « traction », « lat » de
+       l'autre — et les deux muscles ne sont pas sur la meme FACE. Fondus,
+       ils etaient peints de la meme couleur de face et de dos, ce qui
+       affirmait a l'ecran une equivalence qui n'existe pas. */
     { id: 'grand_pectoral', nom: 'Grand pectoral', court: 'Pectoral', aussi: 'pectoral',
-      latin: 'Pectoralis major', image: 'icones/muscle-grand_pectoral.png', groupe: 'torse',
+      latin: 'Pectoralis major', image: 'icones/muscle-grand_pectoral.png', groupe: 'torse_av',
       quoi: 'ramène le bras vers soi', articulation: 'epaule' },
     { id: 'grand_dorsal', nom: 'Grand dorsal', court: 'Dorsal', aussi: 'dorsal',
-      latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', groupe: 'torse',
+      latin: 'Latissimus dorsi', image: 'icones/muscle-grand_dorsal.png', groupe: 'torse_ar',
       quoi: 'tire le bras vers l’arrière et le bas', articulation: 'epaule' },
     /* L'auxiliaire du grand dorsal : meme action sur l'humerus, et les deux
        sont nommes ensemble aussi bien par l'etude EMG — parmi les rotateurs
@@ -431,15 +439,39 @@
                   .map(function (m) { return m.id; });
   }
 
+  /* Les noms sont ceux qu'on emploie en salle, pas ceux d'une planche.
+     Deux d'entre eux sont EXACTS et non approches — `torse_av` ne tient que
+     le grand pectoral, `torse_ar` que le grand dorsal.
+
+     Les six autres portent le mot du SPORT — flechisseurs, extenseurs,
+     pronateurs, supinateurs, grip — et non celui d'une planche. Chacun
+     designe le muscle ou la fonction dominante, et l'ecran DIT au toucher
+     ce que la region contient vraiment : un nom court qui escamote ce qu'il
+     recouvre est pire qu'un nom abstrait.
+
+     Deux a surveiller : « Triceps » tient aussi l'ancone, qui ne se
+     travaille jamais seul ; « Biceps » tient aussi le BRACHIAL, qui est le
+     plus fort flechisseur du coude des deux et porte son propre mot dans le
+     carnet. Le toucher les nomme — c'est la seule raison pour laquelle le
+     nom court est tenable. */
   var REGIONS_MUSCLE = [
-    { id: 'epaule',         nom: 'Épaule' },
-    { id: 'torse',          nom: 'Torse' },
-    { id: 'bras_av',        nom: 'Bras, avant' },
-    { id: 'bras_ar',        nom: 'Bras, arrière' },
-    { id: 'avant_bras_av',  nom: 'Avant-bras, face antérieure' },
-    { id: 'avant_bras_ar',  nom: 'Avant-bras, face postérieure' },
-    { id: 'main',           nom: 'Main et doigts' }
+    { id: 'epaule',         nom: 'Épaules' },
+    { id: 'torse_av',       nom: 'Pectoraux' },
+    { id: 'torse_ar',       nom: 'Dorsaux' },
+    { id: 'bras_av',        nom: 'Biceps' },
+    { id: 'bras_ar',        nom: 'Triceps' },
+    { id: 'avant_bras_av',  nom: 'Fléchisseurs et pronateurs' },
+    { id: 'avant_bras_ar',  nom: 'Extenseurs et supinateurs' },
+    { id: 'main',           nom: 'Grip' }
   ];
+
+  /* Ce que chaque region recouvre, en toutes lettres. Derive des MUSCLES —
+     jamais d'une liste ecrite a cote, qui se perimerait des qu'un muscle
+     change de groupe. */
+  function musclesDeLaRegion(id) {
+    return MUSCLES.filter(function (m) { return m.groupe === id; })
+                  .map(function (m) { return m.court || m.nom; });
+  }
 
   /* Ce qu'un mouvement fait travailler — PROPOSÉ, jamais impose.
 
@@ -2635,6 +2667,7 @@
     PRISES: PRISES, priseValide: priseValide, nomPrise: nomPrise,
     ARTICULATIONS: ARTICULATIONS, nomArticulation: nomArticulation,
     MUSCLES: MUSCLES, REGIONS_MUSCLE: REGIONS_MUSCLE,
+    musclesDeLaRegion: musclesDeLaRegion,
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
     muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
     imageDuMuscle: imageDuMuscle, musclesSansImage: musclesSansImage,

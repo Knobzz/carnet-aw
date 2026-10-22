@@ -1381,12 +1381,20 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .corps-regions { width: 100%; height: auto; display: block; }
 .peau-corps   { fill: var(--fond-2); }
 .bord-corps   { fill: none; stroke: var(--trait-fort); stroke-width: 1.1; }
-.zone-region  { cursor: pointer; }
-.zone-muette  { fill: var(--fond-3); }
-/* Repassées par-dessus les aplats : deux régions de teinte proche se
-   liraient comme une seule sans ces traits. */
-.coupe-corps  { fill: none; stroke: var(--fond); stroke-width: 1.2;
-                stroke-linecap: round; }
+/* Chaque zone porte son propre trait : sans lui, deux regions voisines
+   tombees dans le meme palier se lisent comme une seule. */
+.zone-region  { cursor: pointer; stroke: var(--fond); stroke-width: 1.3;
+                stroke-linejoin: round; }
+/* --fond-3 n'etait qu'a 18 de la peau en theme sombre : une region jamais
+   travaillee s'y lisait comme « pas dessinee », et non comme « vide ».
+   --trait-fort est a 87, et reste froid — il ne peut pas passer pour une
+   teinte de charge. */
+.zone-muette  { fill: var(--trait-fort); fill-opacity: .55; }
+/* La cible du doigt, invisible et plus large que la forme : a 320 px la
+   main ne fait que 12 px, et c'est son vrai gabarit. On elargit la PRISE,
+   pas le dessin. */
+.prise-region { fill: transparent; stroke: transparent; stroke-width: 11;
+                stroke-linejoin: round; cursor: pointer; }
 .detail-corps { fill: none; stroke: var(--trait); stroke-width: .8;
                 stroke-linecap: round; opacity: .7; }
 .vedette      { stroke: var(--texte); stroke-width: 2.2; }
@@ -1399,8 +1407,8 @@ tr.vedette td { background: var(--fond-2); }
 .echelle-ligne { display: flex; align-items: center; gap: 6px;
                  margin: 8px 2px 0; font-size: 11px; color: var(--texte-2); }
 .echelle-barre { flex: 1; height: 9px; border-radius: 5px;
-                 background: linear-gradient(90deg, #3d6fa8, #7fa6c4,
-                                             #cfcfcf, #d79a6a, #c0392b); }
+                 background: linear-gradient(90deg, #ddc05f, #dd9a39,
+                                             #d4691c, #b83a12, #99130a); }
 
 .table-regions { width: 100%; border-collapse: collapse; margin-top: 10px;
                  font-size: 13px; }

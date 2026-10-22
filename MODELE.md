@@ -771,9 +771,63 @@ posait une question là où un en-tête doit nommer ; « Choisir par sensation �
 état d'esprit. Celui qui reste annonce la **méthode** — on va désigner un endroit du
 corps, pas un nom latin — et c'est tout ce qu'un en-tête a besoin de faire.
 
+### Huit régions, et pourquoi le torse s’est coupé en deux
+
+Le torse ne faisait qu’un jusqu’au **2026-10-23**. La même mesure que pour l’épaule
+l’a tranché, et plus nettement : sur les **douze mots** du carnet qui le touchent,
+**six** vont au pectoral (`développé`, `bench`, `pec`, `pectoral`, `pectoraux`,
+`press`) et **six** au dorsal (`dorsal`, `tirage`, `rowing`, `traction`, `pull up`,
+`lat`) — **aucun aux deux**. Et les deux muscles ne sont pas sur la même *face* :
+fondus, ils étaient peints de la même couleur de face et de dos, ce qui affirmait à
+l’écran une équivalence qui n’existe pas.
+
+### Les noms sont ceux du sport, et le toucher dit le reste
+
+| id | nom affiché | ce qu’il recouvre |
+|---|---|---|
+| `epaule` | Épaules | deltoïde, grand rond, subscapulaire, coraco-brachial |
+| `torse_av` | Pectoraux | grand pectoral — **exact**, un seul muscle |
+| `torse_ar` | Dorsaux | grand dorsal — **exact**, un seul muscle |
+| `bras_av` | Biceps | biceps brachial, **brachial** |
+| `bras_ar` | Triceps | triceps brachial, **anconé** |
+| `avant_bras_av` | Fléchisseurs et pronateurs | 6 muscles |
+| `avant_bras_ar` | Extenseurs et supinateurs | 10 muscles |
+| `main` | Grip | 10 muscles |
+
+Un nom court qui **escamote** ce qu’il recouvre est pire qu’un nom abstrait : toucher
+une région affiche la liste de ses muscles, et cette liste est **dérivée de `MUSCLES`**,
+jamais écrite à côté. Deux à surveiller — « Biceps » tient aussi le brachial, qui est le
+plus fort fléchisseur du coude des deux, et « Triceps » tient l’anconé.
+
+### L’échelle est chaude, et le gris veut dire « jamais »
+
+L’échelle allait du bleu au rouge jusqu’au **2026-10-23**, et son palier médian était un
+gris clair : en thème clair il tombait à **43** du gris du « jamais », sous le seuil de
+~40 où deux teintes se confondent. La rampe actuelle — `#ddc05f` `#dd9a39` `#d4691c`
+`#b83a12` `#99130a` — est mesurée : **132 au minimum** du gris, **50 au minimum** entre
+deux paliers voisins.
+
+Le « jamais » employait `--fond-3`, qui n’est qu’à **18 de la peau** en thème sombre :
+une région jamais travaillée s’y lisait comme *pas dessinée*. Il emploie `--trait-fort`,
+à **87**, et reste froid — il ne peut pas passer pour une teinte de charge.
+
+### Chaque région est dessinée là où sont ses muscles
+
+Le ventre, le bas du dos, le cou et les hanches restent **neutres** : aucun muscle du
+carnet n’y est, et les peindre affirmerait un travail que rien ne peut représenter.
+Peindre tout le tronc pour une région qui ne tient que le grand pectoral était
+exactement cette faute.
+
+Conséquence : à 320 px, la main ne fait plus que **12 px de large** — c’est son vrai
+gabarit. La cible du doigt est tenue par une **zone de prise** invisible, posée
+par-dessus et hors découpe, large de 11 unités de trait. On élargit la prise, pas le
+dessin. Le banc le vérifie par `elementFromPoint` à 12 px de part et d’autre, parce que
+`getBoundingClientRect` sur un SVG rend la boîte **géométrique**, sans le trait : elle ne
+peut pas voir la prise.
+
 ### Sept régions, et pourquoi l’épaule a quitté le tronc
 
-`REGIONS_MUSCLE` tient **sept** régions pour 36 muscles : épaule (4), torse (2),
+`REGIONS_MUSCLE` tient **huit** régions pour 36 muscles : épaule (4), torse avant (1), torse arrière (1),
 bras avant (2), bras arrière (2), avant-bras antérieur (6), avant-bras postérieur (10),
 main et doigts (10).
 

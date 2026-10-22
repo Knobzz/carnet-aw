@@ -824,52 +824,98 @@
     });
   }
 
+  /* Chaque region est dessinee LA OU SONT SES MUSCLES, et nulle part
+     ailleurs. Ce qu'aucun muscle du carnet ne couvre — ventre, bas du dos,
+     cou, hanches — reste de la peau neutre. Peindre tout le tronc pour une
+     region qui ne tient que le grand pectoral affirmait un travail
+     abdominal qui n'a pas eu lieu, et qu'aucun muscle du catalogue ne peut
+     representer. */
   var FORMES_REGION = {
-    torse:  'M 31 26 L 69 26 L 69 99 L 31 99 Z',
-    bras:   'M 64 28 L 92 28 L 88 59 L 72 63 Z',
-    avb:    'M 72 63 L 88 59 L 90 79 L 74 83 Z',
-    main:   'M 74 83 L 90 79 L 94 96 L 72 99 Z',
-    /* L'epaule ne se dessine pas pareil des deux cotes, et c'est ce qui la
-       rend honnete : de FACE elle tient le deltoide et le creux de
-       l'aisselle, de DOS le deltoide et l'omoplate, ou s'inserent le grand
-       rond et le subscapulaire. Une seule forme mentirait d'un cote. */
-    epFace: 'M 62 27 L 95 27 L 86 54 L 70 50 L 65 44 L 63 30 Z',
-    epDos:  'M 59 27 L 95 27 L 86 54 L 70 50 L 59 48 Z'
+    /* Le deltoide : un capuchon arrondi de la clavicule a son insertion au
+       tiers superieur du bras. Sa limite interne est le sillon
+       delto-pectoral, un vrai repere visible sur un corps. */
+    epauleFace:
+      'M 58.6 30.2 C 64 30.4 68.6 32.6 72 36.2 C 75 39.4 76.9 43.8 78 48.6' +
+      ' C 78.6 51 79 53 79.2 54.8 C 76 54.6 72.2 53 69.4 50.6' +
+      ' C 67.4 48.8 66.2 46.6 65.8 44.4 C 64.8 39.4 62 33.2 58.6 30.2 Z',
+    /* De dos : le meme capuchon plus l'omoplate, ou s'inserent le grand
+       rond et le subscapulaire. */
+    epauleDos:
+      'M 57.4 29.8 C 63.4 30 68.4 32.4 72 36 C 75 39.2 76.9 43.8 78 48.6' +
+      ' C 78.6 51 79 53 79.2 54.8 C 76 54.6 72.2 53 69.4 50.6' +
+      ' C 67.6 49 66.4 47 65.9 45 C 63.2 47.4 60.2 49 57.2 49.8' +
+      ' C 56.8 44 56.9 34.8 57.4 29.8 Z',
+    /* Le grand pectoral : un eventail du sternum vers l'humerus, dont le
+       bord inferieur s'arrete a hauteur des cotes. */
+    pectoral:
+      'M 50.6 32 C 54 31.4 57.4 31.4 59.8 32.4 C 62.4 33.8 64.2 36.6 64.9 39.8' +
+      ' C 65.3 42 65 44.2 64 45.8 C 60.6 48.4 55.6 49.8 51 49.8' +
+      ' C 50.4 49.8 50.2 49.2 50.2 48.2 C 50.2 42.4 50.3 36 50.6 32 Z',
+    /* Le grand dorsal : etroit a l'aisselle, large en bas le long du
+       rachis. Le bas du dos sous lui reste neutre. */
+    dorsal:
+      'M 65.8 45.4 C 64.8 49.4 63.8 54 63 58.6 C 62.4 63 61.9 67.2 61.5 70.6' +
+      ' C 58.2 72.2 54.2 73 50.4 73 C 50.4 68 50.4 62 50.4 57.4' +
+      ' C 53.6 56.4 56.8 54 59.4 51 C 61.6 48.4 64 46 65.8 45.4 Z',
+    /* Le bras : la masse occupe TOUTE la largeur du segment entre
+       l'insertion du deltoide et le pli du coude. En faire une bande collee
+       au bord externe laissait l'interieur du bras neutre, ce qui disait
+       qu'il ne travaille pas. */
+    bras:
+      'M 66.6 45.8 C 69.8 48.8 73.6 51.4 77.4 53.6' +
+      ' C 78.8 56.8 79.9 60 80.7 62.8 C 78.4 63.8 75.6 64.2 73 63.8' +
+      ' C 72 58.6 69.8 51.6 66.6 45.8 Z',
+    /* L'avant-bras : pleine largeur, renfle pres du coude et effile vers le
+       poignet, ou il ne reste que des tendons. */
+    avb:
+      'M 72.6 64.6 C 75.4 65 78.4 64.8 80.9 64' +
+      ' C 82.1 68.2 83.3 72.8 84.1 76.8 C 84.5 78.6 84.7 79.9 84.7 80.9' +
+      ' C 82.1 81.7 79.1 82 76.9 81.8' +
+      ' C 76.3 77.4 75.1 72 73.9 68.2 C 73.5 66.7 73 65.5 72.6 64.6 Z',
+    main:
+      'M 76.7 82.7 C 79.3 83 82.3 82.7 84.7 82.1' +
+      ' C 84.9 85.7 84.4 89.1 83.3 91 C 82 93 79.8 93.5 78.5 91.8' +
+      ' C 77.5 90.3 76.9 87.1 76.7 84.3 Z'
   };
-  /* Repassees par-dessus les aplats : sans elles, deux regions voisines de
-     teinte proche se lisent comme une seule. */
-  var COUPES_REGION = 'M 72 63 L 88 59 M 74 83 L 90 79 M 70 50 L 86 54';
-  var COUPE_EPAULE = { face: 'M 65 44 L 63 30', dos: 'M 59 48 L 59 27' };
+
 
   /* Sur quelle vue chaque region se montre. Une region du catalogue absente
      d'ici n'aurait AUCUNE forme sur le buste : sa charge disparaitrait en
      silence. Le banc verifie la correspondance dans les deux sens. */
   var VUE_REGION = {
-    epaule: 'deux', torse: 'deux', main: 'deux',
-    bras_av: 'face', avant_bras_av: 'face',
-    bras_ar: 'dos',  avant_bras_ar: 'dos'
+    epaule: 'deux', main: 'deux',
+    torse_av: 'face', bras_av: 'face', avant_bras_av: 'face',
+    torse_ar: 'dos',  bras_ar: 'dos',  avant_bras_ar: 'dos'
   };
 
   function formesDeLaVue(vue) {
-    var l = [['torse', FORMES_REGION.torse]];
-    [[vue === 'face' ? 'bras_av' : 'bras_ar', FORMES_REGION.bras],
-     [vue === 'face' ? 'avant_bras_av' : 'avant_bras_ar', FORMES_REGION.avb],
-     ['main', FORMES_REGION.main]].forEach(function (p) {
-      l.push([p[0], p[1]]);
-      l.push([p[0], miroirChemin(p[1])]);
-    });
-    var ep = vue === 'face' ? FORMES_REGION.epFace : FORMES_REGION.epDos;
-    l.push(['epaule', ep]);
-    l.push(['epaule', miroirChemin(ep)]);
+    var face = vue === 'face', l = [];
+    function paire(id, d) { l.push([id, d]); l.push([id, miroirChemin(d)]); }
+    paire('epaule', face ? FORMES_REGION.epauleFace : FORMES_REGION.epauleDos);
+    paire(face ? 'torse_av' : 'torse_ar',
+          face ? FORMES_REGION.pectoral : FORMES_REGION.dorsal);
+    paire(face ? 'bras_av' : 'bras_ar', FORMES_REGION.bras);
+    paire(face ? 'avant_bras_av' : 'avant_bras_ar', FORMES_REGION.avb);
+    paire('main', FORMES_REGION.main);
     return l;
   }
 
-  /* Du bleu au rouge en cinq paliers, et le GRIS pour ce qui n'a jamais
-     servi — c'est une troisieme chose, pas un bleu tres pale. La couleur ne
-     porte jamais l'information seule : le chiffre est dans le tableau juste
-     en dessous, chaque forme porte son total au survol, et toucher une
-     region allume sa ligne. */
-  var PALIERS_REGION = ['#3d6fa8', '#7fa6c4', '#cfcfcf', '#d79a6a', '#c0392b'];
+  /* Du jaune au rouge fonce en cinq paliers, et le GRIS pour ce qui n'a
+     JAMAIS servi — c'est une troisieme chose, pas un palier tres pale.
+
+     L'echelle etait bleu -> rouge jusqu'au 2026-10-23, et son palier median
+     etait un gris clair : en theme clair il tombait a 43 du gris du
+     « jamais », sous le seuil de ~40 ou deux teintes se confondent. Une
+     region moyennement chargee se lisait comme une region jamais touchee.
+     La rampe chaude est mesuree : 132 au minimum du gris, 50 au minimum
+     entre deux paliers voisins.
+
+     Son point faible connu : le rouge fonce ne contraste qu'a 1,77 avec le
+     fond sombre. C'est tenable parce que la couleur ne porte JAMAIS
+     l'information seule — la forme est cerclee d'un trait, elle porte son
+     total au survol, le chiffre est dans le tableau juste en dessous, et
+     toucher une region allume sa ligne. */
+  var PALIERS_REGION = ['#ddc05f', '#dd9a39', '#d4691c', '#b83a12', '#99130a'];
   function teinteRegion(valeur, maxi) {
     if (!valeur) return null;
     return PALIERS_REGION[Math.min(4, Math.floor(valeur / maxi * 5))];
@@ -927,19 +973,26 @@
           class: 'zone-region' + (c ? '' : ' zone-muette')
         });
         var t = nsvg('title');
+        var dedansElle = A.m.musclesDeLaRegion(id);
         t.textContent = nom + ' — ' + (totaux[id]
           ? totaux[id] + ' série' + (totaux[id] > 1 ? 's' : '')
-          : 'jamais travaillée');
+          : 'jamais travaillée')
+          + (dedansElle.length > 1 ? ' · ' + dedansElle.join(', ') : '');
         p.appendChild(t);
         dedans.appendChild(p);
       });
-      dedans.appendChild(nsvg('path', {
-        class: 'coupe-corps',
-        d: COUPES_REGION + ' ' + miroirChemin(COUPES_REGION) + ' '
-         + COUPE_EPAULE[vue] + ' ' + miroirChemin(COUPE_EPAULE[vue])
-      }));
       g.appendChild(dedans);
       g.appendChild(nsvg('path', { d: CONTOUR, class: 'bord-corps' }));
+
+      /* Les ZONES DE PRISE, par-dessus et hors decoupe : la meme forme avec
+         un trait epais transparent. Le dessin reste exact — la main fait
+         vraiment 12 px de large a 320 px — et le doigt vise quand meme une
+         cible de plus de 24. Grossir le dessin pour atteindre la cible
+         aurait menti sur l'anatomie. */
+      formesDeLaVue(vue).forEach(function (fo) {
+        g.appendChild(nsvg('path', { d: fo[1], class: 'prise-region',
+                                     'data-region': fo[0] }));
+      });
       g.appendChild(nsvg('path', { class: 'detail-corps', d: vue === 'face'
         ? 'M 43 31 Q 50 34 57 31 M 50 35 L 50 56 M 44 60 Q 50 63 56 60 M 44 68 Q 50 71 56 68'
         : 'M 50 30 L 50 82' }));

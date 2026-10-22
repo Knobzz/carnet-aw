@@ -769,7 +769,8 @@
       id: 'bu-torse', type: 'muscu', date: jourIlYA(70),
       heure: jourIlYA(70) + 'T18:00:00.000Z', programmeId: null,
       programmeNom: 'Buste', dureeMin: 50, rpeGlobal: null, note: '',
-      douleurs: [], exercices: [exoM('Tirage', ['grand_dorsal'], 2)]
+      douleurs: [], exercices: [exoM('Tirage', ['grand_dorsal'], 2),
+                                exoM('Développé couché', ['grand_pectoral'], 3)]
     });
 
     var vue = doc.getElementById('vue');
@@ -820,7 +821,7 @@
       v.egal(nombreDe('bras_ar'), 0, 'le bras arrière n’a rien reçu');
 
       /* --- ce qui n'a JAMAIS servi se dit, et ne se devine pas a la teinte --- */
-      var zonesBrasAr = svg.querySelectorAll('[data-region="bras_ar"]');
+      var zonesBrasAr = svg.querySelectorAll('.zone-region[data-region="bras_ar"]');
       var muettes = Array.prototype.filter.call(zonesBrasAr, function (p) {
         return p.classList.contains('zone-muette');
       }).length;
@@ -861,6 +862,63 @@
       v.vrai(!!lBrasAr && lBrasAr.classList.contains('vedette'),
              'la ligne touchée s’allume elle aussi');
 
+      /* --- le torse n'est PAS la meme region des deux cotes ---
+         Le grand pectoral est sur le thorax, le grand dorsal sur le dos.
+         Fondus, ils etaient peints de la meme couleur de face et de dos, ce
+         qui affirmait a l'ecran une equivalence qui n'existe pas. */
+      function regionsDeLaVue(dec) {
+        var g = svg.querySelectorAll('g[transform]')[dec];
+        var o = {};
+        if (g) Array.prototype.forEach.call(g.querySelectorAll('[data-region]'),
+          function (p) { o[p.getAttribute('data-region')] = true; });
+        return o;
+      }
+      var deFace = regionsDeLaVue(0), deDos = regionsDeLaVue(1);
+      v.vrai(!!deFace.torse_av && !deFace.torse_ar,
+             'de face, le torse porte le pectoral — et pas le dorsal');
+      v.vrai(!!deDos.torse_ar && !deDos.torse_av,
+             'de dos, il porte le dorsal — et pas le pectoral');
+      v.vrai(nombreDe('torse_av') !== nombreDe('torse_ar'),
+             'et leurs deux lignes portent des chiffres differents');
+
+      /* --- l'echelle se lit : aucun palier ne se confond avec le gris du
+         « jamais », ni avec son voisin. Mesure sur les teintes REELLEMENT
+         rendues, pas sur la table ecrite dans le source : c'est l'ecran qui
+         decide, pas la constante. Deux teintes se confondent sous ~40. */
+      function versRgb(c) {
+        var m = String(c).match(/(\d+)\D+(\d+)\D+(\d+)/);
+        return m ? [+m[1], +m[2], +m[3]] : null;
+      }
+      function ecart(a, b) {
+        if (!a || !b) return 999;
+        return Math.round(Math.sqrt(a.reduce(function (t, x, i) {
+          return t + (x - b[i]) * (x - b[i]);
+        }, 0)));
+      }
+      var grisJamais = null, teintes = {};
+      Array.prototype.forEach.call(svg.querySelectorAll('.zone-region'), function (p) {
+        var c = versRgb(fen.getComputedStyle(p).fill);
+        if (p.classList.contains('zone-muette')) grisJamais = c;
+        else if (c) teintes[c.join(',')] = c;
+      });
+      var liste = Object.keys(teintes).map(function (k) { return teintes[k]; });
+      v.vrai(liste.length >= 3, 'au moins trois teintes distinctes a l’ecran');
+      var tropPres = liste.filter(function (c) {
+        return ecart(c, grisJamais) < 40;
+      }).length;
+      v.egal(tropPres, 0,
+             'aucune teinte ne se confond avec le gris du « jamais » '
+           + '(seuil 40 ; l’ancienne echelle tombait a 43 en theme clair)');
+      var pales = liste.filter(function (c) {
+        return c[0] > 235 && c[1] > 235 && c[2] > 235;
+      }).length;
+      v.egal(pales, 0, 'et aucune ne tire vers le blanc');
+      var froides = liste.filter(function (c) { return c[0] - c[2] < 60; }).length;
+      v.egal(froides, 0,
+             'chaque teinte est CHAUDE — le rouge domine le bleu d’au moins 60. '
+           + 'C’est ce critere-la qui tient quel que soit le theme : le banc '
+           + 'tourne en sombre, ou l’ecart au gris ne voit rien');
+
       /* --- la place a 320 px --- */
       var debordants = [];
       Array.prototype.forEach.call(
@@ -874,14 +932,32 @@
       v.egal(debordants.join(','), '',
              'rien ne sort de l’écran à 320 px — mesuré au bord droit, pas '
            + 'au scrollWidth, que « overflow-x: hidden » rend toujours vert');
-      var mini = 999, nomMini = '';
+      var mini = 999, nomMini = '', formeMini = null;
       Array.prototype.forEach.call(svg.querySelectorAll('.zone-region'), function (p) {
         var r = p.getBoundingClientRect();
-        var c = Math.min(r.width, r.height);
-        if (c < mini) { mini = c; nomMini = p.getAttribute('data-region'); }
+        if (r.width < mini) {
+          mini = r.width; nomMini = p.getAttribute('data-region'); formeMini = p;
+        }
       });
-      v.vrai(mini >= 24, 'la plus petite région reste touchable du doigt ('
-                       + nomMini + ' : ' + Math.round(mini) + ' px)');
+      svg.scrollIntoView({ block: 'center' });
+      var rm = formeMini.getBoundingClientRect();
+      var cx = rm.left + rm.width / 2, cy = rm.top + rm.height / 2;
+      var atteints = [-12, 12].filter(function (dx) {
+        var el = doc.elementFromPoint(cx + dx, cy);
+        var z = el && el.closest ? el.closest('[data-region]') : null;
+        return z && z.getAttribute('data-region') === nomMini;
+      }).length;
+      v.egal(atteints, 2,
+             'la plus petite region (' + nomMini + ', ' + Math.round(mini)
+           + ' px de dessin) reste ATTEINTE a 12 px de part et d’autre : '
+           + 'c’est la zone de prise qui tient la cible, pas le dessin');
+      var prises = {};
+      Array.prototype.forEach.call(svg.querySelectorAll('.prise-region'), function (p) {
+        prises[p.getAttribute('data-region')] = true;
+      });
+      v.egal(duModele.filter(function (id) { return !prises[id]; }).join(','), '',
+             'et chaque région en a une : sans prise, la forme reste '
+           + 'intouchable quelle que soit sa taille');
 
       fen.App.ui.vider(vue);
       e.seances = [];
