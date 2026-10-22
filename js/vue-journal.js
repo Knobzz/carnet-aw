@@ -194,6 +194,31 @@
     return it;
   }
 
+  /* Une journée de récupération ne se résume pas en kilos : ce qu'on veut y
+     lire est ce qui a été fait, et combien. Elle n'est pas cliquable — on la
+     corrige dans l'onglet Récup, tant qu'on y est. */
+  function carteRecup(se) {
+    var it = h('div', { class: 'item', style: 'cursor:default' });
+    var c = A.m.compteRecup(se);
+    it.appendChild(h('div', { class: 'item-titre' },
+      h('h3', { text: 'Récupération' }),
+      h('span', { class: 'item-date', text: A.m.dateCourte(se.date) })));
+    it.appendChild(h('div', { class: 'item-resume',
+      text: c.faits + ' / ' + c.total + ' exercice' + (c.total > 1 ? 's' : '') }));
+
+    var lignes = h('div', { class: 'item-lignes' });
+    (se.exercices || []).forEach(function (ex) {
+      var s = (ex.series || [])[0];
+      lignes.appendChild(h('div', { class: 'item-ligne' },
+        h('b', { text: ex.nom }),
+        /* Forme longue ici : la carte n'est pas serrée, et « 30 » tout seul
+           ne dit pas si ce sont des reps ou des secondes. */
+        h('span', { text: s && s.faite ? A.m.texteSerie(ex, s) : 'non fait' })));
+    });
+    if ((se.exercices || []).length) it.appendChild(lignes);
+    return it;
+  }
+
   /* ------------------------------------------------------------------
      vue
      ------------------------------------------------------------------ */
@@ -206,7 +231,8 @@
     hote.appendChild(btSpar);
 
     var barre = h('div', { class: 'filtres' });
-    [['tout', 'Tout'], ['muscu', 'Muscu'], ['sparring', 'Sparring']].forEach(function (f) {
+    [['tout', 'Tout'], ['muscu', 'Muscu'], ['sparring', 'Sparring'],
+     ['recup', 'Récup']].forEach(function (f) {
       var b = h('button', { type: 'button', class: 'puce', text: f[1],
                             'aria-pressed': filtre === f[0] ? 'true' : 'false' });
       b.addEventListener('click', function () { filtre = f[0]; rendre(hote); });
@@ -223,6 +249,8 @@
         h('strong', { text: 'Journal vide' }),
         filtre === 'sparring'
           ? 'Aucun sparring noté. Le bouton ci-dessus en ouvre un.'
+          : filtre === 'recup'
+          ? 'Aucune journée de récupération. Elles entrent ici dès qu’une ligne est cochée dans l’onglet Récup.'
           : 'Lance une séance depuis l’onglet Séance : elle apparaîtra ici, datée, avec ses séries.'));
       return;
     }
@@ -235,7 +263,9 @@
         hote.appendChild(h('div', { class: 'sous-titre',
           text: A.m.dateCourte(se.date).replace(/^\d+ /, '') }));
       }
-      hote.appendChild(se.type === 'sparring' ? carteSparring(se, hote) : carteMuscu(se, hote));
+      hote.appendChild(se.type === 'sparring' ? carteSparring(se, hote)
+                     : se.type === 'recup' ? carteRecup(se)
+                     : carteMuscu(se, hote));
     });
   }
 

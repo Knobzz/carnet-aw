@@ -15,7 +15,8 @@ Etat
   exercices      : [ Exercice ]        // catalogue implicite, alimenté par l'usage
   outils         : [ Outil ]           // idem, pour l'équipement
   programmes     : [ Programme ]
-  seances        : [ Seance | SeanceSparring ]
+  routineRecup   : Programme | null    // la routine quotidienne, voir plus bas
+  seances        : [ Seance | SeanceSparring | SeanceRecup ]
   reglages       : { theme, ecranAllume, notifierRepos }
   seanceEnCoursId: string | null
   chrono         : { finA, duree, libelle } | null   // le repos survit à la fermeture
@@ -174,8 +175,45 @@ SeanceSparring
   douleurs    : [ string ]
 ```
 
-Les deux portent `type`, `date`, `heure` et `douleurs` aux mêmes noms : c'est ce qui permet
+Les trois portent `type`, `date`, `heure` et `douleurs` aux mêmes noms : c'est ce qui permet
 au journal et au recoupement 72 h de les traiter dans une seule liste.
+
+## La récupération — une régularité, pas une charge
+
+L'élastique quotidien : faible résistance, beaucoup de répétitions, presque tous les
+jours. Ça n'a rien à faire dans le tonnage — cent répétitions à l'élastique noieraient le
+compte de séries d'une semaine — et ce qu'on veut en lire n'est pas « combien » mais
+« l'ai-je fait ».
+
+```
+routineRecup : Programme          // définie UNE FOIS, jamais lancée : elle se coche
+
+SeanceRecup
+  id          : string
+  type        : 'recup'
+  date        : 'AAAA-MM-JJ'
+  heure       : ISO
+  note        : string
+  douleurs    : [ ]               // toujours vide : demander la douleur chaque soir
+                                  // serait du frottement sur un geste quotidien
+  exercices   : [ ExerciceSeance ]  // mêmes exercices, mêmes colonnes, UNE série
+```
+
+La routine est un `Programme` et la journée une `Seance` : ce sont les mêmes exercices,
+les mêmes colonnes, la même ligne de saisie. **Seul `type: 'recup'` les distingue** — ce
+qui suffit au journal pour les ranger, et à `seancesMuscuTriees()` pour les ignorer, donc
+au tonnage pour ne jamais les voir.
+
+Une journée est une **copie** de la routine, exactement comme une séance l'est d'un
+programme : modifier la routine ne réécrit pas ce qui a déjà été coché.
+
+**Une journée n'est enregistrée qu'une fois quelque chose coché**, et elle ressort si on
+vide tout. Une journée vide écrite dans le journal dirait qu'on l'a faite.
+
+`statsRecup()` rend les jours faits sur une fenêtre et la série en cours. Cette série se
+compte **depuis hier** tant qu'aujourd'hui n'est pas coché : sinon elle afficherait zéro
+chaque matin, ce qui est exactement ce qui démotive. Un jour compte comme fait dès
+**une** ligne cochée : une routine à moitié faite reste une journée où l'on s'y est mis.
 
 ## Structures chargées
 

@@ -333,6 +333,54 @@
     return f;
   }
 
+  /* ------------------------------------------------------------------
+     la récupération : une régularité, pas une charge
+     ------------------------------------------------------------------ */
+  function blocRecup(e) {
+    var f = document.createDocumentFragment();
+    var jours = A.m.seancesRecupTriees(e).filter(function (s) { return A.m.recupFaite(s); });
+    if (!jours.length) return f;
+
+    f.appendChild(section('Récupération — régularité',
+      'L’élastique quotidien ne se mesure pas en kilos : ce qui compte est de l’avoir fait.'));
+
+    var s7 = A.m.statsRecup(e, 7), s28 = A.m.statsRecup(e, 28);
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+
+    corps.appendChild(h('dl', { class: 'totaux' },
+      h('div', {}, h('dt', { text: '7 derniers jours' }),
+        h('dd', { class: 'chiffre', text: s7.joursFaits + ' / 7' })),
+      h('div', {}, h('dt', { text: '28 derniers jours' }),
+        h('dd', { class: 'chiffre', text: s28.joursFaits + ' / 28' })),
+      h('div', { class: 'aw' }, h('dt', { text: 'd’affilée' }),
+        h('dd', { class: 'chiffre', text: String(s7.serie) }))));
+
+    /* Les sept derniers jours, un carré par jour : on voit le trou tout de
+       suite, ce qu'un pourcentage ne montre pas. */
+    var bande = h('div', { class: 'recup-semaine' });
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date();
+      d.setDate(d.getDate() - i);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      var iso = d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+      var fait = jours.some(function (s) { return s.date === iso; });
+      bande.appendChild(h('span', { class: 'recup-jour' + (fait ? ' fait' : ''),
+        title: A.m.dateCourte(iso) + (fait ? ' — fait' : ' — rien'),
+        text: ['D', 'L', 'M', 'M', 'J', 'V', 'S'][d.getDay()] }));
+    }
+    corps.appendChild(bande);
+
+    if (!s7.aujourdHuiFait) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
+        text: 'Rien de coché aujourd’hui.' }));
+    }
+
+    carte.appendChild(corps);
+    f.appendChild(carte);
+    return f;
+  }
+
   function rendre(hote) {
     A.ui.vider(hote);
     var e = etat();
@@ -354,6 +402,7 @@
     hote.appendChild(blocDouleurs(e));
     hote.appendChild(blocPentes(e));
     hote.appendChild(blocVolume(e));
+    hote.appendChild(blocRecup(e));
     hote.appendChild(blocForces(e));
   }
 

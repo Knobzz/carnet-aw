@@ -3,10 +3,11 @@
   'use strict';
   var h = A.ui.h;
 
-  window.APP_VERSION = '1.4.0';
+  window.APP_VERSION = '1.5.0';
 
   var ONGLETS = [
     { id: 'seance',     nom: 'Séance',    icone: 'M7 7v10M17 7v10M7 12h10M3 9.5v5M21 9.5v5' },
+    { id: 'recup',      nom: 'Récup',     icone: 'M20 12a8 8 0 1 1-2.4-5.7M20 4v3.6h-3.6' },
     { id: 'programmes', nom: 'Programmes', icone: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h3' },
     { id: 'journal',    nom: 'Journal',   icone: 'M4 5h16v14H4zM4 9h16M9 5v14' },
     { id: 'suivi',      nom: 'Suivi',     icone: 'M4 18l5-6 4 3 7-8' },

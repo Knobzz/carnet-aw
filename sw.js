@@ -3,7 +3,7 @@
    est servie depuis le cache dès que le réseau manque. Aucune donnée
    d'entraînement ne passe par ici : elle ne quitte jamais le téléphone. */
 
-var CACHE = 'carnet-aw-v1.4.0';
+var CACHE = 'carnet-aw-v1.5.0';
 
 var FICHIERS = [
   './',
@@ -14,6 +14,7 @@ var FICHIERS = [
   'js/ui.js',
   'js/panneau.js',
   'js/vue-seance.js',
+  'js/vue-recup.js',
   'js/vue-programmes.js',
   'js/vue-sparring.js',
   'js/vue-journal.js',

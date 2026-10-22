@@ -5,26 +5,29 @@ Une mise à jour doit atteindre le téléphone. Trois endroits la gouvernent, et
 en oublier un donne le pire symptôme : l'app paraît inchangée alors que le
 correctif est bien livré.
 
-    index.html       le ?v= de la feuille et des 12 scripts   13 occurrences
+    index.html       le ?v= de la feuille et des 13 scripts   14 occurrences
     banc/index.html  le ?v= de la feuille et du chargeur        2
     sw.js            le nom du cache                            1
     js/app.js        window.APP_VERSION, affiché dans Réglages  1
 
-                                                        total 17
+                                                        total 18
 
 Usage :
     python outils/version.py            lit et vérifie la cohérence
     python outils/version.py 1.1.0      pose 1.1.0 partout
 
-Le compte est imprimé à chaque fois : un total qui n'est pas 17 veut dire
+Le compte est imprimé à chaque fois : un total qui n'est pas 18 veut dire
 qu'un fichier a bougé et que ce script doit être relu, pas contourné.
+
+Il a déjà refusé d'écrire une fois, à l'arrivée de js/vue-recup.js : c'est ce
+qu'on lui demande.
 """
 import io
 import os
 import re
 import sys
 
-ATTENDU = 17
+ATTENDU = 18
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

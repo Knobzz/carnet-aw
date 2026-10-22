@@ -17,6 +17,9 @@
       exercices: [],
       outils: [],
       programmes: [],
+      /* La routine de recuperation : un programme comme les autres, mais un
+         seul, et qui ne se lance pas — il se coche, jour apres jour. */
+      routineRecup: null,
       seances: [],
       reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false },
       seanceEnCoursId: null,
@@ -41,6 +44,7 @@
     if (Array.isArray(brut.exercices)) d.exercices = brut.exercices;
     if (Array.isArray(brut.outils)) d.outils = brut.outils;
     if (Array.isArray(brut.programmes)) d.programmes = brut.programmes;
+    if (brut.routineRecup && typeof brut.routineRecup === 'object') d.routineRecup = brut.routineRecup;
     if (Array.isArray(brut.seances)) d.seances = brut.seances;
     if (brut.reglages && typeof brut.reglages === 'object') {
       d.reglages.theme = ['auto', 'clair', 'sombre'].indexOf(brut.reglages.theme) >= 0

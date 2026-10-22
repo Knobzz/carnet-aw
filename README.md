@@ -119,6 +119,7 @@ js/
                            champ multi-valeurs, chronomètre
   panneau.js               panneau plein écran + fiche d'un exercice
   vue-seance.js            la séance en cours
+  vue-recup.js             la routine de récupération, à cocher chaque jour
   vue-programmes.js        composition des programmes
   vue-sparring.js          formulaire de sparring
   vue-journal.js           journal daté, muscu et sparring mêlés
@@ -136,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **279 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **337 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -147,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **208 contrôles, 18 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **71 contrôles, 6 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **233 contrôles, 19 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **104 contrôles, 8 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -161,18 +162,19 @@ le volume (fait vs prévu, charge non chiffrée, saisie incomplète) · l'indép
 programme/séance · les douleurs et leur compatibilité descendante · structures et fenêtre
 72 h · la durée déduite · l'historique · la fusion à l'import · le chrono persistant · les
 catalogues vides au départ · ce que l'autocomplétion montre vraiment · les six
-mouvements · **la durée par série, le temps sous tension et les colonnes choisies** ·
-**la migration d'un carnet d'avant**.
+mouvements · la durée par série, le temps sous tension et les colonnes choisies ·
+la migration d'un carnet d'avant · **la récupération quotidienne et sa régularité**.
 
 Ce que mesure l'**interface**, et que le modèle ne peut pas voir : des rectangles réels et
 du style calculé, dans un iframe de **320 px** — la largeur la plus dure. Le chronomètre
 sort-il entièrement de l'écran, et laisse-t-il la barre d'onglets atteignable · la fiche
 d'exercice affiche-t-elle ce qu'elle doit, et plus ce qu'elle ne doit plus · 44 px sur
 chaque puce et chaque bouton · aucun débordement horizontal · la suggestion la plus récente
-est-elle lisible sans rien taper · **une ligne de série à trois champs reste-t-elle
-saisissable**.
+est-elle lisible sans rien taper · une ligne de série à trois champs reste-t-elle
+saisissable · **six onglets tiennent-ils dans la barre** · **une journée de récupération
+vide reste-t-elle hors du journal**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Sept blocs ont été vus rougir, en
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Neuf blocs ont été vus rougir, en
 réintroduisant volontairement le défaut qu'ils surveillent :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -184,6 +186,8 @@ réintroduisant volontairement le défaut qu'ils surveillent :
 | chrono caché par `translateY(140%)` | `haut mesuré à 679 px pour un écran de 720` — 41 px de fantôme, et la barre d'onglets injoignable |
 | volume lisant les champs masqués | `une durée saisie puis masquée ne compte plus — attendu 0, obtenu 30` |
 | migration laissant les secondes dans REPS | `les secondes sont maintenant comptées — attendu 65, obtenu 0` — 4 contrôles rouges |
+| journée de récup vide gardée au journal | `vidée de tout, la journée ressort du journal — attendu 0, obtenu 1` |
+| ✓ coché indistinct en récupération | `le ✓ coché ne se confond pas avec un ✓ qui ne l'est pas — attendu true, obtenu false` |
 
 Le quatrième mérite une mention : le correctif a d'abord été écrit avec un horodatage lu à
 l'horloge, et **le banc l'a fait tomber** — huit outils posés d'un même geste tombent dans
@@ -205,8 +209,9 @@ leur libellé dit pourquoi.
    écrivent dans le modèle, rafraîchissent trois `textContent` de totaux, et s'arrêtent
    là. Ajouter, retirer ou déplacer une série insère / retire / déplace **un** nœud.
    Vérifié : focus et position du curseur conservés sur quatre frappes consécutives.
-2. **Rien en dur.** Aucun programme, aucun exercice, aucun outil livré. Les trois
-   catalogues (exercices, outils, catégories) n'existent que par ce qui a été saisi.
+2. **Rien en dur.** Aucun programme, aucun exercice, aucun outil livré, et pas davantage
+   de routine de récupération. Les trois catalogues (exercices, outils, catégories)
+   n'existent que par ce qui a été saisi.
    Seule exception, explicite et volontaire : un bouton « Ajouter mon matériel » dans
    Réglages, qui n'écrit rien tant qu'on ne l'a pas touché.
 3. **Ni `confirm()` ni `alert()`.** Deux formes : le bouton qui s'arme et se désarme

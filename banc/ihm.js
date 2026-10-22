@@ -36,13 +36,34 @@
      enregistrerait un service worker qui resservirait ensuite ses copies — le
      faux vert déjà rencontré sur le banc de modèle. Les quatre fichiers
      chargés le sont avec un horodatage, pour la même raison. */
+  /* Les libellés des onglets sont lus DANS js/app.js, pas recopiés ici : une
+     copie resterait verte le jour où un onglet s'allonge, et c'est justement
+     ce qu'on veut mesurer — six onglets à 320 px, chacun ne dispose que de
+     53 px. */
+  var onglets = [];
+
+  function lireOnglets() {
+    return fetch('../js/app.js?t=' + Date.now())
+      .then(function (r) { return r.text(); })
+      .then(function (src) {
+        var bloc = src.match(/var ONGLETS = \[([\s\S]*?)\n {2}\];/);
+        var noms = [];
+        if (bloc) {
+          bloc[1].replace(/nom:\s*'([^']*)'/g, function (tout, n) { noms.push(n); return tout; });
+        }
+        onglets = noms;
+        return noms;
+      })
+      .catch(function () { onglets = []; return []; });
+  }
+
   function hote() {
     var t = '?t=' + Date.now();
     var s = function (f) { return '<scr' + 'ipt src="../js/' + f + t + '"></scr' + 'ipt>'; };
-    var onglets = '';
-    ['Séance', 'Programmes', 'Journal', 'Suivi', 'Réglages'].forEach(function (n) {
-      onglets += '<button class="onglet" role="tab" aria-selected="false" aria-label="' + n
-               + '"><span>' + n + '</span></button>';
+    var barre = '';
+    onglets.forEach(function (n) {
+      barre += '<button class="onglet" role="tab" aria-selected="false" aria-label="' + n
+             + '"><span>' + n + '</span></button>';
     });
     return '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">'
       + '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
@@ -57,13 +78,18 @@
       + '<div class="item-resume">Elle doit rester atteignable quand le repos est terminé.</div>'
       + '</div></div>'
       + '</main></div>'
-      + '<nav class="onglets" role="tablist" aria-label="Sections">' + onglets + '</nav>'
+      + '<nav class="onglets" role="tablist" aria-label="Sections">' + barre + '</nav>'
       + s('store.js') + s('model.js') + s('ui.js') + s('panneau.js')
       + s('vue-exercice.js') + s('vue-suivi.js') + s('vue-seance.js')
+      + s('vue-programmes.js') + s('vue-recup.js')
       + '</body></html>';
   }
 
   function ouvrirHote() {
+    return lireOnglets().then(monterHote);
+  }
+
+  function monterHote() {
     return new Promise(function (resolve, rejette) {
       var cadre = document.createElement('iframe');
       cadre.width = LARGEUR;
@@ -87,7 +113,8 @@
         (function prêt() {
           if (fini) return;
           if (fen.App && fen.App.ui && fen.App.panneau && fen.App.m && fen.App.store
-              && fen.App.vues && fen.App.vues.suivi && fen.App.vues.seance) {
+              && fen.App.vues && fen.App.vues.suivi && fen.App.vues.seance
+              && fen.App.vues.recup && fen.App.vues.programmes) {
             fini = true;
             clearTimeout(limite);
             resolve({ cadre: cadre, fen: fen, doc: fen.document });
@@ -461,6 +488,161 @@
       e.seances = [];
       return attendre(20);
     });
+  });
+
+  /* ================================================================
+     8. L'onglet Récupération
+
+     Ce qui compte ici est le FROTTEMENT : une routine déjà prête, un appui
+     par ligne. Et une règle qu'on ne voit pas en regardant l'écran — une
+     journée n'entre dans le journal qu'une fois quelque chose coché, sinon
+     elle dirait qu'on l'a faite.
+     ================================================================ */
+
+  bloc('Récupération', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+    e.routineRecup = null;
+
+    /* --- rien de défini --- */
+    fen.App.vues.recup.rendre(vue);
+    v.vrai(!!doc.querySelector('button'), 'l’écran vide propose un bouton');
+    v.vrai(doc.body.textContent.indexOf('Définir ma routine') >= 0,
+           'et il invite à définir la routine');
+    v.egal(doc.querySelectorAll('.recup-exo').length, 0, 'aucune ligne à cocher');
+
+    /* --- une routine de deux exercices --- */
+    var routine = fen.App.m.routineRecupVierge();
+    routine.exercices = [
+      fen.App.m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
+                                    colonnes: ['reps'], series: [{ repsCible: '30' }] }),
+      fen.App.m.exerciceProgramme({ nom: 'Pronation lente', typeCharge: 'elastique',
+                                    colonnes: ['reps', 'duree'],
+                                    series: [{ repsCible: '20', dureeCible: '60' }] })
+    ];
+    e.routineRecup = routine;
+    fen.App.vues.recup.rendre(vue);
+
+    var exos = doc.querySelectorAll('.recup-exo');
+    v.egal(exos.length, 2, 'la routine se présente déjà prête : une ligne par exercice');
+    v.egal(e.seances.length, 0,
+           'et RIEN n’est encore enregistré — une journée vide dirait qu’on l’a faite');
+
+    var lignes = doc.querySelectorAll('.recup-ligne');
+    v.egal(lignes[0].dataset.cols, '1', 'un exercice à une colonne n’a qu’un champ');
+    v.egal(lignes[1].dataset.cols, '2', 'un autre en a deux');
+    v.egal(lignes[0].querySelectorAll('.serie-saisie').length, 1, '[temoin] et c’est bien le cas');
+    v.egal(lignes[1].querySelectorAll('.serie-saisie').length, 2, '[temoin] pour l’autre aussi');
+
+    var champ0 = lignes[0].querySelector('.serie-saisie');
+    v.egal(champ0.placeholder, '30', 'la cible de la routine est le placeholder');
+    v.egal(champ0.value, '', 'rien n’est pré-saisi : on voit ce qu’on a corrigé');
+    v.vrai(champ0.getBoundingClientRect().width >= 150,
+           'le champ est large, il n’y a pas de colonne PRÉCÉDENT à loger ('
+         + Math.round(champ0.getBoundingClientRect().width) + ' px)');
+
+    var ok0 = exos[0].querySelector('.serie-ok');
+    var r0 = ok0.getBoundingClientRect();
+    v.vrai(r0.width >= 44 && r0.height >= 44, 'le ✓ fait au moins 44 px');
+
+    /* --- cocher --- */
+    ok0.click();
+    v.egal(e.seances.length, 1, 'le premier ✓ fait entrer la journée dans le journal');
+    v.egal(e.seances[0].type, 'recup', 'avec son type');
+    v.egal(e.seances[0].exercices[0].series[0].repsReel, '30',
+           'cocher sans rien saisir fige la cible : « fait comme prévu »');
+    v.egal(ok0.getAttribute('aria-pressed'), 'true', 'le ✓ se marque');
+    v.vrai(exos[0].classList.contains('faite'), 'et la ligne aussi');
+    v.vrai(fen.getComputedStyle(ok0).backgroundColor !== fen.getComputedStyle(
+             exos[1].querySelector('.serie-ok')).backgroundColor,
+           'le ✓ coché ne se confond pas avec un ✓ qui ne l’est pas');
+
+    /* --- décocher : la journée ressort --- */
+    ok0.click();
+    v.egal(e.seances.length, 1,
+           'décocher ne retire pas la journée tant qu’une valeur y reste saisie');
+    champ0.value = '';
+    champ0.dispatchEvent(new fen.Event('input', { bubbles: true }));
+    v.egal(e.seances.length, 0,
+           'vidée de tout, la journée ressort du journal plutôt que d’y rester vide');
+
+    /* --- tout cocher --- */
+    var btTout = null;
+    Array.prototype.forEach.call(doc.querySelectorAll('button'), function (b) {
+      if (b.textContent.indexOf('Tout marquer fait') >= 0) btTout = b;
+    });
+    v.vrai(!!btTout, 'un bouton coche toute la routine d’un geste');
+    btTout.click();
+    v.egal(fen.App.m.compteRecup(fen.App.store.etat().seances[0]).faits, 2,
+           'et il coche bien les deux');
+    var apres = null;
+    Array.prototype.forEach.call(doc.querySelectorAll('button'), function (b) {
+      if (b.textContent.indexOf('Tout décocher') >= 0) apres = b;
+    });
+    v.vrai(!!apres, 'son libellé devient « Tout décocher » une fois tout fait');
+
+    v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
+           'et l’écran ne déborde pas à 320 px (débord : '
+         + (doc.documentElement.scrollWidth - LARGEUR) + ' px)');
+
+    fen.App.ui.vider(vue);
+    e.seances = [];
+    e.routineRecup = null;
+    return attendre(20);
+  });
+
+  /* ================================================================
+     7. La barre d'onglets à 320 px
+
+     Un sixième onglet — Récupération — ne laisse plus que 53 px par case.
+     « Programmes » est le libellé le plus long : s'il ne tient pas, il se
+     coupe en deux lignes et décale toute la barre.
+     ================================================================ */
+
+  bloc('Barre d’onglets à 320 px', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+
+    v.vrai(onglets.length > 0,
+           'les libellés ont été lus dans js/app.js, pas recopiés dans le banc');
+    v.egal(onglets.length, 6, 'six onglets');
+    v.vrai(onglets.indexOf('Récup') >= 0, 'dont Récupération');
+
+    var cases = doc.querySelectorAll('.onglet');
+    v.egal(cases.length, onglets.length, '[temoin] l’hôte en a bâti autant');
+
+    /* La barre est en position fixe, left:0 right:0 : sa largeur reste celle
+       de l'écran quoi qu'il arrive, et le document ne défile pas non plus.
+       Mesurer l'une ou l'autre ne prouverait donc RIEN — un libellé trop long
+       déborde en silence. Ce qui parle, c'est le bord de chaque case : les
+       colonnes d'une grille `1fr` ne descendent pas sous leur contenu, donc
+       un libellé trop long pousse les suivantes hors de l'écran. */
+    var dehors = [], etroits = [], bas = [];
+    var sommeCases = 0;
+    Array.prototype.forEach.call(cases, function (o) {
+      var sp = o.querySelector('span');
+      var r = o.getBoundingClientRect();
+      sommeCases += r.width;
+      if (r.right > LARGEUR + 0.5 || r.left < -0.5) {
+        dehors.push(sp.textContent + ' (jusqu’à ' + Math.round(r.right) + ' px)');
+      }
+      /* Une ligne de texte fait ~15 px ici : au-delà, le libellé est passé
+         sur deux lignes et toute la barre s'est décalée. */
+      if (sp.getBoundingClientRect().height > 20) etroits.push(sp.textContent);
+      if (r.height < 44) bas.push(sp.textContent + ' (' + Math.round(r.height) + ' px)');
+    });
+
+    v.egal(dehors.length, 0,
+           'aucun onglet ne sort de l’écran (fautifs : ' + (dehors.join(', ') || 'aucun') + ')');
+    v.vrai(sommeCases <= LARGEUR + 1,
+           'les six cases tiennent dans les ' + LARGEUR + ' px (somme mesurée : '
+         + Math.round(sommeCases) + ' px)');
+    v.egal(etroits.length, 0,
+           'aucun libellé ne passe sur deux lignes (fautifs : ' + (etroits.join(', ') || 'aucun') + ')');
+    v.egal(bas.length, 0,
+           'chaque onglet garde 44 px de haut (fautifs : ' + (bas.join(', ') || 'aucun') + ')');
+    return Promise.resolve();
   });
 
   /* ================================================================

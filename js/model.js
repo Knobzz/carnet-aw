@@ -465,8 +465,9 @@
 
     (etat.exercices || []).forEach(unExercice);
     (etat.programmes || []).forEach(function (p) { (p.exercices || []).forEach(unExercice); });
+    if (etat.routineRecup) (etat.routineRecup.exercices || []).forEach(unExercice);
     (etat.seances || []).forEach(function (s) {
-      if (s && s.type === 'muscu') (s.exercices || []).forEach(unExercice);
+      if (s && (s.type === 'muscu' || s.type === 'recup')) (s.exercices || []).forEach(unExercice);
     });
     return etat;
   }
@@ -564,6 +565,105 @@
     };
     if (prog) s.exercices = renumeroter(prog.exercices.map(exerciceSeanceDepuisProgramme));
     return s;
+  }
+
+  /* ---------- récupération ----------
+
+     L'élastique quotidien, faible résistance, beaucoup de répétitions. Ce
+     n'est pas une séance de travail et ça n'a rien à faire dans le tonnage :
+     cent répétitions à l'élastique noieraient le compte de séries d'une
+     semaine. C'est une ROUTINE — définie une fois — qu'on coche jour après
+     jour, et ce qu'on veut en lire est la régularité, pas la charge.
+
+     Elle réutilise la forme d'un programme, et sa journée celle d'une séance :
+     ce sont les mêmes exercices, les mêmes colonnes, la même ligne de saisie.
+     Seul `type: 'recup'` la distingue — ce qui suffit au journal pour la ranger
+     et à seancesMuscuTriees() pour l'ignorer, donc au tonnage pour ne pas la
+     voir. */
+
+  function routineRecupVierge() {
+    var p = programme('Ma routine de récupération');
+    p.description = 'Élastique, faible résistance, beaucoup de répétitions. '
+                  + 'À cocher chaque jour.';
+    return p;
+  }
+
+  function seanceRecup(routine) {
+    var s = { id: uid('re'), type: 'recup', date: aujourdHui(),
+              heure: new Date().toISOString(), note: '', douleurs: [], exercices: [] };
+    if (routine) {
+      s.exercices = renumeroter((routine.exercices || []).map(exerciceSeanceDepuisProgramme));
+    }
+    return s;
+  }
+
+  function seancesRecupTriees(etat) {
+    return (etat.seances || []).filter(function (s) { return s && s.type === 'recup'; })
+      .sort(function (a, b) {
+        if (a.date !== b.date) return b.date.localeCompare(a.date);
+        return String(b.heure || '').localeCompare(String(a.heure || ''));
+      });
+  }
+
+  function recupDuJour(etat, date) {
+    date = date || aujourdHui();
+    var l = etat.seances || [];
+    for (var i = 0; i < l.length; i++) {
+      if (l[i] && l[i].type === 'recup' && l[i].date === date) return l[i];
+    }
+    return null;
+  }
+
+  /* Un jour compte comme FAIT des qu'une ligne est validee : une routine a
+     moitie faite reste une journee ou l'on s'y est mis, et c'est ce qui
+     entretient l'habitude. Le detail (3 sur 5) est rendu a part, pour que
+     l'ecran puisse le dire sans avoir a recompter. */
+  function recupFaite(se) {
+    if (!se) return false;
+    return (se.exercices || []).some(function (ex) {
+      return (ex.series || []).some(function (s) { return s.faite; });
+    });
+  }
+
+  function compteRecup(se) {
+    var total = 0, faits = 0;
+    (se && se.exercices || []).forEach(function (ex) {
+      total += 1;
+      if ((ex.series || []).some(function (s) { return s.faite; })) faits += 1;
+    });
+    return { faits: faits, total: total };
+  }
+
+  /* Combien de jours faits sur les N derniers, et depuis combien de jours
+     d'affilee. La serie en cours ne se casse PAS parce qu'aujourd'hui n'est
+     pas encore coche : on la compte depuis hier tant que la journee n'est pas
+     finie — sinon elle afficherait zero chaque matin. */
+  function statsRecup(etat, jours) {
+    jours = jours || 7;
+    var faits = {};
+    seancesRecupTriees(etat).forEach(function (se) {
+      if (recupFaite(se)) faits[se.date] = true;
+    });
+
+    function jourDecale(n) {
+      var d = new Date();
+      d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+
+    var dans = 0;
+    for (var i = 0; i < jours; i++) if (faits[jourDecale(i)]) dans += 1;
+
+    var depart = faits[jourDecale(0)] ? 0 : 1;
+    var serie = 0;
+    for (var j = depart; j < 400; j++) {
+      if (!faits[jourDecale(j)]) break;
+      serie += 1;
+    }
+
+    return { fenetre: jours, joursFaits: dans, serie: serie,
+             aujourdHuiFait: !!faits[jourDecale(0)] };
   }
 
   function seanceSparring() {
@@ -1077,6 +1177,9 @@
     serieProgramme: serieProgramme, exerciceProgramme: exerciceProgramme, programme: programme,
     renumeroter: renumeroter,
     seanceMuscu: seanceMuscu, seanceSparring: seanceSparring,
+    routineRecupVierge: routineRecupVierge, seanceRecup: seanceRecup,
+    seancesRecupTriees: seancesRecupTriees, recupDuJour: recupDuJour,
+    recupFaite: recupFaite, compteRecup: compteRecup, statsRecup: statsRecup,
     exerciceSeanceVierge: exerciceSeanceVierge, serieSeanceVierge: serieSeanceVierge,
     programmeDepuisSeance: programmeDepuisSeance, dupliquerProgramme: dupliquerProgramme,
     volumeSeance: volumeSeance, texteHorsTonnage: texteHorsTonnage,

@@ -781,6 +781,99 @@
   });
 
   /* ================================================================
+     19. La récupération — une régularité, pas une charge
+
+     L'élastique quotidien n'a rien à faire dans le tonnage : cent répétitions
+     à faible résistance noieraient le compte de séries d'une semaine. Ce
+     qu'on veut en lire est « l'ai-je fait », pas « combien ».
+     ================================================================ */
+
+  bloc('Récupération', function (v) {
+    function jour(d, faits) {
+      return { id: 're' + d, type: 'recup', date: d, heure: d + 'T20:00:00.000Z',
+               note: '', douleurs: [],
+               exercices: (faits || []).map(function (f, i) {
+                 return { id: 'x' + d + i, ordre: i, nom: 'Élastique ' + i, slug: 'elastique ' + i,
+                          aw: false, typeCharge: 'elastique', colonnes: ['reps'],
+                          forces: [], structures: [], outils: [], consigne: '', reposSecondes: 0,
+                          series: [{ id: 's' + d + i, type: 'normale', repsCible: '30',
+                                     chargeCible: '', dureeCible: '', repsReel: f ? '30' : '',
+                                     chargeReel: '', dureeReel: '', rpe: null,
+                                     faite: !!f, faiteA: null }] };
+               }) };
+    }
+
+    var e = A.store.vide();
+    e.seances = [jour(jourIlYA(0), [true, true]), jour(jourIlYA(1), [true, false]),
+                 jour(jourIlYA(3), [false, false])];
+
+    v.egal(A.m.seancesRecupTriees(e).length, 3, 'les journées de récupération se retrouvent');
+    v.egal(A.m.seancesRecupTriees(e)[0].date, jourIlYA(0), 'la plus récente d’abord');
+
+    v.vrai(A.m.recupFaite(e.seances[0]), 'une journée dont une ligne est cochée compte comme FAITE');
+    v.vrai(A.m.recupFaite(e.seances[1]),
+           'une routine à moitié faite compte aussi — c’est une journée où l’on s’y est mis');
+    v.vrai(!A.m.recupFaite(e.seances[2]), 'une journée sans rien de coché ne compte pas');
+
+    var c = A.m.compteRecup(e.seances[1]);
+    v.egal(c.faits + '/' + c.total, '1/2', 'le détail dit combien sur combien');
+
+    var s = A.m.statsRecup(e, 7);
+    v.egal(s.joursFaits, 2, 'deux jours faits sur les sept derniers');
+    v.vrai(s.aujourdHuiFait, 'et aujourd’hui en fait partie');
+    v.egal(s.serie, 2, 'deux jours d’affilée : aujourd’hui et hier');
+
+    /* LE point qui compte : rien de tout ça ne doit toucher au tonnage. */
+    var avecMuscu = A.store.vide();
+    avecMuscu.seances = [seance(jourIlYA(1), [exo('Curl', [serie('normale', 20, 10)])]),
+                         jour(jourIlYA(1), [true, true])];
+    v.egal(A.m.seancesMuscuTriees(avecMuscu).length, 1,
+           'une journée de récupération n’est PAS une séance de muscu');
+    v.egal(A.m.volumeParSemaine(avecMuscu, 8)[0].series, 1,
+           'elle n’ajoute aucune série au volume de travail');
+    v.egal(A.m.derniereSollicitation(avecMuscu).length, 1,
+           'et elle n’entre pas dans la dernière sollicitation par exercice');
+    v.egal(A.m.toutesSeancesTriees(avecMuscu).length, 2,
+           '[temoin] mais le journal, lui, les voit toutes les deux');
+
+    /* La série en cours ne doit pas tomber à zéro chaque matin. */
+    var hier = A.store.vide();
+    hier.seances = [jour(jourIlYA(1), [true]), jour(jourIlYA(2), [true])];
+    var s2 = A.m.statsRecup(hier, 7);
+    v.vrai(!s2.aujourdHuiFait, '[temoin] aujourd’hui n’est pas encore coché');
+    v.egal(s2.serie, 2,
+           'la série se compte depuis hier tant que la journée n’est pas finie — '
+         + 'sinon elle afficherait zéro chaque matin');
+
+    /* Un trou casse la série, mais pas le compte de la fenêtre. */
+    var trou = A.store.vide();
+    trou.seances = [jour(jourIlYA(0), [true]), jour(jourIlYA(2), [true]), jour(jourIlYA(3), [true])];
+    var s3 = A.m.statsRecup(trou, 7);
+    v.egal(s3.serie, 1, 'un jour sauté casse la série');
+    v.egal(s3.joursFaits, 3, 'mais les trois jours restent comptés sur la fenêtre');
+
+    /* La journée est une COPIE de la routine, comme une séance l'est d'un
+       programme : modifier la routine ne réécrit pas ce qui est fait. */
+    var routine = A.m.routineRecupVierge();
+    routine.exercices = [A.m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
+                                                 colonnes: ['reps'],
+                                                 series: [{ repsCible: '30' }] })];
+    var j = A.m.seanceRecup(routine);
+    v.egal(j.type, 'recup', 'la journée porte son type');
+    v.egal(j.date, A.m.aujourdHui(), 'et la date du jour');
+    v.egal(j.exercices.length, 1, 'elle reprend les exercices de la routine');
+    v.egal(j.exercices[0].series[0].repsCible, '30', 'avec leurs cibles');
+    v.egal(j.exercices[0].series[0].repsReel, '', 'et rien de saisi');
+
+    routine.exercices[0].nom = 'Autre chose';
+    v.egal(j.exercices[0].nom, 'Extension poignet',
+           'modifier la routine APRÈS coup ne touche pas la journée déjà bâtie');
+
+    v.egal(A.m.recupDuJour({ seances: [j] }).id, j.id, 'la journée du jour se retrouve');
+    v.egal(A.m.recupDuJour({ seances: [] }), null, 'et il n’y en a pas quand il n’y en a pas');
+  });
+
+  /* ================================================================
      13. Les mouvements — six, et la clé de stockage ne bouge pas
      ================================================================ */
 

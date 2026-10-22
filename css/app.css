@@ -176,12 +176,19 @@ a { color: var(--bleu); }
   left: 0; right: 0; bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   background: color-mix(in srgb, var(--fond-2) 94%, transparent);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--trait);
   padding-bottom: env(safe-area-inset-bottom);
 }
+/* Six onglets depuis Récupération. On a d'abord cru devoir retrecir les
+   libelles sous 350 px ; la mesure dit le contraire : les six tiennent a
+   taille normale a 320 px — 259 px de texte et de marges pour 320
+   disponibles. La grille `1fr` laisse d'ailleurs chaque colonne descendre a
+   son contenu, si bien qu'un libelle long emprunte aux autres au lieu de
+   deborder. La regle inutile a ete retiree ; le banc d'interface mesure que
+   rien ne sort de l'ecran ni ne passe sur deux lignes. */
 .onglet {
   appearance: none;
   border: 0;
@@ -198,6 +205,7 @@ a { color: var(--bleu); }
   cursor: pointer;
   position: relative;
 }
+.onglet span { white-space: nowrap; }
 .onglet svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .onglet[aria-selected="true"] { color: var(--bleu); }
 .onglet[aria-selected="true"]::before {
@@ -547,9 +555,14 @@ select.champ { appearance: none; background-image: none; }
   -webkit-tap-highlight-color: transparent;
 }
 .serie-ok svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.serie.faite .serie-ok { background: var(--laiton); border-color: var(--laiton); color: #fff; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="clair"]) .serie.faite .serie-ok { color: #241a06; } }
-:root[data-theme="sombre"] .serie.faite .serie-ok { color: #241a06; }
+.serie.faite .serie-ok,
+.recup-exo.faite .serie-ok { background: var(--laiton); border-color: var(--laiton); color: #fff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) .serie.faite .serie-ok,
+  :root:not([data-theme="clair"]) .recup-exo.faite .serie-ok { color: #241a06; }
+}
+:root[data-theme="sombre"] .serie.faite .serie-ok,
+:root[data-theme="sombre"] .recup-exo.faite .serie-ok { color: #241a06; }
 
 .serie-actions {
   display: flex;
@@ -843,6 +856,51 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   background: var(--fond-2);
 }
 .panneau-pied .bt { flex: 1; }
+
+/* ---------- récupération ----------
+   Pas de colonne PRECEDENT ici : la routine est la meme tous les jours, et ce
+   qu'on veut lire est la regularite, pas la progression. Les champs ont donc
+   toute la largeur, moins le ✓. */
+
+.recup-exo {
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  padding: 9px 10px;
+  margin-bottom: 8px;
+}
+.recup-exo.faite { background: var(--laiton-doux); border-color: var(--laiton); }
+.recup-titre { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 7px; }
+.recup-titre b { font-weight: 600; }
+.recup-exo .consigne { margin: -3px 0 7px; }
+
+.recup-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tap);
+  align-items: center;
+  gap: 6px;
+}
+.recup-ligne[data-cols="2"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--tap); }
+.recup-ligne[data-cols="3"] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+  gap: 5px;
+}
+
+/* Les sept derniers jours, un carre par jour : le trou se voit d'un coup
+   d'oeil, ce qu'un pourcentage ne montre pas. */
+.recup-semaine { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+.recup-jour {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  border-radius: var(--r-s);
+  border: 1px solid var(--trait);
+  background: var(--fond-3);
+  color: var(--texte-3);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.recup-jour.fait { background: var(--laiton-doux); border-color: var(--laiton); color: var(--laiton); }
 
 /* séries planifiées, dans l'éditeur de programme */
 .plan-entete,
