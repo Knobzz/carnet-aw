@@ -72,11 +72,21 @@ LES MIETTES
     éclate en 310 points. On referme donc les hachures (rayon 4, mesuré) avant
     de garder les zones qui pèsent au moins 10 % de la plus grosse.
 
-UNE SEULE PLANCHE NE PORTE AUCUN MARQUAGE
-    grand_pectoral : sa gravure entière est d'une autre teinte, rien n'y est
-    désigné. Elle ne peut pas être recadrée sur un muscle, et n'est pas dans
-    la liste. Le carré pronateur et le coraco-brachial l'ont rejointe un
-    moment, faute d'avoir leur bonne planche — elles sont arrivées depuis.
+UNE PLANCHE SUIT UNE AUTRE CONVENTION
+    grand_pectoral vient d'une autre série, et elle marque son muscle À
+    L'ENVERS des autres : le pectoral est TEINTÉ pendant que le deltoïde
+    derrière lui reste en GRIS. Mesuré sur la planche : 38,8 % de pixels
+    teintés contre 28,1 % de gris.
+
+    Le détecteur ne la lit pas, et c'est une limite DU DÉTECTEUR, pas de la
+    planche. Sa teinte vit entre g/r = 0.22 et 0.38, et son rouge le plus
+    franc est à (96, 17, 0) — rejeté par le seuil `r > 120`. Relâcher ce
+    seuil pour elle ferait passer l'orange des trente-quatre autres pour du
+    marquage : le contrôle `--controle seuil` le montre en une seconde.
+
+    Ce n'est pas grave, et c'est pour ça qu'on s'arrête là : son muscle
+    occupe presque toute l'image, donc elle n'a RIEN à recadrer. Elle est
+    nommée ici pour que les contrôles l'attendent, pas comme un défaut.
 
 L'ARCHIVE AUSSI SE MESURE
     `icones/planches-gray/` porte les sources d'origine, réduites à une
@@ -116,7 +126,7 @@ PART_ZONE = 0.10         # une zone compte si elle pèse ça de la plus grosse
 VISIBLE_MINI = 0.97      # en dessous, la carte coupe le muscle : à recadrer
 LARGEUR_BRACHIAL = 0.55  # part de planche que sa boîte ne doit pas dépasser
 
-SANS_MARQUAGE = ('grand_pectoral',)
+HORS_DETECTEUR = ('grand_pectoral',)
 ARCHIVE = os.path.join(RACINE, 'icones', 'planches-gray')
 
 
@@ -392,11 +402,11 @@ def controles(casser=None):
     #    témoin, c'est un contrôle, et il garde le contrôle 2 honnête : sans
     #    lui, un détecteur qui ne trouve plus rien rendrait tout « visible à
     #    100 % », donc tout hors liste, et le contrôle 2 serait vert.
-    muettes = sorted(c for c, v in visibles.items() if v is None)
-    verifier('%d planches marquées, %d muette(s)'
-             % (len(sources) - len(SANS_MARQUAGE), len(SANS_MARQUAGE)),
-             tuple(muettes) == tuple(sorted(SANS_MARQUAGE)),
-             'muettes : ' + (', '.join(muettes) or 'aucune'))
+    hors = sorted(c for c, v in visibles.items() if v is None)
+    verifier('%d planches lues par le détecteur, %d hors convention'
+             % (len(sources) - len(HORS_DETECTEUR), len(HORS_DETECTEUR)),
+             tuple(hors) == tuple(sorted(HORS_DETECTEUR)),
+             'hors convention : ' + (', '.join(hors) or 'aucune'))
 
     # 8. L'ARCHIVE porte encore son marquage. Une conversion de palette peut
     #    le DETRUIRE sans rien casser d'autre : c'est arrive au carre
@@ -408,7 +418,7 @@ def controles(casser=None):
             if not n.endswith('.png'):
                 continue
             c = n[:-4]
-            if c in ('pectoralis_major', ):     # celle-la n'en a jamais porte
+            if c in ('pectoralis_major', ):     # autre convention, voir l'en-tete
                 continue
             if not marquage(Image.open(os.path.join(ARCHIVE, n))).any():
                 vides.append(c)

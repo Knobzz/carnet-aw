@@ -492,16 +492,28 @@ illustrations réellement consultées.
 > marquage pour 6 ko de plus. Un contrôle relit désormais toute l'archive et exige que
 > chaque source porte encore son marquage.
 
-**Une seule planche n'en porte aucun** : le grand pectoral, dont la gravure vient d'une
-autre série. Le carré pronateur et le coraco-brachial l'ont accompagnée un moment, faute
+Le carré pronateur et le coraco-brachial n'avaient pas de marquage un moment, faute
 d'avoir leur bonne planche ; elles sont arrivées depuis, et leur muscle est désormais
 désigné — la bande distale entre radius et ulna, et le creux de l'aisselle.
 
-Le grand pectoral **reste comme ça, et c'est une décision**, pas un trou en attente : sa
-gravure est lisible, le muscle y occupe presque toute l'image, et le marquage ne lui
-apprendrait rien qu'on ne voie déjà. Inutile donc de « réparer » ce qui suit d'un futur
-passage — `SANS_MARQUAGE` le nomme, le contrôle l'attend, et le compte dit « 34 marquées,
-1 muette » sans que ce soit un échec.
+**Une planche suit une autre convention** : le grand pectoral vient d'une autre série, et
+elle marque son muscle **à l'envers** des autres — le pectoral est teinté pendant que le
+deltoïde derrière lui reste en **gris**. Mesuré : **38,8 %** de pixels teintés contre
+28,1 % de gris.
+
+Le détecteur ne la lit pas, et c'est une limite **du détecteur**, pas de la planche. Sa
+teinte vit entre `g/r = 0.22` et `0.38`, et son rouge le plus franc est à `(96, 17, 0)` —
+rejeté par le seuil `r > 120`. Relâcher ce seuil pour elle ferait passer l'orange des
+trente-quatre autres pour du marquage, et `--controle seuil` le montre en une seconde.
+
+Ce n'est pas grave, et c'est là qu'on s'arrête : **son muscle occupe presque toute
+l'image**, donc elle n'a rien à recadrer. Elle est nommée dans `HORS_DETECTEUR` pour que
+les contrôles l'attendent, pas comme un défaut — inutile de la « réparer » au prochain
+passage.
+
+> Elle a d'abord été décrite ici comme « ne portant aucun marquage ». C'était faux, et
+> c'est en la regardant qu'on l'a vu : le détecteur ne trouvait rien, et j'avais pris
+> ça pour une propriété de la planche au lieu d'une limite de l'outil.
 
 ### Les planches de Gray
 
