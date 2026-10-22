@@ -137,7 +137,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **768 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **765 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -148,8 +148,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **475 contrôles, 25 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **293 contrôles, 15 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **467 contrôles, 25 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **298 contrôles, 15 blocs.**
 
 **Ni l'un ni l'autre ne touche au carnet.** Le banc de modèle travaille sur des états
 fabriqués. Le banc d'interface, lui, fait tourner la **vraie app**, qui écrit : il pose
@@ -182,7 +182,7 @@ dans la barre · **une journée de récupération
 vide reste-t-elle hors du journal · **le nom de l'exercice tient-il dans le chrono** ·
 **le filtre de l'équipement masque-t-il vraiment ce qu'il prétend**.
 
-**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-deux défauts ont été
+**Un contrôle qu'on n'a pas vu tomber ne prouve rien.** Quatre-vingt-trois défauts ont été
 réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 
 | défaut réintroduit | ce que le banc a dit |
@@ -220,6 +220,7 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | `touch-action` oublié sur la zone de glissement | `le geste horizontal nous revient (mesuré : auto)` |
 | les flèches du clavier retirées | `la flèche droite défile aussi — attendu "2 / 6", obtenu "1 / 6"` |
 | l'ordre qui n'est plus celui des barres | `on commence par le muscle le PLUS sollicité` |
+| les douleurs remontées avant les muscles | `« Par structure » et « Douleurs » ferment la marche, dans cet ordre` |
 | un calque reposé sur l'illustration | `rien n'est posé dessus : l'image est le sujet, pas un fond` |
 | l'ancien `extenseurs_poignet` perdu au lieu d'être converti | `il devient les deux — attendu "ecrl,ecrb", obtenu ""` |
 | un muscle sans articulation déclarée | `chaque muscle dit ce qu'il mobilise (muets : Triceps brachial)` |

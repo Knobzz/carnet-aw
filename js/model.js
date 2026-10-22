@@ -317,42 +317,10 @@
      `fichier` est vérifié par le banc contre le dépôt : une planche nommée
      mais absente donnerait une image cassée, et personne ne le verrait
      avant le téléphone. */
-  var PLANCHES = [
-    { id: 'dos',          fichier: 'icones/Gray409.png', numero: 409,
-      nom: 'Dos, plan superficiel' },
-    { id: 'bras_av',      fichier: 'icones/Gray410.png', numero: 410,
-      nom: 'Épaule et bras, face antérieure' },
-    { id: 'thorax_prof',  fichier: 'icones/Gray411.png', numero: 411,
-      nom: 'Thorax, plan profond — le pectoral est écarté' },
-    { id: 'bras_ar',      fichier: 'icones/Gray412.png', numero: 412,
-      nom: 'Épaule et bras, face postérieure' },
-    { id: 'avb_av',       fichier: 'icones/Gray414.png', numero: 414,
-      nom: 'Avant-bras, face antérieure, plan superficiel' },
-    { id: 'avb_av_prof',  fichier: 'icones/Gray415.png', numero: 415,
-      nom: 'Avant-bras, face antérieure, plan profond' },
-    { id: 'avb_ar',       fichier: 'icones/Gray418.png', numero: 418,
-      nom: 'Avant-bras, face postérieure, plan superficiel' },
-    { id: 'avb_ar_prof',  fichier: 'icones/Gray419.png', numero: 419,
-      nom: 'Avant-bras, face postérieure, plan profond' }
-  ];
-
-  /* Il y a eu ici de quoi feuilleter les planches par faces, puis des
-     polygones cliquables posés dessus. Les deux sont partis : chaque muscle
-     a maintenant SON illustration — le membre entier avec lui seul en rouge
-     — et c'est elle qu'on montre. La forme y est juste par construction. */
-
-  function planche(id) {
-    for (var i = 0; i < PLANCHES.length; i++) if (PLANCHES[i].id === id) return PLANCHES[i];
-    return null;
-  }
-
-  /* La planche d'un muscle : celle où il est le mieux visible, et le nom
-     LATIN à y chercher — c'est celui qui est écrit sur la gravure, pas le
-     français. Sans lui on cherche un mot qui n'y est pas. */
-  function plancheDuMuscle(id) {
-    var m = muscle(id);
-    return m ? planche(m.planche) : null;
-  }
+  /* Il y a eu ici les planches generales de l'atlas, avec un schema dessine
+     a la main par-dessus, puis des polygones cliquables. Les deux ont echoue
+     a suivre les contours reels, et les planches ne servaient plus que de
+     repli. Elles sont parties avec : chaque muscle a SON image. */
 
   /* L'illustration d'UN muscle : le membre entier, avec celui-là en rouge.
 
@@ -360,10 +328,9 @@
      ici la forme est juste par construction, puisque c'est la planche
      elle-meme qui porte la teinte. Les vingt-deux en ont une.
 
-     Le repli sur la planche generale reste code : il a servi pour le
-     pectoral, le dorsal et le triceps avant qu'ils n'arrivent, et il
-     resservira si un muscle est ajoute au carnet avant son image. Le banc
-     verifie que chaque fichier annonce existe vraiment. */
+     Le banc verifie que chaque fichier annonce existe vraiment, et qu'il
+     n'en manque aucun : un muscle ajoute au carnet sans son image serait un
+     nom sans visage. */
   function imageDuMuscle(id) {
     var m = muscle(id);
     return (m && m.image) || null;
@@ -2201,7 +2168,6 @@
     MUSCLES: MUSCLES, REGIONS_MUSCLE: REGIONS_MUSCLE,
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
     muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
-    PLANCHES: PLANCHES, planche: planche, plancheDuMuscle: plancheDuMuscle,
     imageDuMuscle: imageDuMuscle, musclesSansImage: musclesSansImage,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,

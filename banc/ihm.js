@@ -758,6 +758,27 @@
       v.vrai(!!carte, 'la carte est dessinée');
       if (!carte) return;
 
+      /* --- l'ordre des sections ---
+         Ce qui appelle une décision d'abord ; les recoupements à la fin.
+         Un ordre d'écran est une décision, pas un hasard du code. */
+      var titres = Array.prototype.map.call(vue.querySelectorAll('.sous-titre'),
+        function (n) { return n.textContent; });
+      function rang(mot) {
+        for (var i = 0; i < titres.length; i++) if (titres[i].indexOf(mot) >= 0) return i;
+        return -1;
+      }
+      v.vrai(rang('Dernière sollicitation') >= 0 && rang('Par structure') >= 0,
+             '[temoin] les deux sections repères sont là');
+      v.vrai(rang('Dernière sollicitation') < rang('Volume'),
+             '« Dernière sollicitation » vient avant le volume');
+      v.vrai(rang('Volume') < rang('Muscles'), 'le volume avant les muscles');
+      v.vrai(rang('Muscles') < rang('Par structure'),
+             'et les muscles avant « Par structure »');
+      v.vrai(rang('Par structure') < rang('Douleur'),
+             '« Par structure » et « Douleurs » ferment la marche, dans cet ordre');
+      v.egal(titres.length - 1, rang('Douleur'),
+             'les douleurs sont la DERNIÈRE section (' + titres.length + ' sections)');
+
       /* --- l'illustration, et le glissement du doigt ---
          Chaque muscle a la sienne : le membre entier, lui seul en rouge.
          On les fait défiler au doigt, dans l'ordre des barres. */

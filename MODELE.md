@@ -407,8 +407,15 @@ Deux gestes sur la même zone, donc, et il faut les distinguer :
 La vignette est plafonnée en hauteur : un avant-bras fait 420 × 1283, à pleine largeur il
 mange l'écran et on ne voit plus les barres.
 
+**Recadrées sur le rouge.** Plusieurs images noyaient le muscle dans une vue du thorax —
+le biceps était un filet rouge dans une cage thoracique. Chaque image est donc **recadrée
+sur sa zone rouge**, automatiquement : le marquage est exactement `(255, 0, 0)` quand
+l'orange de la gravure a toujours du vert, donc les deux se séparent proprement. Les
+centiles 2–98 servent de cadre pour que trois pixels égarés ne le fassent pas exploser, et
+un garde-fou empêche les lamelles illisibles (jamais plus haut que 3,2 fois la largeur).
+
 **Poids.** Les fichiers d'origine pesaient 12,9 Mo pour 32 images — jusqu'à 740 ko pièce,
-en RGBA. Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles font 3,5 Mo au
+en RGBA. Recomposées sur blanc et réduites à 32 couleurs sans tramage, elles font **752 ko** au
 total et sont **indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des
 photos. Elles ne sont pas pré-chargées ; le service worker les met en cache à la première
 consultation.

@@ -442,12 +442,8 @@
         rang = ((i % classes.length) + classes.length) % classes.length;
         var m = classes[rang];
         var n = c.parMuscle[m.id] || 0;
-        var img = A.m.imageDuMuscle(m.id);
-        var pl = A.m.plancheDuMuscle(m.id);
-        vignette.setAttribute('src', img || pl.fichier);
-        vignette.setAttribute('alt', img
-          ? m.nom + ', teinté en rouge sur le membre supérieur'
-          : 'Planche de Gray : ' + pl.nom);
+        vignette.setAttribute('src', A.m.imageDuMuscle(m.id));
+        vignette.setAttribute('alt', m.nom + ', teinté en rouge sur le membre supérieur');
         cadre.setAttribute('aria-label', m.nom + ', ' + n + ' séries — voir en grand');
         compteur.textContent = (rang + 1) + ' / ' + classes.length;
         A.ui.vider(titre);
@@ -766,15 +762,21 @@
     btHisto.addEventListener('click', function () { A.vues.exercice.choisir(); });
     hote.appendChild(btHisto);
 
+    /* L'ordre répond à « qu'est-ce que je regarde en ouvrant l'onglet ».
+       D'abord ce qui appelle une décision aujourd'hui — la question du
+       lendemain, puis la dernière sollicitation par exercice. Ensuite ce
+       qu'on travaille : volume, mouvements, muscles. Les structures et les
+       douleurs ferment la marche : ce sont des recoupements, qu'on va
+       chercher quand quelque chose fait mal, pas tous les jours. */
     hote.appendChild(blocVingtQuatre(e, function () { rendre(hote); }));
     hote.appendChild(blocSollicitation(e));
-    hote.appendChild(blocStructures(e));
-    hote.appendChild(blocDouleurs(e));
-    hote.appendChild(blocPentes(e));
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocRecup(e));
     hote.appendChild(blocForces(e));
     hote.appendChild(blocMuscles(e));
+    hote.appendChild(blocPentes(e));
+    hote.appendChild(blocStructures(e));
+    hote.appendChild(blocDouleurs(e));
   }
 
   A.vues = A.vues || {};

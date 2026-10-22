@@ -74,25 +74,19 @@
      ------------------------------------------------------------------ */
   function voirPlanche(idMuscle) {
     var m = A.m.muscle(idMuscle);
-    var pl = A.m.plancheDuMuscle(idMuscle);
     var img = A.m.imageDuMuscle(idMuscle);
-    if (!m || !pl) return;
+    if (!m || !img) return;
     return ouvrirPanneau(m.nom, function (c) {
       c.appendChild(h('div', { class: 'item-resume', style: 'margin-bottom:2px' },
         h('b', { text: m.latin }),
-        h('span', { text: img ? ' — en rouge sur le membre.'
-                              : ' — c’est le nom écrit sur la gravure.' })));
-      c.appendChild(h('div', { class: 'item-resume',
-                               text: img ? 'Membre supérieur, ce muscle seul teinté.'
-                                         : pl.nom }));
+        h('span', { text: ' — en rouge sur le membre.' })));
 
-      /* L'illustration du muscle quand elle existe : le membre entier, avec
-         celui-là en rouge. C'est exactement ce que le découpage essayait de
-         fabriquer — ici la forme est juste par construction. Sinon, la
-         planche générale : il y est, nommé en latin, à chercher. */
-      c.appendChild(h('img', { class: 'planche', src: img || pl.fichier,
-        alt: img ? m.nom + ', teinté en rouge sur le membre supérieur'
-                 : 'Planche de Gray numéro ' + pl.numero + ' : ' + pl.nom }));
+      /* L'illustration du muscle : le membre entier, avec celui-là en rouge.
+         C'est ce que le découpage essayait de fabriquer sans y arriver — ici
+         la forme est juste par construction, puisque c'est la planche
+         elle-même qui porte la teinte. */
+      c.appendChild(h('img', { class: 'planche', src: img,
+        alt: m.nom + ', teinté en rouge sur le membre supérieur' }));
 
       c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px' },
         h('span', { text: m.quoi.charAt(0).toUpperCase() + m.quoi.slice(1) + '. ' }),
@@ -102,8 +96,7 @@
           text: 'Dit aussi « ' + m.aussi +' » sur les planches françaises.' }));
       }
       c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px;opacity:.75',
-        text: 'Henry Gray, Anatomy of the Human Body, 1918'
-            + (img ? '' : ' — planche ' + pl.numero) + '. Domaine public.' }));
+        text: 'Henry Gray, Anatomy of the Human Body, 1918. Domaine public.' }));
     }, [{ nom: 'Fermer', classe: 'bt-plein', action: function (f) { f(); } }]);
   }
 
