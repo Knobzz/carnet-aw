@@ -496,10 +496,15 @@ Les noms des muscles ne parlent pas à qui ne les a pas appris, et **une case qu
 pas cocher reste vide** — exactement le défaut que les trois sources de proposition
 essayaient déjà de contourner. Mais tout le monde sait dire **où ça tire**.
 
-Douze **zones ressenties**, en mots de tous les jours : « le dessus de l'avant-bras — la
-face poilue, dans le prolongement du dos de la main », « le bord du petit doigt », « la
-main qui serre ». Chacune désigne les muscles qui y travaillent. Ce n'est pas une opinion :
-c'est de l'anatomie de description, la même que celle des planches.
+Douze **zones ressenties** : « le dessus de l'avant-bras — côté dos de la main, le wrist
+curl inversé », « plier le coude — le curl, sous toutes ses formes », « la main qui
+serre ». Chacune désigne les muscles qui y travaillent. Ce n'est pas une opinion : c'est de
+l'anatomie de description, la même que celle des planches.
+
+L'explication **situe sans jargon et sans condescendance**, et nomme l'exercice courant
+quand il y en a un. La première version disait « la face poilue » : c'était parler à
+quelqu'un comme à un enfant, ça a été relevé comme tel, et le banc tient maintenant le
+choix. Ne pas connaître le vocabulaire d'une discipline n'est pas ne rien comprendre.
 
 Trois décisions tenues par des contrôles :
 
@@ -508,6 +513,38 @@ Trois décisions tenues par des contrôles :
 - **Tout muscle doit être atteignable par ce chemin.** Un muscle qu'aucune zone ne nomme
   resterait réservé à qui connaît déjà les termes — le banc le vérifie sur les 22.
 - **Le bloc est replié par défaut.** Qui connaît les noms n'a rien à lire.
+
+### Les régions de muscles se replient
+
+Vingt-deux muscles d'affilée font un mur : on ne voit plus ce qu'on a coché, et le reste de
+la fiche part sous l'écran. Chaque région se replie donc, comme les catégories de
+l'équipement — mêmes classes, même chevron.
+
+Une région qui **porte déjà un muscle coché s'ouvre**, sinon il faudrait rouvrir six blocs
+pour vérifier. Le **compte reste visible fermé** (`2 / 4`), pour n'avoir justement pas à
+ouvrir. Le banc mesure que les 22 muscles tiennent alors en moins de 400 px.
+
+### Un mouvement coche ses muscles
+
+Cocher « Cupping » coche directement les muscles du cupping. C'est le geste, et il n'en
+faut pas un second — le bouton de proposition reste pour le nom, la prise et le réglage.
+
+**Le décocher ne les retire pas.** Plusieurs mouvements partagent des muscles ; un retrait
+effacerait ce qu'un autre avait posé. Même raisonnement que les zones ressenties.
+
+Le message qui suit dit **la source**, qui n'est pas la même pour tous : cupping, pronation
+et supination sont des actions articulaires ; rising, back et side pressure viennent d'une
+seule étude EMG et restent **à vérifier**.
+
+### L'ordre de la fiche
+
+Ce qui décrit l'exercice d'abord ; **« Structures chargées » en dernier** des groupes
+d'anatomie. Elles ne décrivent pas le travail mais ce qui **encaisse** — le vocabulaire de
+la douleur — et servent au recoupement dans Suivi. C'est utile et c'est rare : ça ne doit
+pas être le troisième écran qu'on traverse.
+
+Aucune aide sous ce groupe : elle a été retirée sur demande. Elle a été **remise ici même**
+« pour expliquer », et c'est le contrôle du banc qui l'a arrêtée.
 
 Il est au même endroit dans la fiche d'exercice et dans la fiche d'un réglage d'outil :
 c'est le même problème aux deux endroits.
@@ -518,6 +555,19 @@ Un réglage peut porter des muscles, et c'est tout son intérêt : **c'est l'uti
 sait ce que SON matériel sollicite**, et le carnet le lui propose ensuite au lieu de le
 lui redemander. `musclesProposes()` prend donc un quatrième argument, et la source
 s'appelle `reglage` — le bouton le dit, comme pour les trois autres.
+
+### Quand il n'y a rien à régler
+
+Le groupe se montre dès qu'il y a **un outil**, même si aucun n'a de réglage, et dit
+pourquoi la rangée est vide. La version d'avant se cachait en silence : impossible de
+distinguer « cet outil n'en a pas » de « la fonction ne marche pas ». La question est
+remontée d'un vrai téléphone et a coûté un aller-retour. Une ligne grise coûte moins.
+
+**La panne silencieuse de ce dessin** : les réglages sont rangés par nom d'outil, donc
+« Titan Grip Iron Wrist 60 mm » et « …60mm » sont deux outils, et une espace suffit à
+déclarer un réglage sur l'un pendant que l'exercice porte l'autre. L'app **ne les fusionne
+pas** — renommer du matériel dans le dos de qui l'a saisi serait pire — mais `outilProche()`
+repère l'entrée voisine et le dit : « Pas de réglage — mais « X » en a. »
 
 ### Ce qui se voit
 

@@ -660,8 +660,33 @@
     function rendreGroupe(region) {
       var dedans = A.m.MUSCLES.filter(function (m) { return m.groupe === region.id; });
       if (!dedans.length) return;
-      boite.appendChild(h('div', { class: 'muscle-region', text: region.nom }));
+
+      /* Vingt-deux muscles d'affilée font un mur : on ne voit plus ce qu'on a
+         coché, et le reste de la fiche part sous l'écran. Chaque région se
+         replie donc, comme les catégories de l'équipement.
+
+         Une région qui PORTE déjà un muscle coché s'ouvre : sinon on
+         rouvrirait six blocs pour vérifier ce qui est dedans. Le compte reste
+         visible fermé, pour n'avoir justement pas à ouvrir. */
+      var compte = h('span', { class: 'equip-compte' });
+      var chevron = h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '▾' });
+      var entete = h('button', { type: 'button', class: 'equip-cat',
+                                 'aria-expanded': 'false' },
+        h('b', { text: region.nom }), compte, chevron);
       var liste = h('div', { class: 'muscle-liste' });
+
+      function majCompte() {
+        var n = 0;
+        dedans.forEach(function (m) { if (sel.indexOf(m.id) >= 0) n += 1; });
+        compte.textContent = n ? n + ' / ' + dedans.length : dedans.length;
+      }
+      function ouvrir(oui) {
+        entete.setAttribute('aria-expanded', oui ? 'true' : 'false');
+        liste.hidden = !oui;
+      }
+      entete.addEventListener('click', function () {
+        ouvrir(entete.getAttribute('aria-expanded') !== 'true');
+      });
       dedans.forEach(function (m) {
         var b = h('button', { type: 'button', class: 'muscle-ligne',
                               'aria-pressed': sel.indexOf(m.id) >= 0 ? 'true' : 'false' },
@@ -686,11 +711,15 @@
           var i = sel.indexOf(m.id);
           if (i >= 0) sel.splice(i, 1); else sel.push(m.id);
           b.setAttribute('aria-pressed', i >= 0 ? 'false' : 'true');
+          majCompte();
           onChange(A.m.muscles({ muscles: sel }));
         });
         liste.appendChild(b);
       });
-      boite.appendChild(liste);
+
+      majCompte();
+      ouvrir(dedans.some(function (m) { return sel.indexOf(m.id) >= 0; }));
+      boite.appendChild(h('div', { class: 'equip-bloc muscle-bloc' }, entete, liste));
     }
 
     A.m.REGIONS_MUSCLE.forEach(rendreGroupe);
@@ -707,7 +736,11 @@
         var i = sel.indexOf(f.id);
         if (i >= 0) sel.splice(i, 1); else sel.push(f.id);
         b.setAttribute('aria-pressed', i >= 0 ? 'false' : 'true');
-        onChange(sel.slice());
+        /* On dit AUSSI lequel vient de changer, et dans quel sens : cocher un
+           mouvement coche les muscles qu'il fait travailler, et le décocher ne
+           les retire pas. Sans ces deux informations, l'appelant devrait
+           comparer deux listes pour deviner ce qui s'est passé. */
+        onChange(sel.slice(), f.id, i < 0);
       });
       boite.appendChild(b);
     });

@@ -418,17 +418,36 @@
          au catalogue. Montrer une rangée vide à tous ceux qui n'en ont pas
          serait une case de plus à ignorer. */
       var boiteReglages = h('div');
-      var grReglages = A.ui.groupe('Réglage de l’outil', boiteReglages,
-        'Déclare-les sur l’outil, dans Réglages → Mon équipement.');
+      var grReglages = A.ui.groupe('Réglage de l’outil', boiteReglages);
       function rafraichirReglages() {
         A.ui.vider(boiteReglages);
-        var rien = true;
+        /* Le groupe se montre dès qu'il y a UN outil, même si aucun n'a de
+           réglage. La version d'avant se cachait en silence, et on ne
+           pouvait pas distinguer « cet outil n'a pas de réglage » de « la
+           fonction ne marche pas » — c'est exactement la question qui est
+           remontée du téléphone. Une ligne grise coûte moins qu'un
+           aller-retour. */
+        var aucunOutil = !(exo.outils || []).length;
         (exo.outils || []).forEach(function (nomOutil) {
           var l = A.m.reglagesOutil(etat(), nomOutil);
-          if (!l.length) return;
-          rien = false;
           boiteReglages.appendChild(h('div', { class: 'item-resume',
                                                style: 'margin-top:6px', text: nomOutil }));
+          if (!l.length) {
+            /* La panne silencieuse de ce dessin : les réglages sont rangés
+               par nom d'outil, donc « Titan Grip … 60 mm » et « …60mm » sont
+               deux outils. L'app ne les fusionne pas — renommer du matériel
+               dans le dos de qui l'a saisi serait pire — mais elle le DIT. */
+            var proche = A.m.outilProche(etat(), nomOutil);
+            boiteReglages.appendChild(h('div', { class: 'item-resume',
+              style: 'margin:-2px 0 0;opacity:.8',
+              text: proche
+                ? 'Pas de réglage — mais « ' + proche.nom + ' » en a. '
+                  + 'Deux outils très proches dans ton équipement : c’est celui-là '
+                  + 'que tu voulais ?'
+                : 'Pas encore de réglage. Déclare-les sur l’outil, '
+                  + 'dans Réglages → Équipement.' }));
+            return;
+          }
           var rangee = h('div', { class: 'puces' });
           var puces = [];
           function majPuces() {
@@ -454,7 +473,7 @@
           majPuces();
           boiteReglages.appendChild(rangee);
         });
-        grReglages.hidden = rien;
+        grReglages.hidden = aucunOutil;
       }
 
       rafraichirOutils();
@@ -483,31 +502,48 @@
       c.appendChild(grOutils);
       c.appendChild(grReglages);
 
-      /* Les structures chargees. Memes identifiants que les zones de douleur :
-         c'est ce qui permet a Suivi de repondre a « quand ai-je charge lourd le
-         medial », question a laquelle la liste par exercice ne sait pas repondre. */
-      var boiteStructures = h('div');
-      function rafraichirStructures() {
-        A.ui.vider(boiteStructures);
-        boiteStructures.appendChild(A.ui.selecteurStructures(exo.structures || [],
-          function (v) { exo.structures = v; }));
-      }
-      rafraichirStructures();
-      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures));
-
       var boiteForces = h('div');
       var surChangementForces = null;
       function rafraichirForces() {
         A.ui.vider(boiteForces);
-        selForces = A.ui.selecteurForces(exo.forces || [], function (v) {
+        selForces = A.ui.selecteurForces(exo.forces || [], function (v, quoi, coche) {
           exo.forces = v;
+          /* Cocher un mouvement COCHE ses muscles, directement — c'est le
+             geste, et il n'y en a pas besoin d'un second. Le décocher ne les
+             retire pas : plusieurs mouvements partagent des muscles, et un
+             retrait effacerait ce qu'un autre avait posé.
+
+             La source est dite dans le message, parce qu'elle n'est pas la
+             même pour tous : cupping, pronation et supination sont des
+             actions articulaires ; rising, back et side pressure viennent
+             d'une seule étude EMG et restent à vérifier. */
+          if (coche) {
+            var pm = A.m.MUSCLES_PAR_MOUVEMENT[quoi];
+            if (pm) {
+              var fusion = A.m.muscles(exo).slice();
+              var neufs = [];
+              pm.muscles.forEach(function (id) {
+                if (fusion.indexOf(id) < 0) { fusion.push(id); neufs.push(id); }
+              });
+              exo.muscles = A.m.muscles({ muscles: fusion });
+              rafraichirMuscles();
+              if (neufs.length) {
+                A.ui.toast(neufs.map(A.m.nomCourtMuscle).join(', ')
+                  + (pm.source === 'a_verifier'
+                      ? ' — à vérifier : une seule étude, et ce n’est pas une '
+                        + 'action articulaire.'
+                      : ' — d’après l’anatomie. Corrige en dessous si besoin.'));
+              }
+            }
+          }
           if (surChangementForces) surChangementForces();
         });
         boiteForces.appendChild(selForces);
       }
       rafraichirForces();
       c.appendChild(A.ui.groupe('Mouvements', boiteForces,
-        'Facultatif. Sert à repérer, dans Suivi, un mouvement qu’un programme néglige.'));
+        'Cocher un mouvement coche aussi les muscles qu’il fait travailler. '
+      + 'Le décocher ne les retire pas : à toi de corriger en dessous.'));
 
       /* ---- les muscles, proposés depuis les mouvements ----
          On ne peut pas demander de cocher vingt-deux muscles à qui ne connaît pas
@@ -608,6 +644,22 @@
         placeholder: 'Tenue 3 s en haut, excentrique 4 s. Prise pronation serrée.' });
       champConsigne.value = exo.consigne || '';
       champConsigne.addEventListener('input', function () { exo.consigne = champConsigne.value; });
+      /* Les structures chargées, EN DERNIER des groupes d'anatomie : elles ne
+         servent pas à décrire l'exercice mais à répondre, dans Suivi, à
+         « quand ai-je chargé lourd le médial ». C'est utile et c'est rare —
+         donc ça ne doit pas être le troisième écran qu'on traverse. */
+      var boiteStructures = h('div');
+      function rafraichirStructures() {
+        A.ui.vider(boiteStructures);
+        boiteStructures.appendChild(A.ui.selecteurStructures(exo.structures || [],
+          function (v) { exo.structures = v; }));
+      }
+      rafraichirStructures();
+      /* Pas d'aide sous ce groupe : elle a été retirée sur demande, et le
+         banc tient ce choix. La remettre « pour expliquer » a été tenté ici
+         même, et c'est le contrôle qui l'a arrêtée. */
+      c.appendChild(A.ui.groupe('Structures chargées', boiteStructures));
+
       c.appendChild(A.ui.groupe('Consigne d’exécution', champConsigne,
         'Tempo, tenue, prise. Affichée en clair pendant la séance.'));
 

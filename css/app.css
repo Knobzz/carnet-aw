@@ -1180,15 +1180,11 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    Treize noms latins ne se cochent pas sans ce qu'ils font : chaque ligne
    porte le nom ET la fonction, et la marque « médial » dit lesquels tirent
    sur l'insertion qui fait mal. */
-.muscle-region {
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  color: var(--texte-3);
-  margin: 12px 2px 5px;
-}
-.muscle-region:first-child { margin-top: 0; }
+/* Les regions de muscles se replient comme les categories de l'equipement :
+   le bloc, l'entete et le chevron sont les memes classes, et la liste perd
+   donc son cadre — c'est le bloc qui le porte. */
+.muscle-bloc .muscle-liste { border: 0; border-radius: 0; }
+.muscle-liste[hidden] { display: none; }
 .muscle-liste {
   border: 1px solid var(--trait);
   border-radius: var(--r);

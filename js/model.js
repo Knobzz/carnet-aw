@@ -757,6 +757,31 @@
     return null;
   }
 
+  /* Le slug SERRE : le meme, sans les espaces. Il ne sert a rien d'autre qu'a
+     reperer deux entrees du catalogue que seule une espace separe — « Titan
+     Grip Iron Wrist 60 mm » et « …60mm » sont deux outils differents pour
+     l'app, et c'est voulu : fusionner des noms au jugé renommerait du
+     materiel dans le dos de celui qui l'a saisi. Mais on peut le DIRE.
+
+     Ce slug n'est jamais une identite : il ne sert qu'a poser une question. */
+  function slugSerre(nom) { return slug(nom).replace(/ /g, ''); }
+
+  /* Un outil du catalogue dont le nom ne differe que par des espaces, et qui
+     porte des reglages. Repond a la panne silencieuse : on declare un reglage
+     sur une entree, l'exercice porte l'autre, et la rangee reste vide sans
+     que rien n'explique pourquoi. */
+  function outilProche(etat, nom) {
+    var s = slug(nom), serre = slugSerre(nom);
+    if (!serre) return null;
+    for (var i = 0; i < etat.outils.length; i++) {
+      var o = etat.outils[i];
+      if (o.slug === s) continue;
+      if (slugSerre(o.nom) !== serre) continue;
+      if ((o.reglages || []).length) return o;
+    }
+    return null;
+  }
+
   function majCatalogueOutils(etat, nom, categorie) {
     var s = slug(nom);
     if (!s) return null;
@@ -787,14 +812,18 @@
      des planches. Et ça n'écrit rien tout seul — ça REMPLIT la liste, qui
      reste corrigeable.
 
-     `aide` dit la zone en mots de tous les jours : « la face poilue » situe
-     mieux que « face postérieure » pour qui n'a jamais ouvert un manuel. */
+     `aide` situe la zone sans jargon ET sans condescendance : « côté dos de
+     la main » se comprend sans avoir ouvert un manuel, et nomme l'exercice
+     courant quand il y en a un — « le curl », « le wrist curl ». La première
+     version disait « la face poilue » : c'était parler à quelqu'un comme à
+     un enfant, et ça a été relevé comme tel. Ne pas connaître le vocabulaire
+     d'une discipline n'est pas la même chose que ne rien comprendre. */
   var ZONES_RESSENTIES = [
     { id: 'avb_dessus', nom: 'Le dessus de l’avant-bras',
-      aide: 'la face poilue, dans le prolongement du dos de la main',
+      aide: 'côté dos de la main — le wrist curl inversé',
       muscles: ['ecrl', 'ecrb', 'ecu', 'extenseurs_doigts', 'extenseur_petit_doigt', 'ancone'] },
     { id: 'avb_dessous', nom: 'Le dessous de l’avant-bras',
-      aide: 'la face pâle, dans le prolongement de la paume',
+      aide: 'côté paume — le wrist curl',
       muscles: ['rond_pronateur', 'fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts'] },
     { id: 'bord_pouce', nom: 'Le bord du pouce',
       aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir',
@@ -803,26 +832,28 @@
       aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y partir',
       muscles: ['ecu', 'fcu', 'extenseur_petit_doigt'] },
     { id: 'serrer', nom: 'La main qui serre',
-      aide: 'les doigts se referment sur la poignée',
+      aide: 'les doigts se referment — le gripper, la barre épaisse',
       muscles: ['flechisseurs_doigts'] },
     { id: 'ouvrir', nom: 'La main qui s’ouvre',
-      aide: 'les doigts s’écartent, ou résistent à se refermer',
+      aide: 'les doigts s’écartent — l’élastique autour des doigts',
       muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce'] },
     { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
-      aide: 'la pronation', muscles: ['rond_pronateur', 'carre_pronateur'] },
+      aide: 'la pronation — la poignée de pronation, la sangle',
+      muscles: ['rond_pronateur', 'carre_pronateur'] },
     { id: 'paume_haut', nom: 'Tourner la paume vers le haut',
-      aide: 'la supination', muscles: ['supinateur', 'biceps'] },
+      aide: 'la supination — le curl supination, la clé',
+      muscles: ['supinateur', 'biceps'] },
     { id: 'plier_coude', nom: 'Plier le coude',
-      aide: 'ramener la main vers l’épaule, ou résister à son ouverture',
+      aide: 'ramener la main vers l’épaule — le curl, sous toutes ses formes',
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { id: 'tendre_coude', nom: 'Tendre le coude',
-      aide: 'pousser la main loin de l’épaule',
+      aide: 'pousser la main loin de l’épaule — l’extension, les dips',
       muscles: ['triceps', 'ancone'] },
     { id: 'epaule', nom: 'L’épaule',
-      aide: 'le bras entier bouge, pas seulement l’avant-bras',
+      aide: 'le bras entier bouge — les élévations, le développé',
       muscles: ['deltoide', 'coraco_brachial'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
-      aide: 'le torse travaille avec le bras',
+      aide: 'le torse travaille avec le bras — le tirage, le pull-over',
       muscles: ['grand_pectoral', 'grand_dorsal'] }
   ];
 
@@ -2176,6 +2207,7 @@
     categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie, SANS_CATEGORIE: SANS_CATEGORIE,
     ZONES_RESSENTIES: ZONES_RESSENTIES, zoneRessentie: zoneRessentie,
     musclesDesZones: musclesDesZones,
+    outilProche: outilProche,
     reglagesOutil: reglagesOutil, trouverReglage: trouverReglage,
     majReglageOutil: majReglageOutil, supprimerReglageOutil: supprimerReglageOutil,
     reglageDe: reglageDe, poserReglage: poserReglage, reglagesPortes: reglagesPortes,

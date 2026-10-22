@@ -1313,6 +1313,24 @@
     v.egal(A.m.supprimerReglageOutil(e, 'Titan Grip Iron Wrist 60', 'zzz'), false,
            'retirer un réglage inconnu ne fait rien, et le dit');
 
+    /* --- deux entrées que seule une espace sépare ---
+       « Titan Grip Iron Wrist 60 » et « TitanGripIronWrist60 » sont DEUX
+       outils, et c'est voulu :
+       fusionner des noms au jugé renommerait du matériel dans le dos de qui
+       l'a saisi. Mais déclarer un réglage sur l'un pendant que l'exercice
+       porte l'autre est une panne silencieuse, et l'app doit la nommer. */
+    A.m.majCatalogueOutils(e, 'TitanGripIronWrist60', 'Poignées AW');
+    v.egal(A.m.reglagesOutil(e, 'TitanGripIronWrist60').length, 0,
+           '[temoin] le jumeau n’hérite d’aucun réglage');
+    var voisin = A.m.outilProche(e, 'TitanGripIronWrist60');
+    v.vrai(!!voisin, 'l’app repère l’entrée voisine qui en porte');
+    v.egal(voisin && voisin.nom, 'Titan Grip Iron Wrist 60', 'et dit laquelle');
+    v.egal(A.m.outilProche(e, 'Titan Grip Iron Wrist 60'), null,
+           'un outil qui a déjà ses réglages n’a pas de voisin à proposer');
+    v.egal(A.m.outilProche(e, 'Poulie basse'), null,
+           'ni un outil dont aucun jumeau n’existe');
+    v.egal(A.m.outilProche(e, ''), null, 'et un nom vide ne rapproche rien');
+
     /* --- un carnet d'AVANT, sans la notion --- */
     var vieux = { nom: 'Vieux', outils: ['Dumbbell'] };
     v.egal(A.m.reglageDe(vieux, 'Dumbbell'), null,

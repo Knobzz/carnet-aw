@@ -325,6 +325,14 @@
         function (l) { return l.textContent; });
 
       v.vrai(libelles.indexOf('Mouvements') >= 0, '« Mouvements » est le libellé affiché');
+
+      /* L'ordre de la fiche est une décision : ce qui décrit l'exercice
+         d'abord, ce qui sert au recoupement de la douleur en dernier. */
+      v.vrai(libelles.indexOf('Structures chargées') > libelles.indexOf('Mouvements'),
+             '« Structures chargées » passe APRÈS « Mouvements »');
+      v.vrai(libelles.indexOf('Structures chargées') > libelles.indexOf('Muscles sollicités'),
+             'et après « Muscles sollicités » : c’est le vocabulaire de la '
+           + 'douleur, pas celui du travail');
       v.egal(libelles.indexOf('Forces de Larratt'), -1,
              '« Forces de Larratt » n’apparaît plus nulle part dans la fiche');
 
@@ -361,6 +369,33 @@
          Elle est rangée par région, et une région oubliée du tableau rendrait
          ses muscles INVISIBLES : la case resterait vide sans que rien ne le
          dise. On compte donc les lignes contre le tableau du modèle. */
+      /* --- les régions se replient ---
+         Vingt-deux muscles d'affilée font un mur : on ne voit plus ce qu'on a
+         coché, et le reste de la fiche part sous l'écran. */
+      var entetes = pan.querySelectorAll('.muscle-bloc .equip-cat');
+      v.egal(entetes.length, fen.App.m.REGIONS_MUSCLE.length,
+             'une région repliable par groupe de muscles');
+      var ouvertes = Array.prototype.filter.call(entetes, function (n) {
+        return n.getAttribute('aria-expanded') === 'true';
+      }).length;
+      v.egal(ouvertes, 0, 'sur un exercice SANS muscle coché, toutes sont fermées');
+      var hautVisible = 0;
+      Array.prototype.forEach.call(pan.querySelectorAll('.muscle-bloc'), function (n) {
+        hautVisible += n.getBoundingClientRect().height;
+      });
+      v.vrai(hautVisible < 400,
+             'et les vingt-deux muscles tiennent alors en moins de 400 px '
+           + '(mesuré : ' + Math.round(hautVisible) + ')');
+      v.vrai(entetes[0].getBoundingClientRect().height >= 44,
+             'chaque en-tête se touche');
+      v.vrai(/[0-9]/.test(entetes[0].textContent),
+             'et dit combien de muscles elle contient, sans l’ouvrir ('
+           + entetes[0].textContent + ')');
+
+      /* On les ouvre toutes : une ligne repliée mesure zéro, et les contrôles
+         qui suivent mesurent des lignes réelles. */
+      Array.prototype.forEach.call(entetes, function (n) { n.click(); });
+
       var lignesM = pan.querySelectorAll('.muscle-ligne');
       v.egal(lignesM.length, fen.App.m.MUSCLES.length,
              'chaque muscle a sa ligne dans la fiche — une région oubliée les '
@@ -397,6 +432,37 @@
       v.vrai(hautM >= 44, 'chaque ligne reste touchable (mesuré : '
                         + Math.round(hautM) + ' px)');
       v.egal(sortM, 0, 'et aucune ne sort de l’écran à 320 px');
+
+      /* Cocher un mouvement COCHE ses muscles : c'est le geste, et il n'en
+         faut pas un second. Le décocher ne les retire pas — plusieurs
+         mouvements partagent des muscles, et un retrait effacerait ce qu'un
+         autre avait posé. */
+      var puceCup = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('.puce'), function (p) {
+        if (p.textContent === 'Cupping') puceCup = p;
+      });
+      v.vrai(!!puceCup, '[temoin] la puce « Cupping » est là');
+      v.egal(fen.App.m.muscles(brouillon).length, 0, '[temoin] aucun muscle au départ');
+      if (puceCup) {
+        puceCup.click();
+        var apres = fen.App.m.muscles(brouillon);
+        v.egal(apres.join(','),
+               fen.App.m.muscles({ muscles: fen.App.m.MUSCLES_PAR_MOUVEMENT.cupping.muscles })
+                        .join(','),
+               'cocher « Cupping » coche directement ses muscles, sans second geste');
+        v.vrai(apres.length > 0, '[temoin] et il y en a');
+        var presses2 = pan.querySelectorAll('.muscle-ligne[aria-pressed="true"]');
+        v.egal(presses2.length, apres.length, 'la liste en dessous le montre');
+        var ouvertes2 = pan.querySelectorAll('.muscle-bloc .equip-cat[aria-expanded="true"]');
+        v.vrai(ouvertes2.length > 0,
+               'et la région qui les contient s’ouvre — cocher sans le voir ne vaut rien');
+
+        puceCup.click();
+        v.egal(fen.App.m.muscles(brouillon).join(','), apres.join(','),
+               'décocher le mouvement NE RETIRE PAS les muscles : un autre '
+             + 'mouvement pouvait les avoir posés');
+        v.egal((brouillon.forces || []).length, 0, 'mais le mouvement, lui, est décoché');
+      }
 
       /* Rien ne doit déborder horizontalement, nulle part dans le panneau. */
       var corps = pan.querySelector('.panneau-corps');
@@ -1066,10 +1132,18 @@
       var gr = groupeDe(pan, 'Réglage de l’outil');
       v.vrai(!!gr, 'le groupe existe dans la fiche');
 
-      /* Le piège déjà rencontré sur le filtre de l'équipement : `display`
-         l'emporte sur [hidden]. On mesure la HAUTEUR, pas l'attribut. */
-      v.egal(gr ? gr.getBoundingClientRect().height : -1, 0,
-             'un outil SANS réglage ne montre rien — pas même une rangée vide');
+      /* La version d'avant se CACHAIT quand aucun outil n'avait de réglage :
+         impossible de distinguer « cet outil n'en a pas » de « la fonction ne
+         marche pas ». C'est la question remontée du téléphone, et elle a
+         coûté un aller-retour. Elle parle maintenant. */
+      v.vrai(gr && gr.getBoundingClientRect().height > 0,
+             'un outil sans réglage ne se tait PAS : le groupe reste visible');
+      v.vrai(gr && gr.textContent.indexOf('Pas encore de réglage') >= 0,
+             'et il dit pourquoi la rangée est vide');
+      v.vrai(gr && gr.textContent.indexOf('Réglages') >= 0,
+             'avec où aller pour en poser');
+      v.egal(gr ? gr.querySelectorAll('.puce').length : -1, 0,
+             'sans proposer une seule puce : il n’y a rien à choisir');
 
       /* On ajoute l'outil qui en a : la rangée doit apparaître seule. */
       brouillon.outils = ['Dumbbell', 'Titan Grip'];
@@ -1090,8 +1164,10 @@
 
       v.vrai(gr.textContent.indexOf('Titan Grip') >= 0,
              'elle dit DE QUEL OUTIL il s’agit — un exercice peut en porter plusieurs');
-      v.egal(gr.textContent.indexOf('Dumbbell'), -1,
-             'et ne parle pas de celui qui n’a aucun réglage');
+      v.vrai(gr.textContent.indexOf('Dumbbell') >= 0,
+             'et nomme AUSSI celui qui n’en a pas, plutôt que de l’ignorer');
+      v.vrai(gr.textContent.indexOf('Pas encore de réglage') >= 0,
+             'en disant lequel des deux est dans ce cas');
 
       var puces = gr.querySelectorAll('.puce');
       var noms = Array.prototype.map.call(puces, function (p) { return p.textContent; });
@@ -1144,6 +1220,31 @@
 
       var fermer = pan.querySelector('.panneau-entete .bt-icone');
       if (fermer) fermer.click();
+      return attendre(80);
+    }).then(function () {
+      /* --- la panne silencieuse de ce dessin ---
+         Les réglages sont rangés par NOM d'outil. « Titan Grip » et
+         « TitanGrip » sont donc deux outils, et une espace suffit à
+         déclarer un réglage sur l'un pendant que l'exercice porte l'autre.
+         L'app ne les fusionne pas — renommer du matériel dans le dos de qui
+         l'a saisi serait pire — mais elle doit le dire. */
+      fen.App.m.majCatalogueOutils(e, 'TitanGrip', 'Poignées AW');
+      v.vrai(!!fen.App.m.trouverOutil(e, fen.App.m.slug('TitanGrip')),
+             '[temoin] « TitanGrip » est bien une SECONDE entrée du catalogue');
+      var jumeau = fen.App.m.exerciceProgramme({ nom: 'Essai C',
+                                                 outils: ['TitanGrip'] });
+      fen.App.panneau.editerExercice(jumeau, { titre: 'Essai' }, function () {});
+      return attendre(160);
+    }).then(function () {
+      var pan = doc.querySelector('.panneau');
+      var gr = groupeDe(pan, 'Réglage de l’outil');
+      v.vrai(gr && gr.textContent.indexOf('Pas de réglage') >= 0,
+             'un outil jumeau n’a pas les réglages de son voisin');
+      v.vrai(gr && gr.textContent.indexOf('« Titan Grip » en a') >= 0,
+             'et l’app DIT lequel les porte, au lieu de laisser chercher');
+
+      var fermer2 = pan.querySelector('.panneau-entete .bt-icone');
+      if (fermer2) fermer2.click();
       return attendre(80).then(function () {
         e.outils = [];
         e.exercices = [];
@@ -1199,8 +1300,14 @@
         v.egal(sort, 0, 'aucune ne sort de l’écran à 320 px');
         v.egal(coupes, 0, 'et aucune n’est tronquée');
 
-        v.vrai(corps.textContent.indexOf('la face poilue') >= 0,
-               'l’explication est en mots de tous les jours, pas en latin');
+        v.vrai(corps.textContent.indexOf('côté dos de la main') >= 0,
+               'l’explication situe la zone sans jargon…');
+        v.egal(corps.textContent.indexOf('poilue'), -1,
+               '…et sans parler à l’utilisateur comme à un enfant : ne pas '
+             + 'connaître un vocabulaire n’est pas ne rien comprendre');
+        v.vrai(corps.textContent.indexOf('le curl, sous toutes ses formes') >= 0,
+               'et nomme l’exercice courant quand il y en a un — « plier le '
+             + 'coude », c’est le curl');
 
         /* Appuyer COCHE, et n'écrit rien d'autre. */
         var cible = null;
