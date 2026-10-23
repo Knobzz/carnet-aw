@@ -953,15 +953,40 @@ extenseurs les **tendent**
 ([Kenhub](https://www.kenhub.com/en/library/anatomy/dorsal-interossei-muscles-of-the-hand)).
 La phrase dit maintenant « les doigts se tendent, le pouce s’écarte ».
 
-### Ce qui a été vérifié sur sources, et ce qui ne l’a pas été
+### Le creux de la paume ne tient que ce que les sources y attachent
 
-**Sourcé** : les deux zones de déviation, les deux zones de rotation (pronateurs rond et
-carré ; supinateur + biceps), les deux zones de coude (biceps, brachial, brachio-radial /
-triceps, anconé) — [Elbow Flexor, ScienceDirect](https://www.sciencedirect.com/topics/neuroscience/elbow-flexor).
+Le **court palmaire** creuse la paume au sens propre : *« pulling on the skin over the
+hypothenar muscles, which deepens the hollow of the palm »*
+([Physiopedia](https://www.physio-pedia.com/Palmaris_Brevis)). L’**opposant de
+l’auriculaire** participe au *cupping* avec le pouce
+([Journal of Anatomy](https://onlinelibrary.wiley.com/doi/full/10.1111/joa.12675)).
 
-**Lu, non sourcé** : `serrer`, `creux_paume`, `epaule`, `bras_vers_soi`, et les deux
-zones d’emplacement `avb_dessus` / `avb_dessous`. Elles ne décrivent pas un mouvement de
-la main et ne portaient aucune contradiction à la lecture.
+Les **lombricaux**, non. Leur action documentée est de fléchir les métacarpo-phalangiennes
+et de tendre les interphalangiennes ([Physiopedia](https://www.physio-pedia.com/Lumbricals_of_the_Hand),
+[PubMed](https://pubmed.ncbi.nlm.nih.gov/22117920/)) ; **aucune source ne leur attribue le
+creux**, et le seul lien que les textes font avec les « arches palmaires » est
+**vasculaire**. Partis le **2026-10-23** vers les deux zones qui nomment chacune une de
+leurs deux actions — « La main qui serre » et « La main qui s’ouvre ».
+
+### Les treize zones ont été passées aux sources
+
+Sur treize, **quatre portaient un muscle qui n’y avait pas sa place** : le brachio-radial
+et l’abducteur court du pouce dans le bord du pouce, les deux hypothénariens dans le bord
+du petit doigt, les lombricaux dans le creux de la paume. **Aucune de ces erreurs n’était
+visible sans aller aux sources** — trois d’entre elles avaient été relues la veille.
+
+Justes et sourcées : `serrer` ([anatomie de la prise](https://www.kenhub.com/en/library/anatomy/anatomy-of-grip)),
+`epaule` et `bras_vers_soi` ([Oregon State OER](https://open.oregonstate.education/anatomy2e/chapter/muscles-pectoral-girdle-upper-limbs/)),
+les deux zones de rotation et les deux de coude
+([Elbow Flexor, ScienceDirect](https://www.sciencedirect.com/topics/neuroscience/elbow-flexor)),
+et les deux zones d’emplacement, dont tous les muscles appartiennent bien au bon
+compartiment de l’avant-bras
+([StatPearls](https://www.ncbi.nlm.nih.gov/books/NBK539784/?report=reader)).
+
+**Une asymétrie assumée** : le carré pronateur est un muscle antérieur **profond**, donc
+« côté paume », mais il n’est pas dans `avb_dessous` alors que le rond pronateur y est.
+La zone décrit ce qu’on **sent**, et le carré est profond et distal. Il reste atteignable
+par « Tourner la paume vers le bas ».
 
 ### Le buste du Suivi
 

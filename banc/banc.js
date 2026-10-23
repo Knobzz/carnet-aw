@@ -1816,14 +1816,27 @@
          + 'petit doigt — rien d’intrinsèque');
     v.egal(A.m.musclesDesZones(['serrer']).join(','),
            'flechisseurs_doigts,long_flechisseur_pouce,court_flechisseur_pouce,'
-         + 'adducteur_pouce,court_flechisseur_auriculaire',
+         + 'adducteur_pouce,court_flechisseur_auriculaire,lombricaux',
            'serrer, ce sont les fléchisseurs des doigts, le pouce qui écrase, '
-         + 'et le petit doigt qui se replie');
-    /* Les lombricaux et le court palmaire CREUSENT la paume, ils ne serrent
-       pas : ils ont leur zone à eux, sinon ils resteraient inatteignables. */
+         + 'le petit doigt qui se replie, et les lombricaux qui plient les '
+         + 'métacarpo-phalangiennes');
+
+    /* Les lombricaux ont quitte le creux de la paume le 2026-10-23 : AUCUNE
+       source ne leur attribue le creux, et le seul lien que les textes font
+       avec les « arches palmaires » est VASCULAIRE. Ils sont dans les deux
+       zones qui nomment leurs deux actions — flechir les
+       metacarpo-phalangiennes, tendre les interphalangiennes. */
+    var ouLombricaux = A.m.ZONES_RESSENTIES.filter(function (z) {
+      return z.muscles.indexOf('lombricaux') >= 0;
+    }).map(function (z) { return z.id; }).sort();
+    v.egal(ouLombricaux.join(','), 'ouvrir,serrer',
+           'les lombricaux sont dans les deux zones qui nomment leurs deux '
+         + 'actions, et plus dans le creux de la paume');
+
     v.egal(A.m.musclesDesZones(['creux_paume']).join(','),
-           'opposant_pouce,opposant_auriculaire,court_palmaire,lombricaux',
-           'le creux de la main, c’est ce qui enveloppe sans serrer');
+           'opposant_pouce,opposant_auriculaire,court_palmaire',
+           'le creux de la main, ce sont les deux opposants et le court '
+         + 'palmaire — les seuls que les sources y attachent');
     v.egal(A.m.musclesDesZones(['paume_bas']).join(','), 'rond_pronateur,carre_pronateur',
            'tourner la paume vers le bas, ce sont les deux pronateurs');
 

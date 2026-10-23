@@ -1118,13 +1118,13 @@
       aide: 'les doigts se referment — le gripper, la barre épaisse',
       muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
                 'court_flechisseur_pouce', 'adducteur_pouce',
-                'court_flechisseur_auriculaire'] },
+                'court_flechisseur_auriculaire', 'lombricaux'] },
     { id: 'ouvrir', nom: 'La main qui s’ouvre',
       aide: 'les doigts se tendent, le pouce s’écarte — l’élastique autour '
           + 'des doigts',
       muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce',
                 'extenseur_index', 'abducteur_auriculaire',
-                'court_abducteur_pouce'] },
+                'court_abducteur_pouce', 'lombricaux'] },
     /* Les lombricaux et le court palmaire ne SERRENT pas — l'etude de 1970 le
        dit des premiers, le second est un muscle de la peau. Ils creusent la
        paume autour de la prise, et c'est une perception a part entiere : sans
@@ -1132,7 +1132,7 @@
     { id: 'creux_paume', nom: 'Le creux de la main',
       aide: 'la paume se creuse autour de la poignée, sans serrer plus fort '
           + '— la barre épaisse, la poignée large',
-      muscles: ['lombricaux', 'court_palmaire', 'opposant_pouce', 'opposant_auriculaire'] },
+      muscles: ['court_palmaire', 'opposant_pouce', 'opposant_auriculaire'] },
     { id: 'paume_bas', nom: 'Tourner la paume vers le bas',
       aide: 'le GESTE de tourner, pas une position tenue — la poignée de '
           + 'pronation, la sangle',
