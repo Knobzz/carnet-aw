@@ -1006,9 +1006,20 @@
 
        Et l'app se contredisait elle-même — elle écrit « le wrist curl
        inversé » dans l'explication de la zone des EXTENSEURS. */
+    /* Le ROND PRONATEUR y est, et c'est mesuré : Fujii et al.,
+       J Electromyogr Kinesiol 2007;17(1):80-89 — « PT and ECR showed
+       parallel activities during the static extension » chez les DOUZE
+       sujets quand l'avant-bras est prone, et le mécanisme est nommé :
+       la co-contraction « occurs to prevent supinating the forearm »,
+       parce que l'ECRL supine l'avant-bras de 30 à 80° depuis la position
+       prone. Le rond pronateur ne tourne pas, il TIENT. */
     v.egal(A.m.musclesDuNom('Wrist curl inversé').join(','),
-           'ecrl,ecrb,extenseurs_doigts',
-           'un wrist curl INVERSÉ relève le poignet : ce sont les extenseurs');
+           'rond_pronateur,ecrl,ecrb,extenseurs_doigts',
+           'un wrist curl INVERSÉ relève le poignet : les extenseurs, plus '
+         + 'le rond pronateur qui tient la pronation (Fujii 2007, 12 sujets '
+         + 'sur 12)');
+    v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('carre_pronateur'), -1,
+           'et PAS le carré pronateur : l’étude ne mesure que le rond');
     v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('fcu'), -1,
            'et SURTOUT pas les fléchisseurs, qui sont le geste droit');
     v.egal(A.m.musclesDuNom('Wrist curl').join(','), 'fcr,fcu',
@@ -1023,6 +1034,140 @@
            'un curl inversé se tient en pronation : brachio-radial et radiaux');
     v.egal(A.m.musclesDuNom('Reverse curl').join(','), 'brachio_radial,ecrl,ecrb',
            'et « reverse curl » dit la même chose en anglais');
+
+    /* --- UNE POSITION TENUE N'EST PAS UN GESTE (MB, 2026-10-23) ---
+       « En pronation » dit où l'avant-bras est TENU. Le carnet le lisait
+       comme le geste de pronation, et rendait pour « wrist curl en
+       pronation » les FLÉCHISSEURS — les muscles opposés — là où « wrist
+       curl inversé », le même geste, rendait les extenseurs.
+
+       Le commentaire du modèle le disait déjà (« un curl inversé se tient
+       en pronation ») sans que la lecture l'applique : même forme que
+       « inversé » avant lui, où l'app écrivait « le wrist curl inversé »
+       dans la zone des EXTENSEURS tout en proposant les fléchisseurs.
+
+       LA PREUVE EST L'ÉGALITÉ : deux écritures du même geste doivent
+       proposer la même chose. C'est ce qui tombe si le marqueur disparaît. */
+    v.egal(A.m.musclesDuNom('Wrist curl en pronation').join(','),
+           A.m.musclesDuNom('Wrist curl inversé').join(','),
+           '« wrist curl en pronation » et « wrist curl inversé » sont le '
+         + 'même geste et proposent la même chose');
+    v.egal(A.m.musclesDuNom('Wrist curl en pronation').join(','),
+           'rond_pronateur,ecrl,ecrb,extenseurs_doigts',
+           'et ce sont bien les extenseurs, pas les fléchisseurs');
+    v.egal(A.m.musclesDuNom('Wrist curl en pronation')
+            .filter(function (id) { return id === 'fcr' || id === 'fcu'; }).length, 0,
+           'aucun fléchisseur du poignet ne reste : c’était le défaut');
+    v.egal(A.m.musclesDuNom('Curl en pronation').join(','),
+           A.m.musclesDuNom('Curl inversé').join(','),
+           '« curl en pronation » et « curl inversé » aussi');
+
+    /* La position ne retourne QUE les gestes qui supposent une prise par
+       défaut. « Flexion du poignet » nomme sa direction : la dire tenue en
+       pronation ne l'inverse pas, et les fléchisseurs restent. C'est ce qui
+       tombe si le marqueur retourne tout au lieu de passer par les clés. */
+    v.egal(A.m.musclesDuNom('Flexion du poignet en pronation').join(','), 'fcr,fcu',
+           '« flexion du poignet en pronation » garde les fléchisseurs : '
+         + 'le nom dit déjà son sens');
+
+    /* Et le GESTE de pronation, lui, ne bouge pas : sans « en » devant, le
+       mot désigne toujours la rotation. Tombe si le mot est écarté partout
+       au lieu de l’être sous une position tenue. */
+    v.egal(A.m.musclesDuNom('Pronations à la poulie').join(','),
+           'rond_pronateur,carre_pronateur',
+           'une pronation SANS « en » reste le geste : les deux pronateurs');
+
+    /* --- « EN SUPINATION » : DÉCISION EN ATTENTE ---
+       Même grammaire, mais la retirer du geste laisserait « curl en
+       supination » sans AUCUNE proposition, puisque « curl » seul n'est
+       volontairement pas lu. Aucune source ne dit ce qui tient une
+       supination. Ce contrôle fige l'état actuel pour que le changement,
+       s'il vient, soit décidé et pas subi. */
+    v.egal(A.m.musclesDuNom('Curl en supination').join(','), 'supinateur',
+           '« en supination » se lit encore comme le geste — décision de MB '
+         + 'en attente');
+
+    /* --- LE CÔTÉ ACCENTUÉ (MB, 2026-10-23) ---
+       MB : « on peut faire un wrist curl qui accentue le côté du pouce, et
+       inversement avec le petit doigt, ou alors tu wrist curl normalement,
+       sans accentuation d'un côté ou de l'autre. » C'est l'axe qu'il
+       emploie — la DÉVIATION — et c'était le pire de la table :
+
+         Wrist curl cote pouce       -> ... + les trois muscles qui OUVRENT
+                                              le pouce
+         Wrist curl cote petit doigt -> ... + quatre muscles du petit doigt,
+                                              dont trois INTRINSÈQUES
+         Deviation radiale           -> RIEN
+
+       Dans « côté pouce », POUCE nomme une direction. Le lire comme un
+       muscle est la famille de « lat » dans « latérale », en pire : le mot
+       est le bon, c'est son RÔLE qui est faux.
+
+       Source : Kenhub, revu le 2023-11-03 — le fléchisseur radial fait
+       « wrist flexion, wrist ABDUCTION », l'ulnaire « wrist flexion, wrist
+       ADDUCTION ». Chacun fléchit ET dévie de son bord. */
+    v.egal(A.m.musclesDuNom('Wrist curl côté pouce').join(','), 'fcr',
+           'un wrist curl accentué POUCE, c’est le fléchisseur radial — '
+         + 'celui qui fléchit ET abduit');
+    v.egal(A.m.musclesDuNom('Wrist curl côté petit doigt').join(','), 'fcu',
+           'accentué PETIT DOIGT, c’est l’ulnaire — celui qui fléchit ET '
+         + 'adduit');
+    /* Les TROIS variantes que MB décrit doivent différer entre elles.
+       C'est la demande, dite en un contrôle : avant, les deux accentuées
+       proposaient la même chose que la neutre, plus du bruit. */
+    var troisVariantes = ['Wrist curl',
+                          'Wrist curl côté pouce',
+                          'Wrist curl côté petit doigt']
+      .map(function (n) { return A.m.musclesDuNom(n).join(','); });
+    v.egal(troisVariantes.join(' | '), 'fcr,fcu | fcr | fcu',
+           'les trois variantes diffèrent : les deux fléchisseurs, le '
+         + 'radial seul, l’ulnaire seul');
+
+    /* Le mot du côté est RETIRÉ du nom, pas seulement ignoré : sinon
+       « pouce » propose les muscles qui l'ouvrent. C'était le défaut. */
+    v.egal(A.m.musclesDuNom('Wrist curl côté pouce')
+            .filter(function (id) { return /pouce/.test(id); }).length, 0,
+           'aucun muscle du pouce : dans « côté pouce », POUCE est une '
+         + 'direction');
+    v.egal(A.m.musclesDuNom('Wrist curl côté petit doigt')
+            .filter(function (id) {
+              return (A.m.muscle(id) || {}).intrinseque;
+            }).length, 0,
+           'et aucun intrinsèque : ils bougent un doigt, pas le poignet');
+
+    /* Le côté dit le BORD, le geste dit le SENS. Un wrist curl inversé
+       accentué petit doigt tend du côté ulnaire : c'est l'extenseur
+       ulnaire, et plus les radiaux. */
+    v.egal(A.m.musclesDuNom('Wrist curl inversé côté petit doigt').join(','),
+           'rond_pronateur,ecu,extenseurs_doigts',
+           'un wrist curl INVERSÉ accentué petit doigt tend du côté ulnaire');
+    v.egal(A.m.musclesDuNom('Wrist curl inversé côté pouce').join(','),
+           'rond_pronateur,ecrl,ecrb,extenseurs_doigts',
+           'et accentué pouce, il tend du côté radial');
+
+    /* Une DÉVIATION PURE prend les deux muscles du même bord : le
+       fléchisseur et l'extenseur tirent ensemble, leurs flexions
+       s'annulent, il ne reste que la déviation. Et ce vocabulaire-là ne
+       proposait RIEN du tout avant. */
+    v.egal(A.m.musclesDuNom('Déviation radiale').join(','), 'fcr,ecrl,ecrb',
+           'une déviation radiale pure : le fléchisseur et les deux '
+         + 'extenseurs du bord du pouce');
+    v.egal(A.m.musclesDuNom('Déviation ulnaire').join(','), 'fcu,ecu',
+           'et une déviation ulnaire : les deux du bord du petit doigt');
+    v.egal(A.m.musclesDuNom('Radial deviation').join(','),
+           A.m.musclesDuNom('Déviation radiale').join(','),
+           'l’anglais dit la même chose');
+    v.egal(A.m.musclesDuNom('Déviation cubitale').join(','),
+           A.m.musclesDuNom('Déviation ulnaire').join(','),
+           'et « cubitale » est le mot français pour « ulnaire »');
+
+    /* Le marqueur ne doit pas se déclencher sur un nom qui NOMME le pouce.
+       C'est la garde contre un mot trop gourmand — le défaut de « lat »
+       une fois de plus, mais dans l'autre sens. */
+    v.egal(A.m.musclesDuNom('Extension du pouce').join(','),
+           'extenseurs_pouce,long_abducteur_pouce,court_abducteur_pouce',
+           '« extension du pouce » nomme le pouce et garde ses muscles : '
+         + 'ce n’est pas un côté');
 
     /* --- les ARTICLES ne cassent plus la correspondance ---
        L'app est en français, et le français met des articles. « flexion du

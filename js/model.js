@@ -655,11 +655,125 @@
 
   var MARQUEURS_INVERSION = ['inverse', 'reverse'];
 
+  /* 3. UNE POSITION TENUE N'EST PAS UN GESTE. Correction de MB, 2026-10-23.
+
+        « En pronation » dit ou l'avant-bras est TENU pendant le geste. Le
+        carnet le lisait comme le GESTE de pronation, et se contredisait :
+        le commentaire de GESTES_INVERSES disait deja « un curl inverse se
+        tient en pronation » pendant que la lecture rendait, pour le meme
+        geste ecrit autrement, les muscles OPPOSES. Mesure avant correction :
+
+          wrist curl inverse      -> Long ext. radial, Court ext. radial,
+                                     Ext. doigts
+          wrist curl en pronation -> Rond pronat., FLECH. radial,
+                                     FLECH. ulnaire, Carre pronat.
+
+        Le meme geste, et rien en commun.
+
+        Une position tenue fait donc deux choses, et seulement deux :
+
+        a. elle RETOURNE le geste — mais seulement ceux qui supposent une
+           prise par defaut. Un wrist curl et un curl se font paume vers le
+           haut, donc les dire « en pronation » les retourne. « Flexion du
+           poignet » nomme sa direction : la position ne la retourne pas, et
+           les flechisseurs restent. Ce sont exactement les cles de
+           GESTES_INVERSES qui font cette difference, et c'est pour ca que
+           le marqueur passe par le meme chemin ;
+        b. elle cesse de lire le mot de rotation comme un MOTEUR. Tenir
+           n'est pas tourner, et c'est le mot de MB.
+
+        « EN SUPINATION » N'EST PAS TRAITE. Meme grammaire, mais la retirer
+        du geste laisserait « curl en supination » sans AUCUNE proposition
+        (« curl » seul n'est volontairement pas lu), et aucune source ne dit
+        ce qui tient une supination. A trancher par MB plutot que devine. */
+  var MARQUEURS_POSITION = ['en pronation'];
+
+  /* Les mots que « en pronation » cesse de faire lire comme un geste. Seuls
+     ceux-la : « pronations a la poulie » reste un geste de pronation, et
+     doit continuer a proposer les deux pronateurs. */
+  var MOTS_PRONATION = ['pronation', 'pronateur', 'pronator', 'pronat'];
+
+  /* 4. LE COTE ACCENTUE. Correction de MB, 2026-10-23.
+
+        Un wrist curl se decline sur l'axe que MB emploie reellement : on
+        accentue le bord du POUCE, celui du PETIT DOIGT, ou aucun des deux.
+        Ce n'est pas la pronation, c'est la DEVIATION — et c'est lui qui a
+        vu que le carnet se trompait d'axe.
+
+        Mesure avant correction, et c'est le pire defaut de la table :
+
+          Wrist curl                  -> Flech. radial, Flech. ulnaire (juste)
+          Wrist curl cote pouce       -> ... + Ext. pouce, Long abd. pouce,
+                                              Court abd. pouce
+          Wrist curl cote petit doigt -> ... + Ext. auriculaire,
+                                              Abd. auriculaire,
+                                              Flech. auriculaire,
+                                              Opp. auriculaire
+          Deviation radiale           -> RIEN
+
+        Les deux accentues proposaient des muscles qui OUVRENT le pouce ou
+        qui bougent le petit doigt — dont trois intrinseques, ceux-la memes
+        qui ont ete sortis des zones de mouvement de la main le meme jour
+        parce qu'ils ne traversent pas le poignet. C'est la famille de
+        « lat » dans « laterale », mais en pire : le mot est le bon, c'est
+        son ROLE qui est faux. Dans « cote pouce », POUCE nomme une
+        DIRECTION, pas un muscle. Le mot du cote est donc RETIRE de ce qui
+        reste a lire, et non pas simplement ignore.
+
+        Les muscles, eux, sont dans le carnet depuis toujours, et leurs noms
+        francais disent deja la reponse — flechisseur RADIAL, flechisseur
+        ULNAIRE. Kenhub, revu le 2023-11-03 : le flechisseur radial fait
+        « wrist flexion, wrist ABDUCTION », le flechisseur ulnaire « wrist
+        flexion, wrist ADDUCTION ». Chacun flechit ET devie de son bord.
+
+        Une DEVIATION PURE, elle, prend les deux muscles du meme bord : le
+        flechisseur et l'extenseur tirent ensemble et leurs flexions
+        s'annulent, il ne reste que la deviation. C'est pourquoi un nom qui
+        ne dit QUE la deviation prend flechisseur ET extenseur.
+
+        SIMPLIFICATION ASSUMEE : un wrist curl accentue pouce n'emploie pas
+        QUE le flechisseur radial — l'ulnaire flechit aussi, il est
+        seulement moins sollicite. Le carnet propose ce que le geste
+        ACCENTUE, qui est le mot de MB ; l'autre reste a une case de la. */
+  var COTES_POIGNET = [
+    { id: 'radial',
+      mots: ['cote pouce', 'bord pouce', 'accentue pouce', 'vers le pouce',
+             'cote radial', 'deviation radiale', 'inclinaison radiale',
+             'flexion radiale', 'radial deviation'],
+      flechi: ['fcr'], tendu: ['ecrl', 'ecrb'] },
+    { id: 'ulnaire',
+      mots: ['cote petit doigt', 'bord petit doigt', 'accentue petit doigt',
+             'vers le petit doigt', 'cote auriculaire', 'bord auriculaire',
+             'accentue auriculaire', 'cote ulnaire', 'cote cubital',
+             'deviation ulnaire', 'deviation cubitale', 'inclinaison ulnaire',
+             'flexion ulnaire', 'ulnar deviation'],
+      flechi: ['fcu'], tendu: ['ecu'] }
+  ];
+
   /* Ce qu'un geste devient quand il est RETOURNE. Les listes sont courtes et
      sures : un wrist curl inverse releve le poignet, un curl inverse se tient
-     en pronation et charge le brachio-radial et les radiaux. */
+     en pronation et charge le brachio-radial et les radiaux.
+
+     LE ROND PRONATEUR EST DANS LE WRIST CURL INVERSE, et c'est mesure, pas
+     deduit. Fujii, Kobayashi, Sato, Shinozaki, Naito, « Co-contraction of
+     the pronator teres and extensor carpi radialis during wrist extension
+     movements in humans », J Electromyogr Kinesiol 2007;17(1):80-89, DOI
+     10.1016/j.jelekin.2005.11.013 : en EMG sur 12 sujets, « PT and ECR
+     showed parallel activities during the static extension » chez les DOUZE
+     quand l'avant-bras est prone (contre huit sur douze en semi-prone et en
+     supine), et le mecanisme est nomme — « the co-contraction of PT and ECR
+     during wrist extension movements occurs to prevent supinating the
+     forearm », parce que l'ECRL supine l'avant-bras de 30 a 80 degres
+     depuis la position prone.
+
+     Autrement dit le rond pronateur ne tourne pas : il TIENT la pronation
+     que les extenseurs cherchent a defaire. C'est le muscle de la position
+     tenue, et il reste donc sous les deux ecritures du meme geste.
+
+     Le CARRE pronateur n'y est pas : l'etude ne mesure que le rond, et rien
+     d'autre ne lui attribue ce role. Il garde le geste de pronation. */
   var GESTES_INVERSES = {
-    'wrist curl': ['ecrl', 'ecrb', 'extenseurs_doigts'],
+    'wrist curl': ['rond_pronateur', 'ecrl', 'ecrb', 'extenseurs_doigts'],
     'curl':       ['brachio_radial', 'ecrl', 'ecrb']
   };
 
@@ -676,7 +790,26 @@
     if (!s) return [];
     var vus = {};
 
-    var inverse = MARQUEURS_INVERSION.some(function (mk) {
+    /* Le COTE se lit en premier, et son mot est RETIRE de ce qui reste a
+       lire : sans ca, « cote pouce » proposerait les trois muscles qui
+       OUVRENT le pouce. C'est le seul endroit ou un mot quitte le nom. */
+    var cote = null, sLu = s;
+    COTES_POIGNET.forEach(function (c) {
+      c.mots.forEach(function (mot) {
+        var motif = new RegExp(motifDuMot(mot), 'g');
+        if (!motif.test(sLu)) return;
+        if (!cote) cote = c;
+        sLu = sLu.replace(new RegExp(motifDuMot(mot), 'g'), ' ');
+      });
+    });
+
+    /* Une position tenue retourne les gestes a prise par defaut, par le
+       meme chemin que « inverse » : c'est ce qui laisse « flexion du
+       poignet en pronation » tranquille, puisqu'elle n'est pas une cle. */
+    var tenue = MARQUEURS_POSITION.some(function (mk) {
+      return s.indexOf(mk) >= 0;
+    });
+    var inverse = tenue || MARQUEURS_INVERSION.some(function (mk) {
       return s.indexOf(mk) >= 0;
     });
     if (inverse) {
@@ -686,7 +819,7 @@
       Object.keys(GESTES_INVERSES)
         .sort(function (a, b) { return b.length - a.length; })
         .forEach(function (k) {
-          if (!base && new RegExp(motifDuMot(k)).test(s)) base = k;
+          if (!base && new RegExp(motifDuMot(k)).test(sLu)) base = k;
         });
       if (base) GESTES_INVERSES[base].forEach(function (id) { vus[id] = 1; });
     }
@@ -695,9 +828,30 @@
       MOTS_MUSCLE[id].forEach(function (mot) {
         /* Un nom retourne ne lit PAS les mots du geste droit. */
         if (inverse && GESTES_INVERSES[slug(mot)]) return;
-        if (new RegExp(motifDuMot(mot)).test(s)) vus[id] = 1;
+        /* Et une position TENUE ne lit pas la rotation comme un moteur. */
+        if (tenue && MOTS_PRONATION.indexOf(slug(mot)) >= 0) return;
+        if (new RegExp(motifDuMot(mot)).test(sLu)) vus[id] = 1;
       });
     });
+
+    if (cote) {
+      var oppose = COTES_POIGNET.filter(function (c) {
+        return c.id !== cote.id;
+      })[0];
+      /* Le bord oppose n'est plus propose : c'est ce que « accentue » veut
+         dire, et c'est tout ce que ca veut dire. */
+      oppose.flechi.concat(oppose.tendu).forEach(function (id) {
+        delete vus[id];
+      });
+      /* Quel muscle du bord travaille depend du SENS du geste : un wrist
+         curl flechit, un wrist curl inverse tend. Un nom qui ne dit QUE la
+         deviation n'a aucun sens a suivre et prend les deux. */
+      var deviationSeule = true;
+      for (var k2 in vus) { if (vus[k2]) { deviationSeule = false; break; } }
+      (deviationSeule ? cote.flechi.concat(cote.tendu)
+                      : (inverse ? cote.tendu : cote.flechi))
+        .forEach(function (id) { vus[id] = 1; });
+    }
 
     var l = [];
     MUSCLES.forEach(function (m) { if (vus[m.id]) l.push(m.id); });

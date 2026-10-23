@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **988 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 008 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **584 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **604 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
@@ -315,6 +315,19 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | le brachio-radial remis dans une zone de mouvement de la main | `bord_pouce / Brachio-radial (coude)` |
 | un muscle intrinsèque remis dans une zone de mouvement de la main | `Abd. auriculaire (intrinsèque : il bouge un doigt, pas la main)` |
 | les lombricaux remis dans le creux de la paume | `attendu "ouvrir,serrer", obtenu "creux_paume,ouvrir,serrer"` |
+| « en pronation » qui cesse de retourner le geste | `attendu "rond_pronateur,ecrl,ecrb,extenseurs_doigts", obtenu "fcr,fcu"` — 4 rouges |
+| la rotation relue comme un moteur sous une position tenue | `obtenu "rond_pronateur,fcr,fcu,carre_pronateur"` — 4 rouges |
+| le mot de rotation écarté PARTOUT au lieu de sous « en » | `« pronations à la poulie » : attendu les deux pronateurs, obtenu ""` |
+| une position tenue qui avale tous les mots du nom | `« flexion du poignet en pronation » : attendu "fcr,fcu", obtenu ""` |
+| le carré pronateur ajouté au wrist curl inversé sans source | `attendu -1, obtenu 1` |
+| « en supination » traité sans décision | `attendu "supinateur", obtenu "brachio_radial,ecrl,ecrb,supinateur"` |
+| le côté accentué qui cesse d’être lu | `attendu "fcr,fcu \| fcr \| fcu", obtenu "fcr,fcu \| fcr,fcu \| fcr,fcu"` — 6 rouges |
+| le mot du côté ignoré mais pas RETIRÉ du nom | `attendu "fcr", obtenu "fcr,extenseurs_pouce,long_abducteur_pouce,court_abducteur_pouce"` — 6 rouges |
+| le bord opposé laissé dans la proposition | `attendu "fcr", obtenu "fcr,fcu"` — 3 rouges |
+| le sens du geste oublié sous un côté | `attendu "…,ecu,…", obtenu "…,fcu,…"` |
+| une déviation pure réduite à un seul muscle | `attendu "fcr,ecrl,ecrb", obtenu "fcr"` |
+| « pouce » tout seul promu marqueur de côté | `« extension du pouce » : attendu ses trois muscles, obtenu "fcr,ecrl,ecrb"` |
+| les mots anglais et « cubitale » retirés | `« radial deviation » : obtenu ""` — 2 rouges |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

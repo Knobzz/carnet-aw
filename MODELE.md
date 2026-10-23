@@ -457,7 +457,7 @@ rien — un curl marteau, un curl pronateur et un wrist curl ne travaillent pas 
 chose. Et « grip » a été retiré parce que « Titan Grip » et « Fat grip » sont des
 **outils** : le banc a attrapé ce faux positif.
 
-#### Deux défauts mesurés sur de vrais noms
+#### Quatre défauts mesurés sur de vrais noms
 
 **La négation était ignorée, et c'est le pire des deux.** « Wrist curl inversé » contient
 « wrist curl », donc il proposait les **fléchisseurs** — exactement les muscles opposés à
@@ -476,9 +476,111 @@ L'app est en français, et le français met des articles — on tolère donc une
 de liaison entre deux mots du motif. Rien n'est ajouté à la table : c'est la lecture qui
 change.
 
+**Une position tenue n'est pas un geste.** « En pronation » dit où l'avant-bras est
+**tenu** pendant le mouvement. Le carnet le lisait comme le **geste** de pronation, et le
+même geste écrit de deux façons ne proposait rien en commun :
+
+| nom | avant |
+|---|---|
+| `wrist curl inversé` | Long ext. radial, Court ext. radial, Ext. doigts |
+| `wrist curl en pronation` | Rond pronat., **Fléch. radial, Fléch. ulnaire**, Carré pronat. |
+
+Les **fléchisseurs** : les muscles opposés — exactement le défaut de la négation, revenu
+sous un autre mot. Le modèle se contredisait déjà tout seul — son propre
+commentaire disait « un curl inversé se tient en pronation » pendant que la lecture
+rendait l'inverse.
+
+Une position tenue fait donc deux choses, et **seulement** deux :
+
+1. elle **retourne** le geste — mais seulement ceux qui supposent une prise par défaut.
+   Un wrist curl et un curl se font paume vers le haut, donc les dire « en pronation » les
+   retourne. « Flexion du poignet » nomme sa direction : la position ne l'inverse pas, et
+   les fléchisseurs restent. Ce sont exactement les clés de `GESTES_INVERSES` qui font
+   cette différence, et c'est pourquoi le marqueur passe par le même chemin ;
+2. elle cesse de lire le mot de rotation comme un **moteur**. Tenir n'est pas tourner.
+   Sans « en » devant, `pronations à la poulie` reste le geste et garde ses deux
+   pronateurs.
+
+**Le rond pronateur reste, et c'est mesuré.** [Fujii, Kobayashi, Sato, Shinozaki, Naito,
+*Co-contraction of the pronator teres and extensor carpi radialis during wrist extension
+movements in humans*, J Electromyogr Kinesiol 2007;17(1):80-89](https://doi.org/10.1016/j.jelekin.2005.11.013) :
+en EMG, *« PT and ECR showed parallel activities during the static extension »* chez les
+**douze** sujets quand l'avant-bras est prone — contre huit sur douze en semi-prone et en
+supine — et le mécanisme est nommé : la co-contraction *« occurs to prevent supinating the
+forearm »*, parce que l'ECRL supine l'avant-bras de 30 à 80° depuis la position prone.
+
+Autrement dit le rond pronateur **ne tourne pas : il tient** la pronation que les
+extenseurs cherchent à défaire. Il entre donc dans le wrist curl inversé sous ses deux
+écritures. Le **carré** pronateur n'y est pas : l'étude ne mesure que le rond, et rien
+d'autre ne lui attribue ce rôle.
+
+Ce qui **disparaît**, dit en entier : `extension en pronation` ne propose plus rien (elle
+rendait les deux pronateurs), et `flexion du poignet en pronation` perd les deux
+pronateurs tout en gardant ses fléchisseurs.
+
+> **« En supination » n'est pas traité**, et c'est volontaire. Même grammaire, mais la
+> retirer du geste laisserait `curl en supination` sans **aucune** proposition, puisque
+> « curl » seul n'est volontairement pas lu. Et l'inversion ne peut pas se transposer :
+> le défaut rejoué montre que traiter « en supination » comme un marqueur rendrait, pour
+> un curl **supiné**, les muscles du curl **inversé** — parce que la prise par défaut est
+> déjà la supination. Un contrôle fige l'état actuel pour que le changement, s'il vient,
+> soit décidé et pas subi.
+
 > Trouvé parce que MB a demandé « si je fais un curl inversé, ça ne fait pas travailler
 > les mêmes muscles que paume vers le haut, non ? » Il avait raison, et sa question a
-> révélé deux défauts que la table seule ne montrait pas.
+> révélé deux défauts que la table seule ne montrait pas. Le troisième est venu de la
+> même veine, le 2026-10-23 : « mais le reverse pronation n'est-il pas simplement de la
+> supination ? »
+
+**Le carnet se trompait d'axe.** MB, le 2026-10-23 : *« on peut faire un wrist curl qui
+accentue le côté du pouce, et inversement avec le petit doigt, ou alors tu wrist curl
+normalement, sans accentuation d'un côté ou de l'autre. »* L'axe d'un wrist curl n'est pas
+la pronation — c'est la **déviation**. Et c'était le pire défaut de la table :
+
+| nom | avant |
+|---|---|
+| `Wrist curl` | Fléch. radial, Fléch. ulnaire — **juste** |
+| `Wrist curl côté pouce` | … + **Ext. pouce, Long abd. pouce, Court abd. pouce** |
+| `Wrist curl côté petit doigt` | … + **Ext. auriculaire, Abd. auriculaire, Fléch. auriculaire, Opp. auriculaire** |
+| `Déviation radiale`, `Radial deviation`, `Inclinaison ulnaire` | **rien du tout** |
+
+Les deux accentués proposaient des muscles qui **ouvrent le pouce** ou bougent le petit
+doigt — dont **trois intrinsèques**, ceux-là mêmes qui ont été sortis des zones de
+mouvement de la main le même jour parce qu'ils ne traversent pas le poignet. C'est la
+famille de `lat` dans « latérale », mais en pire : le mot est le bon, c'est son **rôle**
+qui est faux. Dans « côté pouce », *pouce* nomme une **direction**. Le mot du côté est
+donc **retiré** de ce qui reste à lire, et pas seulement ignoré — c'est le seul endroit du
+carnet où un mot quitte le nom.
+
+Les muscles, eux, étaient là depuis toujours et leurs noms français disaient la réponse.
+[Kenhub](https://www.kenhub.com/en/library/anatomy/flexor-carpi-radialis-muscle), revu le
+2023-11-03 : le fléchisseur **radial** fait *« wrist flexion, wrist abduction »* ;
+[le fléchisseur **ulnaire**](https://www.kenhub.com/en/library/anatomy/flexor-carpi-ulnaris-muscle),
+*« wrist flexion, wrist adduction »*. Chacun fléchit **et** dévie de son bord.
+
+Le côté dit le **bord**, le geste dit le **sens** :
+
+| | côté pouce | côté petit doigt | sans accentuation |
+|---|---|---|---|
+| `wrist curl` | Fléch. radial | Fléch. ulnaire | les deux |
+| `wrist curl inversé` | Rond pronat., Long + Court ext. radial, Ext. doigts | Rond pronat., **Ext. ulnaire**, Ext. doigts | les quatre |
+
+Une **déviation pure** prend les deux muscles du même bord : le fléchisseur et l'extenseur
+tirent ensemble, leurs flexions s'annulent, il ne reste que la déviation. `Déviation
+radiale` rend donc Fléch. radial + les deux extenseurs radiaux, et `Déviation ulnaire`
+Fléch. ulnaire + Ext. ulnaire.
+
+> **Simplification assumée** : un wrist curl accentué pouce n'emploie pas *que* le
+> fléchisseur radial — l'ulnaire fléchit aussi, il est seulement moins sollicité. Le
+> carnet propose ce que le geste **accentue**, qui est le mot de MB ; l'autre reste à une
+> case de là.
+
+> **Les mots reconnus viennent d'une liste, pas d'une règle** : `côté`, `bord`,
+> `accentué`, `vers le` devant *pouce* / *petit doigt* / *auriculaire*, plus `déviation`,
+> `inclinaison` et `flexion` devant *radiale* / *ulnaire* / *cubitale*, et les deux
+> tournures anglaises. Un mot que MB écrirait et qui n'y serait pas est **une ligne à
+> ajouter** — et c'est exactement l'erreur commise avec « en pronation », une tournure
+> que le carnet s'était écrite à lui-même.
 
 #### Les mots se lisent ENTIERS
 
