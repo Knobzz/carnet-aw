@@ -1686,6 +1686,45 @@
     v.egal(long, null, 'un retour trop long rend null, au lieu d’ouvrir une erreur');
   });
 
+  /* ================================================================
+     Les exemples d'une zone chargent bien CETTE zone
+
+     Chaque zone ressentie donne un ou deux exercices en exemple, apres le
+     tiret de son aide. Rien ne verifiait qu'ils correspondent : « le wrist
+     curl en pronation » illustrait le bord de l'AURICULAIRE alors que ses
+     moteurs principaux (ECRL, ECRB) sont du cote du POUCE — et c'etait en
+     plus le meme geste que l'exemple d'une autre zone. Releve par MB le
+     2026-10-23.
+
+     On ne juge pas a l'oeil : on demande au carnet LUI-MEME ce que le nom
+     de l'exemple charge, et on exige que la majorite tombe dans la zone.
+     ================================================================ */
+  bloc('Les exemples des zones', function (v) {
+    var rates = [], juges = 0;
+    A.m.ZONES_RESSENTIES.forEach(function (z) {
+      var apres = String(z.aide || '').split('—')[1];
+      if (!apres) return;
+      apres.split(',').forEach(function (brut) {
+        var nom = brut.replace(/^\s*(?:les?|la|l’|l')\s*/i, '').trim();
+        if (!nom) return;
+        var m = A.m.musclesDuNom(nom);
+        /* Un exemple que le carnet ne connait pas ne prouve rien : on ne le
+           juge pas, et on compte combien on en a vraiment juges. */
+        if (!m.length) return;
+        juges++;
+        var dedans = m.filter(function (id) { return z.muscles.indexOf(id) >= 0; }).length;
+        if (dedans * 2 < m.length) {
+          rates.push(z.id + ' / « ' + nom + ' » : ' + dedans + ' sur ' + m.length);
+        }
+      });
+    });
+    v.vrai(juges >= 5,
+           '[temoin] au moins cinq exemples sont reconnus par le carnet, sinon '
+         + 'ce bloc ne mesure presque rien (juges : ' + juges + ')');
+    v.egal(rates.join(' · '), '',
+           'chaque exemple charge MAJORITAIREMENT les muscles de sa zone');
+  });
+
   bloc('Où ça tire', function (v) {
     v.egal(A.m.ZONES_RESSENTIES.length, 13, 'treize zones ressenties');
 

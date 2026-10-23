@@ -1112,7 +1112,7 @@
                 'long_abducteur_pouce', 'court_abducteur_pouce'] },
     { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
       aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y '
-          + 'partir — le hook, le wrist curl en pronation',
+          + 'partir — le hook',
       muscles: ['ecu', 'fcu', 'extenseur_petit_doigt', 'abducteur_auriculaire',
                 'court_flechisseur_auriculaire'] },
     { id: 'serrer', nom: 'La main qui serre',
@@ -1146,7 +1146,7 @@
       aide: 'pousser la main loin de l’épaule — l’extension, les dips',
       muscles: ['triceps', 'ancone'] },
     { id: 'epaule', nom: 'L’épaule',
-      aide: 'le bras entier bouge — les élévations, le développé',
+      aide: 'le bras entier bouge — l’élévation latérale, le shoulder press',
       muscles: ['deltoide', 'coraco_brachial', 'subscapulaire'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
       aide: 'le torse travaille avec le bras — le tirage, le pull-over',
