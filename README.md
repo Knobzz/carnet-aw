@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **954 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **956 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -169,7 +169,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **574 contrôles, 28 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **380 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **382 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et

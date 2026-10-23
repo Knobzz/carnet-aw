@@ -476,13 +476,23 @@
       return Math.max(m, c.parMuscle[x.id] || 0);
     }, 0) || 1;
 
+    /* Sans region choisie, on ne montre que ce qui a travaille : c'est la
+       question « qu'est-ce qui tire ». Avec une region, on montre TOUS ses
+       muscles, charges ou non — parce que la planche d'un muscle jamais
+       travaille n'a AUCUN autre chemin dans l'app. Trente-six planches
+       livrees, et seules celles qu'on avait deja entrainees etaient
+       visibles : un cul-de-sac que le filtre par region a rendu visible. */
     var classes = A.m.MUSCLES.slice().sort(function (a, b) {
       return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
-    }).filter(function (m) { return (c.parMuscle[m.id] || 0) > 0 && retenu(m); });
+    }).filter(function (m) {
+      return retenu(m) && (regionChoisie || (c.parMuscle[m.id] || 0) > 0);
+    });
 
-    if (regionChoisie && !classes.length) {
+    var chargesIci = classes.filter(function (m) { return (c.parMuscle[m.id] || 0) > 0; });
+    if (regionChoisie && !chargesIci.length) {
       corps.appendChild(h('div', { class: 'item-resume',
-        text: 'Aucun muscle de cette région n’a travaillé sur ' + periode.nom + '.' }));
+        text: 'Aucun muscle de cette région n’a travaillé sur ' + periode.nom
+            + '. Leurs planches restent consultables ci-dessous.' }));
     }
     if (classes.length) {
       var rang = 0;
@@ -555,7 +565,8 @@
       return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
     }).forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
-      if (!n || !retenu(m)) return;
+      if (!retenu(m)) return;
+      if (!n && !regionChoisie) return;
       /* Le libellé est un BOUTON : il ouvre la planche en grand, avec le nom
          latin, ce que le muscle fait et ce qu'il mobilise. C'est le seul
          chemin vers le détail depuis que les zones cliquables ont été
@@ -563,11 +574,11 @@
       var lib = h('button', { type: 'button', class: 'barre-nom',
                               text: m.court || m.nom, title: m.nom });
       lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });
-      barres.appendChild(h('div', { class: 'barre' },
+      barres.appendChild(h('div', { class: 'barre' + (n ? '' : ' barre-vide') },
         lib,
         h('div', { class: 'barre-piste' },
-          h('i', { class: 'aw', style: 'width:' + (n / maxM * 100) + '%' })),
-        h('span', { class: 'barre-val', text: n + ' sér.' })));
+          h('i', { class: 'aw', style: 'width:' + (n ? n / maxM * 100 : 0) + '%' })),
+        h('span', { class: 'barre-val', text: n ? n + ' sér.' : 'jamais' })));
     });
     corps.appendChild(barres);
 

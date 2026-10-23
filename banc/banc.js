@@ -1466,16 +1466,22 @@
            'quoi qu’on demande, on rend une période DE LA TABLE — un carnet '
          + 'd’une autre version ne doit pas casser l’écran');
 
-    /* La valeur attendue se calcule SANS appeler la fonction : N x 7 moins
-       le rang du jour dans la semaine (lundi = 0). Un LUNDI, ce rang vaut
-       zero et la bonne formule donne le meme resultat que la fausse — le
-       controle est alors aveugle, et son libelle le dit. */
+    /* La valeur attendue se calcule SANS appeler la fonction. La fenetre va
+       du lundi d'il y a N-1 semaines jusqu'a aujourd'hui, soit
+       (N-1) x 7 + rang + 1 = 7N - 6 + rang, avec lundi = 0.
+
+       Ecrite d'abord « 7N - rang », elle n'etait juste que le JEUDI — le
+       jour ou je l'ai ecrite. Elle a passe par coincidence et elle est
+       tombee le lendemain. Un DIMANCHE (rang 6), la bonne formule donne
+       7N, soit le meme resultat que la formule fautive : le controle est
+       alors aveugle, et son libelle le dit. */
     var rangDuJour = (new Date().getDay() + 6) % 7;
     A.m.PERIODES_SUIVI.forEach(function (p) {
-      v.egal(A.m.joursDeLaFenetre(p.semaines), p.semaines * 7 - rangDuJour,
-             p.nom + ' couvre ' + (p.semaines * 7 - rangDuJour) + ' jours, pas '
-           + (p.semaines * 7) + ' : les semaines partent d’un lundi'
-           + (rangDuJour ? '' : ' — AVEUGLE aujourd’hui, on est lundi'));
+      var attendu = p.semaines * 7 - 6 + rangDuJour;
+      v.egal(A.m.joursDeLaFenetre(p.semaines), attendu,
+             p.nom + ' couvre ' + attendu + ' jours, pas ' + (p.semaines * 7)
+           + ' : les semaines partent d’un lundi'
+           + (rangDuJour === 6 ? ' — AVEUGLE aujourd’hui, on est dimanche' : ''));
     });
   });
 

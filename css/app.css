@@ -1447,3 +1447,10 @@ tr.vedette td { background: var(--fond-2); }
               border-radius: var(--r); cursor: pointer; }
 .periode-bt[aria-pressed="true"] { color: var(--fond); background: var(--bleu);
                                    border-color: var(--bleu); }
+
+/* Un muscle de la région touchée qui n'a jamais travaillé : sa planche
+   reste consultable, mais sa barre ne doit pas se lire comme une charge
+   minuscule. */
+.barre.barre-vide .barre-nom { color: var(--texte-3); }
+.barre.barre-vide .barre-piste { opacity: .35; }
+.barre.barre-vide .barre-val { color: var(--texte-3); font-style: italic; }

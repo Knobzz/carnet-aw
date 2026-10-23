@@ -30,6 +30,23 @@
     return new Promise(function (r) { setTimeout(r, ms); });
   }
 
+  /* Attendre un ETAT plutot qu'un DELAI. Un `attendre(420)` apres une
+     transition de 260 ms parait large, mais le navigateur ralentit les
+     transitions d'une page qui n'a pas le focus : le controle devient
+     intermittent, et un banc rouge par intermittence est pire qu'un banc
+     rouge — on apprend a l'ignorer. */
+  function attendreQue(condition, maxMs) {
+    var fin = Date.now() + (maxMs || 2000);
+    return new Promise(function (resoudre) {
+      (function essayer() {
+        var ok = false;
+        try { ok = !!condition(); } catch (e) { ok = false; }
+        if (ok || Date.now() > fin) return resoudre(ok);
+        setTimeout(essayer, 40);
+      })();
+    });
+  }
+
   /* ---------- l'hôte : la vraie feuille de style, les vrais scripts ----------
 
      On ne charge PAS js/app.js : la coque n'est pas ce qu'on mesure, et elle
@@ -251,7 +268,11 @@
       v.vrai(!!passer, '[temoin] le bouton « Passer » est trouvable');
       if (passer) passer.click();
 
-      return attendre(GLISSADE).then(function () {
+      /* On attend que le bandeau soit REELLEMENT cache, pas qu'un delai
+         soit ecoule. */
+      return attendreQue(function () {
+        return style(fen, '.chrono', 'visibility') === 'hidden';
+      }).then(function () {
         var r2 = rect(doc, '.chrono');
         v.vrai(!!r2, '[temoin] le bandeau reste monté : il est caché, pas détruit');
         if (!r2) return;
@@ -882,10 +903,20 @@
       /* Le triceps n'a RIEN recu dans ce decor : le filtrer doit donner une
          liste vide ET le dire. Un cadre vide sans phrase se lit comme un
          bogue. */
-      v.egal(nomsAffiches().length, 0,
-             'filtrer sur une région jamais travaillée ne montre aucun muscle');
+      /* Une region jamais travaillee montre quand meme SES muscles : leur
+         planche n'a aucun autre chemin dans l'app — `voirPlanche` n'est
+         appelee que d'ici, et seulement pour les muscles charges. */
+      var duTriceps = fen.App.m.musclesDeLaRegion('bras_ar');
+      var vusTriceps = nomsAffiches();
+      v.egal(vusTriceps.join(', '), duTriceps.join(', '),
+             'une région jamais travaillée montre TOUS ses muscles, pour que '
+           + 'leurs planches restent atteignables');
       v.vrai(/Aucun muscle de cette région/.test(doc.body.innerText),
-             'et l’écran le DIT, au lieu de laisser un cadre vide');
+             'et l’écran dit qu’aucun n’a travaillé');
+      v.egal(doc.querySelectorAll('.barre-vide').length, duTriceps.length,
+             'chacun porte « jamais » au lieu d’une barre minuscule');
+      v.vrai(!!doc.querySelector('.planche-fond'),
+             'et une planche est affichée, là où il n’y en avait aucune');
 
       /* On enleve le filtre, puis on le repose sur une region CHARGEE :
          c'est la qu'on verifie qu'il ne garde que les siens. */
