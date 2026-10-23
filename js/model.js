@@ -150,16 +150,32 @@
 
   /* ---------- la prise ----------
 
-     Main ouverte ou doigts refermes : ce n'est pas un detail de style. Une
-     prise fermee fait travailler les FLECHISSEURS DES DOIGTS, qui naissent
-     eux aussi de l'epicondyle medial ; une prise ouverte pousse sans serrer.
-     Le meme exercice, des deux facons, ne charge pas la meme chose.
+     LA PRISE SE DEFINIT SUR LE POUCE, pas sur pousser ou serrer. Corrige le
+     2026-10-23 : « si je fais une traction prise ouverte ou prise fermee, je
+     ne vais pas POUSSER ma traction que je sache ? » MB avait raison. Les
+     deux textes d'aide disaient « main ouverte, on pousse » et « doigts
+     refermes, on serre » — une definition ecrite pour une poignee qu'on
+     POUSSE, alors que ce champ existe sur TOUS les exercices. Elle cassait
+     des que l'exercice tire.
+
+     Les noms, eux, etaient justes : « le pouce est enroule autour de la
+     barre : ce positionnement est appele prise FERMEE ; en prise OUVERTE ou
+     fausse le pouce ne s'enroule pas ». Seuls les libelles mentaient.
+
+     LES DEUX TRAVAILLENT, et c'est la correction de fond. Une prise ouverte
+     SERRE quand meme : les doigts tiennent la barre sans le pouce. Elle ne
+     proposait rien du tout, ce qui n'etait coherent qu'avec l'ancienne
+     definition.
+
+     Il existe une TROISIEME prise que le carnet n'a pas : la prise CROCHET
+     (hook grip), ou le pouce est coince SOUS les doigts. Signalee a MB, pas
+     ajoutee de ma propre initiative.
 
      Comme le cote : `null` veut dire non renseigne, et ne devient jamais une
      valeur par defaut. */
   var PRISES = [
-    { id: 'ouverte', nom: 'Ouverte', quoi: 'main ouverte, on pousse' },
-    { id: 'fermee',  nom: 'Fermée',  quoi: 'doigts refermés, on serre' }
+    { id: 'ouverte', nom: 'Ouverte', quoi: 'le pouce ne s’enroule pas — dite aussi fausse' },
+    { id: 'fermee',  nom: 'Fermée',  quoi: 'le pouce s’enroule autour, face aux doigts' }
   ];
 
   function priseValide(id) {
@@ -1380,6 +1396,21 @@
     musclesDuNom(nom).forEach(function (m) { vus[m] = 1; sources.nom = true; });
     /* Une prise fermee fait travailler les flechisseurs des doigts. C'est la
        definition de serrer, pas une interpretation. */
+    /* UNE PRISE OUVERTE SERRE QUAND MEME. Les doigts tiennent sans le
+       pouce, et ce sont eux qui font la force : « two extrinsic muscles
+       that are indispensable to grip strength performance, namely the
+       flexor digitorum profundus and flexor digitorum superficialis »
+       (Stronger by Science, revue sur la force de prehension).
+
+       CE QUI N'EST PAS PROPOSE, ET POURQUOI : aucun muscle du pouce. Ce
+       n'est pas une mesure — AUCUNE etude ne compare la prise sans pouce a
+       la prise pleine en EMG, je l'ai cherche — c'est la DEFINITION du
+       geste : le pouce n'est pas sur la barre, donc ses muscles ne tiennent
+       rien. Un raisonnement, et il est ecrit comme tel. */
+    if (priseValide(prise) === 'ouverte') {
+      vus.flechisseurs_doigts = 1;
+      sources.anatomie = true;
+    }
     if (priseValide(prise) === 'fermee') {
       /* Les EXTRINSEQUES font la force d'une prise de force ; les intrinseques
          assistent. Le thenar, lui, est employe dans toutes les formes de prise

@@ -771,6 +771,40 @@ Il a trouvé, dès sa première exécution, une citation qui ne soutenait pas ce
 appuyait : dans « ouvrir la main », l'extenseur des doigts portait la citation du
 **poignet**. Corrigé — son tableau d'actions dit ce qu'il faut.
 
+#### La PRISE se définit sur le pouce, et les deux travaillent
+
+Corrigé le 2026-10-23 sur une objection de MB : *« si je fais une traction prise ouverte
+ou prise fermée, je ne vais pas **pousser** ma traction que je sache ? »* Il avait raison.
+Les deux libellés disaient *« main ouverte, on pousse »* et *« doigts refermés, on
+serre »* — une définition écrite pour une **poignée qu'on pousse**, alors que ce champ
+existe sur **tous** les exercices. Elle cassait dès que l'exercice tire.
+
+Les **noms** étaient justes : *« le pouce est enroulé autour de la barre : ce
+positionnement est appelé prise FERMÉE ; en prise OUVERTE ou fausse le pouce ne s'enroule
+pas »*. Seuls les libellés mentaient. Ils parlent maintenant du pouce, et deux contrôles
+refusent qu'un texte reparte sur « on pousse ».
+
+**Et la prise ouverte travaille**, ce qui est la correction de fond — elle ne proposait
+**rien**. Une prise sans pouce **serre quand même** : les doigts tiennent la barre.
+
+| prise | ce qu'elle ajoute | d'où |
+|---|---|---|
+| **Ouverte** | Fléchisseurs des doigts | revue sur la force de préhension : les fléchisseurs profond et superficiel sont *« indispensables à la performance de force de préhension »* |
+| **Fermée** | les mêmes **plus** les cinq du pouce | JBJS 1970, 115 sujets |
+
+Un contrôle vérifie que l'ouverte est **incluse** dans la fermée : la fermée ajoute le
+pouce par-dessus, elle ne remplace pas.
+
+> **Aucun muscle du pouce dans la prise ouverte, et ce n'est PAS une mesure.** Aucune
+> étude ne compare la prise sans pouce à la prise pleine en EMG — je l'ai cherché. C'est
+> la **définition du geste** : le pouce n'est pas sur la barre, donc ses muscles ne
+> tiennent rien. Un raisonnement, écrit comme tel — au même titre que le refus déjà
+> présent pour les lombricaux et l'hypothénar.
+
+> **Une troisième prise existe et n'est pas ajoutée** : la **prise crochet** (*hook
+> grip*), pouce coincé **sous** les doigts, employée au soulevé de terre et en
+> haltérophilie. Signalée à MB, pas inventée.
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

@@ -1087,8 +1087,34 @@
            }).join(','), '',
            'et ni les lombricaux ni l’hypothénar : la source ne le dit pas');
     v.egal(ferme.source, 'anatomie', 'et c’est de l’anatomie');
-    v.egal(A.m.musclesProposes([], 'ouverte').muscles.length, 0,
-           'une prise ouverte ne propose rien : on pousse, on ne serre pas');
+    /* Ce controle disait « une prise ouverte ne propose rien : on pousse,
+       on ne serre pas ». MB a montre que la definition etait fausse — on ne
+       pousse pas une traction. Une prise ouverte SERRE, sans le pouce. */
+    v.egal(A.m.musclesProposes([], 'ouverte').muscles.join(','),
+           'flechisseurs_doigts',
+           'une prise ouverte serre avec les DOIGTS : le pouce n’est pas sur '
+         + 'la barre, mais eux si');
+    v.egal(A.m.musclesProposes([], 'ouverte').muscles
+            .filter(function (id) { return /pouce/.test(id); }).length, 0,
+           'et aucun muscle du pouce, puisqu’il ne tient rien');
+
+    /* La prise FERMEE ajoute le pouce PAR-DESSUS les doigts : elle contient
+       l'ouverte, elle ne la remplace pas. C'est ce qui tombe si les deux
+       listes se mettent a diverger. */
+    var po = A.m.musclesProposes([], 'ouverte').muscles;
+    var pf = A.m.musclesProposes([], 'fermee').muscles;
+    v.egal(po.filter(function (id) { return pf.indexOf(id) < 0; }).join(','), '',
+           'tout ce que l’ouverte propose, la fermée le propose aussi');
+    v.vrai(pf.length > po.length,
+           'et la fermée en ajoute : le pouce qui s’enroule');
+
+    /* Les LIBELLÉS parlent du POUCE, pas de pousser ou serrer : c'est la
+       correction de MB, et un texte qui repartirait sur « on pousse »
+       rendrait ce contrôle rouge. */
+    v.vrai(A.m.PRISES.every(function (p) { return /pouce/.test(p.quoi); }),
+           'les deux prises se définissent sur le POUCE');
+    v.egal(A.m.PRISES.filter(function (p) { return /pousse/.test(p.quoi); }).length, 0,
+           'et aucune ne parle de pousser : on ne pousse pas une traction');
 
     /* --- la proposition depuis le NOM ---
        « Curl biceps prise ouverte » contient le mot biceps : le proposer
