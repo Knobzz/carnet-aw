@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planche de revue — Carnet AW</title>
+<link rel="icon" href="../icones/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  /* Pas de ?v= ici : outils/version.py gouverne DIX-HUIT repères, dans
+     quatre fichiers nommés. Cette planche est un outil local, elle ne part
+     pas sur le téléphone, et lui donner un repère ferait mentir le compte.
+     Elle casse son cache à l'horodatage, comme le banc. */
+  body { padding: 18px 12px 60px; }
+  .tete { position: sticky; top: 0; z-index: 5; padding: 12px 0 10px;
+          background: var(--fond); border-bottom: 1px solid var(--trait);
+          margin-bottom: 16px; }
+  .tete .chiffre { font-size: 1.8rem; font-weight: 700; }
+  .vert { color: var(--bleu); } .rouge { color: var(--tendon); }
+  .mvt { border: 1px solid var(--trait); border-radius: var(--r);
+         background: var(--fond-2); margin-bottom: 14px; overflow: hidden;
+         /* l'en-tête colle en haut : sans ça, viser un mouvement le cache */
+         scroll-margin-top: 104px; }
+  .mvt > header { padding: 12px 14px; border-bottom: 1px solid var(--trait); }
+  .mvt h2 { font-size: 1.05rem; margin: 0; }
+  .aussi { font-size: .8rem; color: var(--texte-2); margin-top: 3px; }
+  .geste { font-size: .88rem; margin-top: 7px; }
+  .delta { display: flex; flex-wrap: wrap; gap: 6px; padding: 9px 14px;
+           border-bottom: 1px solid var(--trait); font-size: .78rem; }
+  .et { border-radius: 999px; padding: 2px 9px; border: 1px solid var(--trait); }
+  .et.pareil { color: var(--bleu); border-color: var(--bleu); }
+  .et.change { color: var(--laiton); border-color: var(--laiton); }
+  .muscle { display: flex; gap: 11px; padding: 11px 14px;
+            border-top: 1px solid var(--trait); align-items: flex-start; }
+  .muscle:first-of-type { border-top: 0; }
+  .muscle img { width: 74px; height: 74px; object-fit: cover; flex: 0 0 74px;
+                border-radius: 7px; background: var(--fond-3); }
+  .muscle .corps { flex: 1 1 auto; min-width: 0; }
+  .muscle .nom { font-weight: 600; font-size: .92rem; }
+  .rang { display: inline-block; font-size: .7rem; border-radius: 999px;
+          padding: 1px 8px; margin-left: 6px; vertical-align: 1px;
+          border: 1px solid var(--trait); color: var(--texte-2); }
+  .rang.moteur { color: var(--bleu); border-color: var(--bleu); }
+  .rang.tient  { color: var(--laiton); border-color: var(--laiton); }
+  .rang.deduit { color: var(--tendon); border-color: var(--tendon); }
+  .cite { font-size: .82rem; margin-top: 5px; padding-left: 9px;
+          border-left: 2px solid var(--trait); color: var(--texte); }
+  .qui { font-size: .74rem; color: var(--texte-2); margin-top: 4px;
+         word-break: break-word; }
+  .qui a { color: var(--texte-2); }
+  .deux { font-size: .8rem; margin-top: 5px; color: var(--texte-2); }
+  .deux li { margin-left: 16px; }
+  .note, .decider { font-size: .84rem; padding: 11px 14px;
+                    border-top: 1px solid var(--trait); }
+  .decider { background: var(--laiton-doux); }
+  .decider b { color: var(--texte); }
+  .manque { color: var(--tendon); font-weight: 600; }
+  /* `app.css` donne un `display:flex` aux blocs de cette famille, et le
+     titre se retrouvait en colonne de trois mots. On reprend la main. */
+  .legende { display: block; font-size: .82rem; border: 1px solid var(--trait);
+             border-radius: var(--r); padding: 11px 14px; margin-bottom: 16px; }
+  .ligne-champ { display: block; margin-bottom: 8px; }
+  .ligne-champ .etiq { display: block; font-size: .74rem; color: var(--texte-2);
+                       margin-bottom: 3px; }
+  .champ-revue { width: 100%; font-size: .95rem; }
+  .barre-revue { display: flex; gap: 10px; align-items: center;
+                 flex-wrap: wrap; margin-top: 9px; }
+  .barre-revue .item-resume { flex: 1 1 180px; margin: 0; }
+  #secours { white-space: pre-wrap; font-size: .78rem; margin-top: 9px;
+             padding: 9px 11px; border: 1px solid var(--trait);
+             border-radius: var(--r); background: var(--fond-3);
+             user-select: all; }
+  .legende b { display: block; margin-bottom: 7px; }
+  .legende li { margin: 7px 0 0 16px; }
+  .legende .rang { margin-left: 0; margin-right: 5px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <h1>Planche de revue</h1>
+  <p class="item-resume" id="chapeau" style="margin:4px 0 14px"></p>
+
+  <div class="tete" id="tete"></div>
+  <pre id="secours" hidden></pre>
+  <div class="legende" id="legende"></div>
+  <div id="sortie"></div>
+
+</div>
+
+<script>
+/* Même geste que le banc : on lit les FICHIERS DU DISQUE, jamais un cache.
+   Le service worker garde js/model.js pour le téléphone ; sans horodatage
+   la planche pourrait montrer un modèle périmé et on validerait du vide. */
+(function () {
+  var t = '?t=' + Date.now();
+  ['../js/store.js', '../js/model.js', 'catalogue.js', 'planche.js']
+    .forEach(function (f) {
+      document.write('<scr' + 'ipt src="' + f + t + '"></scr' + 'ipt>');
+    });
+})();
+</script>
+</body>
+</html>

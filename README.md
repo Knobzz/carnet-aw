@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 008 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 037 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,37 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **604 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **633 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
+- **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
+  elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
+  la planche anatomique de chacun, sa citation **mot pour mot** et le lien vers la source.
+  C'est la surface sur laquelle MB valide un lot avant qu'il parte, et les noms y sont
+  **modifiables** — un bouton rend les renommages à coller. Elle n'écrit jamais dans le
+  carnet : ses renommages vivent dans une clé à part du navigateur.
+
+  Elle parcourt `A.m.DICTIONNAIRE`, c'est-à-dire **ce qui est livré**, et va chercher la
+  citation de chaque muscle dans `revue/catalogue.js`, qui ne part pas sur le téléphone.
+  Un muscle livré sans citation s'affiche en rouge et compte dans « sans source » : la
+  planche ne peut ni montrer autre chose que la vérité, ni taire un trou. Elle a d'abord
+  lu le catalogue — donc une *copie* — et c'était le défaut même que ce carnet a payé cinq
+  fois le 2026-10-23.
+
+  Elle ne porte **aucun `?v=`** : `outils/version.py` gouverne dix-huit repères dans quatre
+  fichiers nommés, et lui en donner un ferait mentir le compte. Elle casse son cache à
+  l'horodatage, comme le banc.
+
+  **Les lots, dans l'ordre décidé par MB.** 1 — le poignet et l'avant-bras *(livré)*.
+  Puis la main et le grip, les gestes de table, les épaules et le dos : le bras de fer en
+  comporte, et les 36 muscles du carnet les couvrent déjà. Chaque lot suit le même
+  chemin — je liste, je source, MB valide, on livre.
+
+  **Et APRÈS les mouvements, pas avant : les équipements.** Décision de MB, 2026-10-23 :
+  certains outils spécifiques au bras de fer changent les muscles réellement sollicités
+  par un même geste, et ça méritera sa propre passe — *« dans un second temps beaucoup
+  plus tardif »*. Le carnet a déjà de quoi l'accrocher : les outils ont un catalogue et
+  des réglages, et `musclesProposes()` connaît déjà une source `reglage`. Rien n'est
+  commencé là-dessus, et rien ne doit l'être tant que les mouvements ne sont pas finis.
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -328,6 +357,15 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | une déviation pure réduite à un seul muscle | `attendu "fcr,ecrl,ecrb", obtenu "fcr"` |
 | « pouce » tout seul promu marqueur de côté | `« extension du pouce » : attendu ses trois muscles, obtenu "fcr,ecrl,ecrb"` |
 | les mots anglais et « cubitale » retirés | `« radial deviation » : obtenu ""` — 2 rouges |
+| le long palmaire et les fléchisseurs des doigts retirés du wrist curl | `attendu "…,flechisseurs_doigts", obtenu "fcr,fcu"` — 9 rouges |
+| l’option appliquée à MOITIÉ, les doigts oubliés | `attendu "…,long_flechisseur_pouce", obtenu "fcr,long_palmaire,fcu"` — 6 rouges |
+| le long palmaire rangé sur un bord, alors qu’il est au milieu | `attendu 3, obtenu 2` |
+| le dictionnaire placé AVANT mes propres exercices | `attendu "CURL MARTEAU", obtenu "Wrist curl"` — 5 rouges |
+| une entrée du dictionnaire qui invente le côté et la prise | `attendu null, obtenu "droit"` |
+| une entrée qui diverge de la lecture du nom | `attendu "fcu", obtenu "fcu,ecu"` |
+| une entrée écrite hors de l’ordre de MUSCLES | `attendu "", obtenu "Wrist curl inversé"` |
+| « extension poignet » retiré des trois muscles | `attendu les cinq, obtenu "ecrl,ecrb"` — 2 rouges |
+| « reverse » qui cesse d’être un marqueur d’inversion | la liste mélange fléchisseurs ET extenseurs |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

@@ -205,8 +205,11 @@
   }
 
   /* ---------- autocomplétion ----------
-     Alimentée par le catalogue d'usage, jamais par une liste figée.
-     Le champ garde le focus : on ne reconstruit que la liste déroulante. */
+     Alimentée par le catalogue d'usage D'ABORD, puis par le dictionnaire
+     d'exercices quand le catalogue ne suffit pas (décision de MB,
+     2026-10-23). Ce fichier ne connaît ni l'un ni l'autre : il affiche ce
+     que le fournisseur lui donne, et les jetons disent d'où vient chaque
+     ligne. Le champ garde le focus : on ne reconstruit que la liste. */
   function autocomplete(champ, fournisseur, surChoix) {
     var enrobe = h('div', { class: 'auto' });
     champ.parentNode.insertBefore(enrobe, champ);

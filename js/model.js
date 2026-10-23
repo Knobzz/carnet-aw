@@ -496,7 +496,15 @@
      Rien n'est ecrit sur l'exercice sans un geste : la proposition remplit
      les cases, l'utilisateur garde la main. */
   var MUSCLES_PAR_MOUVEMENT = {
-    cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'long_palmaire', 'flechisseurs_doigts'] },
+    /* Le LONG FLECHISSEUR DU POUCE entre le 2026-10-23, sur la planche de
+       revue et la decision de MB. La page du flechisseur PROFOND des doigts
+       enumere les flechisseurs du poignet : « aiding the flexor carpi
+       ulnaris, flexor carpi radialis, palmaris longus, flexor digitorum
+       superficialis and flexor pollicis longus muscles to flex the hand at
+       the wrist joint » (Kenhub). Le carnet en tenait quatre sur six. */
+    cupping:       { source: 'anatomie',   muscles: ['fcu', 'fcr', 'long_palmaire',
+                                                     'flechisseurs_doigts',
+                                                     'long_flechisseur_pouce'] },
     pronation:     { source: 'anatomie',   muscles: ['rond_pronateur', 'carre_pronateur'] },
     supination:    { source: 'anatomie',   muscles: ['supinateur', 'biceps'] },
     /* Les quatre premiers viennent de l'etude EMG ; la main vient de Larratt,
@@ -544,13 +552,14 @@
      et un wrist curl ne travaillent pas la meme chose. On ne propose que sur
      un mot qui designe sans ambiguite. */
   var MOTS_MUSCLE = {
-    biceps:              ['biceps'],
+    biceps:              ['biceps', 'supination', 'supinat'],
     triceps:             ['triceps', 'extension coude', 'dips'],
     brachial:            ['brachial'],   /* « brachio radial » ne le contient pas */
     /* « long supinateur » est le nom classique du BRACHIO-RADIAL, pas du
        supinateur : les confondre enverrait la charge au mauvais muscle. */
     brachio_radial:      ['brachio radial', 'brachioradial', 'long supinateur', 'marteau', 'hammer'],
-    rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat'],
+    rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat',
+                          'extension poignet'],
     carre_pronateur:     ['pronation', 'pronateur', 'pronator', 'pronat'],
     supinateur:          ['supination', 'supinateur', 'supinator', 'supinat'],
     fcu:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet',
@@ -565,8 +574,22 @@
        alors que des doigts qui s'ecartent sont tenus par les extenseurs.
        Meme raison que « grip » : un mot qui designe les deux ne designe
        aucun des deux. */
+    /* Les FLECHISSEURS DES DOIGTS sont au deuxieme rang, et le choix a ete
+       soumis a MB avec ce que chaque option coute. Kenhub ne les met pas au
+       tableau d'actions du poignet, mais le texte dit « flexor digitorum
+       superficialis aids the flexion of the wrist ». Une aide, pas un
+       moteur.
+
+       La regle de MB en 1.23.2 refusait a la source « le nom » les
+       affirmations de second rang. Il a tranche l'inverse ici (option B),
+       pour une raison plus forte : la table anatomique du carnet les
+       affirme DEJA pour le cupping, et laisser la lecture dire autre chose
+       que la table pour le meme geste est exactement le defaut corrige
+       trois fois ce jour-la. Un controle mesure maintenant cet accord. */
     flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'pinch', 'serrer',
-                          'flexion doigts', 'fermeture main'],
+                          'flexion doigts', 'fermeture main',
+                          'cupping', 'cup', 'wrist curl', 'flexion poignet',
+                          'flechisseur poignet'],
     /* Un exercice de PINCE est d'abord un exercice de pouce : c'est lui qui
        s'oppose aux doigts, et sans lui il n'y a pas de pince du tout. Les
        mots viennent du nom que l'utilisateur a ecrit — la source la moins
@@ -575,14 +598,18 @@
                           'adducteur du pouce', 'adducteur pouce'],
     court_flechisseur_pouce: ['pince', 'pinch', 'serrage', 'gripper', 'serrer'],
     long_flechisseur_pouce:  ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
-                              'long flechisseur du pouce', 'flechisseur du pouce'],
+                              'long flechisseur du pouce', 'flechisseur du pouce',
+                              'cupping', 'cup', 'wrist curl', 'flexion poignet',
+                              'flechisseur poignet'],
     opposant_pouce:      ['pince', 'pinch', 'opposant du pouce', 'opposition du pouce',
                           'opposant pouce'],
     ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
     ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
-    ecu:                 ['cubital posterieur', 'extenseur ulnaire'],
+    ecu:                 ['cubital posterieur', 'extenseur ulnaire',
+                          'extension poignet', 'reverse wrist'],
     extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main',
-                          'ecartement doigts', 'extensor band'],
+                          'ecartement doigts', 'extensor band',
+                          'extension poignet', 'reverse wrist'],
     extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
     abducteur_auriculaire: ['petit doigt', 'auriculaire'],
     court_flechisseur_auriculaire: ['petit doigt', 'auriculaire'],
@@ -604,7 +631,18 @@
     subscapulaire:         ['subscapulaire', 'sous scapulaire'],
     coraco_brachial:     ['coraco'],
     ancone:              ['ancone'],
-    long_palmaire:       ['petit palmaire', 'long palmaire'],
+    /* MB, 2026-10-23 : « un wrist curl ne fait pas travailler QUE les
+       flechisseurs pronateurs, nan ? » Il avait raison, et le carnet se
+       contredisait pour la QUATRIEME fois de la journee : le mouvement
+       « cupping » proposait DEJA quatre muscles la ou la lecture du nom
+       n'en donnait que deux.
+
+       Le LONG PALMAIRE est un flechisseur du poignet de plein droit —
+       Kenhub, revu le 2023-11-03, tableau d'actions : « Wrist joint: Wrist
+       flexion ». Il etait visible, non coche, entre les deux autres. */
+    long_palmaire:       ['petit palmaire', 'long palmaire',
+                          'cupping', 'cup', 'wrist curl', 'flexion poignet',
+                          'flechisseur poignet'],
     /* « press » est garde pour « bench press » et « shoulder press », qui
        sont des mots entiers. Il ne s'allume plus dans « pression » depuis
        que les mots se lisent entiers. « pectoraux » est ajoute : le pluriel
@@ -613,6 +651,62 @@
     grand_dorsal:        ['dorsal', 'tirage', 'rowing', 'traction', 'pull up', 'lat'],
     grand_rond:          ['grand rond', 'teres major']
   };
+
+  /* ---------- le DICTIONNAIRE d'exercices ----------
+
+     Demande de MB le 2026-10-23 : « il faut en fait creer un dictionnaire
+     d'exercice, avec les muscles travailles associes ».
+
+     CE N'EST PAS UNE LISTE IMPOSEE, et la regle 6 tient toujours. Trois
+     choses la protegent :
+
+       - chaque entree a ete VALIDEE par MB, une par une, sur la planche de
+         revue (revue/), ou chaque muscle arrive avec sa citation et son
+         lien ;
+       - elle SUGGERE, elle n'impose rien : ses entrees passent APRES les
+         exercices que MB a lui-meme ecrits, et il peut taper ce qu'il veut ;
+       - choisir une entree ne remplit QUE les muscles. Ni le type de
+         charge, ni le cote, ni la prise, ni les outils : rien n'est
+         pre-rempli, et `null` reste « non renseigne ».
+
+     Les sources NE SONT PAS ici : elles vivent dans revue/catalogue.js, qui
+     ne part pas sur le telephone. Un controle du banc verifie que les deux
+     disent la meme chose, et la planche se construit depuis CE modele —
+     elle ne peut donc pas montrer autre chose que ce qui est livre.
+
+     LOT 1 valide le 2026-10-23 : le poignet et l'avant-bras. Les lots
+     suivants (la main et le grip, les gestes de table, les epaules et le
+     dos) s'ajouteront ici une fois valides. */
+  var DICTIONNAIRE = [
+    { nom: 'Wrist curl',
+      aussi: ['Flexion du poignet', 'Cupping', 'Tenue en cup'],
+      muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
+                'long_flechisseur_pouce'] },
+    { nom: 'Wrist curl côté pouce',
+      aussi: ['Wrist curl bord du pouce', 'Wrist curl accentué pouce'],
+      muscles: ['fcr', 'long_palmaire', 'flechisseurs_doigts',
+                'long_flechisseur_pouce'] },
+    { nom: 'Wrist curl côté petit doigt',
+      aussi: ['Wrist curl bord du petit doigt', 'Wrist curl côté auriculaire'],
+      muscles: ['long_palmaire', 'fcu', 'flechisseurs_doigts',
+                'long_flechisseur_pouce'] },
+    { nom: 'Wrist curl inversé',
+      aussi: ['Reverse wrist curl', 'Extension du poignet'],
+      muscles: ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
+                'extenseurs_doigts'] },
+    { nom: 'Déviation radiale',
+      aussi: ['Rising', 'Inclinaison radiale', 'Radial deviation'],
+      muscles: ['fcr', 'ecrl', 'ecrb'] },
+    { nom: 'Déviation ulnaire',
+      aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation'],
+      muscles: ['fcu', 'ecu'] },
+    { nom: 'Pronation',
+      aussi: ['Poignée de pronation'],
+      muscles: ['rond_pronateur', 'carre_pronateur'] },
+    { nom: 'Supination',
+      aussi: ['Supination à la clé'],
+      muscles: ['biceps', 'supinateur'] }
+  ];
 
   /* ---------- lire un nom d'exercice ----------
 
@@ -773,7 +867,8 @@
      Le CARRE pronateur n'y est pas : l'etude ne mesure que le rond, et rien
      d'autre ne lui attribue ce role. Il garde le geste de pronation. */
   var GESTES_INVERSES = {
-    'wrist curl': ['rond_pronateur', 'ecrl', 'ecrb', 'extenseurs_doigts'],
+    'wrist curl': ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
+                   'extenseurs_doigts'],
     'curl':       ['brachio_radial', 'ecrl', 'ecrb']
   };
 
@@ -1529,19 +1624,62 @@
     return debut.concat(dedans).slice(0, n);
   }
 
-  /* Suggestions pour l'autocomplétion : ce que j'ai déjà employé, rien d'autre.
-     Classement : commence par la saisie d'abord, puis le plus récemment vu. */
+  /* Une entree du dictionnaire, mise a la forme d'un exercice pour que
+     l'ecran n'ait pas deux cas a traiter. Tout ce qui n'est pas le nom et
+     les muscles reste au DEFAUT : choisir une entree ne doit rien decider
+     a la place de MB. `duDictionnaire` permet a l'ecran de la marquer, et
+     au panneau de ne reprendre que les muscles. */
+  function entreeDictionnaire(d) {
+    return { id: 'dict:' + slug(d.nom), nom: d.nom, slug: slug(d.nom),
+             aw: false, typeCharge: 'kg', colonnes: COLONNES_DEFAUT.slice(),
+             cote: null, prise: null, muscles: d.muscles.slice(),
+             forces: [], structures: [], outils: [], reglages: {},
+             vuLe: null, duDictionnaire: true, aussi: (d.aussi || []).slice() };
+  }
+
+  /* Le dictionnaire se cherche sur le nom ET sur ses autres ecritures :
+     taper « reverse wrist » doit trouver « Wrist curl inverse ». */
+  function suggestionsDictionnaire(q, dejaVus) {
+    if (!q) return [];
+    var debut = [], dedans = [];
+    DICTIONNAIRE.forEach(function (d) {
+      if (dejaVus.indexOf(slug(d.nom)) >= 0) return;
+      var ecritures = [d.nom].concat(d.aussi || []).map(slug);
+      var meilleur = -1;
+      ecritures.forEach(function (e) {
+        var p = e.indexOf(q);
+        if (p < 0) return;
+        if (meilleur < 0 || p < meilleur) meilleur = p;
+      });
+      if (meilleur === 0) debut.push(d);
+      else if (meilleur > 0) dedans.push(d);
+    });
+    return debut.concat(dedans).map(entreeDictionnaire);
+  }
+
+  /* Suggestions pour l'autocomplétion. MES EXERCICES D'ABORD, puis le
+     dictionnaire — decision de MB du 2026-10-23. L'ordre n'est pas un
+     detail : ce que MB a ecrit lui-meme passe toujours devant une entree
+     qu'on lui propose, et une entree deja presente a son catalogue ne
+     reapparait pas en double.
+
+     Classement, de chaque cote : commence par la saisie d'abord, puis le
+     plus recemment vu. */
   function suggestions(etat, saisie, limite) {
     var q = slug(saisie);
+    var n = limite || 8;
     var l = parRecence(etat.exercices);
-    if (!q) return l.slice(0, limite || 8);
+    if (!q) return l.slice(0, n);
     var debut = [], dedans = [];
     for (var i = 0; i < l.length; i++) {
       var p = l[i].slug.indexOf(q);
       if (p === 0) debut.push(l[i]);
       else if (p > 0) dedans.push(l[i]);
     }
-    return debut.concat(dedans).slice(0, limite || 8);
+    var miens = debut.concat(dedans);
+    if (miens.length >= n) return miens.slice(0, n);
+    var vus = miens.map(function (x) { return x.slug; });
+    return miens.concat(suggestionsDictionnaire(q, vus)).slice(0, n);
   }
 
   /* ---------- migration, À LA LECTURE ----------
@@ -2922,6 +3060,8 @@
     chargeParSemaine: chargeParSemaine, comparerDeuxPeriodes: comparerDeuxPeriodes,
     PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
     joursDeLaFenetre: joursDeLaFenetre,
+    DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
+    suggestionsDictionnaire: suggestionsDictionnaire,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
     contexteTechnique: contexteTechnique, texteRetour: texteRetour,

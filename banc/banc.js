@@ -447,8 +447,70 @@
     v.egal(A.m.trouverOutil(e, 'poulie haute').categorie, 'Poulies',
            'et une catégorie vide n’efface pas celle qui est posée');
 
-    v.egal(A.m.suggestions(e, 'curl').length, 1, 'l’autocomplétion propose ce qui a été saisi');
-    v.egal(A.m.suggestions(e, 'zzz').length, 0, 'et rien d’autre');
+    /* --- MES EXERCICES D'ABORD, PUIS LE DICTIONNAIRE ---
+       Décision de MB, 2026-10-23. L'ordre n'est pas un détail : ce qu'il a
+       écrit lui-même passe toujours devant ce qu'on lui propose. */
+    var sug = A.m.suggestions(e, 'curl', 8);
+    v.egal(sug[0].nom, 'CURL MARTEAU',
+           'ce que j’ai écrit moi-même passe EN PREMIER');
+    v.egal(!!sug[0].duDictionnaire, false,
+           'et la première ligne ne vient pas du dictionnaire');
+    v.vrai(sug.length > 1 && sug.slice(1).every(function (x) {
+             return x.duDictionnaire;
+           }),
+           'le dictionnaire complète ensuite, et seulement ensuite');
+    v.egal(A.m.suggestions(e, 'zzz', 8).length, 0,
+           'un mot qu’aucun des deux ne connaît ne propose rien');
+
+    /* Le dictionnaire se cherche aussi sur ses AUTRES écritures : c'est tout
+       l'intérêt d'en avoir un. « rising » est le mot du bras de fer pour la
+       déviation radiale — MB l'a dit, et les sources du sport le confirment. */
+    v.egal((A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {}).nom,
+           'Déviation radiale',
+           '« rising » trouve la déviation radiale par son autre écriture');
+    v.egal((A.m.suggestions({ exercices: [] }, 'reverse wrist', 8)[0] || {}).nom,
+           'Wrist curl inversé',
+           'et « reverse wrist » trouve le wrist curl inversé');
+
+    /* Une entrée du dictionnaire n'INVENTE rien : un nom et des muscles,
+       rien d'autre. `null` veut dire « non renseigné » et ne se décide pas
+       à la place de MB. */
+    var dico = A.m.entreeDictionnaire(A.m.DICTIONNAIRE[0]);
+    v.egal(dico.cote, null, 'une entrée du dictionnaire ne décide pas du côté');
+    v.egal(dico.prise, null, 'ni de la prise');
+    v.egal(dico.outils.length + dico.forces.length + dico.structures.length, 0,
+           'ni des outils, ni des forces, ni des structures');
+    v.vrai(dico.muscles.length > 0, '[temoin] elle apporte bien des muscles');
+
+    /* Un nom DÉJÀ au catalogue ne revient pas en double. C'est le cas le
+       plus fréquent : MB écrit « Wrist curl » une fois, et ensuite c'est SON
+       entrée qu'il doit retrouver. */
+    var e3 = A.store.vide();
+    A.m.majCatalogue(e3, { nom: 'Wrist curl', typeCharge: 'kg' });
+    var sw = A.m.suggestions(e3, 'wrist curl', 8);
+    v.egal(sw.filter(function (x) { return x.slug === 'wrist curl'; }).length, 1,
+           'un nom déjà écrit n’apparaît qu’UNE fois');
+    v.egal(!!sw[0].duDictionnaire, false, 'et c’est le sien, pas celui du dictionnaire');
+
+    /* --- LE DICTIONNAIRE ET LA LECTURE DU NOM DISENT LA MÊME CHOSE ---
+       Le carnet s'est contredit quatre fois en une journée parce que deux
+       moitiés du modèle décrivaient le même geste autrement. Ce contrôle
+       refuse que ça recommence, entrée par entrée. */
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      v.egal(A.m.musclesDuNom(d.nom).join(','), d.muscles.join(','),
+             'dictionnaire et lecture du nom s’accordent sur « ' + d.nom + ' »');
+    });
+
+    /* Et chaque entrée suit l'ORDRE de MUSCLES, comme le reste du carnet :
+       sinon deux listes identiques se compareraient comme différentes, et le
+       contrôle d'accord ci-dessus mentirait. Vécu : « Supination » portait
+       supinateur avant biceps, et l'accord tombait pour cette seule raison. */
+    var ordre = A.m.MUSCLES.map(function (x) { return x.id; });
+    v.egal(A.m.DICTIONNAIRE.filter(function (d) {
+             var rangs = d.muscles.map(function (i) { return ordre.indexOf(i); });
+             return rangs.some(function (r, k) { return k > 0 && r < rangs[k - 1]; });
+           }).map(function (d) { return d.nom; }).join(', '), '',
+           'toutes les entrées suivent l’ordre de MUSCLES');
   });
 
   /* ================================================================
@@ -1014,7 +1076,7 @@
        parce que l'ECRL supine l'avant-bras de 30 à 80° depuis la position
        prone. Le rond pronateur ne tourne pas, il TIENT. */
     v.egal(A.m.musclesDuNom('Wrist curl inversé').join(','),
-           'rond_pronateur,ecrl,ecrb,extenseurs_doigts',
+           'rond_pronateur,ecrl,ecrb,ecu,extenseurs_doigts',
            'un wrist curl INVERSÉ relève le poignet : les extenseurs, plus '
          + 'le rond pronateur qui tient la pronation (Fujii 2007, 12 sujets '
          + 'sur 12)');
@@ -1022,8 +1084,26 @@
            'et PAS le carré pronateur : l’étude ne mesure que le rond');
     v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('fcu'), -1,
            'et SURTOUT pas les fléchisseurs, qui sont le geste droit');
-    v.egal(A.m.musclesDuNom('Wrist curl').join(','), 'fcr,fcu',
-           'le wrist curl droit, lui, ne bouge pas');
+    /* MB : « un wrist curl ne fait pas travailler QUE les fléchisseurs
+       pronateurs, nan ? » Il avait raison. Le LONG PALMAIRE est un
+       fléchisseur du poignet au tableau d'actions de Kenhub (revu le
+       2023-11-03), et les FLÉCHISSEURS DES DOIGTS y « aident » — le carnet
+       les affirmait déjà tous les deux pour le cupping. */
+    v.egal(A.m.musclesDuNom('Wrist curl').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
+           'un wrist curl droit, ce sont les deux fléchisseurs du carpe, le '
+         + 'long palmaire et les fléchisseurs des doigts');
+
+    /* LA PREUVE EST L'ACCORD. Le carnet se contredisait pour la quatrième
+       fois ce jour-là : la table anatomique proposait quatre muscles pour
+       le cupping, la lecture du nom en donnait deux pour le même geste.
+       Ce contrôle refuse que les deux moitiés divergent de nouveau. */
+    v.egal(A.m.musclesDuNom('Wrist curl').join(','),
+           (A.m.musclesProposes(['cupping'], null, '', null).muscles || []).join(','),
+           'la lecture du NOM dit la même chose que la table ANATOMIQUE, '
+         + 'pour le même geste');
+    v.egal(A.m.musclesDuNom('Cupping').join(','),
+           A.m.musclesDuNom('Wrist curl').join(','),
+           'et « cupping » est le nom bras de fer du même geste');
 
     /* On prend le geste le plus LONG : « wrist curl inversé » est un wrist
        curl retourné, pas un curl retourné. Sans ça il proposerait aussi le
@@ -1053,7 +1133,7 @@
            '« wrist curl en pronation » et « wrist curl inversé » sont le '
          + 'même geste et proposent la même chose');
     v.egal(A.m.musclesDuNom('Wrist curl en pronation').join(','),
-           'rond_pronateur,ecrl,ecrb,extenseurs_doigts',
+           'rond_pronateur,ecrl,ecrb,ecu,extenseurs_doigts',
            'et ce sont bien les extenseurs, pas les fléchisseurs');
     v.egal(A.m.musclesDuNom('Wrist curl en pronation')
             .filter(function (id) { return id === 'fcr' || id === 'fcu'; }).length, 0,
@@ -1066,7 +1146,7 @@
        défaut. « Flexion du poignet » nomme sa direction : la dire tenue en
        pronation ne l'inverse pas, et les fléchisseurs restent. C'est ce qui
        tombe si le marqueur retourne tout au lieu de passer par les clés. */
-    v.egal(A.m.musclesDuNom('Flexion du poignet en pronation').join(','), 'fcr,fcu',
+    v.egal(A.m.musclesDuNom('Flexion du poignet en pronation').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            '« flexion du poignet en pronation » garde les fléchisseurs : '
          + 'le nom dit déjà son sens');
 
@@ -1083,9 +1163,34 @@
        volontairement pas lu. Aucune source ne dit ce qui tient une
        supination. Ce contrôle fige l'état actuel pour que le changement,
        s'il vient, soit décidé et pas subi. */
-    v.egal(A.m.musclesDuNom('Curl en supination').join(','), 'supinateur',
+    v.egal(A.m.musclesDuNom('Curl en supination').join(','), 'biceps,supinateur',
            '« en supination » se lit encore comme le geste — décision de MB '
          + 'en attente');
+
+    /* --- « EXTENSION DU POIGNET » EST LE MÊME GESTE (MB, 2026-10-23) ---
+       MB : « extension du poignet et wrist curl inversé sont deux exercices
+       différents ». Sur la TERMINOLOGIE il se trompait — les sources sont
+       nettes, un reverse wrist curl est un exercice de POIGNET, et c'est
+       « reverse curl », SANS « wrist », qui bouge le coude.
+
+       Mais le carnet lui donnait raison par un DÉFAUT : le mot « extension
+       poignet » ne vivait que sur les deux radiaux. Le même geste rendait
+       DEUX muscles sous un nom et CINQ sous l'autre — et le dictionnaire
+       les donnait comme synonymes. Cinquième fois en une journée que deux
+       écritures d'un même geste divergent. */
+    ['Extension du poignet', 'Extension poignet', 'Reverse wrist curl']
+      .forEach(function (n) {
+        v.egal(A.m.musclesDuNom(n).join(','),
+               A.m.musclesDuNom('Wrist curl inversé').join(','),
+               '« ' + n + ' » dit la même chose que « wrist curl inversé »');
+      });
+
+    /* Et ce qui porte « curl » SANS « wrist » reste au COUDE : c'est la
+       distinction que MB défendait, et elle, elle est juste. */
+    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'brachio_radial,ecrl,ecrb',
+           'un curl inversé, lui, bouge le COUDE — et garde le brachio-radial');
+    v.egal(A.m.musclesDuNom('Extension du poignet').indexOf('brachio_radial'), -1,
+           'et le brachio-radial n’entre PAS dans une extension de poignet');
 
     /* --- LE CÔTÉ ACCENTUÉ (MB, 2026-10-23) ---
        MB : « on peut faire un wrist curl qui accentue le côté du pouce, et
@@ -1106,10 +1211,12 @@
        Source : Kenhub, revu le 2023-11-03 — le fléchisseur radial fait
        « wrist flexion, wrist ABDUCTION », l'ulnaire « wrist flexion, wrist
        ADDUCTION ». Chacun fléchit ET dévie de son bord. */
-    v.egal(A.m.musclesDuNom('Wrist curl côté pouce').join(','), 'fcr',
+    v.egal(A.m.musclesDuNom('Wrist curl côté pouce').join(','),
+           'fcr,long_palmaire,flechisseurs_doigts,long_flechisseur_pouce',
            'un wrist curl accentué POUCE, c’est le fléchisseur radial — '
          + 'celui qui fléchit ET abduit');
-    v.egal(A.m.musclesDuNom('Wrist curl côté petit doigt').join(','), 'fcu',
+    v.egal(A.m.musclesDuNom('Wrist curl côté petit doigt').join(','),
+           'long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            'accentué PETIT DOIGT, c’est l’ulnaire — celui qui fléchit ET '
          + 'adduit');
     /* Les TROIS variantes que MB décrit doivent différer entre elles.
@@ -1119,21 +1226,52 @@
                           'Wrist curl côté pouce',
                           'Wrist curl côté petit doigt']
       .map(function (n) { return A.m.musclesDuNom(n).join(','); });
-    v.egal(troisVariantes.join(' | '), 'fcr,fcu | fcr | fcu',
-           'les trois variantes diffèrent : les deux fléchisseurs, le '
-         + 'radial seul, l’ulnaire seul');
+    v.egal(troisVariantes.join(' | '),
+           'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce'
+         + ' | fcr,long_palmaire,flechisseurs_doigts,long_flechisseur_pouce'
+         + ' | long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
+           'les trois variantes diffèrent par le BORD, et par lui seul : le '
+         + 'long palmaire et les fléchisseurs des doigts sont dans les '
+         + 'trois');
+
+    /* Le long palmaire s'insère sur l'aponévrose palmaire, au MILIEU : il
+       ne penche d'aucun côté, donc aucun côté ne l'écarte. C'est ce qui
+       tomberait si on le rangeait par erreur sur un bord. */
+    v.egal(troisVariantes.filter(function (l) {
+             return l.indexOf('long_palmaire') >= 0;
+           }).length, 3,
+           'le long palmaire est dans les trois : il n’a pas de côté');
 
     /* Le mot du côté est RETIRÉ du nom, pas seulement ignoré : sinon
        « pouce » propose les muscles qui l'ouvrent. C'était le défaut. */
+    /* Ce contrôle visait les muscles qui OUVRENT le pouce — c'était eux, le
+       défaut. Il passait par /pouce/ dans l'identifiant : une coïncidence,
+       pas une mesure, et le long fléchisseur du pouce l'a fait tomber le
+       jour où il est entré à bon droit comme fléchisseur du POIGNET. On
+       nomme donc les trois. */
     v.egal(A.m.musclesDuNom('Wrist curl côté pouce')
-            .filter(function (id) { return /pouce/.test(id); }).length, 0,
-           'aucun muscle du pouce : dans « côté pouce », POUCE est une '
-         + 'direction');
+            .filter(function (id) {
+              return ['extenseurs_pouce', 'long_abducteur_pouce',
+                      'court_abducteur_pouce'].indexOf(id) >= 0;
+            }).length, 0,
+           'aucun muscle qui OUVRE le pouce : dans « côté pouce », POUCE est '
+         + 'une direction');
     v.egal(A.m.musclesDuNom('Wrist curl côté petit doigt')
             .filter(function (id) {
               return (A.m.muscle(id) || {}).intrinseque;
             }).length, 0,
            'et aucun intrinsèque : ils bougent un doigt, pas le poignet');
+
+    /* MB : « quand je fais un wrist curl, ça bosse dans l'avant-bras. »
+       Mesuré : les quatre muscles proposés ont leur VENTRE dans
+       l'avant-bras, même celui que le carnet range dans la région Grip.
+       La région dit la FONCTION, pas l'endroit. */
+    v.egal(A.m.musclesDuNom('Wrist curl')
+            .filter(function (id) {
+              return (A.m.muscle(id) || {}).intrinseque;
+            }).length, 0,
+           'les quatre muscles d’un wrist curl sont dans l’AVANT-BRAS : '
+         + 'aucun intrinsèque de la main');
 
     /* Le côté dit le BORD, le geste dit le SENS. Un wrist curl inversé
        accentué petit doigt tend du côté ulnaire : c'est l'extenseur
@@ -1172,12 +1310,19 @@
     /* --- les ARTICLES ne cassent plus la correspondance ---
        L'app est en français, et le français met des articles. « flexion du
        poignet » ne contenait pas « flexion poignet » : il ne proposait RIEN. */
-    v.egal(A.m.musclesDuNom('Flexion du poignet').join(','), 'fcr,fcu',
+    v.egal(A.m.musclesDuNom('Flexion du poignet').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            '« flexion DU poignet » se lit comme « flexion poignet »');
     v.egal(A.m.musclesDuNom('Ouverture de la main').join(','), 'extenseurs_doigts',
            'et « ouverture DE LA main » comme « ouverture main »');
-    v.egal(A.m.musclesDuNom('Flexion poignet').join(','), 'fcr,fcu',
+    v.egal(A.m.musclesDuNom('Flexion poignet').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            'sans article, rien ne change');
+
+    /* « Flexion du poignet » nomme le MEME geste qu'un wrist curl : les
+       deux doivent proposer la meme chose. Le carnet a deja paye trois fois
+       d'avoir deux vocabulaires qui divergent. */
+    v.egal(A.m.musclesDuNom('Flexion du poignet').join(','),
+           A.m.musclesDuNom('Wrist curl').join(','),
+           '« flexion du poignet » et « wrist curl » sont le même geste');
 
     /* --- les mots se lisent ENTIERS ---
        Trois faux positifs mesurés sur de vrais noms. Chacun proposait un

@@ -582,6 +582,47 @@ Fléch. ulnaire + Ext. ulnaire.
 > ajouter** — et c'est exactement l'erreur commise avec « en pronation », une tournure
 > que le carnet s'était écrite à lui-même.
 
+#### Le DICTIONNAIRE d'exercices
+
+Demandé par MB le 2026-10-23 : *« il faut en fait créer un dictionnaire d'exercice, avec
+les muscles travaillés associés »*. Lot 1 : le poignet et l'avant-bras, **8 mouvements,
+27 muscles**.
+
+**Ce n'est pas une liste imposée, et la règle « pas de listes imposées » tient toujours.**
+Trois choses la protègent : chaque entrée a été **validée une par une** par MB sur la
+planche de revue, où chaque muscle arrive avec sa citation et son lien ; elle **suggère**,
+ses entrées passant **après** les exercices que MB a lui-même écrits ; et choisir une
+entrée ne remplit **que les muscles** — ni type de charge, ni côté, ni prise, ni outils.
+`null` reste « non renseigné ».
+
+| ce qu'on tape, carnet vide | ce qui est proposé |
+|---|---|
+| `Wrist` | les quatre entrées « wrist curl », jeton **dictionnaire** |
+| `reverse wrist` | Wrist curl inversé — trouvé par son autre écriture |
+| `rising` | Déviation radiale — le mot du bras de fer |
+| `zzz` | rien |
+
+Une fois que MB a écrit « Wrist curl » **une fois**, c'est **son** entrée qui passe en
+premier, et celle du dictionnaire ne revient pas en double. Un contrôle mesure cet ordre :
+le casser donne *« attendu "CURL MARTEAU", obtenu "Wrist curl" »*.
+
+**Le dictionnaire et la lecture du nom doivent dire la même chose**, entrée par entrée, et
+un contrôle le vérifie. Ce n'est pas une précaution théorique : le carnet s'est contredit
+**cinq fois dans la journée** parce que deux moitiés du modèle décrivaient le même geste
+autrement. La dernière a été trouvée par MB lui-même — « extension du poignet » ne rendait
+que **deux** muscles là où « wrist curl inversé » en rendait **cinq**, alors que le
+dictionnaire les donnait comme synonymes.
+
+> **Sur la terminologie, MB se trompait, et il l'a dit lui-même.** Un *reverse wrist curl*
+> est un exercice de **poignet** ; c'est *reverse curl*, **sans** « wrist », qui bouge le
+> coude et appelle le brachio-radial. Les deux restent distincts dans le carnet, et deux
+> contrôles le gardent. Mais sa question a trouvé un vrai défaut : le mot « extension
+> poignet » ne vivait que sur les deux extenseurs radiaux.
+
+Les sources **ne sont pas** dans le modèle : elles vivent dans `revue/catalogue.js`, qui
+ne part pas sur le téléphone. La planche se construit depuis le modèle livré et va y
+chercher les citations — elle ne peut donc pas montrer autre chose que ce qui part.
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

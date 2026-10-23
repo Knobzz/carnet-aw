@@ -272,13 +272,31 @@
       A.ui.autocomplete(champNom, function (saisie) {
         return A.m.suggestions(etat(), saisie, 8).map(function (x) {
           var j = [];
-          if (x.aw) j.push({ texte: 'AW', classe: '' });
-          j.push({ texte: A.m.typeCharge(x.typeCharge).nom });
-          if ((x.outils || []).length) j.push({ texte: x.outils.join(' + '), classe: 'jeton-outil' });
+          /* Une entrée du DICTIONNAIRE se montre pour ce qu'elle est : elle
+             ne vient pas du carnet, et elle ne décide que des muscles. Lui
+             coller le jeton « Kilos » laisserait croire qu'elle apporte un
+             type de charge, qu'elle n'apporte pas. */
+          if (x.duDictionnaire) {
+            j.push({ texte: 'dictionnaire', classe: 'jeton-dico' });
+            j.push({ texte: x.muscles.length + ' muscles' });
+          } else {
+            if (x.aw) j.push({ texte: 'AW', classe: '' });
+            j.push({ texte: A.m.typeCharge(x.typeCharge).nom });
+            if ((x.outils || []).length) j.push({ texte: x.outils.join(' + '), classe: 'jeton-outil' });
+          }
           x.jetons = j;
           return x;
         });
       }, function (it) {
+        /* Une entrée du dictionnaire ne remplit QUE les muscles — décision
+           de MB, 2026-10-23. Le type de charge, le côté, la prise et les
+           outils restent ce qu'ils étaient : on ne décide rien à sa place,
+           et « non renseigné » le reste. */
+        if (it.duDictionnaire) {
+          exo.muscles = A.m.muscles(it);
+          rafraichirMuscles();
+          return;
+        }
         /* Reprendre un nom connu reprend ses attributs : on ne les resaisit pas. */
         exo.aw = it.aw;
         exo.typeCharge = it.typeCharge;
