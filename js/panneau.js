@@ -278,6 +278,7 @@
              type de charge, qu'elle n'apporte pas. */
           if (x.duDictionnaire) {
             j.push({ texte: 'dictionnaire', classe: 'jeton-dico' });
+            if (x.entree && x.entree !== x.nom) j.push({ texte: '= ' + x.entree });
             j.push({ texte: x.muscles.length + ' muscles' });
           } else {
             if (x.aw) j.push({ texte: 'AW', classe: '' });

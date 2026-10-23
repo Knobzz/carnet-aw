@@ -623,6 +623,61 @@ Les sources **ne sont pas** dans le modèle : elles vivent dans `revue/catalogue
 ne part pas sur le téléphone. La planche se construit depuis le modèle livré et va y
 chercher les citations — elle ne peut donc pas montrer autre chose que ce qui part.
 
+#### LOT 2 — la main et le grip
+
+Cinq mouvements, validés le 2026-10-23 : **Gripper**, **Pince**, **Extenseurs à
+élastique**, **Finger curl**, **Dead hang**. Les noms sont ceux de MB, repris sur la
+planche : il a promu les tournures courantes en noms principaux et renvoyé les miennes
+en autres écritures.
+
+L'état de départ était pire que celui du lot 1. Sur **24 noms** de cette famille,
+**treize** ne proposaient rien, et le même geste écrit de trois façons donnait trois
+réponses : `Serrage` quatre muscles, `Fermeture de la main` **un**, et la zone « la main
+qui serre » — passée aux sources le matin même — **six**.
+
+**Trois propositions ont été écartées, et les raisons valent d'être gardées.** *Barre
+épaisse* part à la phase **équipement** : le geste est exactement celui du gripper, et ce
+que la poignée large ajoute — le creux de la paume — vient de l'outil. *Opposition du
+pouce* et *Écartement des doigts* sont retirés ; le second butait sur un trou du carnet,
+les **interosseux dorsaux**, qu'il n'a pas dans ses 36 muscles.
+
+> **Le critère qu'on s'est donné**, et qui tranchera les suivants : *peut-on faire ce
+> geste avec un autre outil, ou sans ?* Une pince se fait avec des plaques, un bloc ou un
+> livre ; l'ouverture de la main avec un élastique, du riz ou rien. La barre épaisse,
+> elle, **est** l'outil.
+
+#### La règle de PRISE
+
+`Pince pouce-index` proposait **neuf** muscles, dont les extenseurs et les abducteurs du
+pouce — ceux qui l'**ouvrent**, dans un geste qui l'écrase. Même famille que « côté
+pouce » : un nom de doigt lu comme un nom de muscle.
+
+**Sous un mot de prise, le nom d'un doigt désigne le doigt employé, pas le muscle qui
+l'ouvre.** On ne peut pas ouvrir le pouce en pinçant avec. Les six muscles concernés sont
+**nommés un par un** plutôt que devinés par une expression sur l'identifiant : le long
+fléchisseur du pouce avait déjà fait tomber un filtre `/pouce/` alors qu'il fléchit le
+**poignet**.
+
+#### Une suggestion garde l'écriture tapée
+
+MB, le 2026-10-23 : *« si j'écris Rising, ça écrit Déviation radiale »*. C'était le carnet
+qui décidait à sa place — l'autocomplétion remplaçait le champ par le nom principal.
+Désormais la ligne porte **l'écriture qui correspond à ce qui a été tapé**, et l'entrée
+canonique est dite à côté (`= Déviation radiale`) sans réécrire le champ.
+
+> Au passage, ça a découvert un **débordement à 320 px** : la ligne portait trois jetons
+> et défilait horizontalement, le dernier coupé. Les jetons passent à la ligne.
+
+#### Toutes les écritures d'une entrée s'accordent
+
+C'est la généralisation du défaut que MB avait trouvé seul — « extension du poignet »
+rendait deux muscles là où « wrist curl inversé » en rendait cinq, pour la même entrée. Un
+contrôle exige maintenant que **chaque autre écriture** dise la même chose que son entrée.
+
+**Il est tombé à sa première exécution** : `Rising` ne rendait **rien**, alors que le
+dictionnaire le portait comme autre écriture depuis le lot 1. Le mot est maintenant lu par
+la table des côtés, là où il a sa place.
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

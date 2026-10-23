@@ -465,12 +465,39 @@
     /* Le dictionnaire se cherche aussi sur ses AUTRES écritures : c'est tout
        l'intérêt d'en avoir un. « rising » est le mot du bras de fer pour la
        déviation radiale — MB l'a dit, et les sources du sport le confirment. */
-    v.egal((A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {}).nom,
+    v.egal((A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {}).entree,
            'Déviation radiale',
            '« rising » trouve la déviation radiale par son autre écriture');
-    v.egal((A.m.suggestions({ exercices: [] }, 'reverse wrist', 8)[0] || {}).nom,
+    v.egal((A.m.suggestions({ exercices: [] }, 'reverse wrist', 8)[0] || {}).entree,
            'Wrist curl inversé',
            'et « reverse wrist » trouve le wrist curl inversé');
+
+    /* --- UNE SUGGESTION GARDE L'ÉCRITURE TAPÉE ---
+       MB, 2026-10-23 : « si j'écris Rising, ça écrit Déviation Radiale ».
+       C'était le carnet qui décidait à sa place : l'autocomplétion
+       remplaçait le champ par le nom principal de l'entrée. Désormais la
+       ligne porte l'écriture qui correspond à ce qui a été tapé, et
+       l'entrée canonique est dite à côté, sans réécrire le champ. */
+    var sr = A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {};
+    v.egal(sr.nom, 'Rising',
+           'taper « rising » propose « Rising », et pas autre chose');
+    v.egal(sr.entree, 'Déviation radiale',
+           'et dit à quelle entrée du dictionnaire il se rattache');
+    v.egal(sr.muscles.join(','), 'fcr,ecrl,ecrb',
+           'avec les muscles de cette entrée');
+
+    var sd = A.m.suggestions({ exercices: [] }, 'déviation rad', 8)[0] || {};
+    v.egal(sd.nom, 'Déviation radiale',
+           'et taper le nom principal propose le nom principal');
+
+    var sh = A.m.suggestions({ exercices: [] }, 'dead h', 8)[0] || {};
+    v.egal(sh.nom, 'Dead hang',
+           'une entrée dont le nom principal est anglais le garde aussi');
+    var st = A.m.suggestions({ exercices: [] }, 'tenue à la b', 8)[0] || {};
+    v.egal(st.nom, 'Tenue à la barre',
+           'et son écriture française reste française');
+    v.egal(st.entree, 'Dead hang',
+           'tout en disant de quelle entrée elle vient');
 
     /* Une entrée du dictionnaire n'INVENTE rien : un nom et des muscles,
        rien d'autre. `null` veut dire « non renseigné » et ne se décide pas
@@ -499,6 +526,42 @@
     A.m.DICTIONNAIRE.forEach(function (d) {
       v.egal(A.m.musclesDuNom(d.nom).join(','), d.muscles.join(','),
              'dictionnaire et lecture du nom s’accordent sur « ' + d.nom + ' »');
+    });
+
+    /* --- LA RÈGLE DE PRISE (lot 2, 2026-10-23) ---
+       « Pince pouce-index » proposait NEUF muscles, dont les extenseurs et
+       les abducteurs du pouce — ceux qui l'OUVRENT, dans un geste qui
+       l'écrase. Sous un mot de prise, le nom d'un doigt désigne le doigt
+       EMPLOYÉ, pas le muscle qui l'ouvre. */
+    v.egal(A.m.musclesDuNom('Pince pouce-index').join(','),
+           A.m.musclesDuNom('Pince').join(','),
+           '« pince pouce-index » dit la même chose que « pince » : les '
+         + 'doigts nommés sont ceux qui pincent');
+    v.egal(A.m.musclesDuNom('Pince pouce-index')
+            .filter(function (id) {
+              return ['extenseurs_pouce', 'long_abducteur_pouce',
+                      'court_abducteur_pouce', 'extenseur_index']
+                       .indexOf(id) >= 0;
+            }).length, 0,
+           'et aucun muscle qui OUVRE le pouce ou l’index');
+
+    /* Sans mot de prise, les mêmes mots désignent bien les muscles : c'est
+       ce qui tomberait si la règle s'appliquait partout. */
+    v.egal(A.m.musclesDuNom('Extension du pouce').join(','),
+           'extenseurs_pouce,long_abducteur_pouce,court_abducteur_pouce',
+           '« extension du pouce » garde les muscles qui l’ouvrent : aucune '
+         + 'prise dans ce nom');
+
+    /* --- TOUTES LES ÉCRITURES D'UNE ENTRÉE S'ACCORDENT ---
+       C'est la généralisation du défaut que MB a trouvé lui-même :
+       « extension du poignet » rendait deux muscles là où « wrist curl
+       inversé » en rendait cinq, pour la même entrée. Ce contrôle refuse
+       qu'une AUTRE ÉCRITURE dise autre chose que son entrée. */
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      (d.aussi || []).forEach(function (n) {
+        v.egal(A.m.musclesDuNom(n).join(','), d.muscles.join(','),
+               '« ' + n + ' » dit la même chose que « ' + d.nom + ' »');
+      });
     });
 
     /* Et chaque entrée suit l'ORDRE de MUSCLES, comme le reste du carnet :
@@ -1042,8 +1105,10 @@
        table des mots, pas aligne apres coup sur sa sortie. */
     v.egal(A.m.musclesDuNom('Gripper N3').join(','),
            'flechisseurs_doigts,long_flechisseur_pouce,'
-         + 'court_flechisseur_pouce,adducteur_pouce',
-           'un gripper serre : les fléchisseurs des doigts ET le pouce');
+         + 'court_flechisseur_pouce,adducteur_pouce,'
+         + 'court_flechisseur_auriculaire,lombricaux',
+           'un gripper serre : les fléchisseurs des doigts, le pouce, le '
+         + 'petit doigt qui se replie, et les lombricaux');
     v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','), 'grand_dorsal',
            '« tirage » désigne le dorsal');
     v.egal(A.m.musclesDuNom('CURL BICEPS').join(','), 'biceps',
@@ -1057,7 +1122,8 @@
            '« Fat grip » non plus — et « curl » seul ne dit rien');
     v.egal(A.m.musclesDuNom('Gripper N3').join(','),
            'flechisseurs_doigts,long_flechisseur_pouce,'
-         + 'court_flechisseur_pouce,adducteur_pouce',
+         + 'court_flechisseur_pouce,adducteur_pouce,'
+         + 'court_flechisseur_auriculaire,lombricaux',
            '[temoin] mais « gripper », lui, désigne bien le serrage');
 
     /* --- la NEGATION, lue --- */
@@ -1312,7 +1378,10 @@
        poignet » ne contenait pas « flexion poignet » : il ne proposait RIEN. */
     v.egal(A.m.musclesDuNom('Flexion du poignet').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            '« flexion DU poignet » se lit comme « flexion poignet »');
-    v.egal(A.m.musclesDuNom('Ouverture de la main').join(','), 'extenseurs_doigts',
+    v.egal(A.m.musclesDuNom('Ouverture de la main').join(','),
+           'extenseurs_doigts,extenseur_petit_doigt,extenseurs_pouce,'
+         + 'extenseur_index,court_abducteur_pouce,'
+         + 'abducteur_auriculaire,lombricaux',
            'et « ouverture DE LA main » comme « ouverture main »');
     v.egal(A.m.musclesDuNom('Flexion poignet').join(','), 'fcr,long_palmaire,fcu,flechisseurs_doigts,long_flechisseur_pouce',
            'sans article, rien ne change');
@@ -1347,7 +1416,10 @@
            'des doigts qui s’écartent, ce sont les extenseurs');
     v.egal(A.m.musclesDuNom('Flexion des doigts').join(','), 'flechisseurs_doigts',
            'et des doigts qui se plient, les fléchisseurs');
-    v.egal(A.m.musclesDuNom('Fermeture de la main').join(','), 'flechisseurs_doigts',
+    v.egal(A.m.musclesDuNom('Fermeture de la main').join(','),
+           'flechisseurs_doigts,long_flechisseur_pouce,'
+         + 'court_flechisseur_pouce,adducteur_pouce,'
+         + 'court_flechisseur_auriculaire,lombricaux',
            'la main qui se ferme aussi');
 
     /* Ce qui NE doit PAS proposer : un mot ambigu ne désigne pas un muscle. */

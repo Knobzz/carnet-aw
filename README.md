@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 037 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 088 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **633 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **684 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
@@ -188,10 +188,15 @@ python -m http.server 8713
   fichiers nommés, et lui en donner un ferait mentir le compte. Elle casse son cache à
   l'horodatage, comme le banc.
 
+  Elle ne montre que **ce qui reste à trancher** : les mouvements déjà validés sont
+  masqués, comptés dans l'en-tête, et un bouton les rouvre. Demande de MB, 2026-10-23 :
+  « pour le prochain lot, ne remets pas ceux qu'on a déjà validé. » Un mouvement écarté
+  vers une phase ultérieure porte son propre état et ne compte pas dans les « à ajouter ».
+
   **Les lots, dans l'ordre décidé par MB.** 1 — le poignet et l'avant-bras *(livré)*.
-  Puis la main et le grip, les gestes de table, les épaules et le dos : le bras de fer en
-  comporte, et les 36 muscles du carnet les couvrent déjà. Chaque lot suit le même
-  chemin — je liste, je source, MB valide, on livre.
+  2 — la main et le grip *(livré)*. Puis les gestes de table, les épaules et le dos : le
+  bras de fer en comporte, et les 36 muscles du carnet les couvrent déjà. Chaque lot suit
+  le même chemin — je liste, je source, MB valide, on livre.
 
   **Et APRÈS les mouvements, pas avant : les équipements.** Décision de MB, 2026-10-23 :
   certains outils spécifiques au bras de fer changent les muscles réellement sollicités
@@ -366,6 +371,10 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | une entrée écrite hors de l’ordre de MUSCLES | `attendu "", obtenu "Wrist curl inversé"` |
 | « extension poignet » retiré des trois muscles | `attendu les cinq, obtenu "ecrl,ecrb"` — 2 rouges |
 | « reverse » qui cesse d’être un marqueur d’inversion | la liste mélange fléchisseurs ET extenseurs |
+| la règle de prise retirée | `« pince pouce-index » : attendu 5 muscles, obtenu 9` — 2 rouges |
+| la règle de prise appliquée PARTOUT, hors prise comprise | `« extension du pouce » : attendu ses 3 muscles, obtenu ""` — 2 rouges |
+| les mots du grip retirés du petit doigt et des lombricaux | `« Gripper » : attendu 6 muscles, obtenu 4` — 3 rouges |
+| une AUTRE ÉCRITURE que la lecture ne connaît pas | `« Rising » : attendu "fcr,ecrl,ecrb", obtenu ""` — **trouvé pour de vrai** |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

@@ -103,6 +103,54 @@
       qui: 'Kenhub — Biceps brachii', revu: null,
       lien: 'https://www.kenhub.com/en/library/anatomy/biceps-brachii-muscle'
     },
+    fpb: {
+      qui: 'Kenhub — Flexor pollicis brevis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/flexor-pollicis-brevis-muscle'
+    },
+    addp: {
+      qui: 'Kenhub — Adductor pollicis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/adductor-pollicis-muscle'
+    },
+    oppp: {
+      qui: 'Kenhub — Opponens pollicis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/opponens-pollicis-muscle'
+    },
+    apb: {
+      qui: 'Kenhub — Abductor pollicis brevis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/abductor-pollicis-brevis-muscle'
+    },
+    fdmb: {
+      qui: 'Kenhub — Flexor digiti minimi brevis of hand', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/flexor-digiti-minimi-brevis-muscle-of-hand'
+    },
+    adm: {
+      qui: 'Kenhub — Abductor digiti minimi of hand', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/abductor-digiti-minimi-muscle-of-hand'
+    },
+    oppdm: {
+      qui: 'Kenhub — Opponens digiti minimi of hand', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/opponens-digiti-minimi-muscle'
+    },
+    lomb: {
+      qui: 'Kenhub — Lumbrical muscles of the hand', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/lumbrical-muscles-of-the-hand'
+    },
+    pb: {
+      qui: 'Kenhub — Palmaris brevis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/palmaris-brevis-muscle'
+    },
+    ei: {
+      qui: 'Kenhub — Extensor indicis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/extensor-indicis-muscle'
+    },
+    edm: {
+      qui: 'Kenhub — Extensor digiti minimi', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/extensor-digiti-minimi-muscle'
+    },
+    epl: {
+      qui: 'Kenhub — Extensor pollicis longus', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/extensor-pollicis-longus-muscle'
+    },
     fujii: {
       qui: 'Fujii, Kobayashi, Sato, Shinozaki, Naito — J Electromyogr '
          + 'Kinesiol 2007;17(1):80-89, EMG sur 12 sujets',
@@ -134,6 +182,25 @@
     sup: 'Proximal radioulnar joint: Forearm supination',
     bic: 'Flexion and supination of the forearm at the elbow joint, weak '
        + 'flexor of the arm at the glenohumeral joint',
+    fds_doigts: 'Metacarpophalangeal and proximal interphalangeal joints '
+              + '2-5: Finger flexion',
+    epl: 'Wrist joints: Weak hand extension ; Metacarpophalangeal and '
+       + 'interphalangeal joint of thumb: Thumb extension',
+    fpb: 'Carpometacarpal and metacarpophalangeal joint 1: Thumb flexion',
+    addp: 'Carpometacarpal joint 1: Thumb adduction',
+    oppp: 'Carpometacarpal joint 1: Thumb opposition',
+    apb: 'Carpometacarpal joint 1: Thumb abduction',
+    fdmb: 'Metacarpophalangeal joint 5: Finger flexion '
+        + '(+ finger lateral rotation/opposition)',
+    adm: 'Metacarpophalangeal joint 5: Finger abduction and flexion',
+    oppdm: 'Carpometacarpal joint 5: Finger flexion, finger lateral '
+         + 'rotation/opposition',
+    lomb: 'Metacarpophalangeal joints 2-5: Finger flexion ; '
+        + 'Interphalangeal joints 2-5: Finger extension',
+    pb: 'Tightens palmar aponeurosis, tightens grip',
+    ei: 'Wrist joints: Weak hand extension ; Metacarpophalangeal and '
+      + 'interphalangeal joints of index finger: Finger extension',
+    edm: 'Metacarpophalangeal joint 5: Finger extension',
     fujii: 'PT and ECR showed parallel activities during the static '
          + 'extension [...] the co-contraction of PT and ECR during wrist '
          + 'extension movements occurs to prevent supinating the forearm'
@@ -297,6 +364,141 @@
           + 'aujourd’hui, alors que sa table des mouvements le fait. Le '
           + 'biceps est le supinateur puissant quand le coude est plié — '
           + '« the supination is most powerful in a flexed elbow » (Kenhub).'
+    },
+
+    /* ================= LOT 2 : LA MAIN ET LE GRIP =================
+       Mesure avant correction, sur 24 noms de cette famille : TREIZE ne
+       proposent rien. Et parmi ceux qui répondent, le même geste écrit de
+       trois façons donne trois réponses — « Serrage » rend quatre muscles,
+       « Fermeture de la main » en rend UN, et la zone « la main qui serre »,
+       passée aux sources le matin même, en contient SIX. */
+    {
+      id: 'serrage',
+      nom: 'Gripper',
+      aussi: ['Serrage', 'Hand gripper', 'Fermeture de la main',
+              'Poignée à ressort', 'Serrage de poing'],
+      geste: 'Les doigts se referment sur la poignée, le pouce écrase '
+           + 'par-dessus.',
+      muscles: [
+        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
+        m('long_flechisseur_pouce', 'moteur', S.fpl, C.fpl),
+        m('court_flechisseur_pouce', 'moteur', S.fpb, C.fpb),
+        m('adducteur_pouce', 'moteur', S.addp, C.addp),
+        m('court_flechisseur_auriculaire', 'moteur', S.fdmb, C.fdmb),
+        m('lombricaux', 'moteur', S.lomb, C.lomb)
+      ],
+      aDecider: [
+        { id: 'court_palmaire', rang: 'aide', source: S.pb, cite: C.pb,
+          pourquoi: 'Son tableau d’actions dit littéralement « tightens '
+                  + 'GRIP ». Il est aujourd’hui dans la zone « le creux de '
+                  + 'la main » et pas dans « la main qui serre ». Faut-il '
+                  + 'l’ajouter au serrage ? Si oui, la zone devra suivre.' }
+      ],
+      note: 'Cette liste est celle de la zone « la main qui serre », passée '
+          + 'aux sources le 2026-10-23. Aujourd’hui « Serrage » en rend '
+          + 'quatre et « Fermeture de la main » en rend UN.'
+    },
+    {
+      id: 'pince',
+      nom: 'Pince',
+      aussi: ['Pinch', 'Pinch block'],
+      geste: 'Le pouce écrase contre les doigts, sans que la main se referme '
+           + 'sur une poignée.',
+      muscles: [
+        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
+        m('long_flechisseur_pouce', 'moteur', S.fpl, C.fpl),
+        m('court_flechisseur_pouce', 'moteur', S.fpb, C.fpb),
+        m('opposant_pouce', 'moteur', S.oppp, C.oppp),
+        m('adducteur_pouce', 'moteur', S.addp, C.addp)
+      ],
+      note: 'Aujourd’hui « Pince pouce index » propose NEUF muscles, dont '
+          + 'les extenseurs et les abducteurs du pouce — ceux qui '
+          + 'l’OUVRENT, dans un geste qui l’écrase. Même famille que « côté '
+          + 'pouce » : les mots « pouce » et « index » sont lus comme des '
+          + 'muscles.'
+    },
+    {
+      id: 'ouverture-main',
+      nom: 'Extenseurs à élastique',
+      aussi: ['Extensor band', 'Ouverture de la main',
+              'Élastique autour des doigts', 'Ouverture des doigts'],
+      geste: 'Les doigts se tendent et le pouce s’écarte, contre un '
+           + 'élastique passé autour d’eux.',
+      muscles: [
+        m('extenseurs_doigts', 'moteur', S.ed, C.ed),
+        m('extenseur_petit_doigt', 'moteur', S.edm, C.edm),
+        m('extenseurs_pouce', 'moteur', S.epl, C.epl),
+        m('extenseur_index', 'moteur', S.ei, C.ei),
+        m('abducteur_auriculaire', 'moteur', S.adm, C.adm),
+        m('court_abducteur_pouce', 'moteur', S.apb, C.apb),
+        m('lombricaux', 'aide', S.lomb, C.lomb)
+      ],
+      note: 'Aujourd’hui « Ouverture de la main » rend UN muscle. Les '
+          + 'lombricaux sont au rang « aide » et non moteur : ils TENDENT '
+          + 'les interphalangiennes (« Interphalangeal joints 2-5: Finger '
+          + 'extension ») tout en PLIANT les métacarpo-phalangiennes — une '
+          + 'moitié du geste seulement.'
+    },
+    {
+      id: 'finger-curl',
+      nom: 'Finger curl',
+      aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts'],
+      geste: 'La barre roule jusqu’au bout des doigts, puis les doigts la '
+           + 'ramènent dans la paume. Le poignet ne bouge pas.',
+      muscles: [
+        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
+        m('court_flechisseur_auriculaire', 'moteur', S.fdmb, C.fdmb)
+      ],
+      note: 'Les LOMBRICAUX sont volontairement absents, et c’est leur '
+          + 'citation qui le dit : ils plient les métacarpo-phalangiennes '
+          + 'mais TENDENT les interphalangiennes, que ce geste plie. Ils '
+          + 'travailleraient contre lui sur la moitié du trajet. Le pouce '
+          + 'non plus n’y est pas : il tient la barre, il ne l’enroule pas.'
+    },
+    {
+      id: 'tenue-barre',
+      nom: 'Dead hang',
+      aussi: ['Tenue à la barre', 'Suspension', 'Barre fixe en tenue',
+              'Farmer walk', 'Marche du fermier'],
+      geste: 'La main tient sans bouger, le temps que ça dure.',
+      muscles: [
+        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
+        m('long_flechisseur_pouce', 'moteur', S.fpl, C.fpl),
+        m('court_flechisseur_pouce', 'moteur', S.fpb, C.fpb),
+        m('adducteur_pouce', 'moteur', S.addp, C.addp),
+        m('court_flechisseur_auriculaire', 'moteur', S.fdmb, C.fdmb),
+        m('lombricaux', 'moteur', S.lomb, C.lomb)
+      ],
+      note: 'Mêmes muscles que le serrage : ce qui change est le RÉGIME, pas '
+          + 'le geste — ils tiennent au lieu de raccourcir. Le carnet ne '
+          + 'distingue pas les régimes, et ce n’est pas ce lot qui le fera. '
+          + 'Aujourd’hui, aucune de ces cinq écritures ne propose quoi que '
+          + 'ce soit.'
+    },
+    {
+      id: 'barre-epaisse',
+      ecarte: 'equipement',
+      nom: 'Barre épaisse',
+      aussi: ['Fat grip', 'Poignée large', 'Thick bar', 'Grosse poignée'],
+      geste: 'La poignée est trop large pour que les doigts se rejoignent : '
+           + 'la paume se creuse autour, et la main tient quand même.',
+      muscles: [
+        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
+        m('long_flechisseur_pouce', 'moteur', S.fpl, C.fpl),
+        m('court_flechisseur_pouce', 'moteur', S.fpb, C.fpb),
+        m('adducteur_pouce', 'moteur', S.addp, C.addp),
+        m('court_flechisseur_auriculaire', 'moteur', S.fdmb, C.fdmb),
+        m('lombricaux', 'moteur', S.lomb, C.lomb),
+        m('court_palmaire', 'moteur', S.pb, C.pb),
+        m('opposant_pouce', 'moteur', S.oppp, C.oppp),
+        m('opposant_auriculaire', 'moteur', S.oppdm, C.oppdm)
+      ],
+      note: 'ÉCARTÉ VERS LA PHASE ÉQUIPEMENT par MB le 2026-10-23, et c’est '
+          + 'le cas d’école : le geste est exactement celui du gripper, et '
+          + 'ce que la poignée large ajoute — le creux de la paume, donc le '
+          + 'court palmaire et les deux opposants — vient de l’OUTIL. Le '
+          + 'travail est gardé ici pour n’être pas refait : ces trois '
+          + 'muscles ne sont atteignables par aucun nom en attendant.'
     }
   ];
 

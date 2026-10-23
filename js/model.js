@@ -589,44 +589,105 @@
     flechisseurs_doigts: ['gripper', 'pince', 'serrage', 'pinch', 'serrer',
                           'flexion doigts', 'fermeture main',
                           'cupping', 'cup', 'wrist curl', 'flexion poignet',
-                          'flechisseur poignet'],
+                          'flechisseur poignet',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier',
+                          'finger curl', 'rouleau de doigts', 'finger rolling',
+                          'enroulement des doigts'],
     /* Un exercice de PINCE est d'abord un exercice de pouce : c'est lui qui
        s'oppose aux doigts, et sans lui il n'y a pas de pince du tout. Les
        mots viennent du nom que l'utilisateur a ecrit — la source la moins
        contestable des quatre — et pas d'une mesure sur le bras de fer. */
     adducteur_pouce:     ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
-                          'adducteur du pouce', 'adducteur pouce'],
-    court_flechisseur_pouce: ['pince', 'pinch', 'serrage', 'gripper', 'serrer'],
+                          'adducteur du pouce', 'adducteur pouce',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier'],
+    court_flechisseur_pouce: ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier'],
     long_flechisseur_pouce:  ['pince', 'pinch', 'serrage', 'gripper', 'serrer',
                               'long flechisseur du pouce', 'flechisseur du pouce',
                               'cupping', 'cup', 'wrist curl', 'flexion poignet',
-                              'flechisseur poignet'],
+                              'flechisseur poignet',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier'],
     opposant_pouce:      ['pince', 'pinch', 'opposant du pouce', 'opposition du pouce',
                           'opposant pouce'],
     ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
     ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
     ecu:                 ['cubital posterieur', 'extenseur ulnaire',
                           'extension poignet', 'reverse wrist'],
-    extenseurs_doigts:   ['extenseur doigts', 'extension doigts', 'ouverture main',
-                          'ecartement doigts', 'extensor band',
-                          'extension poignet', 'reverse wrist'],
-    extenseur_petit_doigt: ['petit doigt', 'auriculaire'],
-    abducteur_auriculaire: ['petit doigt', 'auriculaire'],
-    court_flechisseur_auriculaire: ['petit doigt', 'auriculaire'],
+    extenseurs_doigts:   ['extenseur doigts', 'extension doigts',
+                          'ecartement doigts',
+                          'extension poignet', 'reverse wrist',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
+    extenseur_petit_doigt: ['petit doigt', 'auriculaire',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
+    abducteur_auriculaire: ['petit doigt', 'auriculaire',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
+    court_flechisseur_auriculaire: ['petit doigt', 'auriculaire',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier',
+                          'finger curl', 'rouleau de doigts', 'finger rolling',
+                          'enroulement des doigts'],
     opposant_auriculaire:  ['petit doigt', 'auriculaire'],
-    extenseurs_pouce:    ['pouce', 'thumb'],
+    extenseurs_pouce:    ['pouce', 'thumb',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
     /* « pouce » et « thumb » designent le groupe qui l'OUVRE : les mots de la
        pince, plus haut, couvrent l'autre sens. Un meme mot pour les six
        muscles du pouce noierait la proposition au lieu de l'aider. */
     long_abducteur_pouce: ['pouce', 'thumb', 'long abducteur'],
-    court_abducteur_pouce:['pouce', 'thumb', 'court abducteur'],
+    court_abducteur_pouce:['pouce', 'thumb', 'court abducteur',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
     deltoide:            ['deltoide', 'epaule', 'elevation laterale', 'shoulder press'],
     /* « pouce » tout seul reste aux extenseurs du pouce, ou il etait deja :
        six muscles du pouce qui repondraient tous au meme mot noieraient la
        proposition au lieu de l'aider. On ne propose que sur un mot qui
        designe sans ambiguite. */
-    extenseur_index:       ['extenseur index', 'extenseur de l index', 'index'],
-    lombricaux:            ['lombricaux', 'lombrical'],
+    extenseur_index:       ['extenseur index', 'extenseur de l index', 'index',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
+    lombricaux:            ['lombricaux', 'lombrical',
+                          'gripper', 'hand gripper', 'serrage', 'serrer',
+                          'fermeture main', 'poignee a ressort',
+                          'serrage de poing', 'tenue barre',
+                          'tenue a la barre', 'dead hang', 'suspension',
+                          'barre fixe tenue', 'farmer walk',
+                          'marche du fermier',
+                          'ouverture main', 'ouverture doigts', 'extensor band',
+                          'extenseurs a elastique',
+                          'elastique autour des doigts'],
     court_palmaire:        ['court palmaire'],
     subscapulaire:         ['subscapulaire', 'sous scapulaire'],
     coraco_brachial:     ['coraco'],
@@ -705,7 +766,46 @@
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination',
       aussi: ['Supination à la clé'],
-      muscles: ['biceps', 'supinateur'] }
+      muscles: ['biceps', 'supinateur'] },
+
+    /* LOT 2 — la main et le grip, validé le 2026-10-23.
+       MB a écarté trois propositions : « Barre épaisse » part à la phase
+       ÉQUIPEMENT (c'est le même geste que le gripper, et c'est la poignée
+       large qui ajoute le creux de la paume), « Opposition du pouce » et
+       « Écartement des doigts » sont retirés — personne ne les programme,
+       et le second butait sur un trou du carnet, les interosseux dorsaux.
+
+       Il a gardé « Pince » et « Extenseurs à élastique » comme MOUVEMENTS,
+       sur le critère qu'on s'est donné : peut-on faire ce geste avec un
+       autre outil, ou sans ? Une pince se fait avec des plaques, un bloc ou
+       un livre ; l'ouverture de la main avec un élastique, du riz ou rien.
+       La barre épaisse, elle, EST l'outil. */
+    { nom: 'Gripper',
+      aussi: ['Serrage', 'Hand gripper', 'Fermeture de la main',
+              'Poignée à ressort', 'Serrage de poing'],
+      muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
+                'court_flechisseur_pouce', 'adducteur_pouce',
+                'court_flechisseur_auriculaire', 'lombricaux'] },
+    { nom: 'Pince',
+      aussi: ['Pinch', 'Pinch block'],
+      muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
+                'court_flechisseur_pouce', 'opposant_pouce',
+                'adducteur_pouce'] },
+    { nom: 'Extenseurs à élastique',
+      aussi: ['Extensor band', 'Ouverture de la main',
+              'Élastique autour des doigts', 'Ouverture des doigts'],
+      muscles: ['extenseurs_doigts', 'extenseur_petit_doigt',
+                'extenseurs_pouce', 'extenseur_index', 'court_abducteur_pouce',
+                'abducteur_auriculaire', 'lombricaux'] },
+    { nom: 'Finger curl',
+      aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts'],
+      muscles: ['flechisseurs_doigts', 'court_flechisseur_auriculaire'] },
+    { nom: 'Dead hang',
+      aussi: ['Tenue à la barre', 'Suspension', 'Barre fixe en tenue',
+              'Farmer walk', 'Marche du fermier'],
+      muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
+                'court_flechisseur_pouce', 'adducteur_pouce',
+                'court_flechisseur_auriculaire', 'lombricaux'] }
   ];
 
   /* ---------- lire un nom d'exercice ----------
@@ -782,6 +882,23 @@
         ce qui tient une supination. A trancher par MB plutot que devine. */
   var MARQUEURS_POSITION = ['en pronation'];
 
+  /* Les muscles qui OUVRENT un doigt, nommes un par un plutot que devines :
+     une expression sur l'identifiant serait une coincidence, pas une mesure,
+     et le long flechisseur du pouce l'a deja prouve en tombant dans un filtre
+     `/pouce/` alors qu'il flechit le POIGNET. */
+  var OUVREURS_DOIGT = ['extenseurs_pouce', 'long_abducteur_pouce',
+                        'court_abducteur_pouce', 'extenseur_index',
+                        'extenseur_petit_doigt', 'abducteur_auriculaire'];
+
+  /* Les mots qui disent que la main TIENT quelque chose. */
+  var MOTS_PRISE = ['pince', 'pinch', 'gripper', 'serrage', 'serrer',
+                    'fermeture main', 'finger curl', 'tenue barre',
+                    'dead hang', 'farmer walk'];
+
+  /* Les mots qui nomment un DOIGT. Sous un mot de prise, ils designent le
+     doigt employe et cessent de proposer ce qui l'ouvre. */
+  var MOTS_DOIGT = ['pouce', 'thumb', 'index', 'petit doigt', 'auriculaire'];
+
   /* Les mots que « en pronation » cesse de faire lire comme un geste. Seuls
      ceux-la : « pronations a la poulie » reste un geste de pronation, et
      doit continuer a proposer les deux pronateurs. */
@@ -831,9 +948,16 @@
         ACCENTUE, qui est le mot de MB ; l'autre reste a une case de la. */
   var COTES_POIGNET = [
     { id: 'radial',
+      /* « RISING » est le mot du bras de fer pour la deviation radiale : les
+         sources du sport listent cupping (flexion), rolling (pronation) et
+         rising (deviation radiale), et le rising s'entraine au « riser
+         lift ». MB l'avait dit avant que je le trouve. Le dictionnaire le
+         portait comme autre ecriture depuis le lot 1, mais la LECTURE ne
+         connaissait pas le mot — divergence attrapee par le controle qui
+         accorde chaque ecriture a son entree, des sa premiere execution. */
       mots: ['cote pouce', 'bord pouce', 'accentue pouce', 'vers le pouce',
              'cote radial', 'deviation radiale', 'inclinaison radiale',
-             'flexion radiale', 'radial deviation'],
+             'flexion radiale', 'radial deviation', 'rising'],
       flechi: ['fcr'], tendu: ['ecrl', 'ecrb'] },
     { id: 'ulnaire',
       mots: ['cote petit doigt', 'bord petit doigt', 'accentue petit doigt',
@@ -907,6 +1031,10 @@
     var inverse = tenue || MARQUEURS_INVERSION.some(function (mk) {
       return s.indexOf(mk) >= 0;
     });
+    /* La main tient-elle quelque chose dans ce nom ? */
+    var prise = MOTS_PRISE.some(function (mk) {
+      return new RegExp(motifDuMot(mk)).test(sLu);
+    });
     if (inverse) {
       /* Le geste le PLUS LONG d'abord : « wrist curl » avant « curl », sinon
          un wrist curl inverse serait lu comme un curl inverse. */
@@ -925,6 +1053,9 @@
         if (inverse && GESTES_INVERSES[slug(mot)]) return;
         /* Et une position TENUE ne lit pas la rotation comme un moteur. */
         if (tenue && MOTS_PRONATION.indexOf(slug(mot)) >= 0) return;
+        /* Sous une PRISE, un nom de doigt ne propose pas ce qui l'ouvre. */
+        if (prise && OUVREURS_DOIGT.indexOf(id) >= 0
+            && MOTS_DOIGT.indexOf(slug(mot)) >= 0) return;
         if (new RegExp(motifDuMot(mot)).test(sLu)) vus[id] = 1;
       });
     });
@@ -1629,8 +1760,10 @@
      les muscles reste au DEFAUT : choisir une entree ne doit rien decider
      a la place de MB. `duDictionnaire` permet a l'ecran de la marquer, et
      au panneau de ne reprendre que les muscles. */
-  function entreeDictionnaire(d) {
-    return { id: 'dict:' + slug(d.nom), nom: d.nom, slug: slug(d.nom),
+  function entreeDictionnaire(d, ecriture) {
+    var nom = ecriture || d.nom;
+    return { id: 'dict:' + slug(nom), nom: nom, slug: slug(nom),
+             entree: d.nom,
              aw: false, typeCharge: 'kg', colonnes: COLONNES_DEFAUT.slice(),
              cote: null, prise: null, muscles: d.muscles.slice(),
              forces: [], structures: [], outils: [], reglages: {},
@@ -1644,17 +1777,23 @@
     var debut = [], dedans = [];
     DICTIONNAIRE.forEach(function (d) {
       if (dejaVus.indexOf(slug(d.nom)) >= 0) return;
-      var ecritures = [d.nom].concat(d.aussi || []).map(slug);
-      var meilleur = -1;
+      var ecritures = [d.nom].concat(d.aussi || []);
+      /* On retient L'ECRITURE qui correspond le mieux, pas seulement sa
+         position : c'est elle que MB verra et gardera. A egalite, le nom
+         principal passe devant, puisqu'il est le premier de la liste. */
+      var meilleur = -1, gagnante = null;
       ecritures.forEach(function (e) {
-        var p = e.indexOf(q);
+        var p = slug(e).indexOf(q);
         if (p < 0) return;
-        if (meilleur < 0 || p < meilleur) meilleur = p;
+        if (meilleur < 0 || p < meilleur) { meilleur = p; gagnante = e; }
       });
-      if (meilleur === 0) debut.push(d);
-      else if (meilleur > 0) dedans.push(d);
+      if (meilleur < 0) return;
+      var ligne = { d: d, ecriture: gagnante };
+      if (meilleur === 0) debut.push(ligne); else dedans.push(ligne);
     });
-    return debut.concat(dedans).map(entreeDictionnaire);
+    return debut.concat(dedans).map(function (l) {
+      return entreeDictionnaire(l.d, l.ecriture);
+    });
   }
 
   /* Suggestions pour l'autocomplétion. MES EXERCICES D'ABORD, puis le

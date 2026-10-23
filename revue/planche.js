@@ -47,6 +47,19 @@
     return l.length ? l[0] : null;
   }
 
+  /* Ce que le carnet propose AUJOURD'HUI pour ce mouvement : on essaie le
+     nom principal, puis ses autres ecritures, et on garde la premiere que
+     le carnet comprend. Sert a montrer l'ECART sur un mouvement pas encore
+     livre — c'est lui que MB valide. */
+  function aujourdhui(d) {
+    var noms = [d.nom].concat(d.aussi || []);
+    for (var i = 0; i < noms.length; i++) {
+      var l = A.m.musclesDuNom(noms[i]);
+      if (l.length) return { par: noms[i], muscles: l };
+    }
+    return { par: null, muscles: [] };
+  }
+
   function citationDe(f, id) {
     if (!f) return null;
     var l = (f.muscles || []).concat(f.aDecider || [])
@@ -136,9 +149,34 @@
 
   function rendre() {
     var sortie = document.getElementById('sortie');
-    var sansSource = 0, cites = 0, deduits = 0, muscles = 0;
+    var sansSource = 0, cites = 0, deduits = 0, muscles = 0, aAjouter = 0;
 
-    A.m.DICTIONNAIRE.forEach(function (d) {
+    /* Le modele D'ABORD (ce qui est livre), puis ce que le catalogue
+       propose et qui n'y est pas encore : sans ca, un LOT NEUF serait
+       invisible sur la planche qui sert justement a le valider. */
+    var lignes = A.m.DICTIONNAIRE.map(function (d) {
+      return { nom: d.nom, aussi: d.aussi || [], muscles: d.muscles,
+               livre: true };
+    });
+    cat.MOUVEMENTS.forEach(function (f) {
+      var deja = A.m.DICTIONNAIRE.filter(function (d) {
+        return d.nom === f.nom;
+      }).length;
+      if (deja) return;
+      lignes.push({ nom: f.nom, aussi: f.aussi || [],
+                    muscles: f.muscles.map(function (x) { return x.id; }),
+                    livre: false, ecarte: f.ecarte || null });
+    });
+
+    var montrerLivres = false;
+    try { montrerLivres = localStorage.getItem(CLE + '-livres') === 'oui'; }
+    catch (e) { montrerLivres = false; }
+    var masques = montrerLivres ? 0
+      : lignes.filter(function (d) { return d.livre; }).length;
+    var aLire = montrerLivres ? lignes
+      : lignes.filter(function (d) { return !d.livre; });
+
+    aLire.forEach(function (d) {
       var f = fiche(d.nom);
       var bloc = el('div', 'mvt');
 
@@ -165,9 +203,22 @@
       bloc.appendChild(h);
 
       var delta = el('div', 'delta');
-      delta.appendChild(el('span', 'et pareil', 'ce qui sera livré'));
+      delta.appendChild(el('span',
+        'et ' + (d.livre ? 'pareil' : 'change'),
+        d.livre ? 'livré'
+                : (d.ecarte ? 'écarté → ' + d.ecarte : 'à ajouter')));
       delta.appendChild(el('span', 'et',
         d.muscles.map(A.m.nomCourtMuscle).join(', ')));
+      /* Pour un mouvement pas encore livre, on montre AUSSI ce que le
+         carnet repond aujourd'hui : c'est l'ecart que MB valide. */
+      if (!d.livre) {
+        var av = aujourdhui({ nom: d.nom, aussi: d.aussi });
+        delta.appendChild(el('span', 'et',
+          'aujourd’hui : ' + (av.muscles.length
+            ? av.muscles.map(A.m.nomCourtMuscle).join(', ')
+            : 'RIEN')));
+        if (!d.ecarte) aAjouter++;
+      }
       bloc.appendChild(delta);
 
       /* On parcourt LES MUSCLES LIVRÉS, pas ceux de la fiche de revue : si
@@ -194,10 +245,30 @@
 
     var tete = document.getElementById('tete');
     tete.appendChild(el('div', 'chiffre ' + (sansSource ? 'rouge' : 'vert'),
-      A.m.DICTIONNAIRE.length + ' mouvements'));
+      aLire.length + ' mouvement' + (aLire.length > 1 ? 's' : '')
+      + (masques ? ' à trancher' : '')));
+    var ecartes = aLire.filter(function (d) { return d.ecarte; }).length;
     tete.appendChild(el('div', 'item-resume',
-      muscles + ' muscles livrés · ' + cites + ' cités mot pour mot, '
+      (masques ? masques + ' déjà validés, masqués · ' : '')
+      + (ecartes ? ecartes + ' écarté(s) vers l’équipement · ' : '')
+      + muscles + ' muscles · ' + cites + ' cités mot pour mot, '
       + deduits + ' déduits et dits comme tels, ' + sansSource + ' sans source.'));
+
+    if (masques) {
+      var btTout = el('button', 'bouton', 'Revoir les ' + masques + ' déjà validés');
+      btTout.addEventListener('click', function () {
+        try { localStorage.setItem(CLE + '-livres', 'oui'); } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btTout);
+    } else if (lignes.some(function (d) { return d.livre; })) {
+      var btMoins = el('button', 'bouton', 'Masquer les déjà validés');
+      btMoins.addEventListener('click', function () {
+        try { localStorage.removeItem(CLE + '-livres'); } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btMoins);
+    }
 
     barre = el('div', 'barre-revue');
     compteurs = el('div', 'item-resume');
@@ -222,7 +293,7 @@
     tete.appendChild(barre);
     majBarre();
 
-    document.title = (sansSource ? '✗ ' : '✓ ') + A.m.DICTIONNAIRE.length
+    document.title = (sansSource ? '✗ ' : '✓ ') + aLire.length
       + ' mouvements — Dictionnaire';
     document.getElementById('chapeau').textContent =
       'Lot ' + cat.lot + ' — ' + cat.titre + '. Ce qui sera LIVRÉ, muscle par '
@@ -240,7 +311,9 @@
     });
     leg.appendChild(ul);
 
-    window.__planche = { mouvements: A.m.DICTIONNAIRE.length, muscles: muscles,
+    window.__planche = { mouvements: aLire.length, masques: masques,
+                         aAjouter: aAjouter,
+                         muscles: muscles,
                          cites: cites, deduits: deduits, sansSource: sansSource,
                          renommages: Object.keys(memoire).length };
   }

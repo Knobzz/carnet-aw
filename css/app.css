@@ -790,7 +790,8 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 }
 .auto-opt:last-child { border-bottom: 0; }
 .auto-opt[aria-selected="true"], .auto-opt:hover { background: var(--bleu-doux); }
-.auto-opt b { flex: 1; font-weight: 500; }
+.auto-opt { flex-wrap: wrap; }
+.auto-opt b { flex: 1 1 100%; font-weight: 500; }
 
 /* ---------- suivi ---------- */
 
