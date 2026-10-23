@@ -266,10 +266,25 @@
         if (b.textContent.indexOf('Passer') >= 0) passer = b;
       });
       v.vrai(!!passer, '[temoin] le bouton « Passer » est trouvable');
+
+      /* Ce qu'on mesure ici, c'est OU LE BANDEAU SE REPOSE une fois arrete —
+         pas le deroulement de la glissade. Or un navigateur ne fait pas
+         avancer une transition CSS sur une page qu'il ne peint pas : quand
+         le volet d'apercu est masque, la page hote tombe a 0 x 0 et la
+         transition reste figee a son point de depart. Le controle etait
+         alors rouge quoi qu'il arrive, et vert des qu'on regardait — il
+         mesurait l'etat du volet, pas celui du bandeau.
+
+         On coupe donc la transition le temps de la mesure. L'etat final est
+         immediat et ne depend plus du rendu. La glissade elle-meme n'est PAS
+         mesuree ici : c'est le prix, et il est dit. */
+      var sansGlissade = doc.createElement('style');
+      sansGlissade.textContent =
+        '.chrono, .chrono.visible { transition: none !important; }';
+      doc.head.appendChild(sansGlissade);
+
       if (passer) passer.click();
 
-      /* On attend que le bandeau soit REELLEMENT cache, pas qu'un delai
-         soit ecoule. */
       return attendreQue(function () {
         return style(fen, '.chrono', 'visibility') === 'hidden';
       }).then(function () {
@@ -279,13 +294,19 @@
 
         v.vrai(r2.top >= HAUTEUR,
                'arrêté, il est ENTIÈREMENT sous le bas de l’écran (haut mesuré à '
-             + Math.round(r2.top) + ' px pour un écran de ' + HAUTEUR + ')');
+             + Math.round(r2.top) + ' px pour un écran de ' + HAUTEUR
+             + ' ; page hôte ' + window.innerWidth + '×' + window.innerHeight
+             + ', classes du bandeau « ' + doc.querySelector('.chrono').className
+             + ' »)');
         v.egal(style(fen, '.chrono', 'visibility'), 'hidden',
                'et il est retiré du ciblage : visibility hidden');
         v.egal(style(fen, '.chrono', 'pointerEvents'), 'none',
                'doublé de pointer-events none, pour le temps de la glissade');
         v.vrai(!doc.body.classList.contains('chrono-ouvert'),
                'la page reprend sa hauteur normale');
+        v.vrai(!doc.querySelector('.chrono').classList.contains('visible'),
+               'et la classe « visible » est bien retirée — c’est CE QUE L’APP '
+             + 'décide, mesuré sans dépendre du rendu');
 
         /* Le vrai symptôme, balayé sur toute la bande du bas : c'est là que le
            fantôme restait — 41 px mesurés sur l'ancien CSS, pile dans la zone
@@ -309,11 +330,17 @@
 
         /* Il doit pouvoir repartir : une série de plus, un repos de plus. */
         chrono.demarrer(60, 'Série suivante');
-        return attendre(GLISSADE).then(function () {
+        return attendreQue(function () {
+          return style(fen, '.chrono', 'visibility') === 'visible';
+        }).then(function () {
           var r3 = rect(doc, '.chrono');
-          v.vrai(r3.bottom <= HAUTEUR + 1, 'relancé, il revient dans l’écran');
+          v.vrai(r3.bottom <= HAUTEUR + 1, 'relancé, il revient dans l’écran ('
+               + 'bas mesuré à ' + Math.round(r3.bottom) + ' px)');
           v.egal(style(fen, '.chrono', 'visibility'), 'visible', 'et redevient visible');
           chrono.arreter();
+          /* On rend la transition au reste du banc : elle n'etait coupee que
+             le temps de mesurer les deux etats de REPOS. */
+          sansGlissade.remove();
           return attendre(GLISSADE);
         });
       });

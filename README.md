@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **956 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **957 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -169,7 +169,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **574 contrôles, 28 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **382 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **383 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -303,6 +303,8 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | le filtre par région qui ne filtre pas | `intrus : Deltoïde, Long ext. radial, Pectoral, Dorsal…` |
 | le croisement qui affirme sur le mouvement | `n’affirme plus « ce qu’il fait travailler » — attendu 0, obtenu 1` |
 | le mélange de gestes fondu sans étoile | `le biceps crédité à la pronation porte une étoile — attendu true, obtenu false` |
+| la descente du chronomètre trop courte | `haut mesuré à 606 px pour un écran de 720` |
+| la classe « visible » laissée sur le bandeau arrêté | `classes du bandeau « chrono visible »` — 4 contrôles rouges |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |
