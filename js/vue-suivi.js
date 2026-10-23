@@ -771,15 +771,18 @@
     f.appendChild(section('Récupération — régularité',
       'L’élastique quotidien ne se mesure pas en kilos : ce qui compte est de l’avoir fait.'));
 
-    var s7 = A.m.statsRecup(e, 7), s28 = A.m.statsRecup(e, 28);
+    /* Sept jours, et rien d'autre. La colonne des 28 jours a ete retiree
+       le 2026-10-23 : depuis que la periode se choisit, elle disait une
+       fenetre de plus, figee, que personne n'avait demandee. Les sept
+       jours, eux, gardent leur sens propre — c'est la semaine d'une routine
+       quotidienne, et la bande en dessous montre ou est le trou. */
+    var s7 = A.m.statsRecup(e, 7);
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
 
     corps.appendChild(h('dl', { class: 'totaux' },
       h('div', {}, h('dt', { text: '7 derniers jours' }),
         h('dd', { class: 'chiffre', text: s7.joursFaits + ' / 7' })),
-      h('div', {}, h('dt', { text: '28 derniers jours' }),
-        h('dd', { class: 'chiffre', text: s28.joursFaits + ' / 28' })),
       h('div', { class: 'aw' }, h('dt', { text: 'd’affilée' }),
         h('dd', { class: 'chiffre', text: String(s7.serie) }))));
 

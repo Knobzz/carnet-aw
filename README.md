@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **958 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **963 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **574 contrôles, 28 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **384 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **575 contrôles, 28 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **388 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et
@@ -308,6 +308,8 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | la glissade du chronomètre supprimée | `montée 0.26s, descente 0s` |
 | une carte plus large que l’écran (360 px pour 320) | `div.carte [12→372]` — 5 blocs rouges |
 | un bouton plus large que l’écran | les 2 derniers blocs de débordement, rouges |
+| la colonne des 28 jours remise dans Récup | `plus rien n’annonce une fenêtre de 28 jours — attendu 0, obtenu 1` |
+| le toucher qui ne nomme plus le contenu d’une région | `« Biceps — jamais travaillée »` au lieu de nommer le brachial |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

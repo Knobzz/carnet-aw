@@ -1531,6 +1531,14 @@
            '« Pectoraux » est EXACT : la region ne tient que lui');
     v.egal(A.m.musclesDeLaRegion('torse_ar').length, 1,
            '« Dorsaux » aussi');
+
+    /* Le nom reste court — c'est le mot de la salle. Il n'est tenable que
+       parce que le contenu se dit ailleurs : ce controle garde la LISTE,
+       et le banc d'interface garde qu'elle arrive bien a l'ecran. */
+    v.egal(A.m.musclesDeLaRegion('bras_av').join(', '), 'Biceps, Brachial',
+           '« Biceps » tient aussi le BRACHIAL — le plus fort fléchisseur du '
+         + 'coude des deux, et il a son propre mot dans le carnet. Le nom '
+         + 'court ne le dit pas : le toucher doit le dire');
     var sansContenu = A.m.REGIONS_MUSCLE.filter(function (r) {
       return !A.m.musclesDeLaRegion(r.id).length;
     }).map(function (r) { return r.id; });

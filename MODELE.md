@@ -827,7 +827,7 @@ l’écran une équivalence qui n’existe pas.
 | `epaule` | Épaules | deltoïde, grand rond, subscapulaire, coraco-brachial |
 | `torse_av` | Pectoraux | grand pectoral — **exact**, un seul muscle |
 | `torse_ar` | Dorsaux | grand dorsal — **exact**, un seul muscle |
-| `bras_av` | Biceps | biceps brachial, **brachial** |
+| `bras_av` | Biceps | biceps brachial, **brachial** — le nom court est tenable parce que le toucher nomme le second |
 | `bras_ar` | Triceps | triceps brachial, **anconé** |
 | `avant_bras_av` | Fléchisseurs et pronateurs | 6 muscles |
 | `avant_bras_ar` | Extenseurs et supinateurs | 10 muscles |

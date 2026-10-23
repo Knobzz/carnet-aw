@@ -777,6 +777,26 @@
              'Suivi titre la section « Mouvements » avec sa période');
       v.egal(titres.filter(function (t) { return /28 derniers jours/.test(t); }).length, 0,
              'et plus aucun titre n’annonce une fenêtre de 28 jours en dur');
+
+      /* La Recup : sept jours, et plus de colonne a 28. Il faut une seance
+         de recup dans le decor, sinon le bloc n'est pas rendu du tout et le
+         controle mesurerait du vide. */
+      var recup = fen.App.m.seanceRecup(null);
+      recup.exercices = [{ id: fen.App.m.uid('e'), ordre: 0, nom: 'Élastique',
+                           slug: 'elastique', series: [{ id: fen.App.m.uid('s'),
+                           type: 'normale', faite: true }] }];
+      e.seances = e.seances.concat([recup]);
+      fen.App.vues.suivi.rendre(vue);
+      var texteSuivi = doc.body.innerText;
+      v.vrai(/récupération/i.test(texteSuivi),
+             '[temoin] le bloc Récupération est bien rendu, avant de le mesurer');
+      v.vrai(/7 derniers jours/i.test(texteSuivi),
+             'la Récup garde ses SEPT jours : c’est la semaine d’une routine '
+           + 'quotidienne, et elle se lit d’un coup d’œil');
+      v.egal((texteSuivi.match(/28 derniers jours/gi) || []).length, 0,
+             'et plus rien, nulle part, n’annonce une fenêtre de 28 jours — '
+           + 'depuis que la période se choisit, elle disait une fenêtre de '
+           + 'plus, figée, que personne n’avait demandée');
       v.egal(titres.indexOf('Forces de Larratt — 28 derniers jours'), -1,
              '« Forces de Larratt » a disparu de Suivi aussi');
 
@@ -1108,6 +1128,12 @@
       v.vrai(titresCroise.some(function (t) {
         return t.indexOf('Tes exercices de chaque mouvement') === 0;
       }), 'et il dit ce qu’il compte vraiment');
+      var titreBras = svg.querySelector('.zone-region[data-region="bras_av"] title');
+      v.vrai(!!titreBras && /Brachial/i.test(titreBras.textContent),
+             'le nom court « Biceps » est tenable parce que le TOUCHER nomme '
+           + 'le brachial (« ' + (titreBras ? titreBras.textContent : 'aucun titre')
+           + ' ») — sans ça, il escamoterait le plus fort fléchisseur du coude');
+
       v.vrai(/Biceps brachial 3 \*/.test(txt),
              'le biceps crédité à la pronation porte une étoile');
       v.vrai(/Rond pronateur 3(?! \*)/.test(txt),
