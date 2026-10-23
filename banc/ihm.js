@@ -2026,6 +2026,87 @@
         if (x === 'Copier' || x === 'Ouvrir un ticket GitHub') bts.push(b);
       });
       v.egal(bts.length, 2, 'les deux boutons sont là : copier, et ouvrir un ticket');
+
+      /* --- LA GARDE DU CHAMP VIDE, A L'ECRAN ---
+         `texteRetour('')` rend deja `null`, et le banc du modele le garde
+         depuis le debut. Mais rien ne prouvait que l'ECRAN en tienne compte :
+         c'est le piege n° 5 — une moitie mesuree, l'autre non. On espionne
+         donc ce qui PART : le toast, et l'ouverture d'onglet. */
+      var champ = doc.querySelector('.champ-retour');
+      v.vrai(!!champ, '[temoin] le champ de saisie est trouvable');
+      var copier = null, ticket = null;
+      Array.prototype.forEach.call(bts, function (b) {
+        if (b.textContent === 'Copier') copier = b; else ticket = b;
+      });
+      v.vrai(!!copier && !!ticket, '[temoin] les deux boutons sont distingues');
+
+      var toasts = [], ouverts = [], copies = [];
+      var vraiToast = fen.App.ui.toast;
+      var vraiOpen = fen.open;
+      fen.App.ui.toast = function (m) { toasts.push(String(m)); };
+      fen.open = function (u) { ouverts.push(String(u)); return null; };
+      /* On espionne CE QUI PART dans le presse-papier, pas un chemin de
+         secours : sans garde, `copierTexte(null)` y ecrit « null ». */
+      var presse = fen.navigator.clipboard, vraiEcrire = null;
+      if (presse && presse.writeText) {
+        vraiEcrire = presse.writeText;
+        presse.writeText = function (t) {
+          copies.push(String(t));
+          return new Promise(function () {});   /* on n'enchaine pas */
+        };
+      }
+
+      function refus(t) { return /Écris d’abord/.test(t); }
+
+      /* --- a vide : rien ne part --- */
+      if (champ) champ.value = '';
+      if (copier) copier.click();
+      v.egal(toasts.filter(refus).length, 1,
+             'champ vide, « Copier » refuse et le DIT');
+      v.egal(copies.length, 0,
+             'et RIEN n’est écrit dans le presse-papier (sans garde, il y '
+           + 'recevrait « null »)');
+      v.egal(doc.querySelectorAll('.retour-secours').length, 0,
+             'ni préparé à la copie à la main');
+      if (ticket) ticket.click();
+      v.egal(toasts.filter(refus).length, 2,
+             'champ vide, « Ouvrir un ticket » refuse aussi');
+      v.egal(ouverts.length, 0,
+             'et AUCUN onglet ne s’ouvre — c’est le seul endroit de l’app qui '
+           + 'mène dehors');
+
+      /* --- des espaces, ce n'est pas un retour --- */
+      toasts.length = 0;
+      if (champ) champ.value = '   \n  ';
+      if (copier) copier.click();
+      v.egal(toasts.filter(refus).length, 1,
+             'des espaces seuls sont refusés comme un champ vide');
+      v.egal(copies.length, 0, 'et le presse-papier reste intact');
+
+      /* --- avec du texte : ca part --- */
+      toasts.length = 0;
+      if (champ) champ.value = 'le chrono reste affiché';
+      if (ticket) ticket.click();
+      v.egal(toasts.filter(refus).length, 0,
+             'avec du texte, plus aucun refus');
+      v.egal(ouverts.length, 1, 'et l’onglet s’ouvre, une fois');
+      v.vrai(/github\.com/.test(ouverts[0] || ''),
+             'sur github.com, avec le retour déjà écrit dedans');
+      v.vrai(/chrono/.test(decodeURIComponent(ouverts[0] || '')),
+             'et ce qu’on a tapé y est : ' + (ouverts[0] || 'aucun lien'));
+
+      /* --- et la copie, avec du texte, emporte bien ce qu'on a tape --- */
+      if (copier) copier.click();
+      v.egal(copies.length, 1, 'avec du texte, « Copier » écrit une fois');
+      v.vrai(/chrono/.test(copies[0] || ''),
+             'et ce qu’on a tapé y est');
+      v.vrai(/aucune donnée d’entraînement/.test(copies[0] || ''),
+             'avec le bloc technique, qui ne porte aucune donnée d’entraînement');
+
+      fen.App.ui.toast = vraiToast;
+      fen.open = vraiOpen;
+      if (vraiEcrire) presse.writeText = vraiEcrire;
+      if (champ) champ.value = '';
       var petits = bts.filter(function (b) {
         return b.getBoundingClientRect().height < 44;
       }).map(function (b) { return b.textContent.trim(); });
