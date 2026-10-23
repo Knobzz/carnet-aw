@@ -151,6 +151,22 @@
       qui: 'Kenhub — Extensor pollicis longus', revu: null,
       lien: 'https://www.kenhub.com/en/library/anatomy/extensor-pollicis-longus-muscle'
     },
+    bra: {
+      qui: 'Kenhub — Brachialis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/brachialis-muscle'
+    },
+    hook2026: {
+      qui: 'Giordano et al., « The Role of Kinematic and Electromyographic '
+         + 'Analysis of the Elbow in Arm Wrestlers », Applied Sciences 2026 '
+         + '— étude de rééducation, 11 athlètes avec épicondylite médiale',
+      revu: null,
+      lien: 'https://doi.org/10.3390/app16020713'
+    },
+    tawf: {
+      qui: 'Toronto Armwrestling Federation — glossaire des techniques',
+      revu: null,
+      lien: 'https://www.tawf.ca/league/learn/arm-wrestling-techniques'
+    },
     fujii: {
       qui: 'Fujii, Kobayashi, Sato, Shinozaki, Naito — J Electromyogr '
          + 'Kinesiol 2007;17(1):80-89, EMG sur 12 sujets',
@@ -186,6 +202,13 @@
               + '2-5: Finger flexion',
     epl: 'Wrist joints: Weak hand extension ; Metacarpophalangeal and '
        + 'interphalangeal joint of thumb: Thumb extension',
+    bra: 'Strong flexion of forearm at the elbow joint',
+    hook_pro: 'In the Hook technique, the athlete executes forceful wrist '
+            + 'flexion in combination with forearm PRONATION, and sustained '
+            + 'elbow flexion [...] Pronator Teres : particularly crucial in '
+            + 'the « Hook » technique',
+    hook_sup: 'Supination turns your palm up and toward you ; it strengthens '
+            + 'your wrist and is the heart of the hook',
     fpb: 'Carpometacarpal and metacarpophalangeal joint 1: Thumb flexion',
     addp: 'Carpometacarpal joint 1: Thumb adduction',
     oppp: 'Carpometacarpal joint 1: Thumb opposition',
@@ -499,6 +522,128 @@
           + 'court palmaire et les deux opposants — vient de l’OUTIL. Le '
           + 'travail est gardé ici pour n’être pas refait : ces trois '
           + 'muscles ne sont atteignables par aucun nom en attendant.'
+    },
+
+    /* ================= LOT 3 : LES EXERCICES DE TABLE =================
+       MB, 2026-10-23 : « lot 3 = les exercices qui entraînent les gestes de
+       table. Les gestes restent dans la case Mouvements. »
+
+       C'est sa règle de 1.23.2 qui commande ce choix, et elle tient : les
+       gestes de table n'ont que des sources TERRAIN, et la source « le
+       nom » — ce que MB a écrit lui-même — ne doit pas les porter. Ils
+       restent là où ils sont, avec leur auteur affiché à l'écran.
+
+       Ce lot décrit ce que LE CORPS FAIT dans chaque exercice. Et ces
+       exercices se trouvent être des COMPOSITIONS de gestes déjà sourcés
+       aux lots 1 et 2 : déviation radiale, pronation, cupping, prise. Les
+       citations sont donc les mêmes, et le rang « tient » dit ce qui tient
+       pendant que le reste travaille.
+
+       Mesure avant correction : sur 19 noms de cette famille, QUINZE ne
+       proposent rien.
+
+       LES ÉPAULES ET LE DOS N'Y SONT PAS : « side pressure » et « back
+       pressure » à la poulie attendent le lot 4, où leurs muscles seront
+       sourcés pour de bon plutôt que repris d'une liste terrain. */
+    {
+      id: 'riser-lift',
+      nom: 'Riser lift',
+      aussi: ['Riser à la sangle', 'Levée au riser'],
+      geste: 'Une sangle passée sur les premières phalanges, reliée à une '
+           + 'charge : la main se lève en penchant vers le pouce.',
+      muscles: [
+        m('fcr', 'deduit', S.fcr, null,
+          ['Fléchisseur radial : « wrist flexion, wrist ABDUCTION » (Kenhub)',
+           'Extenseurs radiaux : « hand extension, hand ABDUCTION » (Kenhub)']),
+        m('ecrl', 'deduit', S.ecrl, null,
+          ['les deux abduisent le poignet',
+           'leurs composantes de flexion et d’extension s’annulent']),
+        m('ecrb', 'deduit', S.ecrb, null,
+          ['les deux abduisent le poignet',
+           'leurs composantes de flexion et d’extension s’annulent']),
+        m('flechisseurs_doigts', 'tient', S.fds, C.fds_doigts),
+        m('long_flechisseur_pouce', 'tient', S.fpl, C.fpl)
+      ],
+      note: 'C’est l’exercice du RISING, et c’est ce qui règle la collision '
+          + 'que j’avais créée : l’exercice s’appelle « Riser lift », pas '
+          + '« Rising ». Le mot « Rising » tout court reste la déviation '
+          + 'radiale — c’est ce qu’il veut dire dans le vocabulaire '
+          + 'd’entraînement — pendant que la FORCE « Rising » de la case '
+          + 'Mouvements reste le mouvement tactique complet, avec sa source '
+          + 'Devon Larratt. Trois choses, trois endroits, plus de collision.'
+    },
+    {
+      id: 'toproll-poulie',
+      nom: 'Toproll à la poulie',
+      aussi: ['Cable toproll', 'Toproll à la sangle'],
+      geste: 'La paume tourne vers le bas pendant que la main penche vers le '
+           + 'pouce, contre une poulie ou une sangle.',
+      muscles: [
+        m('rond_pronateur', 'moteur', S.pt, C.pt),
+        m('carre_pronateur', 'moteur', S.pq, C.pq),
+        m('fcr', 'deduit', S.fcr, null,
+          ['Fléchisseur radial : « wrist flexion, wrist ABDUCTION »',
+           'Extenseurs radiaux : « hand extension, hand ABDUCTION »']),
+        m('ecrl', 'deduit', S.ecrl, null,
+          ['les deux abduisent le poignet',
+           'leurs composantes de flexion et d’extension s’annulent']),
+        m('ecrb', 'deduit', S.ecrb, null,
+          ['les deux abduisent le poignet',
+           'leurs composantes de flexion et d’extension s’annulent']),
+        m('flechisseurs_doigts', 'tient', S.fds, C.fds_doigts)
+      ],
+      note: 'La composition de deux gestes déjà sourcés : la PRONATION et la '
+          + 'DÉVIATION RADIALE. C’est ce que la fédération décrit du '
+          + 'toproll — « you pronate and slide your grip up toward your '
+          + 'opponent’s fingertips ». Le geste tactique, lui, reste dans la '
+          + 'case Mouvements.'
+    },
+    {
+      id: 'hook-poulie',
+      nom: 'Hook à la poulie',
+      aussi: ['Cable hook', 'Hook à la sangle'],
+      geste: 'Le poignet se referme et le coude se plie, contre une poulie '
+           + 'ou une sangle.',
+      muscles: [
+        m('fcr', 'moteur', S.fcr, C.fcr),
+        m('long_palmaire', 'moteur', S.pl, C.pl),
+        m('fcu', 'moteur', S.fcu, C.fcu),
+        m('flechisseurs_doigts', 'aide', S.fds, C.fds),
+        m('long_flechisseur_pouce', 'aide', S.fpl, C.fpl),
+        m('supinateur', 'moteur', S.tawf, C.hook_sup),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra)
+      ],
+      note: 'LA ROTATION A ÉTÉ TRANCHÉE PAR MB le 2026-10-23 : le hook se '
+          + 'tient en SUPINATION. Le supinateur entre, le rond pronateur '
+          + 'sort. — Deux sources se contredisaient, et le carnet les a '
+          + 'portées toutes les deux plutôt que d’arbitrer en silence : '
+          + 'l’article de 2026 décrit le hook « in combination with forearm '
+          + 'PRONATION » et nomme le rond pronateur « particularly '
+          + 'crucial », quand le glossaire de la fédération de Toronto dit '
+          + 'que la supination est « the heart of the hook ». C’est une '
+          + 'étude de RÉÉDUCATION sur onze athlètes avec une épicondylite : '
+          + 'sa pronation décrit vraisemblablement la charge en torsion qui '
+          + 'les a blessés, pas le geste voulu. MB hooke ; la page web, '
+          + 'non. — Le reste était sûr des deux côtés : le poignet se '
+          + 'referme, le coude se plie.'
+    },
+    {
+      id: 'tenue-cup',
+      nom: 'Cup hold',
+      aussi: ['Tenue en cup', 'Tenue de poignet fermé'],
+      geste: 'Le poignet reste fermé sous la charge, sans bouger.',
+      muscles: [
+        m('fcr', 'tient', S.fcr, C.fcr),
+        m('long_palmaire', 'tient', S.pl, C.pl),
+        m('fcu', 'tient', S.fcu, C.fcu),
+        m('flechisseurs_doigts', 'tient', S.fds, C.fds),
+        m('long_flechisseur_pouce', 'tient', S.fpl, C.fpl)
+      ],
+      note: 'Les mêmes muscles que le wrist curl, au rang « tient » : ce qui '
+          + 'change est le régime, pas le geste. Le carnet ne distingue pas '
+          + 'les régimes — c’est une question ouverte depuis le lot 2, et ce '
+          + 'lot ne la tranche pas non plus.'
     }
   ];
 

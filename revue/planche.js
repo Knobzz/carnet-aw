@@ -173,8 +173,10 @@
     catch (e) { montrerLivres = false; }
     var masques = montrerLivres ? 0
       : lignes.filter(function (d) { return d.livre; }).length;
-    var aLire = montrerLivres ? lignes
-      : lignes.filter(function (d) { return !d.livre; });
+    var aLire = (montrerLivres ? lignes
+      : lignes.filter(function (d) { return !d.livre; }))
+      .filter(function (d) { return !d.ecarte; });
+    var ecartes = lignes.filter(function (d) { return d.ecarte; }).length;
 
     aLire.forEach(function (d) {
       var f = fiche(d.nom);
@@ -247,10 +249,9 @@
     tete.appendChild(el('div', 'chiffre ' + (sansSource ? 'rouge' : 'vert'),
       aLire.length + ' mouvement' + (aLire.length > 1 ? 's' : '')
       + (masques ? ' à trancher' : '')));
-    var ecartes = aLire.filter(function (d) { return d.ecarte; }).length;
     tete.appendChild(el('div', 'item-resume',
       (masques ? masques + ' déjà validés, masqués · ' : '')
-      + (ecartes ? ecartes + ' écarté(s) vers l’équipement · ' : '')
+      + (ecartes ? ecartes + ' écarté(s), gardé(s) pour l’équipement · ' : '')
       + muscles + ' muscles · ' + cites + ' cités mot pour mot, '
       + deduits + ' déduits et dits comme tels, ' + sansSource + ' sans source.'));
 

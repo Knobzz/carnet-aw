@@ -678,6 +678,45 @@ contrôle exige maintenant que **chaque autre écriture** dise la même chose qu
 dictionnaire le portait comme autre écriture depuis le lot 1. Le mot est maintenant lu par
 la table des côtés, là où il a sa place.
 
+#### LOT 3 — les exercices de table
+
+Quatre entrées, validées le 2026-10-23 : **Riser lift**, **Toproll à la poulie**,
+**Hook à la poulie**, **Cup hold**. Sur 19 noms de cette famille, **quinze** ne
+proposaient rien.
+
+**Ce lot décrit les EXERCICES, pas les gestes**, et c'est une décision de MB : *« lot 3 =
+les exercices qui entraînent les gestes de table. Les gestes restent dans la case
+Mouvements. »* Sa règle de 1.23.2 la commande — les gestes de table (toproll, hook,
+rising, back et side pressure) n'ont que des sources **terrain**, et la source « le nom »
+ne doit pas les porter. Ils restent donc dans la case Mouvements, avec leur auteur affiché.
+
+Ces exercices se trouvent être des **compositions de gestes déjà sourcés** : le toproll à
+la poulie, c'est la pronation plus la déviation radiale ; le cup hold, ce sont les muscles
+du wrist curl au rang « tient ». Les citations sont celles des lots 1 et 2.
+
+#### Le hook : deux sources, et c'est MB qui a tranché
+
+| source | ce qu'elle dit |
+|---|---|
+| [Giordano et al., *Applied Sciences* 2026](https://doi.org/10.3390/app16020713) | le hook se fait *« in combination with forearm **PRONATION** »*, et le rond pronateur y est *« particularly crucial »* |
+| [Fédération de Toronto](https://www.tawf.ca/league/learn/arm-wrestling-techniques) | *« Supination [...] is **the heart of the hook** »* |
+
+Le carnet a porté **les deux** plutôt que d'arbitrer en silence, et MB a tranché :
+**supination**. Le supinateur entre, le rond pronateur sort. La raison est gardée dans le
+modèle : l'article de 2026 est une étude de **rééducation** sur onze athlètes avec une
+épicondylite médiale, et sa pronation décrit vraisemblablement la **charge en torsion qui
+les a blessés**, pas le geste voulu. MB hooke ; la page web, non.
+
+> **La collision de « Rising » est réglée par le nommage**, en trois endroits distincts :
+> l'EXERCICE s'appelle *Riser lift* ; le mot *Rising* seul reste la **déviation radiale**,
+> ce qu'il signifie dans le vocabulaire d'entraînement ; et la FORCE *Rising* de la case
+> Mouvements reste le mouvement tactique complet, avec sa source Devon Larratt.
+
+> **« Rising à la sangle » ne pouvait pas fonctionner**, et la mesure l'a montré : le mot
+> `rising` est un marqueur de côté, donc il est **retiré du nom** avant que les
+> mots-muscles soient lus — il ne restait que « à la sangle ». L'écriture est devenue
+> « Riser à la sangle ».
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

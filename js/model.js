@@ -552,20 +552,40 @@
      et un wrist curl ne travaillent pas la meme chose. On ne propose que sur
      un mot qui designe sans ambiguite. */
   var MOTS_MUSCLE = {
-    biceps:              ['biceps', 'supination', 'supinat'],
+    biceps:              ['biceps', 'supination', 'supinat',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     triceps:             ['triceps', 'extension coude', 'dips'],
-    brachial:            ['brachial'],   /* « brachio radial » ne le contient pas */
+    brachial:            ['brachial',   /* « brachio radial » ne le contient pas */
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     /* « long supinateur » est le nom classique du BRACHIO-RADIAL, pas du
        supinateur : les confondre enverrait la charge au mauvais muscle. */
     brachio_radial:      ['brachio radial', 'brachioradial', 'long supinateur', 'marteau', 'hammer'],
     rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat',
-                          'extension poignet'],
-    carre_pronateur:     ['pronation', 'pronateur', 'pronator', 'pronat'],
-    supinateur:          ['supination', 'supinateur', 'supinator', 'supinat'],
+                          'extension poignet',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle'],
+    carre_pronateur:     ['pronation', 'pronateur', 'pronator', 'pronat',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle'],
+    /* Le HOOK se tient en SUPINATION — tranche par MB le 2026-10-23,
+       contre un article de 2026 qui le decrit en pronation. Cet article est
+       une etude de REEDUCATION sur onze athletes avec une epicondylite :
+       sa pronation decrit vraisemblablement la charge en torsion qui les a
+       blesses, pas le geste voulu. MB hooke ; la page web, non. */
+    supinateur:          ['supination', 'supinateur', 'supinator', 'supinat',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     fcu:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet',
-                          'flechisseur poignet', 'cubital anterieur'],
+                          'flechisseur poignet', 'cubital anterieur',
+                          'tenue de poignet ferme',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     fcr:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet',
-                          'flechisseur poignet', 'grand palmaire'],
+                          'flechisseur poignet', 'grand palmaire',
+                          'tenue de poignet ferme',
+                          'riser lift', 'riser', 'levee au riser',
+                          'riser a la sangle',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     /* PAS « grip » tout court : « Titan Grip » et « Fat grip » sont des
        OUTILS, et le banc l'a attrape. Un mot qui apparait dans un nom de
        materiel ne designe pas un muscle. */
@@ -597,7 +617,13 @@
                           'barre fixe tenue', 'farmer walk',
                           'marche du fermier',
                           'finger curl', 'rouleau de doigts', 'finger rolling',
-                          'enroulement des doigts'],
+                          'enroulement des doigts',
+                          'riser lift', 'riser', 'levee au riser',
+                          'riser a la sangle',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle',
+                          'tenue de poignet ferme'],
     /* Un exercice de PINCE est d'abord un exercice de pouce : c'est lui qui
        s'oppose aux doigts, et sans lui il n'y a pas de pince du tout. Les
        mots viennent du nom que l'utilisateur a ecrit — la source la moins
@@ -621,6 +647,10 @@
                               'long flechisseur du pouce', 'flechisseur du pouce',
                               'cupping', 'cup', 'wrist curl', 'flexion poignet',
                               'flechisseur poignet',
+                          'riser lift', 'riser', 'levee au riser',
+                          'riser a la sangle',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle',
+                          'tenue de poignet ferme',
                           'gripper', 'hand gripper', 'serrage', 'serrer',
                           'fermeture main', 'poignee a ressort',
                           'serrage de poing', 'tenue barre',
@@ -629,8 +659,16 @@
                           'marche du fermier'],
     opposant_pouce:      ['pince', 'pinch', 'opposant du pouce', 'opposition du pouce',
                           'opposant pouce'],
-    ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial'],
-    ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial'],
+    ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial',
+                          'riser lift', 'riser', 'levee au riser',
+                          'riser a la sangle',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle'],
+    ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial',
+                          'riser lift', 'riser', 'levee au riser',
+                          'riser a la sangle',
+                          'toproll a la poulie', 'cable toproll',
+                          'toproll a la sangle'],
     ecu:                 ['cubital posterieur', 'extenseur ulnaire',
                           'extension poignet', 'reverse wrist'],
     extenseurs_doigts:   ['extenseur doigts', 'extension doigts',
@@ -703,7 +741,9 @@
        flexion ». Il etait visible, non coche, entre les deux autres. */
     long_palmaire:       ['petit palmaire', 'long palmaire',
                           'cupping', 'cup', 'wrist curl', 'flexion poignet',
-                          'flechisseur poignet'],
+                          'flechisseur poignet',
+                          'tenue de poignet ferme',
+                          'hook a la poulie', 'cable hook', 'hook a la sangle'],
     /* « press » est garde pour « bench press » et « shoulder press », qui
        sont des mots entiers. Il ne s'allume plus dans « pression » depuis
        que les mots se lisent entiers. « pectoraux » est ajoute : le pluriel
@@ -805,7 +845,37 @@
               'Farmer walk', 'Marche du fermier'],
       muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
                 'court_flechisseur_pouce', 'adducteur_pouce',
-                'court_flechisseur_auriculaire', 'lombricaux'] }
+                'court_flechisseur_auriculaire', 'lombricaux'] },
+
+    /* LOT 3 — les exercices de table, validé le 2026-10-23.
+       MB : « lot 3 = les exercices qui entrainent les gestes de table. Les
+       gestes restent dans la case Mouvements. » Sa regle de 1.23.2
+       commande ce choix : les gestes de table n'ont que des sources
+       TERRAIN, et la source « le nom » ne doit pas les porter.
+
+       Ces exercices sont des COMPOSITIONS de gestes deja sources : la
+       deviation radiale, la pronation, le cupping, la prise. */
+    { nom: 'Riser lift',
+      aussi: ['Riser à la sangle', 'Levée au riser'],
+      muscles: ['fcr', 'flechisseurs_doigts', 'ecrl', 'ecrb',
+                'long_flechisseur_pouce'] },
+    { nom: 'Toproll à la poulie',
+      aussi: ['Cable toproll', 'Toproll à la sangle'],
+      muscles: ['rond_pronateur', 'fcr', 'flechisseurs_doigts',
+                'carre_pronateur', 'ecrl', 'ecrb'] },
+    /* Le hook se tient en SUPINATION — tranche par MB contre un article de
+       2026 qui le decrit en pronation ; cette etude porte sur onze athletes
+       en REEDUCATION d'une epicondylite, et sa pronation decrit
+       vraisemblablement la charge qui les a blesses. */
+    { nom: 'Hook à la poulie',
+      aussi: ['Cable hook', 'Hook à la sangle'],
+      muscles: ['biceps', 'brachial', 'fcr', 'long_palmaire', 'fcu',
+                'flechisseurs_doigts', 'supinateur',
+                'long_flechisseur_pouce'] },
+    { nom: 'Cup hold',
+      aussi: ['Tenue en cup', 'Tenue de poignet fermé'],
+      muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
+                'long_flechisseur_pouce'] }
   ];
 
   /* ---------- lire un nom d'exercice ----------
