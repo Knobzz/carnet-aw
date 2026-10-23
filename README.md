@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 100 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 174 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **696 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **770 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
@@ -195,10 +195,19 @@ python -m http.server 8713
   qu'une mention dans la ligne d'en-tête ; son travail reste dans le catalogue pour n'être
   pas refait.
 
-  **Les lots, dans l'ordre décidé par MB.** 1 — le poignet et l'avant-bras *(livré)*.
-  2 — la main et le grip *(livré)*. 3 — les exercices de table *(livré)*. Puis les épaules
-  et le dos, qui restent. Chaque lot suit le même chemin — je liste, je source, MB valide,
-  on livre.
+  **Les lots, dans l'ordre décidé par MB.** 1 — le poignet et l'avant-bras. 2 — la main et
+  le grip. 3 — les exercices de table. 4 — les épaules et le dos. **Les quatre sont
+  livrés**, et le dictionnaire compte 31 mouvements. Chaque lot a suivi le même chemin —
+  je liste, je source, MB valide, on livre. Reste la phase ÉQUIPEMENT.
+
+  **La planche dit aussi ce qui n'est PAS sourcé.** Chaque rang (*moteur* / *aide*) porte
+  sa base : *rang cité* quand une mesure dit qui mène ce geste, **rang raisonné** sinon —
+  en rouge, et compté dans l'en-tête. Posé le 2026-10-23 sur une question de MB : « est-ce
+  que parfois un muscle passe d'aide à moteur ? » En vérifiant, deux définitions du rang
+  se contredisaient, et **111 rangs** se présentaient comme sourcés sans l'être. Un
+  contrôle permanent compte en plus les rangs qui s'écartent de la **forme** de leur
+  citation ; il a trouvé, à sa première exécution, une citation qui ne soutenait pas ce
+  qu'elle appuyait.
 
   **Et APRÈS les mouvements, pas avant : les équipements.** Décision de MB, 2026-10-23 :
   certains outils spécifiques au bras de fer changent les muscles réellement sollicités

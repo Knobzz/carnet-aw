@@ -717,6 +717,60 @@ les a blessés**, pas le geste voulu. MB hooke ; la page web, non.
 > mots-muscles soient lus — il ne restait que « à la sangle ». L'écriture est devenue
 > « Riser à la sangle ».
 
+#### LOT 4 — les épaules et le dos
+
+Quatorze entrées, validées le 2026-10-23. La famille la plus pauvre du carnet : sur **28
+noms, douze** ne proposaient rien, et presque tout ce qui répondait ne rendait **qu'un
+seul muscle**.
+
+**MB avait raison sur le développé militaire** : il rendait le **pectoral seul**, alors
+que le moteur est le deltoïde — *« Acromial part: abduction of the arm beyond the initial
+15° »* — avec le triceps qui tend les coudes.
+
+**Les prises ne sont PAS séparées, et c'est la mesure qui le dit.** Mon intuition aurait
+multiplié les entrées ; les études ont refusé.
+
+| famille | ce que la mesure dit |
+|---|---|
+| **Pompes** — [EMG 2025, 20 hommes](https://pmc.ncbi.nlm.nih.gov/articles/PMC13029269/) | standard, diamant et prise large changent **l'intensité**, pas les muscles ; le triceps est au-dessus du pectoral dans les trois |
+| **Tractions** — [Dickie et al. 2017, 19 hommes](https://pubmed.ncbi.nlm.nih.gov/27815036/) | un **seul** écart significatif entre quatre prises, et il porte sur le **trapèze moyen** — que le carnet n'a pas |
+
+Une entrée *Pompes* couvre donc six écritures, une entrée *Traction* en couvre dix. Leur
+donner des listes différentes serait inventer une précision que personne n'a mesurée.
+
+> **Deux écritures retirées** : « Traction pronation » et « Traction supination » portent
+> les mots de la **rotation de l'avant-bras**, qui désignent les pronateurs et le
+> supinateur. Un nom qui porte les mots de deux gestes n'en désigne aucun — même cas que
+> « Rising à la sangle ». C'est le contrôle d'accord des écritures qui les a attrapées.
+
+> **Écarté : le haussement d'épaules**, qui travaille le **trapèze**, absent des 36
+> muscles. Le carnet rendait « Deltoïde » parce que le nom contient « épaules ».
+
+#### Le RANG porte sa base, et 111 ne l'avaient pas
+
+Question de MB, le 2026-10-23 : *« est-ce que parfois un muscle passe d'aide à moteur ? »*
+En vérifiant, **deux définitions du rang se contredisaient** dans le catalogue de revue.
+Tantôt le rang disait **où** la source parle du muscle (tableau d'actions ou corps du
+texte), tantôt **qui mène** l'exercice. Le pectoral en est la preuve : son tableau
+d'actions nomme *« arm flexion (clavicular head) »*, donc la première définition en fait
+un moteur du développé militaire — et je l'avais mis **aide**, par un raisonnement sur les
+bras de levier.
+
+Le rang signifie désormais **qui mène ce geste**, et comme ce n'est pas la même
+affirmation que « ce muscle fait cette action », il porte sa **propre base** : *rang cité*
+quand une mesure le dit, **rang raisonné** sinon. Mesure du jour de la bascule : **111
+rangs, 111 raisonnés, 0 cité**. Les deux premiers cités sont arrivés avec les pompes.
+
+> **Ce que ça n'a PAS faussé** : le rang ne quitte jamais la planche. Une entrée du
+> dictionnaire livré ne porte que `nom`, `aussi` et `muscles` — aucun rang, et aucun code
+> de l'app n'en lit un. Les listes reçues par le téléphone sont inchangées ; ce que le
+> rang faussait, c'est la planche **au moment de la validation**.
+
+**Un contrôle permanent** compte les rangs qui s'écartent de la **forme** de leur citation.
+Il a trouvé, dès sa première exécution, une citation qui ne soutenait pas ce qu'elle
+appuyait : dans « ouvrir la main », l'extenseur des doigts portait la citation du
+**poignet**. Corrigé — son tableau d'actions dit ce qu'il faut.
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

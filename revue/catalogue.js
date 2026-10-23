@@ -22,15 +22,36 @@
 (function (exports) {
   'use strict';
 
+  /* LE RANG EST UNE AFFIRMATION À PART, ET IL A SA PROPRE BASE.
+
+     Défaut trouvé par MB le 2026-10-23 : « est-ce que parfois un muscle
+     passe d'aide à moteur ? » En vérifiant, DEUX définitions du rang se
+     contredisaient dans ce fichier. Tantôt le rang disait OÙ la source
+     parle du muscle (tableau d'actions ou corps du texte) ; tantôt il
+     disait QUI MÈNE l'exercice. Le pectoral en est la preuve : son tableau
+     d'actions nomme « arm flexion (clavicular head) », donc la première
+     définition en fait un MOTEUR du développé militaire — et je l'avais mis
+     AIDE, par un raisonnement sur les bras de levier.
+
+     Le rang signifie désormais ce que MB croyait qu'il signifiait : QUI
+     MÈNE CE GESTE. Et comme ce n'est pas la même affirmation que « ce
+     muscle fait cette action », il porte sa propre base :
+
+       `rangDit` présent  -> une MESURE le dit, citée comme les autres ;
+       `rangDit` absent   -> c'est un RAISONNEMENT, et la planche l'écrit.
+
+     Rien n'est caché : le compteur de l'en-tête sépare les deux, et un rang
+     raisonné se voit d'un coup d'œil. On ne fait plus passer un jugement
+     pour une citation — c'est le défaut que ce carnet traque partout
+     ailleurs, et il était dans l'outil qui sert à le traquer. */
   var RANGS = {
     moteur: {
       nom: 'moteur',
-      quoi: 'la source le nomme dans son TABLEAU D’ACTIONS pour ce geste'
+      quoi: 'il MÈNE ce geste — vérifie sa base : citée ou raisonnée'
     },
     aide: {
       nom: 'aide',
-      quoi: 'la source ne le met pas au tableau d’actions, mais écrit dans '
-          + 'son texte qu’il y participe — second rang, et c’est dit'
+      quoi: 'il participe sans mener — vérifie sa base, elle aussi'
     },
     tient: {
       nom: 'tient',
@@ -151,6 +172,51 @@
       qui: 'Kenhub — Extensor pollicis longus', revu: null,
       lien: 'https://www.kenhub.com/en/library/anatomy/extensor-pollicis-longus-muscle'
     },
+    pompes2025: {
+      qui: '« Electromyographic Activation of the Pectoralis Major and '
+         + 'Triceps Brachii Muscles During Standard, Diamond, and Wide Hand '
+         + 'Position Push-Ups », 2025 — EMG sur 20 hommes',
+      revu: null,
+      lien: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC13029269/'
+    },
+    tractions2017: {
+      qui: 'Dickie, Faulkner, Barnes, Lark — J Electromyogr Kinesiol 2017, '
+         + 'EMG sur 19 hommes entraînés, quatre prises comparées',
+      revu: null,
+      lien: 'https://pubmed.ncbi.nlm.nih.gov/27815036/'
+    },
+    pm: {
+      qui: 'Kenhub — Pectoralis major', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/major-pectoralis-muscle'
+    },
+    ld: {
+      qui: 'Kenhub — Latissimus dorsi', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/latissimus-dorsi-muscle'
+    },
+    tm: {
+      qui: 'Kenhub — Teres major', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/teres-major-muscle'
+    },
+    delt: {
+      qui: 'Kenhub — Deltoid', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/the-deltoid-muscle'
+    },
+    cb: {
+      qui: 'Kenhub — Coracobrachialis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/coracobrachialis-muscle'
+    },
+    sub: {
+      qui: 'Kenhub — Subscapularis', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/subscapularis-muscle'
+    },
+    tri: {
+      qui: 'Kenhub — Triceps brachii', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/triceps-brachii-muscle'
+    },
+    anc: {
+      qui: 'Kenhub — Anconeus', revu: null,
+      lien: 'https://www.kenhub.com/en/library/anatomy/anconeus-muscle'
+    },
     bra: {
       qui: 'Kenhub — Brachialis', revu: null,
       lien: 'https://www.kenhub.com/en/library/anatomy/brachialis-muscle'
@@ -192,6 +258,8 @@
     ecrb: 'Wrist joints: Hand extension, hand abduction (radial deviation)',
     ecu: 'Wrist joint: Hand extension and adduction',
     ed: 'Extensor digitorum also participates in the extension of the wrist.',
+    ed_doigts: 'Metacarpophalangeal / Interphalangeal joints 2-5: Finger '
+             + 'extension',
     pt: 'Pronation of forearm at the proximal radioulnar joint, flexion of '
       + 'the forearm at the elbow joint',
     pq: 'Radioulnar joints: forearm pronation',
@@ -203,6 +271,28 @@
     epl: 'Wrist joints: Weak hand extension ; Metacarpophalangeal and '
        + 'interphalangeal joint of thumb: Thumb extension',
     bra: 'Strong flexion of forearm at the elbow joint',
+    pompes_rang: 'TB demonstrated statistically significantly higher RMS '
+               + '(mV) and normalized RMS (%) than PM (p < 0.05), in '
+               + 'diamond, followed by standard and wide push-ups [...] '
+               + 'Diamond push-ups elicited the highest relative activation '
+               + 'for both the PM and TB',
+    pm: 'Shoulder joint: Arm adduction, Arm internal rotation, Arm flexion '
+      + '(clavicular head), arm extension (sternocostal head) ; '
+      + 'Scapulothoracic joint: Draws scapula anteroinferiorly',
+    ld: 'Shoulder joint: Arm internal rotation, Arm adduction, Arm extension '
+      + '; Assists in respiration',
+    tm: 'Extension and internal rotation of the humerus (arm) ; supports '
+      + 'shoulder adduction',
+    delt: 'Clavicular part: flexion and internal rotation of the arm ; '
+        + 'Acromial part: abduction of the arm beyond the initial 15° ; '
+        + 'Spinal part: extension and external rotation of the arm',
+    cb: 'Adduction and flexion of the arm at the shoulder joint',
+    sub: 'Shoulder joint: Arm internal rotation ; Stabilizes humeral head in '
+       + 'glenoid cavity',
+    tri: 'Elbow joint: extension of the forearm ; Shoulder joint: extension '
+       + 'and adduction of the arm (long head)',
+    anc: 'Assists in forearm extension at the elbow joint ; Stabilization of '
+       + 'elbow joint',
     hook_pro: 'In the Hook technique, the athlete executes forceful wrist '
             + 'flexion in combination with forearm PRONATION, and sustained '
             + 'elbow flexion [...] Pronator Teres : particularly crucial in '
@@ -229,9 +319,11 @@
          + 'extension movements occurs to prevent supinating the forearm'
   };
 
-  var m = function (id, rang, src, cite, deDeux) {
+  /* `rangDit` : {source, cite} quand une MESURE dit qui mène ce geste.
+     Absent = rang raisonné, et la planche le dit. */
+  var m = function (id, rang, src, cite, deDeux, rangDit) {
     return { id: id, rang: rang, source: src, cite: cite || null,
-             deDeux: deDeux || null };
+             deDeux: deDeux || null, rangDit: rangDit || null };
   };
 
   var MOUVEMENTS = [
@@ -448,7 +540,7 @@
       geste: 'Les doigts se tendent et le pouce s’écarte, contre un '
            + 'élastique passé autour d’eux.',
       muscles: [
-        m('extenseurs_doigts', 'moteur', S.ed, C.ed),
+        m('extenseurs_doigts', 'moteur', S.ed, C.ed_doigts),
         m('extenseur_petit_doigt', 'moteur', S.edm, C.edm),
         m('extenseurs_pouce', 'moteur', S.epl, C.epl),
         m('extenseur_index', 'moteur', S.ei, C.ei),
@@ -644,6 +736,312 @@
           + 'change est le régime, pas le geste. Le carnet ne distingue pas '
           + 'les régimes — c’est une question ouverte depuis le lot 2, et ce '
           + 'lot ne la tranche pas non plus.'
+    },
+
+    /* ================= LOT 4 : LES ÉPAULES ET LE DOS =================
+       La famille la plus pauvre du carnet. Sur 28 noms, DOUZE ne proposent
+       rien, et presque tout ce qui répond ne rend qu'UN SEUL muscle.
+
+       MB, 2026-10-23 : « ya différents dips, qui travaillent différentes
+       zones. N'oublie pas les tractions et les pompes. Le développé
+       militaire ne travaille pas que le pectoral, d'ailleurs je n'ai pas
+       l'impression que c'est le cas nan ? Et puis il ne faut pas oublier le
+       développé incliné. »
+
+       Il a raison sur les quatre points, et le quatrième est mesuré :
+       « Développé militaire » rend LE PECTORAL SEUL, alors que le moteur
+       est le DELTOÏDE — « Acromial part: abduction of the arm beyond the
+       initial 15° » — avec le triceps qui tend les coudes.
+
+       UN TROU DU CARNET, COMME LES INTEROSSEUX : le HAUSSEMENT D'ÉPAULES
+       travaille le TRAPÈZE, que les 36 muscles ne contiennent pas. Le
+       carnet rend « Deltoïde » aujourd'hui, parce que le nom contient
+       « épaules ». C'est faux, et c'est la dernière question du lot. */
+    {
+      id: 'developpe-militaire',
+      nom: 'Développé militaire',
+      aussi: ['Overhead press', 'Développé épaules', 'Shoulder press',
+              'Développé militaire debout'],
+      geste: 'La barre part des épaules et monte au-dessus de la tête, les '
+           + 'coudes se tendent.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri)
+      ],
+      note: 'TU AVAIS RAISON : ce nom rend aujourd’hui le PECTORAL SEUL. Le '
+          + 'moteur est le deltoïde, qui abduit le bras, avec le triceps qui '
+          + 'tend les coudes. Le pectoral n’est pas absent pour autant — son '
+          + 'chef claviculaire fléchit le bras — mais il passe au rang '
+          + '« aide ».'
+    },
+    {
+      id: 'developpe-couche',
+      nom: 'Développé couché',
+      aussi: ['Bench press', 'Développé barre', 'Développé haltères'],
+      geste: 'Allongé, la barre descend sur la poitrine et remonte bras '
+           + 'tendus.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri)
+      ],
+      note: 'Aujourd’hui : le pectoral seul.'
+    },
+    {
+      id: 'developpe-incline',
+      nom: 'Développé incliné',
+      aussi: ['Incline bench press', 'Développé incliné barre',
+              'Développé incliné haltères'],
+      geste: 'Le même geste, banc relevé : la charge part plus haut sur la '
+           + 'poitrine.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri)
+      ],
+      note: 'MÊME LISTE QUE LE COUCHÉ, ET C’EST ASSUMÉ. L’inclinaison '
+          + 'déplace la charge vers le chef CLAVICULAIRE du pectoral et le '
+          + 'deltoïde antérieur — mais le carnet ne distingue pas les chefs '
+          + 'd’un muscle, il n’a qu’une entrée « Grand pectoral ». Écrire '
+          + 'deux listes différentes serait inventer une précision que le '
+          + 'modèle n’a pas.'
+    },
+    {
+      id: 'dips-pectoraux',
+      nom: 'Dips prise large',
+      aussi: ['Dips pectoraux', 'Dips buste penché', 'Chest dips',
+              'Dips pecs'],
+      geste: 'Buste penché en avant, coudes écartés : la poitrine descend '
+           + 'entre les barres.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('deltoide', 'aide', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri)
+      ],
+      note: 'TU AS DEMANDÉ LA DISTINCTION, et le carnet rendait « Dips → '
+          + 'Triceps » pour les deux. MAIS ELLE N’EST PAS SOURCÉE : je n’ai '
+          + 'trouvé aucune mesure comparant les dips prise large et prise '
+          + 'serrée. Que le pectoral mène d’un côté et le triceps de '
+          + 'l’autre est un raisonnement sur les bras de levier — le mien, '
+          + 'et les deux badges rouges le disent. Les pompes et les '
+          + 'tractions, elles, ont été mesurées, et la mesure a REFUSÉ de '
+          + 'les séparer. Il se peut donc que celle-ci ne tienne pas non '
+          + 'plus. À toi : on la garde en l’état, ou on fond les deux dips '
+          + 'en une entrée tant qu’on n’a pas de mesure.'
+    },
+    {
+      id: 'dips-triceps',
+      nom: 'Dips prise serrée',
+      aussi: ['Dips triceps', 'Dips buste droit', 'Triceps dips',
+              'Dips verticaux'],
+      geste: 'Buste droit, coudes serrés le long du corps : le corps descend '
+           + 'et remonte à la force des triceps.',
+      muscles: [
+        m('deltoide', 'aide', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri),
+        m('ancone', 'aide', S.anc, C.anc)
+      ]
+    },
+    {
+      id: 'traction',
+      nom: 'Traction',
+      aussi: ['Pull up', 'Chin up', 'Tractions', 'Traction prise large',
+              'Traction prise serrée', 'Traction prise neutre',
+              'Traction neutre', 'Wide grip pull up', 'Pull ups',
+              'Traction prise ouverte', 'Traction prise fermée'],
+      geste: 'Suspendu à la barre, le corps monte jusqu’à ce que le menton '
+           + 'passe.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra)
+      ],
+      note: 'UNE SEULE ENTRÉE POUR TOUTES LES PRISES, et la mesure est '
+          + 'encore plus nette que pour les pompes. Dickie et al. 2017 '
+          + 'comparent supination, pronation, prise neutre et corde sur '
+          + 'dix-neuf hommes entraînés : le SEUL écart significatif porte '
+          + 'sur le TRAPÈZE MOYEN — un muscle que le carnet n’a pas. Pour '
+          + 'le grand dorsal, le biceps, le deltoïde et le pectoral, '
+          + 'l’activation est SEMBLABLE d’une prise à l’autre. Autrement '
+          + 'dit : la seule différence mesurée entre un chin up et une '
+          + 'traction prise large est INVISIBLE pour ce carnet. Les séparer '
+          + 'serait inventer une distinction que personne n’a mesurée. — '
+          + '« Traction pronation » et « traction supination » ont été '
+          + 'RETIRÉES des écritures : elles portent les mots de la rotation '
+          + 'de l’avant-bras, qui désignent les pronateurs et le '
+          + 'supinateur. Un nom qui porte les mots de deux gestes n’en '
+          + 'désigne aucun — « chin up » dit la même chose sans collision. '
+          + '— La '
+          + 'PRISE OUVERTE ou FERMÉE (pouce autour de la barre ou non) est '
+          + 'reconnue comme écriture, mais le carnet a déjà un champ '
+          + '« Prise » sur chaque exercice : c’est là qu’elle se note, pas '
+          + 'dans une entrée séparée. — Le carnet rendait « Dorsal » tout '
+          + 'court, pour toutes ces écritures.'
+    },
+    {
+      id: 'pompes',
+      nom: 'Pompes',
+      aussi: ['Push up', 'Pompe', 'Push ups', 'Pompes prise large',
+              'Pompes prise serrée', 'Pompes diamant', 'Diamond push up',
+              'Wide push up', 'Pompes déclinées', 'Pompes inclinées',
+              'Pompes serrées'],
+      geste: 'Au sol, le corps descend et remonte sur les bras.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm, null,
+          { source: S.pompes2025, cite: C.pompes_rang }),
+        m('deltoide', 'aide', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri, null,
+          { source: S.pompes2025, cite: C.pompes_rang })
+      ],
+      note: 'UNE SEULE ENTRÉE POUR TOUTES LES PRISES, ET C’EST LA MESURE QUI '
+          + 'LE DIT — pas mon intuition, qui aurait séparé. L’étude de 2025 '
+          + 'compare standard, diamant et prise large sur vingt hommes : ce '
+          + 'qui change est l’INTENSITÉ, pas les muscles. Le triceps est '
+          + 'au-dessus du pectoral dans les TROIS, et le diamant donne le '
+          + 'plus pour les deux. Le carnet ne modélise pas l’intensité : '
+          + 'leur donner des listes différentes serait inventer. Les onze '
+          + 'écritures sont toutes reconnues. — RÉSERVE SUR LE RANG : '
+          + 'l’étude normalise chaque muscle sur son PROPRE pic, ce qui rend '
+          + 'la comparaison entre deux muscles fragile. C’est pourquoi le '
+          + 'pectoral reste « moteur » avec le triceps au lieu de reculer : '
+          + 'la mesure classe leurs intensités, elle ne dit pas que le '
+          + 'pectoral cesse de mener. Ce sont les deux PREMIERS RANGS CITÉS '
+          + 'du catalogue — tous les autres sont encore raisonnés.'
+    },
+    {
+      id: 'rowing',
+      nom: 'Rowing',
+      aussi: ['Tirage horizontal', 'Rowing barre', 'Rowing haltère',
+              'Rowing buste penché'],
+      geste: 'Buste penché, la charge est tirée vers le ventre, coudes le '
+           + 'long du corps.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra)
+      ]
+    },
+    {
+      id: 'tirage-vertical',
+      nom: 'Tirage vertical',
+      aussi: ['Lat pulldown', 'Tirage poulie haute', 'Tirage nuque'],
+      geste: 'Assis, la barre haute est tirée vers la poitrine.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra)
+      ]
+    },
+    {
+      id: 'elevation-laterale',
+      nom: 'Élévation latérale',
+      aussi: ['Lateral raise', 'Élévations latérales'],
+      geste: 'Bras le long du corps, ils montent sur les côtés jusqu’à '
+           + 'l’horizontale.',
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt)
+      ],
+      note: 'UN SEUL MUSCLE, et c’est juste : « Acromial part: abduction of '
+          + 'the arm beyond the initial 15° ». Le carnet n’a pas le '
+          + 'sus-épineux, qui lance les quinze premiers degrés.'
+    },
+    {
+      id: 'extension-triceps',
+      nom: 'Extension triceps',
+      aussi: ['Pushdown', 'Barre au front', 'Extension à la poulie',
+              'Skull crusher', 'Extension nuque', 'Kickback',
+              'Triceps poulie', 'Extension haltère', 'Extension au-dessus '
+            + 'de la tête', 'Triceps corde'],
+      geste: 'Le coude se tend contre la charge.',
+      muscles: [
+        m('triceps', 'moteur', S.tri, C.tri),
+        m('ancone', 'aide', S.anc, C.anc)
+      ],
+      note: 'UNE SEULE ENTRÉE POUR DIX ÉCRITURES, et c’est volontaire. Tu as '
+          + 'raison qu’il y a beaucoup d’exercices de triceps — pushdown, '
+          + 'barre au front, extension nuque, kickback — mais ils emploient '
+          + 'tous le MÊME muscle, et le carnet n’a qu’une entrée « Triceps '
+          + 'brachial », sans ses trois chefs. Leur donner des listes '
+          + 'différentes serait inventer une précision que le modèle n’a '
+          + 'pas. En revanche chaque écriture est reconnue, donc chacun de '
+          + 'ces noms te proposera ses muscles. — Les deux exercices de '
+          + 'triceps dont la liste DIFFÈRE vraiment ont leur entrée à eux : '
+          + 'les dips triceps (l’anconé et le deltoïde entrent) et le '
+          + 'développé serré (le pectoral entre).'
+    },
+    {
+      id: 'developpe-serre',
+      nom: 'Développé serré',
+      aussi: ['Close grip bench press', 'Développé couché prise serrée',
+              'Close grip'],
+      geste: 'Allongé, mains rapprochées : les coudes restent près du corps '
+           + 'et se tendent.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('deltoide', 'aide', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri)
+      ],
+      note: 'C’est le développé couché dont le TRICEPS devient le moteur : '
+          + 'les coudes serrés raccourcissent le bras de levier du pectoral, '
+          + 'qui passe au rang « aide ». Aujourd’hui ce nom rend le pectoral '
+          + 'seul.'
+    },
+    {
+      id: 'side-pressure-poulie',
+      nom: 'Side pressure à la poulie',
+      aussi: ['Presse de côté', 'Side pressure'],
+      geste: 'Le bras pousse vers l’intérieur et tourne la paume vers le '
+           + 'corps, contre une poulie.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('coraco_brachial', 'aide', S.cb, C.cb),
+        m('subscapulaire', 'moteur', S.sub, C.sub)
+      ],
+      note: 'DÉCRIT PAR L’ANATOMIE, pas repris de la liste terrain. Le geste '
+          + 'est une ADDUCTION du bras avec ROTATION INTERNE : le pectoral '
+          + 'et le subscapulaire le disent mot pour mot. La FORCE « side '
+          + 'pressure » de la case Mouvements, elle, garde sa liste terrain '
+          + 'et sa source — ce sont deux choses, à deux endroits.'
+    },
+    {
+      id: 'back-pressure-poulie',
+      nom: 'Back pressure à la poulie',
+      aussi: ['Tirage arrière', 'Back pressure', 'Pression arrière'],
+      geste: 'Le bras tire vers l’arrière et vers le corps, contre une '
+           + 'poulie.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('triceps', 'aide', S.tri, C.tri)
+      ],
+      note: 'Même principe : une EXTENSION du bras avec adduction. Le grand '
+          + 'dorsal et le grand rond la portent ; le chef sterno-costal du '
+          + 'pectoral et la longue portion du triceps étendent aussi le '
+          + 'bras, d’où leur rang « aide ».'
+    },
+    {
+      id: 'haussement-epaules',
+      ecarte: 'un trou du carnet',
+      nom: 'Haussement d’épaules',
+      aussi: ['Shrug', 'Shrugs', 'Haussements'],
+      geste: 'Les épaules montent vers les oreilles, bras tendus sous la '
+           + 'charge.',
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt)
+      ],
+      note: 'ÉCARTÉ, ET C’EST UN TROU DU CARNET. Le haussement d’épaules '
+          + 'travaille le TRAPÈZE, que les 36 muscles ne contiennent pas. '
+          + 'Aujourd’hui le carnet rend « Deltoïde » — parce que le nom '
+          + 'contient « épaules » — et c’est faux : le deltoïde abduit le '
+          + 'bras, il ne hausse pas l’épaule. Deux issues possibles : '
+          + 'ajouter le trapèze au carnet, ou faire en sorte que ce nom ne '
+          + 'propose RIEN plutôt que du faux. À toi.'
     }
   ];
 

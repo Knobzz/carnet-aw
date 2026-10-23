@@ -82,6 +82,14 @@
     if (e) {
       var r = cat.RANGS[e.rang] || { nom: e.rang };
       nom.appendChild(el('span', 'rang ' + e.rang, r.nom));
+      /* La base du RANG, qui n'est pas celle du muscle : dire « ce muscle
+         fait cette action » et « c'est lui qui mène » sont deux
+         affirmations, et la seconde est rarement mesuree. */
+      if (e.rang === 'moteur' || e.rang === 'aide') {
+        nom.appendChild(el('span',
+          'base ' + (e.rangDit ? 'citee' : 'raisonnee'),
+          e.rangDit ? 'rang cité' : 'rang raisonné'));
+      }
     }
     corps.appendChild(nom);
     if (m && m.latin) corps.appendChild(el('div', 'qui', m.latin));
@@ -95,6 +103,16 @@
       e.deDeux.forEach(function (f) { ul.appendChild(el('li', null, f)); });
       dd.appendChild(ul);
       corps.appendChild(dd);
+    }
+
+    if (e && e.rangDit) {
+      corps.appendChild(el('div', 'cite', '↳ le rang : « ' + e.rangDit.cite + ' »'));
+      var q2 = el('div', 'qui');
+      var a2 = el('a', null, e.rangDit.source.qui);
+      a2.href = e.rangDit.source.lien;
+      a2.target = '_blank'; a2.rel = 'noreferrer';
+      q2.appendChild(a2);
+      corps.appendChild(q2);
     }
 
     var qui = el('div', 'qui');
@@ -112,6 +130,24 @@
     corps.appendChild(qui);
     d.appendChild(corps);
     return d;
+  }
+
+  /* Le mot « Assists » du grand dorsal porte sur la RESPIRATION, pas sur
+     l'action du bras : le compter rendrait quatre faux ecarts. Mesure, pas
+     devine. */
+  var MOTS_APPOINT = /(aids|also|participates|contributes|accessory)/i;
+
+  function ecartsDeRang() {
+    var l = [];
+    cat.MOUVEMENTS.forEach(function (f) {
+      (f.muscles || []).forEach(function (e) {
+        if (e.rang !== 'moteur' && e.rang !== 'aide') return;
+        if (!e.cite) return;
+        var attendu = MOTS_APPOINT.test(e.cite) ? 'aide' : 'moteur';
+        if (attendu !== e.rang) l.push(f.nom + ' / ' + e.id);
+      });
+    });
+    return l;
   }
 
   var barre = null, compteurs = null;
@@ -150,6 +186,7 @@
   function rendre() {
     var sortie = document.getElementById('sortie');
     var sansSource = 0, cites = 0, deduits = 0, muscles = 0, aAjouter = 0;
+    var rangsCites = 0, rangsRaisonnes = 0;
 
     /* Le modele D'ABORD (ce qui est livre), puis ce que le catalogue
        propose et qui n'y est pas encore : sans ca, un LOT NEUF serait
@@ -231,6 +268,9 @@
         if (!e || !e.source) sansSource++;
         else if (e.cite) cites++;
         else if (e.deDeux) deduits++;
+        if (e && (e.rang === 'moteur' || e.rang === 'aide')) {
+          if (e.rangDit) rangsCites++; else rangsRaisonnes++;
+        }
         bloc.appendChild(rendreMuscle(id, e));
       });
 
@@ -251,9 +291,25 @@
       + (masques ? ' à trancher' : '')));
     tete.appendChild(el('div', 'item-resume',
       (masques ? masques + ' déjà validés, masqués · ' : '')
-      + (ecartes ? ecartes + ' écarté(s), gardé(s) pour l’équipement · ' : '')
+      + (ecartes ? ecartes + ' écarté(s) ('
+          + lignes.filter(function (d) { return d.ecarte; })
+                  .map(function (d) { return d.ecarte; })
+                  .filter(function (x, k, l) { return l.indexOf(x) === k; })
+                  .join(', ')
+          + '), gardé(s) dans le catalogue · ' : '')
       + muscles + ' muscles · ' + cites + ' cités mot pour mot, '
-      + deduits + ' déduits et dits comme tels, ' + sansSource + ' sans source.'));
+      + deduits + ' déduits et dits comme tels, ' + sansSource + ' sans source'
+      + ' · rangs : ' + rangsCites + ' cités, ' + rangsRaisonnes
+      + ' RAISONNÉS.'));
+
+    /* Les rangs qui s'écartent de la FORME de leur citation : ce ne sont pas
+       des fautes, ce sont les endroits où mon jugement passe devant le
+       texte. Ils doivent se compter, pas se deviner. */
+    var ecarts = ecartsDeRang();
+    tete.appendChild(el('div', 'item-resume',
+      ecarts.length + ' rang(s) s’écartent de la forme de leur citation — '
+      + 'jugement assumé, pas faute : ' + ecarts.slice(0, 4).join(' · ')
+      + (ecarts.length > 4 ? ' … (+' + (ecarts.length - 4) + ')' : '')));
 
     if (masques) {
       var btTout = el('button', 'bouton', 'Revoir les ' + masques + ' déjà validés');
@@ -312,7 +368,10 @@
     });
     leg.appendChild(ul);
 
-    window.__planche = { mouvements: aLire.length, masques: masques,
+    window.__planche = { ecartsDeRang: ecartsDeRang().length,
+                         rangsCites: rangsCites,
+                         rangsRaisonnes: rangsRaisonnes,
+                         mouvements: aLire.length, masques: masques,
                          aAjouter: aAjouter,
                          muscles: muscles,
                          cites: cites, deduits: deduits, sansSource: sansSource,

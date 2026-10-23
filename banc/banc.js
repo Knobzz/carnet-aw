@@ -1109,8 +1109,9 @@
          + 'court_flechisseur_auriculaire,lombricaux',
            'un gripper serre : les fléchisseurs des doigts, le pouce, le '
          + 'petit doigt qui se replie, et les lombricaux');
-    v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','), 'grand_dorsal',
-           '« tirage » désigne le dorsal');
+    v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','),
+           'grand_dorsal,grand_rond,biceps,brachial',
+           '« tirage poulie haute » tire : le dos ET les fléchisseurs du coude');
     v.egal(A.m.musclesDuNom('CURL BICEPS').join(','), 'biceps',
            'la casse ne change rien');
     /* Un mot qui apparaît dans un nom d'OUTIL ne désigne pas un muscle :
@@ -1398,15 +1399,18 @@
        muscle qui n'a rien à y faire, et c'est pire qu'une absence. */
     v.egal(A.m.musclesDuNom('Élévation latérale').join(','), 'deltoide',
            '« latérale » ne contient plus « lat » : le dorsal ne s’allume pas');
-    v.egal(A.m.musclesDuNom('Lat pulldown').join(','), 'grand_dorsal',
+    v.egal(A.m.musclesDuNom('Lat pulldown').join(','),
+           'grand_dorsal,grand_rond,biceps,brachial',
            'mais « lat » reste lisible quand c’est un mot entier');
     v.egal(A.m.musclesDuNom('Pression du pouce').indexOf('grand_pectoral'), -1,
            '« pression » ne contient plus « press » : le pectoral ne s’allume pas');
-    v.egal(A.m.musclesDuNom('Bench press').join(','), 'grand_pectoral',
+    v.egal(A.m.musclesDuNom('Bench press').join(','),
+           'grand_pectoral,deltoide,triceps',
            'mais « press » reste lisible dans « bench press »');
     v.egal(A.m.musclesDuNom('Pectoraux').join(','), 'grand_pectoral',
            'et le pluriel irrégulier est lu : « pectoraux » n’est pas « pectorals »');
-    v.egal(A.m.musclesDuNom('Tractions').join(','), 'grand_dorsal',
+    v.egal(A.m.musclesDuNom('Tractions').join(','),
+           'grand_dorsal,grand_rond,biceps,brachial',
            'le pluriel régulier aussi');
 
     /* « doigts » tout seul ne dit pas dans quel SENS ils travaillent : des

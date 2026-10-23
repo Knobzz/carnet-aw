@@ -43,6 +43,14 @@
   .rang.moteur { color: var(--bleu); border-color: var(--bleu); }
   .rang.tient  { color: var(--laiton); border-color: var(--laiton); }
   .rang.deduit { color: var(--tendon); border-color: var(--tendon); }
+  /* La base du RANG, distincte de celle du muscle : un rang raisonné doit
+     se voir sans qu'on le cherche. */
+  .base { display: inline-block; font-size: .66rem; border-radius: 999px;
+          padding: 1px 7px; margin-left: 5px; vertical-align: 1px;
+          border: 1px dashed var(--trait-fort); color: var(--texte-2); }
+  .base.citee { border-style: solid; border-color: var(--bleu);
+                color: var(--bleu); }
+  .base.raisonnee { border-color: var(--tendon); color: var(--tendon); }
   .cite { font-size: .82rem; margin-top: 5px; padding-left: 9px;
           border-left: 2px solid var(--trait); color: var(--texte); }
   .qui { font-size: .74rem; color: var(--texte-2); margin-top: 4px;
