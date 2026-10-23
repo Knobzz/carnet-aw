@@ -306,6 +306,8 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | la descente du chronomètre trop courte | `haut mesuré à 606 px pour un écran de 720` |
 | la classe « visible » laissée sur le bandeau arrêté | `classes du bandeau « chrono visible »` — 4 contrôles rouges |
 | la glissade du chronomètre supprimée | `montée 0.26s, descente 0s` |
+| une carte plus large que l’écran (360 px pour 320) | `div.carte [12→372]` — 5 blocs rouges |
+| un bouton plus large que l’écran | les 2 derniers blocs de débordement, rouges |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

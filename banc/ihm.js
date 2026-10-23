@@ -164,6 +164,37 @@
     var n = fen.document.querySelector(sel);
     return n ? fen.getComputedStyle(n)[prop] : null;
   }
+  /* LE VRAI DEBORDEMENT : le bord droit des elements eux-memes.
+
+     `documentElement.scrollWidth <= LARGEUR` ne peut PAS tomber ici : la
+     feuille pose `overflow-x: hidden` sur body, donc le document ne
+     depasse jamais la fenetre, quoi qu'on y mette. Sept blocs du banc
+     ecrivaient ce controle-la ; il etait vert par construction.
+
+     On ne nomme que le plus HAUT des coupables : un enfant qui sort parce
+     que son parent sort n'ajoute rien au diagnostic. */
+  function debordements(doc, fen, largeur) {
+    var sortis = [];
+    Array.prototype.forEach.call(doc.querySelectorAll('body *'), function (n) {
+      var r = n.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      var st = fen.getComputedStyle(n);
+      if (st.visibility === 'hidden' || st.display === 'none') return;
+      if (r.right <= largeur + 0.5 && r.left >= -0.5) return;
+      for (var i = 0; i < sortis.length; i++) {
+        if (sortis[i].contains(n)) return;
+      }
+      sortis.push(n);
+    });
+    return sortis.map(function (n) {
+      var r = n.getBoundingClientRect();
+      var cl = (typeof n.className === 'string' && n.className.trim())
+        ? '.' + n.className.trim().split(/\s+/).join('.') : '';
+      return n.tagName.toLowerCase() + cl
+           + ' [' + Math.round(r.left) + '→' + Math.round(r.right) + ']';
+    });
+  }
+
   /* Ce que le doigt toucherait vraiment à cet endroit de l'écran. */
   function sousLeDoigt(fen, x, y) {
     return fen.document.elementFromPoint(x, y);
@@ -773,9 +804,11 @@
              'la barre garde au moins 100 px de large (mesuré : '
            + Math.round(piste.getBoundingClientRect().width) + ')');
 
-      v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
-             'et Suivi ne déborde pas horizontalement à 320 px (débord : '
-           + (doc.documentElement.scrollWidth - LARGEUR) + ' px)');
+      var sortis = debordements(doc, fen, LARGEUR);
+      v.egal(sortis.join(' · '), '',
+             'et rien ne sort de l’écran à 320 px — mesuré au BORD DROIT des '
+           + 'éléments, pas au scrollWidth, que « overflow-x: hidden » rend '
+           + 'toujours vert');
 
       fen.App.ui.vider(vue);
       e.seances = [];
@@ -1329,8 +1362,8 @@
 
         v.vrai(carte.getBoundingClientRect().width <= LARGEUR,
                'la vignette tient dans la largeur');
-        v.egal(doc.documentElement.scrollWidth <= LARGEUR, true,
-               'et ne provoque aucun défilement horizontal');
+        v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+               'et rien ne sort de l’écran ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
         return new Promise(function (ok) {
           if (img.complete) return ok();
@@ -1454,7 +1487,8 @@
       v.vrai(!!bt, 'un bouton permet de répondre');
       v.vrai(bt.getBoundingClientRect().height >= 44,
              'et il fait 44 px (mesuré : ' + Math.round(bt.getBoundingClientRect().height) + ')');
-      v.vrai(doc.documentElement.scrollWidth <= LARGEUR, 'rien ne déborde à 320 px');
+      v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+             'rien ne sort de l’écran à 320 px ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
       /* Répondre doit écrire un relevé et faire disparaître la question. */
       bt.click();
@@ -1956,8 +1990,8 @@
 
       /* Il ne deborde pas : l'agent utilisateur est long et sans espace. */
       v.vrai(r.width <= 320, 'il tient dans les 320 px (' + Math.round(r.width) + ')');
-      v.egal(doc.documentElement.scrollWidth > 320, false,
-             'et la page ne défile pas en largeur');
+      v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+             'et rien ne sort de l’écran ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
       /* 8. Les deux boutons se touchent : 44 px, et pleine largeur. */
       var bts = [];
@@ -2187,8 +2221,8 @@
       });
       v.vrai(mini >= 44, 'chaque ligne et chaque en-tête font 44 px (mesuré : '
                        + Math.round(mini) + ')');
-      v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
-             'et rien ne déborde à 320 px');
+      v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+             'et rien ne sort de l’écran à 320 px ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
       /* Ce qui est déjà porté est coché d'avance. */
       function ligne(nom) {
@@ -2364,9 +2398,8 @@
     });
     v.vrai(!!apres, 'son libellé devient « Tout décocher » une fois tout fait');
 
-    v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
-           'et l’écran ne déborde pas à 320 px (débord : '
-         + (doc.documentElement.scrollWidth - LARGEUR) + ' px)');
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'et rien ne sort de l’écran à 320 px ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
     fen.App.ui.vider(vue);
     e.seances = [];
@@ -2496,9 +2529,8 @@
     v.vrai(m3.prec >= 48,
            'et PRÉCÉDENT garde ' + m3.prec + ' px, de quoi lire « 20 × 12 »');
     v.vrai(m3.droite <= LARGEUR, 'la ligne ne déborde pas de l’écran');
-    v.vrai(doc.documentElement.scrollWidth <= LARGEUR,
-           'et la séance ne défile pas horizontalement (débord : '
-         + (doc.documentElement.scrollWidth - LARGEUR) + ' px)');
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'et rien de la séance ne sort de l’écran ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
 
     /* La cible tactile du ✓ et du bouton de type ne doit pas avoir fondu. */
     var ok = doc.querySelector('.serie-ok').getBoundingClientRect();
