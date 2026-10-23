@@ -1752,6 +1752,37 @@
            'chaque muscle est atteignable sans connaître son nom (hors d’atteinte : '
          + (horsAtteinte.join(', ') || 'aucun') + ')');
 
+    /* Une zone qui dit « la main part » decrit un mouvement DE LA MAIN. Un
+       muscle qui ne traverse que le coude ou l'epaule ne peut pas l'y faire
+       partir — il peut s'y faire SENTIR, ce qui n'est pas la meme phrase.
+       C'est ce qui a fait sortir le brachio-radial du bord du pouce : il
+       s'insere sur le styloide radial et ne traverse que le coude.
+
+       Le controle est volontairement ETROIT. Le champ `articulation` ne
+       porte qu'UNE valeur, alors que des muscles en servent deux : le
+       biceps y est « coude » et c'est pourtant le plus puissant supinateur,
+       d'ou sa place dans « tourner la paume vers le haut ». Une regle large
+       le ferait tomber a tort. */
+    var horsMain = [];
+    A.m.ZONES_RESSENTIES.forEach(function (z) {
+      if (String(z.aide || '').indexOf('la main part') < 0) return;
+      z.muscles.forEach(function (mid) {
+        var m = A.m.muscle(mid);
+        if (m && (m.articulation === 'coude' || m.articulation === 'epaule')) {
+          horsMain.push(z.id + ' / ' + (m.court || m.nom) + ' (' + m.articulation + ')');
+        }
+      });
+    });
+    v.egal(horsMain.join(' · '), '',
+           'une zone qui dit « la main part » ne tient que des muscles qui '
+         + 'agissent sur la main');
+    var jugees = A.m.ZONES_RESSENTIES.filter(function (z) {
+      return String(z.aide || '').indexOf('la main part') >= 0;
+    }).length;
+    v.egal(jugees, 2,
+           '[temoin] deux zones parlent de la main qui part — sinon ce '
+         + 'contrôle ne mesure rien (jugées : ' + jugees + ')');
+
     v.egal(A.m.zoneRessentie('bord_pouce').nom, 'Le bord du pouce', 'une zone se lit par id');
     v.egal(A.m.zoneRessentie('zzz'), null, 'et un id inconnu ne rend rien');
 

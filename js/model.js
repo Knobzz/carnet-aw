@@ -1107,8 +1107,8 @@
       muscles: ['rond_pronateur', 'fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts'] },
     { id: 'bord_pouce', nom: 'Le bord du pouce',
       aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir '
-          + '— le toproll, le reverse curl',
-      muscles: ['brachio_radial', 'ecrl', 'ecrb', 'fcr', 'extenseurs_pouce',
+          + '— le toproll',
+      muscles: ['ecrl', 'ecrb', 'fcr', 'extenseurs_pouce',
                 'long_abducteur_pouce', 'court_abducteur_pouce'] },
     { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
       aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y '

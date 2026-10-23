@@ -893,6 +893,32 @@ La séparation est **réversible sans migration** : `groupe` et les ids de régi
 n’existent que dans les tables de `js/model.js`, et aucune donnée sauvegardée n’en porte
 — les régions sont dérivées à la lecture.
 
+### Une zone qui décrit un mouvement de la main
+
+Les zones ressenties sont de deux sortes, et le carnet les mélangeait : celles qui
+nomment un **endroit** (« côté dos de la main ») et celles qui nomment un **mouvement**
+(« quand la main part du côté du pouce »).
+
+`bord_pouce` tenait le **brachio-radial**. Il s’insère sur le styloïde radial et
+**ne traverse que le coude** — il ne peut donc pas faire partir la main d’un côté. On le
+*sent* là, ce qui n’est pas la même phrase. Retiré le **2026-10-23**, avec « le reverse
+curl » parmi les exemples : c’est une flexion de coude dont il est le moteur.
+
+> *« Given these attachments, the muscle crosses only the elbow joint. »*
+> — [StatPearls, Forearm Brachioradialis Muscle](https://www.ncbi.nlm.nih.gov/sites/books/NBK526110/)
+
+**Tout le reste est resté, et deux doutes ont été levés par les sources** : l’ECRB dévie
+radialement autant que l’ECRL ([Kenhub](https://www.kenhub.com/en/library/anatomy/extensor-carpi-radialis-longus-muscle)),
+et le long abducteur du pouce est *l’un des déviateurs radiaux principaux* du poignet
+([étude sur simulateur, PMC6085116](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6085116/)).
+La première relecture, faite sans source, aurait vidé la zone de la moitié de son contenu.
+
+Le contrôle qui le garde est **volontairement étroit** : il ne juge que les zones dont la
+phrase contient « la main part ». Le champ `articulation` ne porte qu’**une** valeur,
+alors que des muscles en servent deux — le biceps y est « coude » et c’est pourtant le
+plus puissant supinateur, d’où sa place dans « tourner la paume vers le haut ». Une règle
+large le ferait tomber à tort.
+
 ### Le buste du Suivi
 
 Deux silhouettes, de face et de dos, parce que **quatre des sept régions ne se montrent
