@@ -278,6 +278,26 @@
          On coupe donc la transition le temps de la mesure. L'etat final est
          immediat et ne depend plus du rendu. La glissade elle-meme n'est PAS
          mesuree ici : c'est le prix, et il est dit. */
+      /* Avant de couper la transition, on verifie qu'elle EXISTE. Ce qui
+         suit mesure les deux etats de REPOS, pas la glissade — et la
+         glissade ne peut pas etre mesuree ici, puisqu'elle n'avance pas sur
+         une page que le navigateur ne peint pas. Ce controle-ci porte donc
+         sur une DECLARATION, pas sur un effet, et c'est le seul endroit du
+         banc ou c'est assume : sans lui, supprimer l'animation ne ferait
+         rien tomber du tout. */
+      var cadre = doc.querySelector('.chrono');
+      var dureeVisible = style(fen, '.chrono', 'transitionDuration') || '';
+      cadre.classList.remove('visible');
+      var dureeCachee = style(fen, '.chrono', 'transitionDuration') || '';
+      cadre.classList.add('visible');
+      function glisse(d) { return /0\.26s|260ms/.test(d); }
+      v.vrai(glisse(dureeVisible) && glisse(dureeCachee),
+             'la glissade est DECLAREE dans les deux sens (montee ' + dureeVisible
+           + ', descente ' + dureeCachee + ') — les deux états portent chacun '
+           + 'leur règle, et lire seulement l’état courant laissait l’autre '
+           + 'sans garde. C’est une DÉCLARATION : le déroulement, lui, '
+           + 'n’avance pas sur une page non peinte');
+
       var sansGlissade = doc.createElement('style');
       sansGlissade.textContent =
         '.chrono, .chrono.visible { transition: none !important; }';
