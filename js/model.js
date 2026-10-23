@@ -334,33 +334,33 @@
        ferait dire a l'etude ce qu'elle ne dit pas. */
     { id: 'court_abducteur_pouce', nom: 'Court abducteur du pouce', court: 'Court abd. pouce',
       latin: 'Abductor pollicis brevis', image: 'icones/muscle-court_abducteur_pouce.png',
-      groupe: 'main', quoi: 'écarte le pouce de la paume', articulation: 'pouce' },
+      intrinseque: true, groupe: 'main', quoi: 'écarte le pouce de la paume', articulation: 'pouce' },
     { id: 'court_flechisseur_pouce', nom: 'Court fléchisseur du pouce', court: 'Court fléch. pouce',
       latin: 'Flexor pollicis brevis', image: 'icones/muscle-court_flechisseur_pouce.png',
-      groupe: 'main', quoi: 'plie la base du pouce', articulation: 'pouce' },
+      intrinseque: true, groupe: 'main', quoi: 'plie la base du pouce', articulation: 'pouce' },
     { id: 'opposant_pouce', nom: 'Opposant du pouce', court: 'Opp. pouce',
       latin: 'Opponens pollicis', image: 'icones/muscle-opposant_pouce.png',
-      groupe: 'main', quoi: 'amène le pouce en face des autres doigts',
+      intrinseque: true, groupe: 'main', quoi: 'amène le pouce en face des autres doigts',
       articulation: 'pouce', profond: true },
     { id: 'adducteur_pouce', nom: 'Adducteur du pouce', court: 'Add. pouce',
       latin: 'Adductor pollicis', image: 'icones/muscle-adducteur_pouce.png',
-      groupe: 'main', quoi: 'serre le pouce contre l’index — la pince qui tient',
+      intrinseque: true, groupe: 'main', quoi: 'serre le pouce contre l’index — la pince qui tient',
       articulation: 'pouce', profond: true },
     { id: 'abducteur_auriculaire', nom: 'Abducteur de l’auriculaire', court: 'Abd. auriculaire',
       latin: 'Abductor digiti minimi', image: 'icones/muscle-abducteur_auriculaire.png',
-      groupe: 'main', quoi: 'écarte le petit doigt', articulation: 'doigts' },
+      intrinseque: true, groupe: 'main', quoi: 'écarte le petit doigt', articulation: 'doigts' },
     { id: 'court_flechisseur_auriculaire', nom: 'Court fléchisseur de l’auriculaire',
       court: 'Fléch. auriculaire',
       latin: 'Flexor digiti minimi brevis', image: 'icones/muscle-court_flechisseur_auriculaire.png',
-      groupe: 'main', quoi: 'plie la base du petit doigt', articulation: 'doigts' },
+      intrinseque: true, groupe: 'main', quoi: 'plie la base du petit doigt', articulation: 'doigts' },
     { id: 'opposant_auriculaire', nom: 'Opposant de l’auriculaire', court: 'Opp. auriculaire',
       latin: 'Opponens digiti minimi', image: 'icones/muscle-opposant_auriculaire.png',
-      groupe: 'main', quoi: 'creuse la paume du côté du petit doigt',
+      intrinseque: true, groupe: 'main', quoi: 'creuse la paume du côté du petit doigt',
       articulation: 'doigts', profond: true },
     { id: 'court_palmaire', nom: 'Court palmaire', court: 'Court palmaire',
       aussi: 'palmaire cutané',
       latin: 'Palmaris brevis', image: 'icones/muscle-court_palmaire.png',
-      groupe: 'main', quoi: 'plisse la peau de la paume et l’empêche de glisser',
+      intrinseque: true, groupe: 'main', quoi: 'plisse la peau de la paume et l’empêche de glisser',
       articulation: 'doigts' },
     /* Les lombricaux ne sont PAS employes dans une prise de force — c'est le
        resultat explicite de l'etude de 1970, quatrieme excepte. On les garde
@@ -368,7 +368,7 @@
        serrent : c'est pour ca qu'ils n'entrent pas dans la prise fermee. */
     { id: 'lombricaux', nom: 'Lombricaux', court: 'Lombricaux',
       latin: 'Lumbricales', image: 'icones/muscle-lombricaux.png',
-      groupe: 'main', quoi: 'plient les doigts à leur base en tendant le bout',
+      intrinseque: true, groupe: 'main', quoi: 'plient les doigts à leur base en tendant le bout',
       articulation: 'doigts', profond: true }
   ];
 
@@ -1109,20 +1109,22 @@
       aide: 'quand la main part du côté du pouce, ou résiste pour ne pas y partir '
           + '— le toproll',
       muscles: ['ecrl', 'ecrb', 'fcr', 'extenseurs_pouce',
-                'long_abducteur_pouce', 'court_abducteur_pouce'] },
+                'long_abducteur_pouce'] },
     { id: 'bord_auriculaire', nom: 'Le bord du petit doigt',
       aide: 'quand la main part du côté de l’auriculaire, ou résiste pour ne pas y '
           + 'partir — le hook',
-      muscles: ['ecu', 'fcu', 'extenseur_petit_doigt', 'abducteur_auriculaire',
-                'court_flechisseur_auriculaire'] },
+      muscles: ['ecu', 'fcu', 'extenseur_petit_doigt'] },
     { id: 'serrer', nom: 'La main qui serre',
       aide: 'les doigts se referment — le gripper, la barre épaisse',
       muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
-                'court_flechisseur_pouce', 'adducteur_pouce'] },
+                'court_flechisseur_pouce', 'adducteur_pouce',
+                'court_flechisseur_auriculaire'] },
     { id: 'ouvrir', nom: 'La main qui s’ouvre',
-      aide: 'les doigts s’écartent — l’élastique autour des doigts',
+      aide: 'les doigts se tendent, le pouce s’écarte — l’élastique autour '
+          + 'des doigts',
       muscles: ['extenseurs_doigts', 'extenseur_petit_doigt', 'extenseurs_pouce',
-                'extenseur_index', 'abducteur_auriculaire'] },
+                'extenseur_index', 'abducteur_auriculaire',
+                'court_abducteur_pouce'] },
     /* Les lombricaux et le court palmaire ne SERRENT pas — l'etude de 1970 le
        dit des premiers, le second est un muscle de la peau. Ils creusent la
        paume autour de la prise, et c'est une perception a part entiere : sans

@@ -1768,8 +1768,13 @@
       if (String(z.aide || '').indexOf('la main part') < 0) return;
       z.muscles.forEach(function (mid) {
         var m = A.m.muscle(mid);
-        if (m && (m.articulation === 'coude' || m.articulation === 'epaule')) {
-          horsMain.push(z.id + ' / ' + (m.court || m.nom) + ' (' + m.articulation + ')');
+        if (!m) return;
+        if (m.articulation === 'coude' || m.articulation === 'epaule') {
+          horsMain.push(z.id + ' / ' + (m.court || m.nom)
+                      + ' (n’atteint que le ' + m.articulation + ')');
+        } else if (m.intrinseque) {
+          horsMain.push(z.id + ' / ' + (m.court || m.nom)
+                      + ' (intrinsèque : il bouge un doigt, pas la main)');
         }
       });
     });
@@ -1783,15 +1788,37 @@
            '[temoin] deux zones parlent de la main qui part — sinon ce '
          + 'contrôle ne mesure rien (jugées : ' + jugees + ')');
 
+    /* Le drapeau `intrinseque` : les deux attaches DANS la main. Les
+       flechisseurs venus de l'avant-bras ne le portent pas, sinon le
+       controle ci-dessus viderait des zones qui ont raison. */
+    var intr = A.m.MUSCLES.filter(function (m) { return m.intrinseque; })
+                          .map(function (m) { return m.id; }).sort();
+    v.egal(intr.length, 9, 'neuf muscles sont intrinsèques à la main');
+    v.egal(intr.filter(function (id) {
+      return A.m.muscle(id).groupe !== 'main';
+    }).join(','), '', 'et tous sont du groupe « main »');
+    ['flechisseurs_doigts', 'long_flechisseur_pouce'].forEach(function (id) {
+      v.vrai(!A.m.muscle(id).intrinseque,
+             id + ' n’est PAS intrinsèque : il vient de l’avant-bras');
+    });
+
     v.egal(A.m.zoneRessentie('bord_pouce').nom, 'Le bord du pouce', 'une zone se lit par id');
     v.egal(A.m.zoneRessentie('zzz'), null, 'et un id inconnu ne rend rien');
 
+    /* Les DEUX seuls deviateurs ulnaires sont l'ECU et le FCU ; l'extenseur
+       du petit doigt est extrinseque et passe du cote ulnaire. Les deux
+       hypothenariens sont partis le 2026-10-23 : nes du pisiforme et de
+       l'hamulus, ils sont entierement en aval du poignet et bougent le
+       petit doigt, pas la main. */
     v.egal(A.m.musclesDesZones(['bord_auriculaire']).join(','),
-           'fcu,ecu,extenseur_petit_doigt,abducteur_auriculaire,court_flechisseur_auriculaire',
-           'le bord du petit doigt : les ulnaires, et ce que l’auriculaire a en propre');
+           'fcu,ecu,extenseur_petit_doigt',
+           'le bord du petit doigt : les deux ulnaires, et l’extenseur du '
+         + 'petit doigt — rien d’intrinsèque');
     v.egal(A.m.musclesDesZones(['serrer']).join(','),
-           'flechisseurs_doigts,long_flechisseur_pouce,court_flechisseur_pouce,adducteur_pouce',
-           'serrer, ce sont les fléchisseurs des doigts et le pouce qui écrase');
+           'flechisseurs_doigts,long_flechisseur_pouce,court_flechisseur_pouce,'
+         + 'adducteur_pouce,court_flechisseur_auriculaire',
+           'serrer, ce sont les fléchisseurs des doigts, le pouce qui écrase, '
+         + 'et le petit doigt qui se replie');
     /* Les lombricaux et le court palmaire CREUSENT la paume, ils ne serrent
        pas : ils ont leur zone à eux, sinon ils resteraient inatteignables. */
     v.egal(A.m.musclesDesZones(['creux_paume']).join(','),

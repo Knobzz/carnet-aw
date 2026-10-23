@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **983 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **987 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **579 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **583 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
@@ -313,6 +313,7 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | la garde du champ vide retirée des deux boutons | un ticket GitHub **vide** s’ouvre, et « null » part dans le presse-papier — 6 contrôles rouges |
 | « le wrist curl en pronation » rendu au bord de l’auriculaire | `bord_auriculaire / « wrist curl en pronation » : 1 sur 4` |
 | le brachio-radial remis dans une zone de mouvement de la main | `bord_pouce / Brachio-radial (coude)` |
+| un muscle intrinsèque remis dans une zone de mouvement de la main | `Abd. auriculaire (intrinsèque : il bouge un doigt, pas la main)` |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |
 | le compte retiré de l'en-tête de région | `dit combien de muscles elle contient, sans l'ouvrir` |
 | un mouvement qui ne coche plus ses muscles | `cocher « Cupping » coche directement ses muscles` |

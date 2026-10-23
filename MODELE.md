@@ -919,6 +919,50 @@ alors que des muscles en servent deux — le biceps y est « coude » et c’est
 plus puissant supinateur, d’où sa place dans « tourner la paume vers le haut ». Une règle
 large le ferait tomber à tort.
 
+### Deux façons de ne pas pouvoir faire partir la main
+
+Les zones `bord_pouce` et `bord_auriculaire` décrivent un **mouvement de la main** —
+« quand la main part du côté du… ». Un muscle ne peut l’y faire partir que s’il
+**traverse le poignet**. Deux familles manquaient à l’appel, et il a fallu les deux
+passes pour les voir :
+
+1. **Agir en amont sans traverser.** Le brachio-radial s’insère sur le styloïde radial :
+   *« the muscle crosses only the elbow joint »*
+   ([StatPearls](https://www.ncbi.nlm.nih.gov/sites/books/NBK526110/)).
+2. **Être intrinsèque à la main.** L’abducteur court du pouce, l’abducteur et le court
+   fléchisseur de l’auriculaire ont leurs **deux attaches dans la main** — rétinaculum,
+   scaphoïde, trapèze, pisiforme, hamulus
+   ([thénariens](https://www.kenhub.com/en/library/anatomy/the-thenar-muscles),
+   [hypothénariens](https://www.kenhub.com/en/library/anatomy/the-hypothenar-muscles)).
+   Ils bougent un doigt, pas la main.
+
+Le champ **`intrinseque: true`** marque ces neuf muscles pour que le contrôle mesure au
+lieu de deviner. Le fléchisseur des doigts et le long fléchisseur du pouce ne le portent
+**pas** : ils viennent de l’avant-bras, et un contrôle garde cette distinction — sans
+elle, la règle viderait des zones qui ont raison.
+
+Les trois déplacés ont trouvé leur geste : l’abducteur court du pouce et l’abducteur de
+l’auriculaire dans **« La main qui s’ouvre »**, le court fléchisseur de l’auriculaire
+dans **« La main qui serre »**. Aucun muscle n’est devenu inatteignable — le banc le
+vérifie.
+
+### « Les doigts s’écartent » ne décrivait pas sa propre liste
+
+Écarter les doigts, ce sont les **interosseux dorsaux**, que le carnet n’a pas ; les
+extenseurs les **tendent**
+([Kenhub](https://www.kenhub.com/en/library/anatomy/dorsal-interossei-muscles-of-the-hand)).
+La phrase dit maintenant « les doigts se tendent, le pouce s’écarte ».
+
+### Ce qui a été vérifié sur sources, et ce qui ne l’a pas été
+
+**Sourcé** : les deux zones de déviation, les deux zones de rotation (pronateurs rond et
+carré ; supinateur + biceps), les deux zones de coude (biceps, brachial, brachio-radial /
+triceps, anconé) — [Elbow Flexor, ScienceDirect](https://www.sciencedirect.com/topics/neuroscience/elbow-flexor).
+
+**Lu, non sourcé** : `serrer`, `creux_paume`, `epaule`, `bras_vers_soi`, et les deux
+zones d’emplacement `avb_dessus` / `avb_dessous`. Elles ne décrivent pas un mouvement de
+la main et ne portaient aucune contradiction à la lecture.
+
 ### Le buste du Suivi
 
 Deux silhouettes, de face et de dos, parce que **quatre des sept régions ne se montrent
