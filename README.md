@@ -143,8 +143,8 @@ js/
   vue-suivi.js             sollicitation, structures, douleurs et leurs 72 h, pentes, volume
   vue-reglages.js          thème, équipement, sauvegarde, état du stockage,
                            envoyer un retour, catalogues
-icones/planches/           les 35 planches entières : la SOURCE des illustrations
-icones/planches-gray/      les 37 gravures d'origine, sous leur nom latin
+icones/planches/           les 37 planches entières : la SOURCE des illustrations
+icones/planches-gray/      les 39 gravures d'origine, sous leur nom latin
 outils/faire-icones.py     régénère les PNG depuis le même dessin que l'icône SVG
 outils/recadrer-planches.py  dérive icones/muscle-*.png des planches entières
 outils/version.py          pose la version aux 4 endroits et compte les 18 occurrences
@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 180 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 253 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,7 +168,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **775 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **848 contrôles, 29 blocs.**
 - **http://localhost:8713/banc/ihm.html** — l'interface. **405 contrôles, 18 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
@@ -326,7 +326,7 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | « Épaule et tronc » refondue en une seule région | `« tronc » n’existe plus — attendu -1, obtenu 0` — 14 contrôles rouges |
 | un muscle laissé dans l’ancien groupe | `aucun muscle dans un groupe qui n’est pas une région — attendu "", obtenu "tronc"` |
 | une région déclarée que rien ne remplit | `aucune région sans muscle — attendu "", obtenu "nuque"` |
-| un muscle perdu en route | `les 36 muscles sont toujours là — attendu 36, obtenu 35` |
+| un muscle perdu en route | `les 37 muscles sont toujours là — attendu 37, obtenu 36` |
 | l’axe du Suivi figé au lieu de suivre les régions | `autant de clés qu’il y a de régions — attendu 7, obtenu 5` |
 | la semaine commencée le dimanche | `chaque semaine rendue commence un LUNDI` — huit dimanches nommés |
 | un pas de 14 jours entre les semaines | `deux semaines voisines sont à SEPT jours` — sept lundis nommés |

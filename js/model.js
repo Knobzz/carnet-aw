@@ -237,6 +237,20 @@
       latin: 'Teres major', image: 'icones/muscle-grand_rond.png', groupe: 'epaule',
       quoi: 'ramène le bras vers l’arrière et le tourne vers l’intérieur',
       articulation: 'epaule' },
+    /* LE TRENTE-SEPTIEME, ajoute le 2026-10-26. Il manquait depuis le
+       debut, et c'est une traction qui l'a fait entrer : la prise LARGE
+       n'avait aucune liste propre sans lui, parce que la seule difference
+       mesuree de cette prise porte sur le trapeze.
+
+       UN SEUL TRAPEZE, PAS TROIS, et c'est une limite assumee : la gravure
+       de Gray teinte le muscle ENTIER, et les mesures parlent du faisceau
+       MOYEN (prise large) et du faisceau INFERIEUR (prise pronee). Le
+       carnet ne sait pas les separer — meme limite que les deux chefs du
+       biceps, et elle est ecrite partout ou elle compte. */
+    { id: 'trapeze', nom: 'Trapèze', court: 'Trapèze', aussi: 'traps',
+      latin: 'Trapezius', image: 'icones/muscle-trapeze.png', groupe: 'torse_ar',
+      quoi: 'rapproche les omoplates et hausse les épaules',
+      articulation: 'epaule' },
     { id: 'deltoide', nom: 'Deltoïde', court: 'Deltoïde',
       latin: 'Deltoideus', image: 'icones/muscle-deltoide.png', groupe: 'epaule',
       quoi: 'élève le bras et tient l’épaule', articulation: 'epaule' },
@@ -569,6 +583,29 @@
      un mot qui designe sans ambiguite. */
   var MOTS_MUSCLE = {
     biceps:              ['biceps', 'supination', 'supinat',
+                          'curl biceps', 'curl halteres', 'curl barre',
+                          'curl barre ez', 'curl ez', 'curl debout',
+                          'curl a la poulie', 'cable curl',
+                          'curl incline', 'incline curl',
+                          'spider curl', 'curl araignee', 'drag curl',
+                          'curl 21', 'bayesian curl',
+                          'curl a la sangle',
+                          'curl concentre', 'concentration curl',
+                          'curl concentration',
+                          'preacher curl', 'curl pupitre',
+                          'curl larry scott', 'curl au pupitre',
+                          'hammer curl', 'curl marteau',
+                          'curl prise neutre', 'curl marteau halteres',
+                          'curl zottman', 'zottman curl',
+                          'curl larratt', 'larratt curl',
+                          'tenue de coude', 'tenue isometrique de coude',
+                          'hold de coude', 'flexion de coude isometrique',
+                          'isometrie de coude',
+                          'curl inverse', 'reverse curl',
+                          'curl en pronation',
+                          'reverse barbell curl', 'reverse ez curl',
+                          'reverse cable curl', 'curl rising', 'rising curl', 'rising cable curl',
+                          'curl pronation a la poulie', 'pronation cable curl',
                           'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'traction', 'tractions', 'pull up', 'pull ups',
                           'chin up', 'traction pronation',
@@ -598,7 +635,31 @@
                           'triceps corde',
                           'back pressure a la poulie', 'tirage arriere',
                           'back pressure', 'pression arriere'],
-    brachial:            ['brachial',   /* « brachio radial » ne le contient pas */
+    brachial:            ['brachial',
+                          'curl biceps', 'curl halteres', 'curl barre',
+                          'curl barre ez', 'curl ez', 'curl debout',
+                          'curl a la poulie', 'cable curl',
+                          'curl incline', 'incline curl',
+                          'spider curl', 'curl araignee', 'drag curl',
+                          'curl 21', 'bayesian curl',
+                          'curl a la sangle',
+                          'curl concentre', 'concentration curl',
+                          'curl concentration',
+                          'preacher curl', 'curl pupitre',
+                          'curl larry scott', 'curl au pupitre',
+                          'hammer curl', 'curl marteau',
+                          'curl prise neutre', 'curl marteau halteres',
+                          'curl zottman', 'zottman curl',
+                          'curl larratt', 'larratt curl',
+                          'tenue de coude', 'tenue isometrique de coude',
+                          'hold de coude', 'flexion de coude isometrique',
+                          'isometrie de coude',
+                          'curl inverse', 'reverse curl',
+                          'curl en pronation',
+                          'reverse barbell curl', 'reverse ez curl',
+                          'reverse cable curl', 'curl rising', 'rising curl', 'rising cable curl',
+                          'curl pronation a la poulie', 'pronation cable curl',
+                          /* « brachio radial » ne le contient pas */
                           'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'traction', 'tractions', 'pull up', 'pull ups',
                           'chin up', 'traction pronation',
@@ -612,12 +673,44 @@
                           'tirage poulie haute', 'tirage nuque'],
     /* « long supinateur » est le nom classique du BRACHIO-RADIAL, pas du
        supinateur : les confondre enverrait la charge au mauvais muscle. */
-    brachio_radial:      ['brachio radial', 'brachioradial', 'long supinateur', 'marteau', 'hammer'],
+    brachio_radial:      ['brachio radial', 'brachioradial', 'long supinateur',
+                          'curl biceps', 'curl halteres', 'curl barre',
+                          'curl barre ez', 'curl ez', 'curl debout',
+                          'curl a la poulie', 'cable curl',
+                          'curl incline', 'incline curl',
+                          'spider curl', 'curl araignee', 'drag curl',
+                          'curl 21', 'bayesian curl',
+                          'curl a la sangle',
+                          'curl concentre', 'concentration curl',
+                          'curl concentration',
+                          'preacher curl', 'curl pupitre',
+                          'curl larry scott', 'curl au pupitre',
+                          'hammer curl', 'curl marteau',
+                          'curl prise neutre', 'curl marteau halteres',
+                          'curl zottman', 'zottman curl',
+                          'curl larratt', 'larratt curl',
+                          'tenue de coude', 'tenue isometrique de coude',
+                          'hold de coude', 'flexion de coude isometrique',
+                          'isometrie de coude',
+                          'curl inverse', 'reverse curl',
+                          'curl en pronation',
+                          'reverse barbell curl', 'reverse ez curl',
+                          'reverse cable curl',
+                          'marteau', 'hammer',
+                          'traction', 'tractions', 'pull up', 'pull ups',
+                          'chin up', 'chin ups',
+                          'traction prise serree', 'traction neutre',
+                          'traction prise neutre',
+                          'neutral grip pull up',
+                          'curl rising', 'rising curl', 'rising cable curl',
+                          'curl pronation a la poulie', 'pronation cable curl'],
     rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat',
+                          'curl zottman', 'zottman curl',
                           'extension poignet',
                           'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle'],
-    carre_pronateur:     ['pronation', 'pronateur', 'pronator', 'pronat',
+    carre_pronateur:     ['curl zottman', 'zottman curl',
+                          'pronation', 'pronateur', 'pronator', 'pronat',
                           'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle'],
     /* Le HOOK se tient en SUPINATION — tranche par MB le 2026-10-23,
@@ -626,6 +719,7 @@
        sa pronation decrit vraisemblablement la charge en torsion qui les a
        blesses, pas le geste voulu. MB hooke ; la page web, non. */
     supinateur:          ['supination', 'supinateur', 'supinator', 'supinat',
+                          'curl zottman', 'zottman curl',
                           'hook a la poulie', 'cable hook', 'hook a la sangle'],
     fcu:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet',
                           'flechisseur poignet', 'cubital anterieur',
@@ -634,9 +728,7 @@
     fcr:                 ['cupping', 'cup', 'wrist curl', 'flexion poignet',
                           'flechisseur poignet', 'grand palmaire',
                           'tenue de poignet ferme',
-                          'riser lift', 'riser', 'levee au riser',
-                          'riser a la sangle',
-                          'toproll a la poulie', 'cable toproll',
+                                                    'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle',
                           'hook a la poulie', 'cable hook', 'hook a la sangle'],
     /* PAS « grip » tout court : « Titan Grip » et « Fat grip » sont des
@@ -671,9 +763,7 @@
                           'marche du fermier',
                           'finger curl', 'rouleau de doigts', 'finger rolling',
                           'enroulement des doigts',
-                          'riser lift', 'riser', 'levee au riser',
-                          'riser a la sangle',
-                          'toproll a la poulie', 'cable toproll',
+                                                    'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle',
                           'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'tenue de poignet ferme'],
@@ -700,9 +790,7 @@
                               'long flechisseur du pouce', 'flechisseur du pouce',
                               'cupping', 'cup', 'wrist curl', 'flexion poignet',
                               'flechisseur poignet',
-                          'riser lift', 'riser', 'levee au riser',
-                          'riser a la sangle',
-                          'hook a la poulie', 'cable hook', 'hook a la sangle',
+                                                    'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'tenue de poignet ferme',
                           'gripper', 'hand gripper', 'serrage', 'serrer',
                           'fermeture main', 'poignee a ressort',
@@ -713,14 +801,10 @@
     opposant_pouce:      ['pince', 'pinch', 'opposant du pouce', 'opposition du pouce',
                           'opposant pouce'],
     ecrl:                ['extension poignet', 'reverse curl', 'reverse wrist', '1er radial',
-                          'riser lift', 'riser', 'levee au riser',
-                          'riser a la sangle',
-                          'toproll a la poulie', 'cable toproll',
+                                                    'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle'],
     ecrb:                ['extension poignet', 'reverse curl', 'reverse wrist', '2e radial', '2eme radial',
-                          'riser lift', 'riser', 'levee au riser',
-                          'riser a la sangle',
-                          'toproll a la poulie', 'cable toproll',
+                                                    'toproll a la poulie', 'cable toproll',
                           'toproll a la sangle'],
     ecu:                 ['cubital posterieur', 'extenseur ulnaire',
                           'extension poignet', 'reverse wrist'],
@@ -760,6 +844,10 @@
                           'ouverture main', 'ouverture doigts', 'extensor band',
                           'extenseurs a elastique',
                           'elastique autour des doigts'],
+    trapeze:             ['trapeze', 'traps', 'traction', 'tractions',
+                          'pull up', 'pull ups',
+                          'traction prise large', 'wide grip pull up',
+                          'traction large', 'wide pull up'],
     deltoide:            ['deltoide', 'epaule', 'elevation laterale', 'shoulder press',
                           'lateral raise', 'elevations laterales',
                           'developpe', 'bench press', 'overhead press',
@@ -830,6 +918,9 @@
        que les mots se lisent entiers. « pectoraux » est ajoute : le pluriel
        francais est irregulier, et le `s?` ne le couvre pas. */
     grand_pectoral:      ['pectoral', 'pectoraux', 'pec', 'developpe', 'bench', 'press',
+                          'traction', 'tractions', 'pull up', 'pull ups',
+                          'chin up', 'chin ups',
+                          'traction supinee', 'traction prise supinee',
                           'developpe', 'bench press', 'overhead press',
                           'shoulder press', 'close grip',
                           'incline bench press',
@@ -913,14 +1004,17 @@
       aussi: ['Reverse wrist curl', 'Extension du poignet'],
       muscles: ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
                 'extenseurs_doigts'] },
-    { nom: 'Déviation radiale',
-      aussi: ['Rising', 'Inclinaison radiale', 'Radial deviation'],
+    { nom: 'Rising',
+      aussi: ['Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
+              'Cable rising', 'Rising à la poulie', 'Rising à la sangle'],
       muscles: ['fcr', 'ecrl', 'ecrb'] },
     { nom: 'Déviation ulnaire',
-      aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation'],
+      aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation',
+              'Déviation ulnaire au cable'],
       muscles: ['fcu', 'ecu'] },
     { nom: 'Pronation',
-      aussi: ['Poignée de pronation'],
+      aussi: ['Poignée de pronation', 'Pronation à la poulie',
+              'Cable pronation', 'Pronation à la sangle'],
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination',
       aussi: ['Supination à la clé'],
@@ -973,10 +1067,6 @@
 
        Ces exercices sont des COMPOSITIONS de gestes deja sources : la
        deviation radiale, la pronation, le cupping, la prise. */
-    { nom: 'Riser lift',
-      aussi: ['Riser à la sangle', 'Levée au riser'],
-      muscles: ['fcr', 'flechisseurs_doigts', 'ecrl', 'ecrb',
-                'long_flechisseur_pouce'] },
     { nom: 'Toproll à la poulie',
       aussi: ['Cable toproll', 'Toproll à la sangle'],
       muscles: ['rond_pronateur', 'fcr', 'flechisseurs_doigts',
@@ -1038,12 +1128,82 @@
       aussi: ['Push up', 'Pompe', 'Push ups', 'Pompes diamant',
               'Diamond push up', 'Wide push up'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
-    { nom: 'Traction',
-      aussi: ['Pull up', 'Pull ups', 'Tractions', 'Chin up',
-              'Traction prise large', 'Traction prise serrée',
-              'Traction prise neutre', 'Traction prise ouverte',
-              'Traction prise fermée', 'Wide grip pull up'],
-      muscles: ['grand_dorsal', 'grand_rond', 'biceps', 'brachial'] },
+    /* ---------- LES FLECHISSEURS DU COUDE (lot 5) ----------
+
+       Valide par MB le 2026-10-26. C'est lui qui a vu le trou : « il y a 0
+       exercices qui concernent le biceps ». Mesure : sur 34 noms de curl,
+       VINGT-HUIT ne proposaient rien, « Curl » tout court compris.
+
+       LE CARNET N'A QU'UNE ENTREE « BICEPS », sans ses deux chefs. L'incline
+       etire la longue portion, le pupitre la raccourcit — les listes sont
+       donc identiques, et la difference est ecrite sur la planche de revue
+       plutot que simulee dans les muscles. */
+    { nom: 'Curl biceps',
+      aussi: ['Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ',
+              'Curl debout', 'Curl à la poulie', 'Cable curl',
+              'Curl incliné', 'Incline curl', 'Spider curl', 'Curl araignée',
+              'Drag curl', 'Curl 21', 'Bayesian curl', 'Curl à la sangle'],
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Curl concentré',
+      aussi: ['Concentration curl', 'Curl concentration'],
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Preacher curl',
+      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre'],
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Hammer curl',
+      aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères'],
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Curl inversé',
+      aussi: ['Reverse curl', 'Curl inversé haltères', 'Curl inversé barre',
+              'Reverse barbell curl', 'Curl inversé barre EZ',
+              'Curl inversé EZ', 'Reverse EZ curl',
+              'Curl inversé à la poulie', 'Reverse cable curl'],
+      muscles: ['biceps', 'brachial', 'brachio_radial', 'ecrl', 'ecrb'] },
+    { nom: 'Curl Zottman',
+      aussi: ['Zottman curl'],
+      muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
+                'brachio_radial', 'supinateur'] },
+    /* Le LARRATT CURL est une tenue ISOMETRIQUE, faite au bout des preacher
+       curls — « major biceps ISOMETRIC strength and size », chaine Strength
+       and Physique, 2019. Le carnet ne distingue pas les REGIMES : question
+       ouverte depuis le lot 2, et ce lot ne la tranche pas non plus. */
+    { nom: 'Curl Larratt',
+      aussi: ['Tenue de coude', 'Tenue isométrique de coude',
+              'Hold de coude', 'Flexion de coude isométrique',
+              'Isométrie de coude', 'Larratt curl'],
+      muscles: ['biceps', 'brachial', 'brachio_radial'] },
+    /* LES DEUX GESTES COMPOSES, valides par MB les 26/10. Le carnet ne
+       sait pas composer deux gestes : chaque combinaison est une entree, et
+       sa liste est l'union de deux listes deja citees. */
+    { nom: 'Curl rising à la poulie',
+      aussi: ['Rising cable curl'],
+      muscles: ['biceps', 'brachial', 'fcr', 'brachio_radial', 'ecrl', 'ecrb'] },
+    { nom: 'Curl pronation à la poulie',
+      aussi: ['Pronation cable curl'],
+      muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
+                'brachio_radial'] },
+    /* LES QUATRE TRACTIONS DE MB, et c'est lui qui a refuse l'entree unique :
+       « il y en a au moins 4 differents, qui ciblent des muscles
+       differents ». Ce qui les separe est l'ORIENTATION de la paume, jamais
+       la largeur — sauf la prise large, dont la seule difference mesuree
+       porte sur le trapeze, entre au carnet le 26/10 pour cette raison. */
+    { nom: 'Chin up',
+      aussi: ['Chin ups', 'Traction supinée', 'Traction prise supinée'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'biceps',
+                'brachial', 'brachio_radial'] },
+    { nom: 'Traction prise serrée',
+      aussi: ['Traction neutre', 'Traction prise neutre',
+              'Neutral grip pull up'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'biceps',
+                'brachial', 'brachio_radial'] },
+    { nom: 'Traction prise large',
+      aussi: ['Traction large', 'Wide grip pull up', 'Wide pull up'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
+                'biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Pull up',
+      aussi: ['Traction', 'Traction pronée'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
+                'biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Rowing',
       aussi: ['Tirage horizontal', 'Rowing barre', 'Rowing haltère',
               'Rowing buste penché'],
@@ -1206,12 +1366,64 @@
         QUE le flechisseur radial — l'ulnaire flechit aussi, il est
         seulement moins sollicite. Le carnet propose ce que le geste
         ACCENTUE, qui est le mot de MB ; l'autre reste a une case de la. */
+  /* LES MOTS QUI DONNENT UN SENS AU POIGNET : flechir ou s'etendre.
+
+     Ils decident de DEUX choses, plus bas dans `musclesDuNom` : si le mot de
+     cote est retire du nom, et si le cote rend un seul bord ou la deviation
+     entiere. Un wrist curl cote pouce est une FLEXION accentuee — seul le
+     flechisseur radial travaille. Un curl de COUDE en rising est une vraie
+     DEVIATION — les trois muscles radiaux travaillent, comme dans l'entree
+     « Deviation radiale ». La difference tient a ce mot-la, pas au reste. */
+  /* UN NOM QUI DIT « WRIST » N'EST PAS UN CURL DE COUDE.
+
+     Le lot 5 pose des mots-cles comme « curl inverse » ou « curl marteau »
+     pour les flechisseurs du COUDE. Or « wrist curl inverse » CONTIENT
+     « curl inverse » : le banc l'a montre aussitot, en rendant le wrist
+     curl inverse porteur du biceps et du brachial.
+
+     GESTES_INVERSES reglait deja ce probleme pour l'inversion, en prenant
+     la cle la PLUS LONGUE d'abord. Un mot-cle ordinaire n'a pas ce
+     mecanisme. On coupe donc a la racine : si le nom dit « wrist », les
+     mots du curl de coude ne sont pas lus. */
+  var MOTS_CURL_COUDE = ['curl inverse', 'reverse curl', 'curl en pronation',
+                         'curl marteau', 'hammer curl', 'cable curl',
+                         'curl a la poulie', 'curl barre', 'curl halteres'];
+
+  /* UNE TRACTION EST PRONEE SAUF SI LE NOM DIT LE CONTRAIRE.
+
+     Mesure du 26/10, Dickie 2017 sur 19 hommes entraines : le trapeze
+     moyen separe la prise PRONEE de la prise neutre — 60,1 contre 37,1
+     %MVIC, P = 0,004 — et c'est le SEUL ecart entre orientations. Le
+     trapeze appartient donc aux tractions pronees, et a elles seules.
+
+     Le lecteur ne savait pas le dire : « Traction » est un PREFIXE de
+     « Traction prise serree », et « pull up » de « Neutral grip pull up ».
+     Aucun mot-cle positif ne distingue les pronees — le banc l'a montre en
+     rendant dix-sept accords rouges d'un coup. On lit donc la pronation par
+     DEFAUT, et un marqueur contraire retire le trapeze : meme mecanique que
+     le bord oppose de COTES_POIGNET, qui efface deja ce que le cote
+     contredit.
+
+     PORTEE : la garde ne touche QUE le trapeze, et le trapeze n'entre que
+     par des noms de traction. Un nom qui ne propose pas le trapeze la
+     traverse sans rien changer. */
+  var MARQUEURS_NON_PRONEE = ['chin up', 'supinee', 'neutre', 'prise serree',
+                              'neutral grip'];
+
+  var GESTES_POIGNET = ['wrist curl', 'flexion poignet', 'extension poignet',
+                        'flechisseur poignet', 'cupping', 'cup',
+                        'reverse wrist', 'tenue de poignet ferme'];
+
   var COTES_POIGNET = [
     { id: 'radial',
       /* « RISING » est le mot du bras de fer pour la deviation radiale : les
          sources du sport listent cupping (flexion), rolling (pronation) et
-         rising (deviation radiale), et le rising s'entraine au « riser
-         lift ». MB l'avait dit avant que je le trouve. Le dictionnaire le
+         rising (deviation radiale). MB l'avait dit avant que je le trouve.
+         L'entree « Riser lift » a porte la forme CHARGEE jusqu'au 26/10 ;
+         MB l'a supprimee ce jour-la, les ecritures « Rising a la poulie »
+         et « Rising a la sangle » la remplacant. Ce qu'elle portait en plus
+         etait la PRISE — or une sangle ne se serre pas, et la prise a son
+         propre champ. Le dictionnaire le
          portait comme autre ecriture depuis le lot 1, mais la LECTURE ne
          connaissait pas le mot — divergence attrapee par le controle qui
          accorde chaque ecriture a son entree, des sa premiere execution. */
@@ -1269,16 +1481,34 @@
     if (!s) return [];
     var vus = {};
 
-    /* Le COTE se lit en premier, et son mot est RETIRE de ce qui reste a
-       lire : sans ca, « cote pouce » proposerait les trois muscles qui
-       OUVRENT le pouce. C'est le seul endroit ou un mot quitte le nom. */
+    /* Le COTE se lit en premier. Son mot est RETIRE de ce qui reste a lire
+       UNIQUEMENT devant un geste de poignet : sans ca, « cote pouce »
+       proposerait les trois muscles qui OUVRENT le pouce.
+
+       CORRIGE LE 2026-10-26, avec l'accord de MB. Le retrait etait
+       inconditionnel, et il rendait INVISIBLE tout mot-cle contenant un mot
+       de cote : « curl rising » ne pouvait pas exister, puisque « rising »
+       quittait le nom avant qu'on cherche les mots-cles. C'est le piege qui
+       avait deja fait renommer « Rising a la sangle » en « Riser a la
+       sangle » au lot 3 — contourne deux fois, jamais traite.
+
+       PORTEE MESUREE AVANT DE TOUCHER : sur les 135 noms livres, 12 portent
+       un mot de cote — 4 wrist curls accentues et 8 deviations pures. Les
+       premiers nomment un geste de poignet, donc le retrait continue ; les
+       seconds ne matchent aucun mot-cle de toute facon. Aucun des 12 ne
+       change, et c'est le controle d'accord des ecritures qui le garde. */
     var cote = null, sLu = s;
+    var gestePoignet = GESTES_POIGNET.some(function (g) {
+      return new RegExp(motifDuMot(g)).test(s);
+    });
     COTES_POIGNET.forEach(function (c) {
       c.mots.forEach(function (mot) {
         var motif = new RegExp(motifDuMot(mot), 'g');
         if (!motif.test(sLu)) return;
         if (!cote) cote = c;
-        sLu = sLu.replace(new RegExp(motifDuMot(mot), 'g'), ' ');
+        if (gestePoignet) {
+          sLu = sLu.replace(new RegExp(motifDuMot(mot), 'g'), ' ');
+        }
       });
     });
 
@@ -1311,6 +1541,9 @@
       MOTS_MUSCLE[id].forEach(function (mot) {
         /* Un nom retourne ne lit PAS les mots du geste droit. */
         if (inverse && GESTES_INVERSES[slug(mot)]) return;
+        /* Et un nom qui dit « wrist » ne lit pas les mots du curl de COUDE. */
+        if (MOTS_CURL_COUDE.indexOf(slug(mot)) >= 0
+            && /(^| )wrist( |$)/.test(sLu)) return;
         /* Et une position TENUE ne lit pas la rotation comme un moteur. */
         if (tenue && MOTS_PRONATION.indexOf(slug(mot)) >= 0) return;
         /* Sous une PRISE, un nom de doigt ne propose pas ce qui l'ouvre. */
@@ -1319,6 +1552,13 @@
         if (new RegExp(motifDuMot(mot)).test(sLu)) vus[id] = 1;
       });
     });
+
+    /* La traction non pronee perd le trapeze — voir MARQUEURS_NON_PRONEE. */
+    if (vus.trapeze && MARQUEURS_NON_PRONEE.some(function (mk) {
+          return new RegExp(motifDuMot(mk)).test(sLu);
+        })) {
+      delete vus.trapeze;
+    }
 
     if (cote) {
       var oppose = COTES_POIGNET.filter(function (c) {
@@ -1330,10 +1570,16 @@
         delete vus[id];
       });
       /* Quel muscle du bord travaille depend du SENS du geste : un wrist
-         curl flechit, un wrist curl inverse tend. Un nom qui ne dit QUE la
-         deviation n'a aucun sens a suivre et prend les deux. */
-      var deviationSeule = true;
-      for (var k2 in vus) { if (vus[k2]) { deviationSeule = false; break; } }
+         curl flechit, un wrist curl inverse tend. Un nom qui ne donne AUCUN
+         sens au poignet prend les deux bords — c'est une deviation pleine.
+
+         CORRIGE LE 2026-10-26 : la question posee etait « est-ce que quelque
+         chose d'autre a matche ? », ce qui n'est pas la meme. Dans « curl
+         rising » les trois flechisseurs du COUDE matchent, et le poignet n'y
+         gagne aucun sens pour autant : l'ancienne formule ne rendait que le
+         flechisseur radial et perdait les deux extenseurs. Le sens vient du
+         geste de poignet, et de lui seul. */
+      var deviationSeule = !gestePoignet;
       (deviationSeule ? cote.flechi.concat(cote.tendu)
                       : (inverse ? cote.tendu : cote.flechi))
         .forEach(function (id) { vus[id] = 1; });
@@ -1807,7 +2053,7 @@
       muscles: ['deltoide', 'coraco_brachial', 'subscapulaire'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
       aide: 'le torse travaille avec le bras — le tirage, le pull-over',
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond'] }
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze'] }
   ];
 
   function zoneRessentie(id) {

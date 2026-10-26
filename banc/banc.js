@@ -465,9 +465,10 @@
     /* Le dictionnaire se cherche aussi sur ses AUTRES écritures : c'est tout
        l'intérêt d'en avoir un. « rising » est le mot du bras de fer pour la
        déviation radiale — MB l'a dit, et les sources du sport le confirment. */
-    v.egal((A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {}).entree,
-           'Déviation radiale',
-           '« rising » trouve la déviation radiale par son autre écriture');
+    v.egal((A.m.suggestions({ exercices: [] }, 'déviation rad', 8)[0] || {}).entree,
+           'Rising',
+           '« déviation radiale » trouve l’entrée Rising par son autre '
+         + 'écriture');
     v.egal((A.m.suggestions({ exercices: [] }, 'reverse wrist', 8)[0] || {}).entree,
            'Wrist curl inversé',
            'et « reverse wrist » trouve le wrist curl inversé');
@@ -477,17 +478,27 @@
        C'était le carnet qui décidait à sa place : l'autocomplétion
        remplaçait le champ par le nom principal de l'entrée. Désormais la
        ligne porte l'écriture qui correspond à ce qui a été tapé, et
-       l'entrée canonique est dite à côté, sans réécrire le champ. */
-    var sr = A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {};
-    v.egal(sr.nom, 'Rising',
-           'taper « rising » propose « Rising », et pas autre chose');
-    v.egal(sr.entree, 'Déviation radiale',
+       l'entrée canonique est dite à côté, sans réécrire le champ.
+
+       L'EXEMPLE A ÉTÉ RETOURNÉ le 26/10, et c'est le même geste de MB qui
+       l'a imposé : il a fait de « Rising » le NOM de l'entrée, et
+       « Déviation radiale » une écriture. Taper « rising » rendait donc
+       nom === entree, et le contrôle ne pouvait plus rien montrer — un vert
+       qui ne prouve rien. On tape maintenant l'écriture FRANÇAISE, qui
+       diffère encore du nom de l'entrée. */
+    var sr = A.m.suggestions({ exercices: [] }, 'déviation rad', 8)[0] || {};
+    v.egal(sr.nom, 'Déviation radiale',
+           'taper « déviation rad » propose « Déviation radiale », et pas '
+         + 'le nom de l’entrée à la place');
+    v.egal(sr.entree, 'Rising',
            'et dit à quelle entrée du dictionnaire il se rattache');
+    v.vrai(sr.nom !== sr.entree,
+           'les deux DIFFÈRENT : sans ça, ce bloc ne mesurerait rien');
     v.egal(sr.muscles.join(','), 'fcr,ecrl,ecrb',
            'avec les muscles de cette entrée');
 
-    var sd = A.m.suggestions({ exercices: [] }, 'déviation rad', 8)[0] || {};
-    v.egal(sd.nom, 'Déviation radiale',
+    var sd = A.m.suggestions({ exercices: [] }, 'rising', 8)[0] || {};
+    v.egal(sd.nom, 'Rising',
            'et taper le nom principal propose le nom principal');
 
     var sh = A.m.suggestions({ exercices: [] }, 'dead h', 8)[0] || {};
@@ -962,7 +973,7 @@
      ================================================================ */
 
   bloc('Muscles et prise', function (v) {
-    v.egal(A.m.MUSCLES.length, 36, 'trente-six muscles — toute la planche, les profonds qu’elle ne montre pas, la main, et le grand rond');
+    v.egal(A.m.MUSCLES.length, 37, 'trente-sept muscles — toute la planche, les profonds qu’elle ne montre pas, la main, le grand rond, et le trapèze entré le 26/10');
     v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
     v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
     v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
@@ -1120,10 +1131,22 @@
        « Curl biceps prise ouverte » contient le mot biceps : le proposer
        n'invente rien, ça relit ce qui a été écrit. C'est la seule des trois
        sources qui ne demande aucune case cochée. */
-    v.egal(A.m.musclesDuNom('Curl biceps prise ouverte').join(','), 'biceps',
+    /* Ces deux contrôles portaient les listes d'AVANT le lot 5, qui n'a
+       pas change ce qu'ils mesurent — la lecture d'un nom, et le mot
+       « marteau » — mais a ajoute des muscles aux deux entrees. On mesure
+       donc la PRESENCE, pas la liste entiere : le lot suivant ne les fera
+       pas tomber pour rien. */
+    v.vrai(A.m.musclesDuNom('Curl biceps prise ouverte').indexOf('biceps') >= 0,
            'le nom « Curl biceps » propose le biceps, sans rien cocher');
-    v.egal(A.m.musclesDuNom('Curl marteau').join(','), 'brachio_radial',
+    v.egal(A.m.musclesDuNom('Curl biceps prise ouverte').join(','),
+           A.m.musclesDuNom('Curl biceps').join(','),
+           'et « prise ouverte » ne change pas ce que le NOM dit : la prise '
+         + 'a son propre champ');
+    v.vrai(A.m.musclesDuNom('Curl marteau').indexOf('brachio_radial') >= 0,
            '« marteau » désigne le brachio-radial sans ambiguïté');
+    v.egal(A.m.musclesDuNom('Curl marteau').join(','),
+           A.m.musclesDuNom('Hammer curl').join(','),
+           'et le curl marteau dit la même chose que le hammer curl');
     v.egal(A.m.musclesDuNom('Pronation Titan Grip').sort().join(','),
            'carre_pronateur,rond_pronateur', '« pronation » propose les deux pronateurs');
     /* Un gripper ne serre pas qu'avec les doigts : le pouce s'oppose, et
@@ -1138,8 +1161,12 @@
     v.egal(A.m.musclesDuNom('Tirage poulie haute').join(','),
            'grand_dorsal,grand_rond,biceps,brachial',
            '« tirage poulie haute » tire : le dos ET les fléchisseurs du coude');
-    v.egal(A.m.musclesDuNom('CURL BICEPS').join(','), 'biceps',
+    v.egal(A.m.musclesDuNom('CURL BICEPS').join(','),
+           A.m.musclesDuNom('curl biceps').join(','),
            'la casse ne change rien');
+    v.vrai(A.m.musclesDuNom('curl biceps').length > 0,
+           '[temoin] et « curl biceps » dit quelque chose, sinon la '
+         + 'comparaison ci-dessus serait vraie pour rien');
     /* Un mot qui apparaît dans un nom d'OUTIL ne désigne pas un muscle :
        « Titan Grip » et « Fat grip » sont du matériel. Le banc a attrapé ce
        faux positif, et c'est ce qui a fait retirer « grip » tout court. */
@@ -1203,9 +1230,12 @@
        brachio-radial, qui n'a rien à faire dans une flexion de poignet. */
     v.egal(A.m.musclesDuNom('Wrist curl inversé').indexOf('brachio_radial'), -1,
            'c’est un WRIST curl inversé, pas un curl inversé');
-    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'brachio_radial,ecrl,ecrb',
-           'un curl inversé se tient en pronation : brachio-radial et radiaux');
-    v.egal(A.m.musclesDuNom('Reverse curl').join(','), 'brachio_radial,ecrl,ecrb',
+    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'biceps,brachial,brachio_radial,ecrl,ecrb',
+           'un curl inversé se tient en pronation : les trois fléchisseurs '
+         + 'du coude ET les radiaux. Le biceps et le brachial sont entrés '
+         + 'au lot 5 — un coude qui se plie les emploie forcément');
+    v.egal(A.m.musclesDuNom('Reverse curl').join(','),
+           A.m.musclesDuNom('Curl inversé').join(','),
            'et « reverse curl » dit la même chose en anglais');
 
     /* --- UNE POSITION TENUE N'EST PAS UN GESTE (MB, 2026-10-23) ---
@@ -1280,7 +1310,7 @@
 
     /* Et ce qui porte « curl » SANS « wrist » reste au COUDE : c'est la
        distinction que MB défendait, et elle, elle est juste. */
-    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'brachio_radial,ecrl,ecrb',
+    v.egal(A.m.musclesDuNom('Curl inversé').join(','), 'biceps,brachial,brachio_radial,ecrl,ecrb',
            'un curl inversé, lui, bouge le COUDE — et garde le brachio-radial');
     v.egal(A.m.musclesDuNom('Extension du poignet').indexOf('brachio_radial'), -1,
            'et le brachio-radial n’entre PAS dans une extension de poignet');
@@ -1392,6 +1422,85 @@
            A.m.musclesDuNom('Déviation ulnaire').join(','),
            'et « cubitale » est le mot français pour « ulnaire »');
 
+    /* UN MOT DE CÔTÉ SOUS UN GESTE DE COUDE. Autorisé par MB le 26/10 :
+       « curl rising, c'est sensiblement le même mouvement que le curl
+       pronation, mais en rising ». Le poignet y fait une VRAIE déviation,
+       pas une flexion accentuée — donc les trois muscles radiaux, pas un.
+
+       TROIS CHUTES MESURÉES, une par cause, parce qu'une seule révocation
+       ne les montrait pas toutes — le bloc rendait 779/780 et j'ai failli
+       m'en contenter :
+
+         modèle d'avant entier  -> le 1er tombe seul : « fcr,ecrl,ecrb »,
+           les trois fléchisseurs du coude manquent, « rising » ayant quitté
+           le nom avant la recherche des mots-clés ;
+         SEULE l'ancienne règle du sens remise -> le 1er et le 3e tombent :
+           « biceps,brachial,fcr,brachio_radial », les deux extenseurs
+           radiaux manquent. Le 3e ne pouvait pas tomber au tour précédent,
+           l'autre moitié du défaut le masquant ;
+         SEUL « rising curl » retiré des mots-clés -> le 2e tombe.
+
+       Les deux derniers portent `[temoin]` : ils affirment que la correction
+       n'a RIEN changé, donc ils tiennent des deux côtés, par construction. */
+    v.egal(A.m.musclesDuNom('Curl rising').join(','),
+           'biceps,brachial,fcr,brachio_radial,ecrl,ecrb',
+           'un curl rising : le coude qui plie ET la déviation radiale '
+         + 'entière, comme le curl pronation prend les deux pronateurs');
+    v.egal(A.m.musclesDuNom('Rising curl').join(','),
+           A.m.musclesDuNom('Curl rising').join(','),
+           'et les deux ordres de mots disent la même chose');
+
+    /* LA DISTINCTION QUE TOUT CECI PROTÈGE, et c'est elle qui tombe si on
+       simplifie la règle : le MÊME mot de côté, deux sens opposés. */
+    v.vrai(A.m.musclesDuNom('Curl rising').indexOf('ecrl') >= 0,
+           'le curl rising prend les extenseurs radiaux : c’est une déviation');
+    v.egal(A.m.musclesDuNom('Wrist curl côté pouce').indexOf('ecrl'), -1,
+           '[temoin] le wrist curl côté pouce ne les prend PAS : c’est une '
+         + 'flexion accentuée, et il lisait déjà juste AVANT la correction — '
+         + 'c’est précisément ce qu’elle devait préserver');
+
+    /* Un geste de poignet NOMMÉ retire toujours le mot de côté : sans ça,
+       « côté pouce » proposerait les muscles qui OUVRENT le pouce. C'est
+       l'invariant que la correction du 26/10 devait préserver. */
+    v.egal(A.m.musclesDuNom('Wrist curl côté pouce')
+            .filter(function (id) {
+              return ['extenseurs_pouce', 'long_abducteur_pouce',
+                      'court_abducteur_pouce'].indexOf(id) >= 0;
+            }).length, 0,
+           '[temoin] et le mot de côté quitte toujours un nom qui dit le '
+         + 'poignet : invariant d’avant la correction, gardé après');
+
+    /* LE TRAPEZE SEPARE LA PRONATION, ET RIEN D AUTRE. Dickie 2017 sur 19
+       hommes : 60,1 contre 37,1 %MVIC pour le trapeze moyen, prise pronee
+       contre prise neutre, et aucun autre ecart entre orientations. La
+       lecture doit donc rendre le trapeze a la pronee et le retirer aux
+       autres — c est MARQUEURS_NON_PRONEE qui le fait.
+
+       VU TOMBER, ET LU PAR BLOC — un seul des quatre est tombe en retirant
+       la garde, et c est instructif : « Chin up » ne contient ni
+       « traction » ni « pull up », donc le trapeze ne s y declenche JAMAIS,
+       garde ou pas. Ce qui le protege est l absence de mot-cle, pas la
+       garde. Seuls les noms qui disent « traction » ET une orientation non
+       pronee dependent d elle — « Traction prise serree », « Traction
+       supinee », et leurs ecritures : sept accords rouges. Les controles
+       qui tiennent des deux cotes le disent maintenant. */
+    v.vrai(A.m.musclesDuNom('Traction').indexOf('trapeze') >= 0,
+           'une traction pronée prend le trapèze');
+    v.egal(A.m.musclesDuNom('Chin up').indexOf('trapeze'), -1,
+           '[temoin] un chin up ne le prend pas — et ce n’est pas la garde '
+         + 'qui l’en empêche : son nom ne contient aucun mot du trapèze');
+    v.egal(A.m.musclesDuNom('Traction supinée').indexOf('trapeze'), -1,
+           'une traction SUPINÉE non plus, et celle-là tient par la garde : '
+         + 'son nom dit « traction »');
+    v.egal(A.m.musclesDuNom('Traction prise serrée').indexOf('trapeze'), -1,
+           'une prise neutre non plus : c’est l’écart que Dickie mesure');
+    v.egal(A.m.musclesDuNom('Traction').filter(function (id) {
+             return A.m.musclesDuNom('Chin up').indexOf(id) < 0;
+           }).join(','), 'trapeze',
+           '[temoin] et le trapèze est la SEULE différence entre les deux '
+         + 'listes — vrai des deux côtés de la garde, mais il tombe si un '
+         + 'muscle entre dans l’une sans entrer dans l’autre');
+
     /* Le marqueur ne doit pas se déclencher sur un nom qui NOMME le pouce.
        C'est la garde contre un mot trop gourmand — le défaut de « lat »
        une fois de plus, mais dans l'autre sens. */
@@ -1435,9 +1544,17 @@
            'mais « press » reste lisible dans « bench press »');
     v.egal(A.m.musclesDuNom('Pectoraux').join(','), 'grand_pectoral',
            'et le pluriel irrégulier est lu : « pectoraux » n’est pas « pectorals »');
+    /* Ce controle portait la LISTE de la traction en dur, et il tombait a
+       chaque fois qu'elle changeait — pour une raison qui n'est pas la
+       sienne. Ce qu'il mesure, c'est le PLURIEL : on compare donc les deux
+       lectures entre elles. Il tombe toujours si « tractions » cesse d'etre
+       lu comme « traction », et plus pour autre chose. */
     v.egal(A.m.musclesDuNom('Tractions').join(','),
-           'grand_dorsal,grand_rond,biceps,brachial',
-           'le pluriel régulier aussi');
+           A.m.musclesDuNom('Traction').join(','),
+           'le pluriel régulier aussi : « tractions » dit « traction »');
+    v.vrai(A.m.musclesDuNom('Traction').length > 0,
+           '[temoin] et « traction » dit quelque chose, sinon la comparaison '
+         + 'ci-dessus serait vraie pour rien');
 
     /* « doigts » tout seul ne dit pas dans quel SENS ils travaillent : des
        doigts qui s'écartent sont tenus par les EXTENSEURS. Le mot est retiré,
@@ -1913,7 +2030,7 @@
     var vides = ids.filter(function (r) { return !groupes[r]; });
     v.egal(orphelins.join(','), '', 'aucun muscle dans un groupe qui n’est pas une region');
     v.egal(vides.join(','), '', 'aucune region sans muscle');
-    v.egal(A.m.MUSCLES.length, 36, 'les 36 muscles sont toujours la');
+    v.egal(A.m.MUSCLES.length, 37, 'les 37 muscles sont toujours la');
 
     /* Les noms courts ne doivent escamoter personne : la liste du contenu
        est DERIVEE des MUSCLES, jamais ecrite a cote. */
@@ -1921,8 +2038,10 @@
            '« Triceps » dit qu’il tient aussi l’ancone');
     v.egal(A.m.musclesDeLaRegion('torse_av').length, 1,
            '« Pectoraux » est EXACT : la region ne tient que lui');
-    v.egal(A.m.musclesDeLaRegion('torse_ar').length, 1,
-           '« Dorsaux » aussi');
+    v.egal(A.m.musclesDeLaRegion('torse_ar').join(', '), 'Dorsal, Trapèze',
+           '« Dorsaux » en tient DEUX depuis le 26/10 : le grand dorsal et '
+         + 'le trapèze. Le libellé de la région reste « Dorsaux », et c’est '
+         + 'ce contrôle qui dira si un troisième entre sans qu’on le nomme');
 
     /* Le nom reste court — c'est le mot de la salle. Il n'est tenable que
        parce que le contenu se dit ailleurs : ce controle garde la LISTE,

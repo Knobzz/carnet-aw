@@ -294,10 +294,34 @@ Les **structures** disent ce qui encaisse — poignet, coude médial : c'est le 
 de la douleur. Les **muscles** disent ce qui tire. Les deux sont portés par l'exercice,
 et c'est leur croisement qui rend la carte lisible.
 
-**Trente-six muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
+**Trente-sept muscles** : tout ce qu'une planche du membre supérieur nomme, plus les
 profonds qu'elle ne montre pas — coraco-brachial, brachial, carré pronateur, supinateur,
 subscapulaire, grand rond. La liste s'arrête à l'épaule : le dos et la poitrine n'y sont que par ce
 qui tire sur le bras (grand dorsal, grand pectoral).
+
+Le **trapèze** est entré le 2026-10-26, et il est le seul à être entré pour une raison
+*mesurée* plutôt que par principe : la traction prise large n'avait aucune liste à elle
+sans lui. Dickie 2017, sur 19 hommes entraînés, mesure **60,1 contre 37,1 %MVIC** pour le
+trapèze moyen entre prise pronée et prise neutre — et c'est le **seul** écart entre
+orientations. Sa limite est écrite partout où elle compte : la gravure de Gray teinte le
+muscle **entier**, et le carnet dit « trapèze » là où la source dit « trapèze moyen ».
+Même limite que les deux chefs du biceps.
+
+### Trois règles qui coupent un nom avant de le lire
+
+`musclesDuNom` lit des mots-clés, et trois noms du carnet en contiennent un autre. Chaque
+fois, le banc l'a montré avant qu'on y pense — jamais l'inverse.
+
+| la règle | pourquoi | ce qu'elle casse sinon |
+|---|---|---|
+| un mot de **côté** ne quitte le nom que devant un geste de **poignet** (`GESTES_POIGNET`) | sans ça, aucun mot-clé ne peut contenir « rising », puisqu'il est retiré avant la recherche | « Curl rising » ne rendait que la déviation, jamais les fléchisseurs du coude |
+| une **traction est pronée** sauf mention contraire (`MARQUEURS_NON_PRONEE`) | « Traction » est un **préfixe** de « Traction prise serrée », et « pull up » de « Neutral grip pull up » : aucun mot positif ne désigne les pronées | le trapèze entrait dans les quatre tractions — 17 accords rouges d'un coup |
+| un nom qui dit **« wrist »** n'est pas un curl de **coude** (`MOTS_CURL_COUDE`) | « wrist curl inversé » contient « curl inversé » | le wrist curl inversé se mettait à porter le biceps et le brachial |
+
+La deuxième et la troisième sont la même mécanique que le **bord opposé** de
+`COTES_POIGNET`, qui efface déjà ce que le côté contredit. La première est la seule qui
+touche au RETRAIT lui-même, et sa portée a été mesurée avant d'y toucher : sur les 135 noms
+livrés, 12 portaient un mot de côté, et **aucun** n'a changé.
 
 Le **grand rond** est arrivé en dernier, en 1.24.1, et pour une raison précise : c'est le
 seul nom que **les deux sources du back pressure donnent toutes les deux** — l'étude EMG
@@ -639,7 +663,7 @@ qui serre » — passée aux sources le matin même — **six**.
 épaisse* part à la phase **équipement** : le geste est exactement celui du gripper, et ce
 que la poignée large ajoute — le creux de la paume — vient de l'outil. *Opposition du
 pouce* et *Écartement des doigts* sont retirés ; le second butait sur un trou du carnet,
-les **interosseux dorsaux**, qu'il n'a pas dans ses 36 muscles.
+les **interosseux dorsaux**, qu'il n'a pas dans ses 37 muscles.
 
 > **Le critère qu'on s'est donné**, et qui tranchera les suivants : *peut-on faire ce
 > geste avec un autre outil, ou sans ?* Une pince se fait avec des plaques, un bloc ou un
@@ -938,7 +962,7 @@ rien dans la liste qui ne le soit pas. C'est lui qui a trouvé l'opposant de l'a
 tout seul, à l'arrivée des planches de la main.
 
 **Poids.** `icones/planches/` porte les trente-cinq planches entières, et
-`icones/planches-gray/` les trente-sept sources d'origine sous leur nom latin. Sans elles,
+`icones/planches-gray/` les trente-neuf sources d'origine sous leur nom latin. Sans elles,
 un recadrage n'est ni rejouable ni rattrapable — c'est ce qui manquait à la 1.21.0.
 Recomposées sur blanc et réduites à une palette sans tramage, elles sont
 **indistinguables à l'œil** : ce sont des gravures à quatre teintes, pas des photos. Rien
@@ -1211,7 +1235,7 @@ peut pas voir la prise.
 
 ### Sept régions, et pourquoi l’épaule a quitté le tronc
 
-`REGIONS_MUSCLE` tient **huit** régions pour 36 muscles : épaule (4), torse avant (1), torse arrière (1),
+`REGIONS_MUSCLE` tient **huit** régions pour 37 muscles : épaule (4), torse avant (1), torse arrière (2),
 bras avant (2), bras arrière (2), avant-bras antérieur (6), avant-bras postérieur (10),
 main et doigts (10).
 
@@ -1348,7 +1372,7 @@ L’épaule n’a pas la même forme des deux côtés, et c’est ce qui la rend
 elle tient le deltoïde et le creux de l’aisselle, de dos le deltoïde et l’omoplate, là où
 s’insèrent le grand rond et le subscapulaire.
 
-Le buste s’arrête aux hanches : **aucun des 36 muscles n’est dans les jambes**, elles ne
+Le buste s’arrête aux hanches : **aucun des 37 muscles n’est dans les jambes**, elles ne
 portaient rien. Proportions au canon classique — 7,5 têtes de haut, bras à 0,44 de la
 hauteur. La première version en faisait 9,7 avec des bras de 5,8 têtes, et ne ressemblait
 à personne.
@@ -1371,7 +1395,7 @@ l'équipement — mêmes classes, même chevron.
 
 Une région qui **porte déjà un muscle coché s'ouvre**, sinon il faudrait rouvrir six blocs
 pour vérifier. Le **compte reste visible fermé** (`2 / 4`), pour n'avoir justement pas à
-ouvrir. Le banc mesure que les 36 muscles tiennent alors en moins de 400 px.
+ouvrir. Le banc mesure que les 37 muscles tiennent alors en moins de 400 px.
 
 ### Un mouvement coche ses muscles
 

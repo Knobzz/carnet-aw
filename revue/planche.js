@@ -137,6 +137,34 @@
      devine. */
   var MOTS_APPOINT = /(aids|also|participates|contributes|accessory)/i;
 
+  /* Le muscle attendu dans le titre de sa page Kenhub. Seuls ceux dont le
+     nom latin est reconnaissable y figurent : on ne verifie que ce qu'on
+     peut verifier, et on ne devine pas le reste. */
+  var PAGE_ATTENDUE = {
+    biceps: 'biceps', brachial: 'brachialis', brachio_radial: 'brachioradialis',
+    triceps: 'triceps', deltoide: 'deltoid', grand_pectoral: 'pectoralis',
+    grand_dorsal: 'latissimus', grand_rond: 'teres', ancone: 'anconeus',
+    trapeze: 'trapezius',
+    supinateur: 'supinator', rond_pronateur: 'pronator teres',
+    carre_pronateur: 'pronator quadratus', long_palmaire: 'palmaris longus',
+    court_palmaire: 'palmaris brevis'
+  };
+
+  function citationsEmpruntees() {
+    var l = [];
+    cat.MOUVEMENTS.forEach(function (f) {
+      (f.muscles || []).forEach(function (e) {
+        if (!e.source || !e.cite) return;
+        var attendu = PAGE_ATTENDUE[e.id];
+        if (!attendu) return;
+        var page = String(e.source.qui).toLowerCase();
+        if (page.indexOf('kenhub') < 0) return;
+        if (page.indexOf(attendu) < 0) l.push(f.nom + ' / ' + e.id);
+      });
+    });
+    return l;
+  }
+
   function ecartsDeRang() {
     var l = [];
     cat.MOUVEMENTS.forEach(function (f) {
@@ -148,6 +176,63 @@
       });
     });
     return l;
+  }
+
+  /* UN NOM NE DOIT PAS DÉJÀ DIRE AUTRE CHOSE.
+
+     Un nom qui porte les mots de DEUX gestes propose les muscles de
+     l'autre. « Curl pronation », rangé sous le curl inversé, rendait les
+     deux pronateurs et jamais les fléchisseurs du coude. Trois fois ce
+     chantier : « Rising à la sangle » (lot 3), « Traction pronation » et
+     « Traction supination » (lot 4), « Curl pronation » et « Curl prise
+     pronation » (lot 5) — et les trois fois c'est MB qui l'a vu, pas la
+     planche. Celle-ci regardait les CITATIONS et les RANGS ; personne ne
+     regardait les NOMS.
+
+     La règle, mesurable : ce qu'un nom propose aujourd'hui doit être CONTENU
+     dans ce que son entrée revendique. Un sous-ensemble est normal — le
+     mot-clé n'est pas encore posé, le nom ne rend encore qu'une partie. Un
+     muscle EN TROP veut dire que le nom parle d'un autre geste. */
+  function nomsQuiDisentAutreChose() {
+    var l = [];
+    cat.MOUVEMENTS.forEach(function (f) {
+      var revendique = (f.muscles || []).map(function (e) { return e.id; });
+      [f.nom].concat(f.aussi || []).forEach(function (n) {
+        var trop = A.m.musclesDuNom(n).filter(function (id) {
+          return revendique.indexOf(id) < 0;
+        });
+        if (trop.length) {
+          l.push(f.nom + ' / « ' + n + ' » → ' + trop.join(', '));
+        }
+      });
+    });
+    return l;
+  }
+
+  /* L'ORDRE DU CATALOGUE EST EDITORIAL, celui du modele ne l'est PAS.
+
+     `musclesDuNom` rend ses muscles dans l'ordre de MUSCLES, et le controle
+     d'accord du banc compare les deux listes JOINTES — donc dans l'ordre.
+     Une fiche dont la liste se lit mieux autrement (la rotation avant les
+     flechisseurs, par exemple) est parfaitement valable ICI, et doit etre
+     TRIEE au moment d'ecrire son entree dans le modele.
+
+     Mesure du 26/10 : 8 fiches sur 42 sont hors ordre de lecture, dont SIX
+     deja livrees — leurs entrees du modele sont bien triees, seul
+     l'affichage differe. Ce compteur ne regarde donc que celles qui restent
+     a ajouter : ce sont les seules ou l'oubli couterait un banc rouge. */
+  function aTrierAvantLeModele() {
+    var ordre = A.m.MUSCLES.map(function (m) { return m.id; });
+    return cat.MOUVEMENTS.filter(function (f) {
+      if (A.m.DICTIONNAIRE.some(function (d) { return d.nom === f.nom; })) {
+        return false;
+      }
+      var l = (f.muscles || []).map(function (e) { return e.id; });
+      var trie = l.slice().sort(function (a, b) {
+        return ordre.indexOf(a) - ordre.indexOf(b);
+      });
+      return l.join(',') !== trie.join(',');
+    }).map(function (f) { return f.nom; });
   }
 
   var barre = null, compteurs = null;
@@ -171,14 +256,52 @@
     }).join('\n');
   }
 
-  function champ(valeur, etiquette, surChange) {
+  /* `multi` : le champ s'ajuste a son contenu au lieu de le couper.
+
+     Mesure du 26/10, sur la page reelle : 2 champs d'ecritures sur 15
+     depassaient leur largeur — « Curl biceps » (15 ecritures) et
+     « Isometrie de coude » (7 depuis le Curl Larratt). Soit exactement les
+     deux que MB avait a relire. Un <input> ne sait pas revenir a la ligne,
+     et rien ne signalait la coupe : la fiche paraissait complete.
+
+     Pas de controle ecrit pour ca : un textarea qui s'ajuste a son contenu
+     ne PEUT pas tronquer, donc le controle ne pourrait pas tomber. C'est la
+     mesure avant/apres qui fait foi — 2 puis 0. */
+  function champ(valeur, etiquette, surChange, multi) {
     var l = el('label', 'ligne-champ');
     l.appendChild(el('span', 'etiq', etiquette));
-    var i = document.createElement('input');
-    i.type = 'text';
+    var i = document.createElement(multi ? 'textarea' : 'input');
+    if (!multi) i.type = 'text';
     i.className = 'champ champ-revue';
     i.value = valeur;
-    i.addEventListener('input', function () { surChange(i.value); });
+
+    /* `scrollHeight` ne compte PAS les bordures, alors que `height` les
+       inclut en box-sizing: border-box. Poser l'un dans l'autre laisse
+       deux pixels de defilement — mesure du 26/10 : les 8 champs pouvaient
+       defiler, « Reverse curl » compris, qui fait deux mots. Rien n'etait
+       cache, mais la barre apparaissait et plus aucune mesure ne pouvait
+       distinguer « ca deborde » de « ca ne deborde pas ». */
+    function ajuster() {
+      i.style.height = 'auto';
+      var cs = getComputedStyle(i);
+      var bord = cs.boxSizing === 'border-box'
+        ? (parseFloat(cs.borderTopWidth) || 0)
+          + (parseFloat(cs.borderBottomWidth) || 0)
+        : 0;
+      i.style.height = (i.scrollHeight + bord) + 'px';
+    }
+    i.addEventListener('input', function () {
+      surChange(i.value);
+      if (multi) ajuster();
+    });
+    /* La hauteur ne se mesure qu'une fois l'element DANS la page : `rendre`
+       n'accroche son arbre qu'a la fin. */
+    if (multi) {
+      i.rows = 1;
+      i.style.minHeight = '0';
+      i.style.resize = 'none';
+      setTimeout(ajuster, 0);
+    }
     l.appendChild(i);
     return l;
   }
@@ -237,7 +360,7 @@
           memoire[d.nom] = memo;
           retenir();
           majBarre();
-        }));
+        }, true));
       if (f && f.geste) h.appendChild(el('div', 'geste', f.geste));
       bloc.appendChild(h);
 
@@ -305,6 +428,36 @@
     /* Les rangs qui s'écartent de la FORME de leur citation : ce ne sont pas
        des fautes, ce sont les endroits où mon jugement passe devant le
        texte. Ils doivent se compter, pas se deviner. */
+    /* Une citation doit venir de la page DU muscle qu'elle appuie. Zero
+       n'est pas un resultat acquis : ce controle a trouve six emprunts le
+       jour ou il a ete ecrit. */
+    var empruntees = citationsEmpruntees();
+    tete.appendChild(el('div',
+      'item-resume' + (empruntees.length ? ' rouge' : ''),
+      empruntees.length
+        ? empruntees.length + ' CITATION(S) EMPRUNTÉE(S) à la page d’un autre '
+          + 'muscle : ' + empruntees.join(' · ')
+        : 'aucune citation empruntée à la page d’un autre muscle.'));
+
+    /* Zéro n'est pas acquis : remets « Curl pronation » dans les écritures
+       du curl inversé et ce bloc passe au rouge. */
+    var autres = nomsQuiDisentAutreChose();
+    tete.appendChild(el('div',
+      'item-resume' + (autres.length ? ' rouge' : ''),
+      autres.length
+        ? autres.length + ' NOM(S) QUI DISENT DÉJÀ AUTRE CHOSE que ce que '
+          + 'leur entrée revendique : ' + autres.join(' · ')
+        : 'aucun nom ne propose un muscle que son entrée ne revendique pas.'));
+
+    /* Zéro n'est pas acquis : au 26/10 ce compteur valait 2. */
+    var aTrier = aTrierAvantLeModele();
+    tete.appendChild(el('div', 'item-resume',
+      aTrier.length
+        ? aTrier.length + ' fiche(s) à TRIER en écrivant leur entrée du '
+          + 'modèle — l’ordre du catalogue est éditorial, celui du modèle '
+          + 'ne l’est pas : ' + aTrier.join(' · ')
+        : 'toutes les fiches à ajouter sont déjà dans l’ordre de lecture.'));
+
     var ecarts = ecartsDeRang();
     tete.appendChild(el('div', 'item-resume',
       ecarts.length + ' rang(s) s’écartent de la forme de leur citation — '
@@ -368,7 +521,10 @@
     });
     leg.appendChild(ul);
 
-    window.__planche = { ecartsDeRang: ecartsDeRang().length,
+    window.__planche = { empruntees: citationsEmpruntees().length,
+                         aTrier: aTrierAvantLeModele().length,
+                         nomsFautifs: nomsQuiDisentAutreChose().length,
+                         ecartsDeRang: ecartsDeRang().length,
                          rangsCites: rangsCites,
                          rangsRaisonnes: rangsRaisonnes,
                          mouvements: aLire.length, masques: masques,
