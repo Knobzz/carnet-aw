@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 179 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 180 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -169,7 +169,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **775 contrôles, 29 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **404 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **405 contrôles, 18 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
   la planche anatomique de chacun, sa citation **mot pour mot** et le lien vers la source.
@@ -389,6 +389,8 @@ réintroduits volontairement, un par un, et le banc les a tous fait rougir :
 | la prise ouverte qui cesse de proposer les fléchisseurs | `attendu "flechisseurs_doigts", obtenu ""` — 3 rouges |
 | un libellé de prise qui repart sur « on pousse » | `les deux prises se définissent sur le POUCE — attendu true, obtenu false` |
 | un muscle du pouce ajouté à la prise ouverte | `attendu 0, obtenu 1` |
+| une seule cause pour l’état vide du buste | `il n’accuse JAMAIS des muscles déjà renseignés — attendu false, obtenu true` |
+| la région d’un muscle changée sous lui | `la charge de l’epaule — attendu 4, obtenu 0` |
 | le hook repassé en pronation, contre la décision de MB | `accord sur « Hook à la poulie »` + ses 2 écritures — 3 rouges |
 | un mot d’écriture retiré d’un seul muscle | `« Tenue de poignet fermé » : 3 muscles au lieu de 5` |
 | une région déjà cochée qui reste fermée | `la région qui les contient s'ouvre — attendu true, obtenu false` |

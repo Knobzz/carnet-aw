@@ -1033,10 +1033,28 @@
     + 'troisième chose. Touche une région pour ne garder qu’elle dans les muscles.'));
 
     if (!maxi) {
-      f.appendChild(h('div', { class: 'vide' },
-        h('strong', { text: 'Aucune région renseignée' }),
-        'Une région se remplit dès qu’un exercice porte des muscles. '
-      + 'Ouvre la fiche d’un exercice pour les renseigner.'));
+      /* DEUX causes, deux messages. Dire « renseigne tes muscles » a
+         quelqu'un dont les muscles SONT renseignes, parce que sa fenetre
+         est trop courte, c'est l'envoyer corriger ce qui va bien. On
+         regarde donc plus loin que la periode avant d'accuser. */
+      var large = A.m.chargeParSemaine(e, 'region', 26);
+      var ailleurs = 0;
+      if (large) {
+        large.semaines.forEach(function (sem) {
+          large.cles.forEach(function (c) {
+            ailleurs = Math.max(ailleurs, sem.par[c.id] || 0);
+          });
+        });
+      }
+      f.appendChild(ailleurs
+        ? h('div', { class: 'vide' },
+            h('strong', { text: 'Rien sur ' + periode.nom }),
+            'Tes régions sont renseignées, mais aucune série ne tombe dans '
+          + 'cette période. Choisis-en une plus longue.')
+        : h('div', { class: 'vide' },
+            h('strong', { text: 'Aucune région renseignée' }),
+            'Une région se remplit dès qu’un exercice porte des muscles. '
+          + 'Ouvre la fiche d’un exercice pour les renseigner.'));
       return f;
     }
 

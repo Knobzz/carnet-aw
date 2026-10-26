@@ -805,6 +805,26 @@ pouce par-dessus, elle ne remplace pas.
 > grip*), pouce coincé **sous** les doigts, employée au soulevé de terre et en
 > haltérophilie. Signalée à MB, pas inventée.
 
+#### Le buste vide : deux causes, deux messages
+
+Trouvé par le **calendrier**, le 2026-10-26. Un **lundi**, la période « 1 sem. » ne couvre
+qu'**un seul jour** — les semaines sont ISO, donc la veille appartient déjà à la
+précédente. Le buste n'avait alors rien à montrer et affichait *« Aucune région
+renseignée — ouvre la fiche d'un exercice pour les renseigner »* : il envoyait corriger
+des muscles **déjà renseignés**, quand la vraie cause était la **fenêtre**.
+
+Il regarde donc plus loin que la période avant d'accuser, et dit *« Rien sur 1 sem. — tes
+régions sont renseignées, mais aucune série ne tombe dans cette période. Choisis-en une
+plus longue. »* Un contrôle refuse désormais que l'écran accuse des muscles renseignés.
+
+> **Quatre contrôles dépendaient du jour de la semaine.** Trois dataient leur séance
+> d'essai de la **veille** et lisaient la **dernière** semaine : un lundi, la veille est
+> dans la semaine ISO précédente, et ils trouvaient zéro. Ils passaient **six jours sur
+> sept**. C'est la famille de la formule `7N − rang`, juste le seul jeudi où elle avait
+> été écrite. Ils somment maintenant sur toutes les semaines — ce qu'ils gardaient n'a
+> jamais été « c'est dans la dernière semaine », mais « la région arrive jusqu'à
+> `chargeParSemaine` ».
+
 #### Les mots se lisent ENTIERS
 
 Trois faux positifs mesurés, et chacun proposait un muscle qui n'a rien à faire là :

@@ -1994,10 +1994,14 @@
     ['epaule', 'torse_av', 'torse_ar'].forEach(function (id) {
       v.vrai(cles.indexOf(id) >= 0, id + ' arrive jusqu’a la serie par semaine');
     });
-    var derniere = sem.semaines[sem.semaines.length - 1] || { par: {} };
-    v.egal(derniere.par.epaule, 4, 'et la charge de l’epaule y est juste');
-    v.egal(derniere.par.torse_ar, 6, 'celle du torse arriere aussi');
-    v.egal(derniere.par.torse_av, 5, 'celle du torse avant aussi');
+    var total = function (id) {
+      return sem.semaines.reduce(function (a, x) {
+        return a + ((x.par || {})[id] || 0);
+      }, 0);
+    };
+    v.egal(total('epaule'), 4, 'et la charge de l’epaule y est juste');
+    v.egal(total('torse_ar'), 6, 'celle du torse arriere aussi');
+    v.egal(total('torse_av'), 5, 'celle du torse avant aussi');
   });
 
   /* ================================================================

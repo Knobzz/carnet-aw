@@ -1180,8 +1180,18 @@
          une ou deux barres mimeraient une tendance. */
       v.egal(doc.querySelectorAll('.piste-semaine').length, 0,
              'sur une semaine, aucune piste hebdomadaire n’est dessinée');
-      v.vrai(/pas de semaine après semaine/.test(doc.body.innerText),
+      /* Un LUNDI, « 1 sem. » ne couvre qu'un jour — les semaines sont ISO,
+         et hier etait dans la precedente. L'ecran montre alors l'etat vide
+         au lieu de la piste. Les deux cas sont justes ; ce qui doit tenir,
+         c'est que l'ecran DISE quelque chose, et la BONNE chose. */
+      var ditPourquoi = /pas de semaine après semaine/.test(doc.body.innerText);
+      var ditLaPeriode = /Rien sur .*Tes régions sont renseignées/s
+                           .test(doc.body.innerText);
+      v.vrai(ditPourquoi || ditLaPeriode,
              'et l’écran DIT pourquoi, au lieu de laisser un trou');
+      v.egal(/Ouvre la fiche d’un exercice pour les renseigner/
+               .test(doc.body.innerText), false,
+             'et il n’accuse JAMAIS des muscles déjà renseignés');
 
       /* On repose le defaut pour ne pas laisser l'etat aux blocs suivants. */
       var iDefaut = 0;
