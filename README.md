@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 253 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 335 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **848 contrôles, 29 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **405 contrôles, 18 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **903 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **432 contrôles, 20 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
   la planche anatomique de chacun, sa citation **mot pour mot** et le lien vers la source.
@@ -209,12 +209,33 @@ python -m http.server 8713
   citation ; il a trouvé, à sa première exécution, une citation qui ne soutenait pas ce
   qu'elle appuyait.
 
-  **Et APRÈS les mouvements, pas avant : les équipements.** Décision de MB, 2026-10-23 :
-  certains outils spécifiques au bras de fer changent les muscles réellement sollicités
-  par un même geste, et ça méritera sa propre passe — *« dans un second temps beaucoup
-  plus tardif »*. Le carnet a déjà de quoi l'accrocher : les outils ont un catalogue et
-  des réglages, et `musclesProposes()` connaît déjà une source `reglage`. Rien n'est
-  commencé là-dessus, et rien ne doit l'être tant que les mouvements ne sont pas finis.
+  **Les équipements, livrés en 1.35.0.** Annoncés le 2026-10-23 pour « un second temps
+  beaucoup plus tardif », ouverts le 26/10 et livrés le 27/10. **17 types**, relevés sur
+  quatre sites d'armwrestling et triés depuis 228 références : un type n'entre que si son
+  nom apparaît sur **deux sites indépendants** — c'est ce qui sépare un type de matériel
+  d'une marque, et c'est ce qui tient la règle « rien n'est livré avec l'app ». L'outil
+  est devenu la **cinquième source** de proposition de muscles, après le réglage, le nom,
+  la prise et les forces.
+
+  Trois choses s'y décident, et chacune a sa raison écrite :
+
+  - **Les positions de montage sont SUGGÉRÉES, jamais créées.** Une clé de poignet
+    propose « mousqueton au centre / à l'extérieur / à l'intérieur », une poignée à
+    rotation libre « en haut / au milieu / en bas » — les trous y sont empilés, pas
+    latéraux, et les noms disent **ce qu'on voit**. Un appui ouvre la fiche avec le nom
+    déjà écrit ; rien ne s'ajoute avant l'enregistrement.
+  - **Deux types ne proposent AUCUN muscle** : la ceinture de judo et la corde. Ce sont
+    des **accessoires de liaison** — MB l'a démontré en décrivant la corde, « pour faire
+    du curl, extensions & cie » : le même objet sert à des muscles opposés. Un contrôle
+    exige que la liste des types sans muscle contienne exactement ces deux-là.
+  - **Le carnet DIT où l'outil se monte, et ne refuse rien.** « Pas sur une sangle : il
+    n'y a rien à grossir. » Quand rien n'est connu, il se tait — treize types sur
+    dix-sept — au lieu d'écrire « rien de connu » ou de l'inventer.
+
+  La planche de revue (`revue/equipement.html`, hors livraison) porte **cinq contrôles
+  permanents** : un type sans fiche, une entrée du dictionnaire citée qui n'existe plus,
+  un mot revendiqué par deux types, un produit que le carnet ne sait pas lire par son nom
+  officiel, et un dépareillage entre les types et leur table de montage.
 
 **Les deux s'ouvrent dans un navigateur ordinaire.** Playwright n'est exigé que par le
 *lanceur* sans tête : sans `node` sur la machine, les deux pages tournent quand même, et

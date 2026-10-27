@@ -154,14 +154,19 @@
      séances qui se ressembleraient. Mais s'ils sont renseignés, la fiche
      d'exercice les PROPOSE, et c'est la seule source qui vienne du matériel
      de celui qui s'en sert. */
-  function editerReglage(outil, reglage, apres) {
+  function editerReglage(outil, reglage, apres, nomSuggere) {
     var e = etat();
     var neuf = !reglage;
     var choisis = neuf ? [] : (reglage.muscles || []).slice();
     var appliquer = null;
 
     A.panneau.ouvrir(neuf ? 'Nouveau réglage' : reglage.nom, function (c, fermer) {
-      var champ = h('input', { class: 'champ', value: neuf ? '' : reglage.nom,
+      /* `nomSuggere` vient d'une position proposée par le type de l'outil :
+         le nom est déjà écrit, et il reste MODIFIABLE. La fiche s'ouvre
+         quand même — c'est l'utilisateur qui enregistre, et il voit ce
+         qu'il crée. */
+      var champ = h('input', { class: 'champ',
+                               value: neuf ? (nomSuggere || '') : reglage.nom,
                                placeholder: 'Mousqueton à l’extérieur…' });
       c.appendChild(A.ui.groupe('Nom du réglage', champ,
         'Comment l’outil est monté : ce qui change ce qu’il sollicite.'));
@@ -236,6 +241,75 @@
                                   placeholder: 'Poulie haute, Titan Grip Iron Wrist…' });
       c.appendChild(A.ui.groupe('Nom de l’outil', champNom));
 
+      /* ---- CE QUE LE CARNET A LU DANS CE NOM ----
+         MB, 27/10 : « montre dans l’app quand l’outil est reconnu, même
+         sans muscle ». Avant, une ceinture de judo reconnue ne se
+         distinguait EN RIEN d’un nom inconnu : zéro muscle, zéro
+         changement à l’écran — on lui demandait de croire.
+
+         La ligne nomme les MOTS lus, pas un verdict : « reconnu : iron
+         wrist » apprend quelque chose, « reconnu » tout seul, non. Elle se
+         remet à jour À CHAQUE FRAPPE, pour qu’un renommage qui fait perdre
+         la reconnaissance se voie AU MOMENT où on le tape, et pas au
+         prochain exercice.
+
+         ET ELLE NE REPROCHE RIEN quand ce n’est pas reconnu : le carnet ne
+         livre aucune liste, un outil inconnu est le cas NORMAL, et la ligne
+         dit comment faire sans. */
+      var dit = h('div', { class: 'item-resume dit-lu' });
+      function majLu() {
+        var nom = champNom.value.trim();
+        var mots = A.m.motsReconnus(nom);
+        var n = A.m.musclesDeLOutil([nom]).length;
+        dit.classList.toggle('dit-reconnu', mots.length > 0);
+        if (!nom) { dit.textContent = ''; return; }
+        if (!mots.length) {
+          dit.textContent = 'Nom libre — le carnet n’y reconnaît rien, et '
+            + 'ça ne gêne pas : coche ses muscles dans les exercices qui '
+            + 'l’emploient.';
+          return;
+        }
+        dit.textContent = 'Reconnu : « ' + mots.join(' », « ') + ' ». '
+          + (n
+              ? n + ' muscle(s) proposé(s) aux exercices qui l’emploient.'
+              : 'Il n’ajoute aucun muscle — il change ce que tu tiens, pas '
+              + 'ce qui travaille.');
+      }
+
+      /* ---- OÙ ÇA SE MONTE ----
+         MB, 26/10 : « beaucoup d’équipement ne peuvent s’ajouter qu’à la
+         poulie, les fat grips peuvent s’ajouter sur de la barre, des
+         dumbbells et autres poignées, mais pas sur tout ». C’était écrit
+         dans la revue depuis, et jamais arrivé jusqu’ici.
+
+         LE CARNET NE REFUSE RIEN, il DIT : celui qui a trouvé un montage
+         que je ne connais pas a raison contre moi. Et quand rien n’est
+         connu sur ce qu’on ne peut PAS faire, la ligne se tait — treize
+         types sur dix-sept sont dans ce cas, et « rien de connu » affiché
+         treize fois serait du bruit. */
+      var ou = h('div', { class: 'item-resume dit-monte' });
+      function majOu() {
+        var l = A.m.montageDeLOutil(champNom.value.trim());
+        if (!l.length) { ou.textContent = ''; return; }
+        /* DEUX LIGNES, pas un pave : « se monte sur » et « pas sur »
+           disent le contraire l'un de l'autre, et colles ils se lisent
+           comme une seule phrase. */
+        A.ui.vider(ou);
+        l.forEach(function (x) {
+          ou.appendChild(h('div', { text: 'Se monte sur : ' + x.monte }));
+          if (x.pasSur) {
+            ou.appendChild(h('div', { class: 'dit-pas',
+                                      text: 'Pas sur : ' + x.pasSur }));
+          }
+        });
+      }
+      majOu();
+      champNom.addEventListener('input', majOu);
+      majLu();
+      champNom.addEventListener('input', majLu);
+      c.appendChild(dit);
+      c.appendChild(ou);
+
       var champCat = h('input', { class: 'champ', value: neuf ? '' : (outil.categorie || ''),
                                   placeholder: 'Grippers, Poulies, Poignées AW…' });
       c.appendChild(A.ui.groupe('Catégorie', champCat,
@@ -278,11 +352,41 @@
             editerReglage(outil, null, function () { rendreReglages(); });
           });
           boiteReg.appendChild(plus);
+
+          /* ---- les positions que l'outil SUGGÈRE ----
+             MB, 27/10 : « propose les trois positions de mousqueton en
+             réglages ». Une clé de poignet se monte le mousqueton au
+             centre, à l'extérieur ou à l'intérieur, et ce n'est pas le
+             même travail.
+
+             ELLES NE SE CRÉENT PAS TOUTES SEULES : un appui ouvre la fiche
+             avec le nom déjà écrit, et c'est encore lui qui enregistre.
+             C'est la règle de l'app — rien n'est livré, le catalogue se
+             construit avec ce qu'il saisit. Celles qui existent déjà ne
+             sont plus proposées. */
+          var positions = A.m.reglagesProposes(e, outil.nom);
+          if (positions.length) {
+            var boiteSug = h('div', { class: 'enrobe', style: 'margin-top:8px' });
+            positions.forEach(function (nom) {
+              var b = h('button', { type: 'button', class: 'bt bt-petit',
+                                    text: '+ ' + nom });
+              b.addEventListener('click', function () {
+                editerReglage(outil, null, function () { rendreReglages(); }, nom);
+              });
+              boiteSug.appendChild(b);
+            });
+            boiteReg.appendChild(h('div', { class: 'item-resume',
+              style: 'margin-top:10px',
+              text: 'Cet outil se monte de plusieurs façons :' }));
+            boiteReg.appendChild(boiteSug);
+          }
         }
         rendreReglages();
         c.appendChild(A.ui.groupe('Réglages', boiteReg,
           'Facultatif. « Mousqueton à l’extérieur », « poignée fine » : ce qui '
-        + 'change ce que l’outil sollicite, sans en faire un autre exercice.'));
+        + 'change ce que l’outil sollicite, sans en faire un autre exercice. '
+        + 'Un outil reconnu propose ses positions ; aucune ne s’ajoute avant '
+        + 'que tu l’enregistres.'));
 
         var n = compterUsages(e, outil);
         c.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px',

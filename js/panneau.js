@@ -423,7 +423,15 @@
             o.jetons = o.categorie ? [{ texte: o.categorie }] : [];
             return o;
           });
-        }, function (v) { exo.outils = v; rafraichirReglages(); },
+        }, function (v) {
+          exo.outils = v;
+          rafraichirReglages();
+          /* L'outil est la CINQUIEME source de proposition depuis le
+             26/10 : sans ce rafraichissement, on tapait « Fat Gripz »
+             et le bouton restait a « d'apres le nom (7) » jusqu'a ce
+             qu'on retouche le nom. La moitie livree, piege n 5. */
+          rafraichirMuscles();
+        },
           'Dumbbell, poulie haute, Titan Grip…'));
       }
 
@@ -616,7 +624,8 @@
         aideMuscles.textContent = bouts.join(' ');
 
         var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value,
-                                       A.m.musclesDesReglages(etat(), exo));
+                                       A.m.musclesDesReglages(etat(), exo),
+                                       exo.outils || []);
         var manquants = prop.muscles.filter(function (id) { return l.indexOf(id) < 0; });
         btProposer.disabled = !manquants.length;
         /* Le bouton dit D'OÙ vient la proposition. Annoncer « d'après les
@@ -624,7 +633,7 @@
            et c'est exactement ce que le reste de l'app refuse. */
         var depuis = { nom: 'le nom', anatomie: 'l’anatomie',
                        a_verifier: 'les mouvements', terrain: 'les compétiteurs',
-                       reglage: 'le réglage de l’outil',
+                       reglage: 'le réglage de l’outil', outil: 'l’outil',
                        mixte: 'ce qui est renseigné' };
         btProposer.textContent = !prop.muscles.length
           ? 'Rien à proposer : donne un nom, ou coche un mouvement'
@@ -646,7 +655,8 @@
 
       btProposer.addEventListener('click', function () {
         var prop = A.m.musclesProposes(exo.forces || [], exo.prise, champNom.value,
-                                       A.m.musclesDesReglages(etat(), exo));
+                                       A.m.musclesDesReglages(etat(), exo),
+                                       exo.outils || []);
         if (!prop.muscles.length) return;
         var fusion = A.m.muscles(exo).slice();
         prop.muscles.forEach(function (id) { if (fusion.indexOf(id) < 0) fusion.push(id); });

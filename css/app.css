@@ -741,6 +741,14 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .item-titre h3 { flex: 1; min-width: 0; }
 .item-date { font-size: .76rem; color: var(--texte-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .item-resume { font-size: .82rem; color: var(--texte-2); margin-top: 3px; }
+/* Ce que le carnet a LU dans un nom d'outil. Bleu quand il a reconnu
+   quelque chose, gris sinon — un nom libre est le cas normal, pas une
+   faute, et il ne se signale donc pas en rouge. */
+.dit-lu { margin-top: 6px; }
+.dit-monte { margin-top: 3px; margin-bottom: 14px; }
+.dit-pas { margin-top: 2px; }
+.dit-lu:last-of-type { margin-bottom: 14px; }
+.dit-reconnu { color: var(--bleu-vif); }
 .item-lignes { margin-top: 7px; font-size: .84rem; }
 .item-ligne { display: flex; gap: 8px; padding: 1.5px 0; }
 .item-ligne b { font-weight: 550; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -399,9 +399,9 @@ En revanche un exercice **nommé** « pince », « pinch », « gripper », « s
 lui-même, et pas une mesure sur le bras de fer. « pouce » et « thumb » restent au groupe
 qui l'**ouvre** — un même mot pour les six muscles du pouce noierait la proposition.
 
-### Les trois sources de proposition
+### Les cinq sources de proposition
 
-On ne peut pas demander de cocher trente-cinq muscles à qui ne connaît pas les termes : la
+On ne peut pas demander de cocher trente-sept muscles à qui ne connaît pas les termes : la
 case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 
 | source | d'où | solidité |
@@ -411,6 +411,20 @@ case resterait vide. La fiche **propose** donc, et dit **d'où ça vient** :
 | **le mouvement** | cupping = flexion du poignet, pronation, supination | manuel d'anatomie |
 | **la prise** | fermée = on serre = fléchisseurs des doigts | définition de serrer |
 | **le mouvement, suite** | rising, back pressure, side pressure | **le terrain** : les compétiteurs et les fédérations, plus la seule étude EMG qui existe |
+| **le réglage de l'outil** | « mousqueton à l'extérieur » porte ses propres muscles | ce que l'utilisateur sait de SON matériel |
+| **l'outil** (1.35.0) | « Fat Gripz » ⇒ les cinq muscles de l'avant-bras que l'EMG mesure | 17 types relevés sur quatre sites, chacun avec sa fiche de revue |
+
+**L'outil est la cinquième, et la seule qui ne vienne ni du geste ni de l'utilisateur.**
+Elle est tenue courte : un type n'entre au modèle que si son nom paraît sur **deux sites
+indépendants**, et ses muscles sont soit **mesurés** (une étude), soit ceux d'une **entrée
+du dictionnaire déjà sourcée** — jamais inventés. Deux types n'en proposent aucun, la
+ceinture de judo et la corde : ce sont des **accessoires de liaison**, ils changent ce
+qu'on tient et non ce qui travaille.
+
+**Le type peut aussi SUGGÉRER ses réglages** (`reglages: [...]`), et dire **où il se
+monte** (table `MONTAGE`, `pasSur` à `null` quand rien n'est connu). Les deux sont
+affichés, jamais imposés : une position suggérée ouvre la fiche avec son nom déjà écrit,
+et rien n'entre au catalogue sans que l'utilisateur enregistre.
 
 #### Trois niveaux de source, et chacun NOMME qui parle
 

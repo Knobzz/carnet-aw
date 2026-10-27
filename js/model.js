@@ -1006,7 +1006,7 @@
                 'extenseurs_doigts'] },
     { nom: 'Rising',
       aussi: ['Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
-              'Cable rising', 'Rising à la poulie', 'Rising à la sangle'],
+              'Cable rising', 'Rising à la poulie'],
       muscles: ['fcr', 'ecrl', 'ecrb'] },
     { nom: 'Déviation ulnaire',
       aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation',
@@ -1014,7 +1014,7 @@
       muscles: ['fcu', 'ecu'] },
     { nom: 'Pronation',
       aussi: ['Poignée de pronation', 'Pronation à la poulie',
-              'Cable pronation', 'Pronation à la sangle'],
+              'Cable pronation'],
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination',
       aussi: ['Supination à la clé'],
@@ -1068,7 +1068,7 @@
        Ces exercices sont des COMPOSITIONS de gestes deja sources : la
        deviation radiale, la pronation, le cupping, la prise. */
     { nom: 'Toproll à la poulie',
-      aussi: ['Cable toproll', 'Toproll à la sangle'],
+      aussi: ['Cable toproll'],
       muscles: ['rond_pronateur', 'fcr', 'flechisseurs_doigts',
                 'carre_pronateur', 'ecrl', 'ecrb'] },
     /* Le hook se tient en SUPINATION — tranche par MB contre un article de
@@ -1076,7 +1076,7 @@
        en REEDUCATION d'une epicondylite, et sa pronation decrit
        vraisemblablement la charge qui les a blesses. */
     { nom: 'Hook à la poulie',
-      aussi: ['Cable hook', 'Hook à la sangle'],
+      aussi: ['Cable hook'],
       muscles: ['biceps', 'brachial', 'fcr', 'long_palmaire', 'fcu',
                 'flechisseurs_doigts', 'supinateur',
                 'long_flechisseur_pouce'] },
@@ -1142,7 +1142,7 @@
       aussi: ['Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ',
               'Curl debout', 'Curl à la poulie', 'Cable curl',
               'Curl incliné', 'Incline curl', 'Spider curl', 'Curl araignée',
-              'Drag curl', 'Curl 21', 'Bayesian curl', 'Curl à la sangle'],
+              'Drag curl', 'Curl 21', 'Bayesian curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl concentré',
       aussi: ['Concentration curl', 'Curl concentration'],
@@ -1627,7 +1627,354 @@
   }
 
   /* Ce que les mouvements d'un exercice proposent, et d'ou ca vient. */
-  function musclesProposes(forces, prise, nom, musclesReglage) {
+  /* ---------- CE QUE L'OUTIL AJOUTE, CINQUIEME SOURCE ----------
+
+     MB, 2026-10-26 : « si je rajoute un mouvement deja enregistre, si je
+     rajoute l'equipement fat grip, ca rajoutera ou mettra l'accent sur un
+     certain groupe de muscle ». Apres le reglage, le nom, la prise et les
+     forces, l'OUTIL lui-meme propose.
+
+     CE N'EST PAS UN CATALOGUE DE PRODUITS. Le catalogue d'outils reste
+     implicite : rien n'est livre, la liste se construit avec ce qui est
+     saisi. Cette table ne fait que RECONNAITRE des mots, et chaque mot
+     retenu apparait sur AU MOINS DEUX sites independants — goldengrip.com
+     et mithrilarmwrestling.com. C'est un TYPE de materiel, pas une
+     reference de marque. Un outil qu'elle ne connait pas passe sans rien
+     ajouter, et c'est le REGLAGE qui prend le relais, comme avant.
+
+     ET ELLE N'AJOUTE AUCUNE ANATOMIE NEUVE. Les poignees de bras de fer
+     portent le nom du GESTE qu'elles entrainent, et Mithril range tout son
+     catalogue ainsi : « Hook Training », « Toproll Training », « Cupping
+     and Wrist Flexion », « Pronation and Rising », « Thick Grip Handles ».
+     Chaque outil renvoie donc a une entree DEJA sourcee du dictionnaire.
+
+     UNE SEULE EXCEPTION, et c'est la seule mesuree directement : la PRISE
+     EPAISSE. Krings et al., J Strength Cond Res 2021, EMG sur 15 hommes
+     entraines : « EMG muscle activity was significantly increased in the
+     forearm [...] during deadlift, bent-over row, and pull-ups ». Les
+     quatre muscles du poignet mesures sont ceux-la. L'etude ajoute
+     « however, there were no differences [...] for concentration curl » :
+     sur un curl, le manchon ne change rien, et la table proposera quand
+     meme — le carnet PROPOSE, il n'impose pas, et on decoche.
+
+     CE QUI N'Y EST PAS : la SANGLE. Trois etudes, trois directions — -16 %
+     a l'avant-bras sur l'arrache, aucun effet sur le souleve de terre, et
+     une sur le tirage qui contredit l'hypothese de fatigue. On n'en fait
+     pas une regle. */
+  /* LES NOMS DE PRODUITS, ajoutes le 2026-10-27 a la demande de MB :
+     « dans mots reconnus, tu mets le nom exact de chaque equipement ».
+
+     CE QUE CA CHANGE, ET IL FAUT LE DIRE : la table passe d'un vocabulaire
+     GENERIQUE a des noms de MARQUE. Le critere que j'avais pose — un mot
+     n'entre que s'il est vu sur deux sites independants — ne s'applique
+     plus a ces mots-la : ils sont la parce que MB les TAPE.
+
+     ON ECRIT LE MOT DISTINCTIF, PAS LE NOM ENTIER. « multispinner » attrape
+     le 65 mm ET le 90 mm ; « Multispinner 65mm » n'attraperait qu'une
+     reference, et il en sortirait une autre le mois prochain. Un banc
+     mesure que chaque nom de produit releve est bien reconnu.
+
+     QUATRE SITES : goldengrip.com, mithrilarmwrestling.com, titangrip.de,
+     wristball.net (ARMSPORT). Seuls les NEUF types deja poses sont
+     enrichis — les seize candidats attendent la decision de MB. */
+  var OUTILS_CONNUS = [
+    { mots: ['fat grip', 'fat gripz', 'thick grip', 'thick grips',
+             'prise epaisse', 'barre epaisse', 'manchon', 'manchons',
+             'axle bar', 'hand grips', 'hantelgriffe', 'round handle',
+             'multihandle', 'cylinder grip', 'cylinder handle',
+             'brick handles'],
+      muscles: ['fcr', 'fcu', 'ecrl', 'ecrb', 'ecu'] },
+    { mots: ['pronator', 'pronateur', 'popeye', 'multipuller',
+             'death roll', 'pronation handle'],
+      entrees: ['Pronation'] },
+    { mots: ['riser', 'rising', 'rising buddy'], entrees: ['Rising'] },
+    { mots: ['cup', 'cupping', 'opticup', 'kings cup'],
+      entrees: ['Cup hold'] },
+    { mots: ['toproll', 'anti toproll', 'ergopuller'],
+      entrees: ['Toproll à la poulie'] },
+    { mots: ['hook', 'heavy hook'], entrees: ['Hook à la poulie'] },
+    { mots: ['pinch', 'pince', 'blob', 'globe', 'cannonball', 'coinlift',
+             'saxon bar'],
+      entrees: ['Pince'] },
+    /* Le MULTISPINNER tourne : les deux sens de rotation. Golden Grip et
+       Mithril le vendent tous les deux sous ce nom. */
+    { mots: ['multispinner', 'multi spinner', 'spinner'],
+      entrees: ['Pronation', 'Supination'] },
+    /* Le ROULEAU DE POIGNET enroule une corde : le poignet flechit ET
+       s'etend. « roller » seul est ecarte — une « rolling row handle » est
+       une poignee de tirage, pas un rouleau de poignet. */
+    { mots: ['wrist roller', 'rouleau de poignet', 'power roller',
+             'forearm roller'],
+      entrees: ['Wrist curl', 'Wrist curl inversé'] },
+
+    /* ---- LES SIX TYPES VALIDES PAR MB LE 27/10 ----
+
+       Tries sur 228 produits de quatre sites : 88 sont du materiel, 37
+       etaient deja reconnus, et le reste tombait de lui-meme — sangles,
+       grippers, elastiques de doigts et farmer walk sont DEJA des
+       mouvements au dictionnaire, les barres et les batis sont des
+       supports. MB : « les 6 types me vont ». */
+
+    /* Elle tourne toute seule, et la main doit l'empecher de s'echapper.
+       Base : la fiche Titangrip de l'Iron Wrist — « der Athlet muss viel
+       Unterarmkraft aufwenden um zu verhindern, dass der Griff aus der Hand
+       herausrotiert […] eine stabile Pronation oder Supination aufrecht
+       erhalten ». Palier terrain, pas EMG. */
+    { mots: ['iron wrist', 'rolling handle', 'rolling row'],
+      muscles: ['flechisseurs_doigts'],
+      entrees: ['Pronation', 'Supination'],
+      /* ELLE AUSSI PORTE SES POSITIONS, et c'est MB qui l'a vu le 27/10 :
+         « tu as oublie des equipements qui peuvent avoir ce reglage ». La
+         photo du fabricant le montre sans ambiguite — une platine inox a
+         TROIS trous en colonne, les deux sangles rivetees en haut et en
+         bas, le mousqueton dans l'un des trois. Et Titangrip l'ecrit :
+         « Durch die verschiedenen Einstellungsmoeglichkeiten laesst sich
+         die Belastung so veraendern ».
+
+         LES NOMS DISENT CE QU'ON VOIT, pas ce qu'on en deduit : les trous
+         sont EMPILES, pas lateraux — « en haut / au milieu / en bas », et
+         non « exterieur / interieur » comme sur la cle. Un nom qui decrit
+         la mecanique qu'on suppose, au lieu de l'objet qu'on tient, se
+         retrouve faux le jour ou la supposition tombe.
+
+         SANS MUSCLES, et ici ce n'est PAS pour la meme raison que la cle.
+         Sur la cle, les muscles des deux bords etaient deja dans les dix
+         proposes — mesure. Ici ils MANQUENT tous les cinq : une position
+         chargee du bord du pouce ajouterait vraiment trois muscles. Mais
+         AUCUNE source ne dit quel bord charge quel trou — ni Titangrip, qui
+         s'arrete a « la charge change ». Les poser serait les deviner. Ils
+         restent donc a l'utilisateur, qui tient l'outil. */
+      reglages: ['Mousqueton en haut', 'Mousqueton au milieu',
+                 'Mousqueton en bas'] },
+
+    /* Un levier au bout du poignet. MB, 27/10 : « on peut mettre le
+       mousqueton au centre, a l'exterieur ou a l'interieur, ce qui va
+       influencer sur les muscles sollicites ». C'est vrai, et c'est
+       exactement ce que le champ REGLAGE sert a noter — voir le commentaire
+       de `reglagesOutil`. Le TYPE porte donc ce que la cle fait dans tous
+       les cas : le poignet flechit et s'etend contre le levier. Le bord
+       choisi, lui, se note au reglage.
+
+       MB, 27/10, suite : « propose les trois positions de mousqueton en
+       reglages ». Elles sont donc SUGGEREES ici — le type les nomme, la
+       fiche de l'outil les offre d'un appui, et c'est encore l'utilisateur
+       qui enregistre. Rien ne se cree tout seul : un catalogue qui se
+       remplit sans lui n'est plus le sien.
+
+       ET ELLES NE PORTENT AUCUN MUSCLE, parce que c'est MESURE : tout ce
+       qu'un bord accentue — « Rising » cote pouce, « Deviation ulnaire »
+       cote petit doigt — est DEJA dans les dix muscles que la cle propose
+       par ses deux entrees. Les y recopier n'ajouterait pas un muscle, et
+       ferait passer le libelle de « d'apres l'outil » a « d'apres ce qui
+       est renseigne » : une perte, pas un gain. Un controle du banc tient
+       cette inclusion, et tombera si les entrees du type changent. Le
+       reglage vaut donc ici pour ce qu'il est : une ETIQUETTE qui distingue
+       deux seances au journal. L'utilisateur peut y cocher ses muscles
+       quand il voudra — la fiche le permet depuis toujours. */
+    { mots: ['wrist wrench', 'wrench', 'optiwrench'],
+      entrees: ['Wrist curl', 'Wrist curl inversé'],
+      reglages: ['Mousqueton au centre', 'Mousqueton à l’extérieur',
+                 'Mousqueton à l’intérieur'] },
+
+    /* Le diametre change sur la longueur : la main glisse vers le gros
+       bout si elle ne tient pas. RAISONNE — l'etude de Krings mesure le
+       MANCHON, pas le cone, et je ne lui fais pas dire plus. */
+    { mots: ['cone', 'conic', 'kegel'],
+      muscles: ['flechisseurs_doigts'] },
+
+    /* L'axe de charge n'est pas au centre de la main : le poignet resiste
+       a une torsion permanente. RAISONNE. */
+    { mots: ['eccentric', 'excentre', 'excentree'],
+      entrees: ['Pronation', 'Supination'] },
+
+    /* La prise glisse expres. RAISONNE : c'est la definition du geste. */
+    { mots: ['slippery', 'towel', 'serviette'],
+      muscles: ['flechisseurs_doigts'] },
+
+    /* Le pouce seul. Les cinq muscles sont ceux que la prise FERMEE
+       propose deja — meme raisonnement, meme liste, pas une mesure. */
+    { mots: ['thumb', 'pouce'],
+      muscles: ['long_flechisseur_pouce', 'court_flechisseur_pouce',
+                'court_abducteur_pouce', 'opposant_pouce',
+                'adducteur_pouce'] },
+
+    /* LA CEINTURE DE JUDO — MB, 27/10 : « on va retirer pour les mouvements
+       ceux qui ont sangle, et tu rajouteras ceinture de judo dans
+       equipement ». C'est le bon rangement, et il corrige le sien du 26/10
+       (« on a deja les mouvements avec sangle, donc ceinture de judo peut
+       sauter ») : la sangle n'est pas un geste, c'est ce par quoi on tient
+       la charge. Cinq ecritures « ... a la sangle » ont donc quitte le
+       dictionnaire le meme jour.
+
+       ELLE NE PROPOSE AUCUN MUSCLE, et c'est le seul type dans ce cas. Ce
+       n'est pas un oubli : trois etudes sur la sangle vont dans trois
+       directions (−16 % a l'avant-bras a l'arrache, aucun effet au souleve
+       de terre, l'hypothese de fatigue contredite au tirage), et la fiche
+       de revue le detaille. Comme la poulie et l'elastique, elle change ce
+       qu'on TIENT, pas ce qui travaille — et le geste, lui, est deja nomme
+       par l'exercice. Elle entre pour etre RECONNUE : celui qui tape
+       « ceinture de judo » doit voir que le carnet sait ce que c'est.
+
+       MB ajoute : « cette derniere se met generalement sur une poulie ».
+       C'est de la compatibilite, et elle s'ecrit dans la fiche (`monte`),
+       la ou vivent deja les autres — le modele ne refuse rien a personne. */
+    { mots: ['ceinture de judo', 'judo belt', 'sangle', 'strap',
+             'trainingsgurt'] },
+
+    /* LA CORDE — MB, 27/10 : « celle avec les deux boules au bout, pour
+       faire du curl, extensions & cie, utilisee generalement sur poulie ».
+
+       AUCUN MUSCLE, pour la meme raison que la ceinture : elle ne decide
+       pas du geste. MB le dit lui-meme en la decrivant — « curl,
+       extensions & cie » : le meme objet sert a flechir le coude et a
+       l'etendre, donc a des muscles OPPOSES. C'est l'exercice qui nomme le
+       travail, pas l'accessoire.
+
+       Ce qu'elle impose, c'est une PRISE NEUTRE — les deux brins tombent
+       verticalement, paume ni au sol ni au plafond (les mots de MB le
+       15/10 sur le curl rising). Le carnet a deja un champ `prise` et une
+       entree « Curl marteau » pour ca : lui faire porter des muscles ici
+       ferait proposer du biceps a une extension triceps. */
+    { mots: ['corde', 'rope', 'tricep rope', 'triceps rope',
+             'corde de triceps'] }
+  ];
+
+  function entreeDuDictionnaire(nom) {
+    for (var i = 0; i < DICTIONNAIRE.length; i++) {
+      if (DICTIONNAIRE[i].nom === nom) return DICTIONNAIRE[i];
+    }
+    return null;
+  }
+
+  /* Les TYPES qu'un nom d'outil fait reconnaitre. C'est le SEUL endroit
+     qui decide ce qui touche quoi : la meme boucle vivait en deux
+     exemplaires jusqu'au 27/10, et deux copies d'une regle finissent par
+     diverger.
+
+     ET « RECONNU » N'EST PAS « PROPOSE DES MUSCLES ». La ceinture de judo
+     l'a rendu visible le 27/10 : elle est reconnue et ne propose rien,
+     parce qu'une sangle change ce qu'on tient, pas ce qui travaille. Un
+     controle de la planche confondait les deux et l'aurait declaree
+     introuvable. */
+  function typesDeLOutil(nomOutil) {
+    var s = slug(nomOutil), l = [];
+    if (!s) return l;
+    OUTILS_CONNUS.forEach(function (k) {
+      var touche = k.mots.some(function (mot) {
+        return new RegExp(motifDuMot(mot)).test(s);
+      });
+      if (touche) l.push(k);
+    });
+    return l;
+  }
+
+  /* OU CHAQUE TYPE SE MONTE — demande de MB du 26/10, ecrite dans la
+     revue depuis et livree le 27/10 : « beaucoup d'equipement ne peuvent
+     s'ajouter qu'a la poulie, les fat grips peuvent s'ajouter sur de la
+     barre, des dumbbells et autres poignees, mais pas sur tout ».
+
+     LE CARNET NE REFUSE RIEN. Il DIT, et c'est tout : interdire une
+     combinaison ferait de ce tableau un juge, alors qu'il n'est qu'un
+     releve. Celui qui a trouve un montage que je ne connais pas a raison
+     contre moi.
+
+     Table a part pour garder `OUTILS_CONNUS` lisible ; la cle est le
+     PREMIER mot du type, et un controle du banc exige que les deux listes
+     se correspondent EXACTEMENT — une table a cote qui derive en silence,
+     c'est le piege n 5.
+
+     `pasSur` est a `null` quand rien n'est connu, et le carnet se tait
+     alors : treize des dix-sept sont dans ce cas. Ecrire « rien de connu »
+     a l'ecran serait du bruit, et l'inventer serait pire. */
+  var MONTAGE = {
+    'fat grip': {
+      monte: 'Barre, haltères, poignée de poulie, barre de traction — '
+           + 'partout où la main entoure un cylindre.',
+      pasSur: 'Une sangle : il n’y a rien à grossir. Un gripper non plus — '
+            + 'sa poignée est sa mesure.' },
+    'pronator': { monte: 'Poulie, sangle, ou chargée à la plaque.', pasSur: null },
+    'riser': { monte: 'Poulie ou sangle.', pasSur: null },
+    'cup': { monte: 'Poulie ou sangle.', pasSur: null },
+    'toproll': { monte: 'Poulie ou table.', pasSur: null },
+    'hook': { monte: 'Poulie, sangle ou table.', pasSur: null },
+    'pinch': {
+      monte: 'Se soulève, ou se charge à la plaque.',
+      pasSur: 'Une barre : on ne pince pas ce qu’on entoure.' },
+    'multispinner': { monte: 'Poulie ou sangle.', pasSur: null },
+    'wrist roller': { monte: 'Se suspend, ou se monte sur un rack.', pasSur: null },
+    'iron wrist': { monte: 'Poulie, sangle, ou chargée sur un loading pin.', pasSur: null },
+    'wrist wrench': { monte: 'Poulie, ou chargée à la plaque au bout du levier.', pasSur: null },
+    'cone': { monte: 'Poulie ou sangle.', pasSur: null },
+    'eccentric': { monte: 'Poulie ou sangle.', pasSur: null },
+    'slippery': { monte: 'Poulie, sangle, ou passée sur une barre.', pasSur: null },
+    'ceinture de judo': {
+      monte: 'Surtout la poulie ; aussi autour d’une barre ou d’un montant.',
+      pasSur: 'Pas de prise épaisse par-dessus : il n’y a rien à épaissir.' },
+    'corde': {
+      monte: 'La poulie.',
+      pasSur: 'Pas de prise épaisse par-dessus : il n’y a pas de poignée à '
+            + 'épaissir.' },
+    'thumb': { monte: 'Sangle au pouce, ou outil tenu à deux.', pasSur: null }
+  };
+
+  /* Ce qu'on sait du montage d'un nom d'outil — un enregistrement par type
+     reconnu, parce qu'un outil qui porte deux mots connus se monte des deux
+     facons. */
+  function montageDeLOutil(nomOutil) {
+    var l = [];
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      var m = MONTAGE[k.mots[0]];
+      if (m) l.push({ type: k.mots[0], monte: m.monte, pasSur: m.pasSur || null });
+    });
+    return l;
+  }
+
+  /* LES MOTS qui ont fait reconnaitre ce nom. `typesDeLOutil` dit QUELS
+     types ; celle-ci dit POURQUOI, et c'est ce qu'on montre a l'utilisateur.
+     « Reconnu : iron wrist » lui APPREND ce que le carnet a lu dans son
+     nom, au lieu de lui demander de croire — et quand il renomme son outil
+     et que la ligne s'eteint, il voit tout de suite ce qu'il a perdu.
+
+     L'ordre est celui des types, puis celui des mots du type : stable d'un
+     affichage a l'autre, ce qui evite qu'une meme fiche se lise differemment
+     deux fois de suite. */
+  function motsReconnus(nomOutil) {
+    var s = slug(nomOutil), vus = {}, l = [];
+    if (!s) return l;
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      /* UN SEUL MOT PAR TYPE, et le PLUS LONG. « Golden Grip Wrist
+         Wrench » touche « wrist wrench » ET « wrench » : les montrer tous
+         les deux n'apprend rien et se lit comme deux reconnaissances. On
+         garde le plus precis — celui qui dit le mieux ce qu'on tient. */
+      var choisi = '';
+      k.mots.forEach(function (mot) {
+        if (!new RegExp(motifDuMot(mot)).test(s)) return;
+        if (mot.length > choisi.length) choisi = mot;
+      });
+      if (!choisi || vus[choisi]) return;
+      vus[choisi] = 1;
+      l.push(choisi);
+    });
+    return l;
+  }
+
+  function musclesDeLOutil(outils) {
+    var ids = [];
+    (outils || []).forEach(function (o) {
+      typesDeLOutil(o).forEach(function (k) {
+        (k.muscles || []).forEach(function (id) { ids.push(id); });
+        (k.entrees || []).forEach(function (nom) {
+          var d = entreeDuDictionnaire(nom);
+          /* Une entree renommee casserait la table en silence : le banc le
+             dit, par un controle qui exige que chaque nom cite existe. */
+          if (d) (d.muscles || []).forEach(function (id) { ids.push(id); });
+        });
+      });
+    });
+    return muscles({ muscles: ids });
+  }
+
+  function musclesProposes(forces, prise, nom, musclesReglage, outils) {
     var vus = {}, l = [], sources = {};
 
     /* Le réglage d'abord, à égalité avec le nom : c'est l'utilisateur qui a
@@ -1640,6 +1987,11 @@
     /* Le nom d'abord : c'est ce que l'utilisateur a ECRIT lui-meme, donc la
        source la moins contestable des trois. */
     musclesDuNom(nom).forEach(function (m) { vus[m] = 1; sources.nom = true; });
+    /* L'OUTIL, cinquieme source — voir OUTILS_CONNUS. */
+    musclesDeLOutil(outils).forEach(function (m) {
+      if (!muscle(m)) return;
+      vus[m] = 1; sources.outil = true;
+    });
     /* Une prise fermee fait travailler les flechisseurs des doigts. C'est la
        definition de serrer, pas une interpretation. */
     /* UNE PRISE OUVERTE SERRE QUAND MEME. Les doigts tiennent sans le
@@ -1681,13 +2033,14 @@
     MUSCLES.forEach(function (m) { if (vus[m.id]) ordonne.push(m.id); });
     var nb = (sources.nom ? 1 : 0) + (sources.anatomie ? 1 : 0)
            + (sources.a_verifier ? 1 : 0) + (sources.terrain ? 1 : 0)
-           + (sources.reglage ? 1 : 0);
+           + (sources.reglage ? 1 : 0) + (sources.outil ? 1 : 0);
     var source = nb > 1 ? 'mixte'
+               : (sources.outil ? 'outil'
                : (sources.reglage ? 'reglage'
                : (sources.nom ? 'nom'
                : (sources.anatomie ? 'anatomie'
                : (sources.a_verifier ? 'a_verifier'
-               : (sources.terrain ? 'terrain' : null)))));
+               : (sources.terrain ? 'terrain' : null))))));
     return { muscles: ordonne, source: source };
   }
 
@@ -2102,6 +2455,30 @@
     var l = reglagesOutil(etat, nomOutil);
     for (var i = 0; i < l.length; i++) if (l[i].slug === cible) return l[i];
     return null;
+  }
+
+  /* Les réglages que le TYPE d'outil reconnu suggère — rien de plus qu'une
+     liste de NOMS. Une clé de poignet se monte le mousqueton au centre, à
+     l'extérieur ou à l'intérieur ; l'utilisateur n'a pas à retrouver les
+     trois mots lui-même, et il n'a pas non plus à subir trois réglages
+     qu'il n'a pas voulus — c'est pourquoi on SUGGÈRE.
+
+     Ceux qui existent déjà sur l'outil sont retirés : proposer « Mousqueton
+     au centre » à côté du « Mousqueton au centre » qu'on vient de créer est
+     la façon la plus sûre d'en obtenir deux. Sans `etat`, pas de filtre :
+     la fonction reste mesurable seule. */
+  function reglagesProposes(etat, nomOutil) {
+    var noms = [], vus = {};
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      (k.reglages || []).forEach(function (n) {
+        var cle = slug(n);
+        if (vus[cle]) return;
+        vus[cle] = 1;
+        noms.push(n);
+      });
+    });
+    if (!etat) return noms;
+    return noms.filter(function (n) { return !trouverReglage(etat, nomOutil, n); });
   }
 
   /* Pose ou met à jour un réglage. `id` sert au renommage : sans lui, changer
@@ -3663,6 +4040,9 @@
     imageDuMuscle: imageDuMuscle, musclesSansImage: musclesSansImage,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
+    musclesDeLOutil: musclesDeLOutil, OUTILS_CONNUS: OUTILS_CONNUS,
+    typesDeLOutil: typesDeLOutil, motsReconnus: motsReconnus,
+    MONTAGE: MONTAGE, montageDeLOutil: montageDeLOutil,
     sourceDuMouvement: sourceDuMouvement,
     chargeParMuscle: chargeParMuscle,
     musclesParMouvement: musclesParMouvement, chargeEpicondyle: chargeEpicondyle,
@@ -3697,6 +4077,7 @@
     musclesDesZones: musclesDesZones,
     outilProche: outilProche,
     reglagesOutil: reglagesOutil, trouverReglage: trouverReglage,
+    reglagesProposes: reglagesProposes,
     majReglageOutil: majReglageOutil, supprimerReglageOutil: supprimerReglageOutil,
     reglageDe: reglageDe, poserReglage: poserReglage, reglagesPortes: reglagesPortes,
     outilDit: outilDit,

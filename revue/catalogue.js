@@ -230,6 +230,15 @@
       revu: null,
       lien: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC13029269/'
     },
+    krings2021: {
+      qui: 'Krings, Shepherd, Swain, Turner, Chander, Waldman, McAllister, '
+         + 'Knight & Smith — « Impact of Fat Grip Attachments on Muscular '
+         + 'Strength and Neuromuscular Activation During Resistance '
+         + 'Exercise », J Strength Cond Res 2021, EMG sur 15 hommes '
+         + 'entraînés, huit muscles, cinq exercices',
+      revu: null,
+      lien: 'https://pubmed.ncbi.nlm.nih.gov/30694963/'
+    },
     tractions2017: {
       qui: 'Dickie, Faulkner, Barnes, Lark — J Electromyogr Kinesiol 2017, '
          + 'EMG sur 19 hommes entraînés, quatre prises comparées',
@@ -358,6 +367,12 @@
                     + 'complex during complete repetitions of pull-up '
                     + 'variants are similar despite varying hand '
                     + 'orientations',
+    fatgrip: 'Electromyography muscle activity was significantly increased '
+           + 'in the forearm and shoulder muscles, but significantly '
+           + 'decreased in the upper arm muscles with the use of FG during '
+           + 'deadlift, bent-over row, and pull-ups',
+    fatgrip_curl: 'However, there were no differences for EMG activity for '
+                + 'upright row and concentration curl',
     chin_biceps: 'In a mixed sample of 21 men and 4 women, supinated grips '
                + 'elicited greater biceps brachii and pectoralis major EMG '
                + 'amplitude, whereas pronated grips were associated with '
@@ -1316,6 +1331,12 @@
           + 'écrit elle-même « this remains unreplicated ». Le seul rang '
           + 'que je bouge est celui du BICEPS, que deux sources '
           + 'rapportent. — '
+          + 'CE QUI MANQUE ENCORE ICI, et MB l’a nomme le 26/10 : les '
+          + 'PARTIAL PULL UPS — on tient l’isometrie et on fait des '
+          + 'moities, ce qui met l’accent sur le coude et l’avant-bras. '
+          + 'Rien n’a ete cherche : c’est a faire quand on reviendra '
+          + 'aux mouvements, apres l’equipement. Ecrit ici parce que '
+          + 'c’est la qu’on le cherchera. — '
           + 'Dickie et al. 2017 '
           + 'comparent supination, pronation, prise neutre et corde sur '
           + 'dix-neuf hommes entraînés : le SEUL écart significatif porte '

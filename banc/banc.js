@@ -2468,8 +2468,241 @@
     v.egal(mixte.source, 'mixte', 'mêlée à une autre source, elle se dit « mixte »');
     v.vrai(mixte.muscles.indexOf('biceps') >= 0 && mixte.muscles.indexOf('fcr') >= 0,
            'et les deux sources se cumulent');
+    /* ---- L'OUTIL, CINQUIEME SOURCE ----
+       MB, 2026-10-26 : l'equipement ajoute ses muscles a un exercice qu'on
+       a deja. La table ne connait que des TYPES, pas des references : un
+       outil inconnu passe sans rien ajouter. */
+    var sansOutil = A.m.musclesProposes([], null, 'Pull up', null, []);
+    var avecGros = A.m.musclesProposes([], null, 'Pull up', null, ['Fat Gripz']);
+    v.egal(avecGros.muscles.filter(function (id) {
+             return sansOutil.muscles.indexOf(id) < 0;
+           }).join(','), 'fcr,fcu,ecrl,ecrb,ecu',
+           'une prise épaisse ajoute les CINQ muscles du poignet : la '
+         + 'traction n’en portait aucun, pas même les radiaux — je le '
+         + 'croyais, ce contrôle m’a détrompé');
+    v.egal(A.m.musclesProposes([], null, 'Travail', null,
+                               ['Popeye Pronator']).source, 'outil',
+           'et quand l’outil est la SEULE source, le bouton le dira');
+    v.egal(A.m.musclesProposes([], null, 'Travail', null,
+                               ['Strap Handle 60mm']).muscles.length, 0,
+           'un outil que la table ne connaît pas n’ajoute rien : le catalogue '
+         + 'd’outils reste implicite');
+    v.egal(A.m.musclesDeLOutil(['Multispinner 65mm']).join(','),
+           A.m.musclesDeLOutil(['multi spinner']).join(','),
+           'la casse et l’orthographe du modèle ne changent rien');
+
+    /* LA GARDE QUI COMPTE : la table cite des entrees du dictionnaire par
+       leur NOM. Un renommage — il y en a eu douze le 26/10 — la casserait
+       EN SILENCE, puisqu'une entree introuvable n'ajoute simplement rien. */
+    var citees = [];
+    A.m.OUTILS_CONNUS.forEach(function (k) {
+      (k.entrees || []).forEach(function (nom) { citees.push(nom); });
+    });
+    var fantomes = citees.filter(function (nom) {
+      return !A.m.DICTIONNAIRE.some(function (d) { return d.nom === nom; });
+    });
+    v.egal(fantomes.join(', '), '',
+           'chaque entrée citée par la table des outils existe vraiment : '
+         + 'un renommage la casserait sans bruit (' + citees.length + ' citées)');
+    v.vrai(citees.length >= 5,
+           '[temoin] et la table en cite au moins cinq, sinon le contrôle '
+         + 'ci-dessus serait vrai pour rien');
+
+    /* ---- LES SIX TYPES VALIDES PAR MB LE 27/10 ----
+       Tries sur 228 produits de quatre sites. Ces controles tombent si un
+       type perd ses mots, et le dernier tient une regle de LECTURE qu on
+       pourrait casser sans la voir. */
+    [['Iron Wrist', 5], ['Rolling Handle', 5], ['Wrist Wrench', 10],
+     ['Cone handle', 1], ['Eccentric Handle', 4],
+     ['Soft & Slippery Handle', 1], ['Thumb Belt', 5]
+    ].forEach(function (x) {
+      v.egal(A.m.musclesDeLOutil([x[0]]).length, x[1],
+             '« ' + x[0] + ' » est reconnu et ajoute ' + x[1] + ' muscle(s)');
+    });
+
+    /* La cle de poignet couvre les DEUX sens : le levier fait flechir ET
+       etendre. Si elle ne prenait qu un sens, ce controle tomberait. */
+    var cle = A.m.musclesDeLOutil(['Wrist Wrench']);
+    v.vrai(cle.indexOf('fcr') >= 0 && cle.indexOf('ecrl') >= 0,
+           'la clé de poignet prend les fléchisseurs ET les extenseurs : le '
+         + 'levier travaille dans les deux sens');
+
+    /* Le pouce ne propose QUE du pouce : un mot trop gourmand se verrait.
+       LU PAR BLOC : ce controle etait VRAI A VIDE — en retirant le type, la
+       liste devenait vide et le filtre aussi. Il exige donc d abord qu il y
+       ait quelque chose a filtrer. */
+    v.vrai(A.m.musclesDeLOutil(['Thumb Pump']).length > 0,
+           '[temoin] un outil de pouce propose quelque chose — sans quoi le '
+         + 'controle suivant serait vrai pour rien');
+    v.egal(A.m.musclesDeLOutil(['Thumb Pump']).filter(function (id) {
+             return !/pouce/.test(id);
+           }).join(','), '',
+           'un outil de pouce ne propose que des muscles du pouce');
+
+    /* UN OUTIL PEUT PORTER DEUX MOTS, et il prend alors les deux jeux.
+       « Eccentric Round Anti-Toproll » est les deux a la fois, donc c est
+       juste — mais c est une regle de lecture, et elle doit etre tenue. */
+    var deux = A.m.musclesDeLOutil(['Eccentric Round Anti-Toproll']);
+    var exc = A.m.musclesDeLOutil(['Eccentric Handle']);
+    var atr = A.m.musclesDeLOutil(['Anti-Toproll V3']);
+    /* LU PAR BLOC : la premiere ecriture comparait deux longueurs, et elle
+       tenait des que l UN des deux types existait. On exige maintenant
+       l UNION des deux — elle ne peut etre vraie que si les DEUX sont la. */
+    v.vrai(exc.length > 0 && atr.length > 0,
+           '[temoin] les deux types existent — sans quoi l union ci-dessous '
+         + 'serait vraie pour rien');
+    v.egal(deux.join(','),
+           A.m.muscles({ muscles: exc.concat(atr) }).join(','),
+           'un outil qui porte DEUX mots connus prend l’UNION des deux jeux, '
+         + 'pas le premier trouvé');
+
     v.egal(A.m.musclesProposes([], null, '', ['zzz']).muscles.length, 0,
            'un muscle inconnu posé sur un réglage ne passe pas');
+
+    /* ---- LA CEINTURE DE JUDO (MB, 27/10) ----
+
+       RECONNU n'est pas PROPOSE DES MUSCLES. Ce type est le seul a etre
+       l'un sans l'autre, et c'est la source qui l'impose : trois etudes,
+       trois directions. Il entre pour que celui qui tape « ceinture de
+       judo » voie que le carnet sait ce que c'est. */
+    v.egal(A.m.typesDeLOutil('Ceinture de judo').length, 1,
+           'une ceinture de judo est RECONNUE');
+    v.egal(A.m.musclesDeLOutil(['Ceinture de judo']).length, 0,
+           'et elle ne propose AUCUN muscle — une sangle change ce qu’on '
+         + 'tient, pas ce qui travaille');
+    v.egal(A.m.typesDeLOutil('Sangle maison').length, 1,
+           'le mot « sangle » suffit : du matériel fait maison se reconnaît');
+    v.egal(A.m.typesDeLOutil('Poignée sans nom connu').length, 0,
+           'et un nom qu’aucun type ne revendique n’est reconnu par rien');
+
+    /* LA CORDE, meme famille : un accessoire de LIAISON ne decide pas du
+       geste. MB l'a demontre en la decrivant — « curl, extensions & cie »,
+       donc des muscles opposes avec le meme objet. */
+    v.egal(A.m.typesDeLOutil('Corde à poulie').length, 1,
+           'une corde est RECONNUE');
+    v.egal(A.m.musclesDeLOutil(['Corde à poulie']).length, 0,
+           'et elle n’ajoute aucun muscle — le même objet sert au curl ET à '
+         + 'l’extension, donc à des muscles opposés');
+    var sansMuscle = A.m.OUTILS_CONNUS.filter(function (k) {
+      return !A.m.musclesDeLOutil([k.mots[0]]).length;
+    }).map(function (k) { return k.mots[0]; });
+    v.egal(sansMuscle.sort().join(' · '), 'ceinture de judo · corde',
+           'DEUX types seulement ne proposent rien, et ce sont les deux '
+         + 'accessoires de liaison — toute autre entrée dans cette liste '
+         + 'serait un oubli, pas un choix');
+
+    /* UN SEUL ENDROIT DECIDE : si `typesDeLOutil` ne voit rien, ni les
+       muscles ni les reglages ne peuvent apparaitre. Les trois etaient
+       trois boucles separees avant le 27/10. */
+    var muets = ['Poignée sans nom connu', 'zzz', ''];
+    v.egal(muets.filter(function (x) {
+      return A.m.typesDeLOutil(x).length === 0
+          && (A.m.musclesDeLOutil([x]).length || A.m.reglagesProposes(null, x).length);
+    }).join(','), '',
+           'aucun nom non reconnu ne propose de muscle ni de réglage — la '
+         + 'reconnaissance se décide en UN seul endroit');
+
+    /* ---- CE QUE LE CARNET DIT AVOIR LU (MB, 27/10) ----
+
+       « Montre dans l'app quand l'outil est reconnu, meme sans muscle. »
+       La ligne nomme les MOTS lus : un verdict nu n'apprend rien. */
+    v.egal(A.m.motsReconnus('Titan Grip Iron Wrist 60 mm').join(' · '),
+           'iron wrist',
+           'le carnet dit QUEL mot il a lu dans le nom');
+    v.egal(A.m.motsReconnus('Ceinture de judo').join(' · '), 'ceinture de judo',
+           'et il le dit AUSSI quand l’outil n’ajoute aucun muscle — sans '
+         + 'quoi une ceinture reconnue ressemblerait à un nom inconnu');
+    v.egal(A.m.motsReconnus('Poignée sans nom connu').length, 0,
+           'un nom libre ne fait rien dire : le carnet n’impose aucune liste');
+    v.egal(A.m.motsReconnus('').length, 0, 'et un nom vide non plus');
+
+    /* UN SEUL MOT PAR TYPE, et le PLUS LONG : « Golden Grip Wrist Wrench »
+       touche « wrist wrench » ET « wrench ». Les montrer tous les deux se
+       lirait comme deux reconnaissances. */
+    v.egal(A.m.motsReconnus('Golden Grip Wrist Wrench').join(' · '),
+           'wrist wrench',
+           'deux mots du MÊME type ne font qu’une mention, la plus précise');
+    v.egal(A.m.motsReconnus('Eccentric Round Anti-Toproll').join(' · '),
+           'anti toproll · eccentric',
+           'mais deux types DIFFÉRENTS se disent tous les deux');
+
+    /* DIRE et RECONNAITRE ne peuvent pas diverger : une ligne qui se tait
+       sur un outil reconnu est exactement le defaut que MB a nomme. */
+    var dits = ['Titan Grip Iron Wrist 60 mm', 'Ceinture de judo',
+                'Sangle maison', 'Poignée sans nom connu', ''];
+    v.egal(dits.filter(function (x) {
+      return (A.m.motsReconnus(x).length > 0)
+          !== (A.m.typesDeLOutil(x).length > 0);
+    }).join(','), '',
+           'le carnet dit quelque chose EXACTEMENT quand il a reconnu '
+         + 'quelque chose');
+
+    /* ---- OU CA SE MONTE (MB, 26/10, livre le 27/10) ---- */
+    v.egal((A.m.montageDeLOutil('Fat Gripz')[0] || {}).monte || '',
+           'Barre, haltères, poignée de poulie, barre de traction — '
+         + 'partout où la main entoure un cylindre.',
+           'le carnet dit où une prise épaisse se monte');
+    /* LA GARDE N'EST PAS DU LUXE : ecrit sans `|| ''`, ce controle a plante
+       sous la chute U du 27/10 et emporte TRENTE-NEUF controles du bloc.
+       Un controle doit rendre son echec, jamais celui des autres. */
+    v.vrai(((A.m.montageDeLOutil('Fat Gripz')[0] || {}).pasSur || '')
+           .indexOf('sangle') >= 0,
+           'et ce sur quoi elle ne se monte PAS — l’exemple même que MB a '
+         + 'donné le 26/10');
+    v.egal((A.m.montageDeLOutil('Titan Grip Iron Wrist')[0] || {}).pasSur, null,
+           'quand rien n’est connu, `pasSur` vaut null — le carnet se tait '
+         + 'au lieu d’inventer');
+    v.egal(A.m.montageDeLOutil('Poignée sans nom connu').length, 0,
+           'et un nom non reconnu n’a aucun montage à dire');
+    v.egal(A.m.montageDeLOutil('Eccentric Round Anti-Toproll').length, 2,
+           'un outil qui porte DEUX mots connus dit les DEUX montages');
+
+    /* LES DEUX LISTES SE CORRESPONDENT. Une table a cote qui derive en
+       silence est le piege n 5 : l'app se tairait sur « se monte sur » sans
+       que rien ne le signale. */
+    var sansMontage = A.m.OUTILS_CONNUS.filter(function (k) {
+      return !A.m.MONTAGE[k.mots[0]];
+    }).map(function (k) { return k.mots[0]; });
+    var vusT = {};
+    A.m.OUTILS_CONNUS.forEach(function (k) { vusT[k.mots[0]] = 1; });
+    var orphelins = Object.keys(A.m.MONTAGE).filter(function (c) {
+      return !vusT[c];
+    });
+    v.vrai(A.m.OUTILS_CONNUS.length > 0 && Object.keys(A.m.MONTAGE).length > 0,
+           '[temoin] les deux tables existent — sans quoi l’égalité '
+         + 'ci-dessous serait vraie pour rien');
+    v.egal(sansMontage.concat(orphelins).join(' · '), '',
+           'chaque type a son montage, et aucun montage ne survit à son type');
+
+    /* ---- « SANGLE » A QUITTE LES MOUVEMENTS ----
+
+       MB : « on va retirer pour les mouvements ceux qui ont sangle ».
+       MESURE : aucune ENTREE ne portait ce nom — cinq ECRITURES seulement,
+       et les cinq mouvements restent. */
+    var sangles = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      if (/sangle/i.test(d.nom)) sangles.push(d.nom);
+      (d.aussi || []).forEach(function (a) {
+        if (/sangle/i.test(a)) sangles.push(d.nom + ' ← ' + a);
+      });
+    });
+    v.egal(sangles.join(' · '), '',
+           'plus aucun mouvement ne s’écrit « à la sangle » : la sangle est '
+         + 'un équipement, pas un geste');
+    v.egal(A.m.suggestionsDictionnaire('sangle', []).length, 0,
+           'et le dictionnaire ne propose plus rien sur ce mot');
+
+    /* MAIS LA LECTURE TIENT, et c'est ce qui rend le retrait sans douleur :
+       l'ecriture a disparu du dictionnaire, pas la capacite de lire le nom
+       que quelqu'un aura deja tape dans son carnet. */
+    v.vrai(A.m.musclesDuNom('Rising').length > 0,
+           '[temoin] le rising se lit — sans quoi l’égalité suivante serait '
+         + 'vraie pour rien');
+    v.egal(A.m.musclesDuNom('Rising à la sangle').join(','),
+           A.m.musclesDuNom('Rising').join(','),
+           'un exercice déjà nommé « Rising à la sangle » se LIT encore '
+         + 'pareil : c’est l’écriture du dictionnaire qui part, pas la '
+         + 'lecture');
 
     /* --- retirer --- */
     var id2 = A.m.trouverReglage(e, 'Titan Grip Iron Wrist 60', 'Mousqueton à l’intérieur').id;
@@ -2500,6 +2733,127 @@
     v.egal(A.m.outilProche(e, 'Poulie basse'), null,
            'ni un outil dont aucun jumeau n’existe');
     v.egal(A.m.outilProche(e, ''), null, 'et un nom vide ne rapproche rien');
+
+    /* ---- LES POSITIONS QUE LE TYPE SUGGERE (MB, 27/10) ----
+
+       « Propose les trois positions de mousqueton en reglages. » Elles sont
+       SUGGEREES, jamais creees : le catalogue ne se remplit qu'a son
+       enregistrement. */
+    var f = A.store.vide();
+    A.m.majCatalogueOutils(f, 'Golden Grip Wrist Wrench', 'Poignées AW');
+    A.m.majCatalogueOutils(f, 'Poulie basse', 'Poulies');
+
+    v.egal(A.m.reglagesProposes(f, 'Golden Grip Wrist Wrench').join(' · '),
+           'Mousqueton au centre · Mousqueton à l’extérieur'
+         + ' · Mousqueton à l’intérieur',
+           'une clé de poignet SUGGÈRE les trois positions de mousqueton');
+    v.egal(A.m.reglagesProposes(f, 'Poulie basse').length, 0,
+           'un outil dont le type n’en porte pas n’en suggère aucune');
+    /* CE CONTROLE DISAIT HIER « la poignee a rotation libre n'en suggere
+       aucune », et il est TOMBE le 27/10 quand elle a recu les siennes. Il
+       avait raison de tomber. Ce qu'il voulait dire — la suggestion vient
+       du TYPE, pas de l'idee qu'un outil se regle — se mesure maintenant
+       sur un outil dont le type n'en porte pas. */
+    v.egal(A.m.reglagesProposes(f, 'Pince de Mithril').length, 0,
+           'un bloc de pince n’en suggère aucune — la suggestion vient du '
+         + 'TYPE, pas de l’idée qu’un outil se règle');
+    /* Celui-la, je ne l'ai PAS vu tomber le 27/10, et c'est pourquoi il
+       porte son etiquette : un nom vide sort avant toute lecture, et aucune
+       panne plausible de la suggestion ne le fait bouger. Il tient des deux
+       cotes, et il est la pour qu'un nom vide ne plante jamais. */
+    v.egal(A.m.reglagesProposes(f, '').length, 0,
+           '[temoin] un nom vide ne suggère rien — il sort avant toute '
+         + 'lecture, et ce cas tient des deux côtés');
+
+    /* SUGGERER n'est pas CREER. C'est la regle de l'app, et elle se mesure. */
+    v.egal(A.m.reglagesOutil(f, 'Golden Grip Wrist Wrench').length, 0,
+           'et les lire ne les CRÉE pas — le catalogue de l’outil reste vide');
+
+    /* Reproposer celle qu'on vient de prendre est la facon la plus sure d'en
+       obtenir deux. */
+    A.m.majReglageOutil(f, 'Golden Grip Wrist Wrench', 'Mousqueton au centre', []);
+    v.egal(A.m.reglagesProposes(f, 'Golden Grip Wrist Wrench').join(' · '),
+           'Mousqueton à l’extérieur · Mousqueton à l’intérieur',
+           'une position déjà posée n’est plus suggérée');
+    v.egal(A.m.reglagesProposes(null, 'Golden Grip Wrist Wrench').length, 3,
+           'sans état, les trois restent — la fonction se mesure seule');
+
+    /* POURQUOI AUCUN MUSCLE N'EST POSE DESSUS, et c'est mesure : tout ce
+       qu'un bord accentue est DEJA dans ce que la cle propose. Ce controle
+       tombe si les entrees du type changent — et la note du modele devient
+       fausse le meme jour. */
+    function duDico(nom) {
+      var t = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === nom; });
+      return t.length ? t[0].muscles.slice() : [];
+    }
+    var cle = A.m.musclesDeLOutil(['Golden Grip Wrist Wrench']);
+    var bords = duDico('Rising').concat(duDico('Déviation ulnaire'));
+    v.vrai(cle.length > 0 && duDico('Rising').length > 0
+        && duDico('Déviation ulnaire').length > 0,
+           '[temoin] la clé et les deux bords ont chacun leurs muscles — sans '
+         + 'quoi l’inclusion ci-dessous serait vraie pour rien');
+    v.egal(bords.filter(function (m) { return cle.indexOf(m) < 0; }).join(','), '',
+           'les deux bords sont DÉJÀ dans les muscles de la clé : un muscle '
+         + 'posé sur la position n’ajouterait rien à la proposition');
+
+    /* ---- ET L'IRON WRIST EN PORTE AUSSI (MB, 27/10) ----
+
+       « Regarde les photos, tu as oublie des equipements. » Il avait
+       raison. Les noms different de ceux de la cle, et c'est voulu : la
+       platine a ses trous EMPILES, pas lateraux. */
+    A.m.majCatalogueOutils(f, 'Titan Grip Iron Wrist 60 mm', 'Poignées AW');
+    v.egal(A.m.reglagesProposes(f, 'Titan Grip Iron Wrist 60 mm').join(' · '),
+           'Mousqueton en haut · Mousqueton au milieu · Mousqueton en bas',
+           'une poignée à rotation libre suggère SES trois positions');
+    v.egal(A.m.reglagesProposes(f, 'Rolling Handle').join(' · '),
+           'Mousqueton en haut · Mousqueton au milieu · Mousqueton en bas',
+           'et le rolling handle aussi — c’est le TYPE qui les porte, pas '
+         + 'le produit');
+
+    /* DEUX TYPES, DEUX VOCABULAIRES : les copier d'un outil sur l'autre
+       aurait fait dire « exterieur » a une platine verticale. */
+    var ponts = A.m.reglagesProposes(null, 'Golden Grip Wrist Wrench')
+      .filter(function (n) {
+        return A.m.reglagesProposes(null, 'Iron Wrist').indexOf(n) >= 0;
+      });
+    v.vrai(A.m.reglagesProposes(null, 'Iron Wrist').length === 3,
+           '[temoin] la poignée en suggère bien trois — sans quoi le '
+         + 'contrôle suivant serait vrai pour rien');
+    v.egal(ponts.join(','), '',
+           'les deux types ne partagent AUCUN nom de position : chacun dit '
+         + 'ce qu’on voit sur SON matériel');
+
+    /* ET AUCUNE NE PORTE DE MUSCLE, sur l'un comme sur l'autre : sur la
+       cle parce qu'ils y sont deja, ici parce qu'aucune source ne dit quel
+       trou charge quel bord. Le controle mesure la CONSEQUENCE — poser une
+       position ne change pas ce qui est propose. */
+    var g = A.store.vide();
+    A.m.majCatalogueOutils(g, 'Iron Wrist', 'Poignées AW');
+    var exo = { nom: 'Essai', outils: ['Iron Wrist'], reglages: {} };
+    var avant = A.m.musclesProposes([], null, exo.nom,
+                                    A.m.musclesDesReglages(g, exo),
+                                    exo.outils);
+    A.m.majReglageOutil(g, 'Iron Wrist', 'Mousqueton en haut', []);
+    A.m.poserReglage(exo, 'Iron Wrist', 'Mousqueton en haut');
+    var apres = A.m.musclesProposes([], null, exo.nom,
+                                    A.m.musclesDesReglages(g, exo),
+                                    exo.outils);
+    v.vrai(avant.muscles.length > 0 && avant.source === 'outil',
+           '[temoin] l’outil seul propose quelque chose, et le dit — sans '
+         + 'quoi les deux contrôles suivants seraient vrais pour rien');
+    v.egal(apres.muscles.join(','), avant.muscles.join(','),
+           'poser une position NE CHANGE PAS les muscles proposés : elle '
+         + 'est une étiquette, et le carnet ne devine pas le bord chargé');
+    /* ET C'EST LA MESURE QUI COMPTE : l'egalite ci-dessus tient meme si le
+       reglage herite des muscles de l'outil — l'union est la meme. Ecrite
+       seule, elle etait VERTE sous la chute du 27/10, donc vide. La SOURCE,
+       elle, bouge : un reglage qui apporte quelque chose fait passer le
+       bouton de « d'apres l'outil » a « d'apres ce qui est renseigne », et
+       l'utilisateur perd la raison de ce qu'on lui propose. */
+    v.egal(apres.source, 'outil',
+           'et la proposition vient TOUJOURS de l’outil seul : une position '
+         + 'qui apporterait des muscles ferait basculer le libellé en '
+         + '« ce qui est renseigné »');
 
     /* --- un carnet d'AVANT, sans la notion --- */
     var vieux = { nom: 'Vieux', outils: ['Dumbbell'] };

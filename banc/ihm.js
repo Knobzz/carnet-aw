@@ -316,14 +316,34 @@
          sur une DECLARATION, pas sur un effet, et c'est le seul endroit du
          banc ou c'est assume : sans lui, supprimer l'animation ne ferait
          rien tomber du tout. */
+      /* ET IL Y A UN SECOND ENVIRONNEMENT QUI LE FAIT MENTIR, trouve le
+         2026-10-27 : la feuille coupe elle-meme la glissade sous
+         `prefers-reduced-motion: reduce`, et ce reglage est VRAI dans le
+         navigateur de travail. Le controle lisait alors 0 s et accusait le
+         code d'avoir perdu l'animation — alors que le CSS faisait
+         exactement ce qu'on lui demande.
+
+         On lit donc le reglage, et on mesure CE QUI EST JUSTE DANS LES DEUX
+         CAS : la glissade quand elle est permise, son ABSENCE quand elle ne
+         l'est pas. Le controle tombe toujours si quelqu'un supprime la
+         regle, et il ne tombe plus pour une raison qui n'est pas la
+         sienne. */
       var cadre = doc.querySelector('.chrono');
+      var sobre = fen.matchMedia
+        && fen.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var dureeVisible = style(fen, '.chrono', 'transitionDuration') || '';
       cadre.classList.remove('visible');
       var dureeCachee = style(fen, '.chrono', 'transitionDuration') || '';
       cadre.classList.add('visible');
-      function glisse(d) { return /0\.26s|260ms/.test(d); }
+      function glisse(d) {
+        return sobre ? /^0s(, ?0s)*$/.test(d.trim()) : /0\.26s|260ms/.test(d);
+      }
       v.vrai(glisse(dureeVisible) && glisse(dureeCachee),
-             'la glissade est DECLAREE dans les deux sens (montee ' + dureeVisible
+             (sobre
+               ? 'mouvement reduit demande : la glissade est COUPEE dans les '
+               + 'deux sens, et c’est ce que la feuille doit faire (montee '
+               : 'la glissade est DECLAREE dans les deux sens (montee ')
+             + dureeVisible
            + ', descente ' + dureeCachee + ') — les deux états portent chacun '
            + 'leur règle, et lire seulement l’état courant laissait l’autre '
            + 'sans garde. C’est une DÉCLARATION : le déroulement, lui, '
@@ -2274,6 +2294,245 @@
         return attendre(80).then(function () {
           fen.App.ui.vider(vue);
           e.outils.length = 0;
+        });
+      });
+    });
+  });
+
+  /* ---------------------------------------------------------------
+     Ce que le carnet a LU dans le nom, A L'ECRAN
+
+     MB, 27/10 : « montre dans l'app quand l'outil est reconnu, meme sans
+     muscle ». Le defaut qu'il nommait : une ceinture de judo reconnue ne
+     se distinguait EN RIEN d'un nom inconnu, parce qu'elle ne propose
+     aucun muscle. Ce bloc mesure les TROIS cas, et surtout que la ligne
+     suit la frappe — un renommage qui fait perdre la reconnaissance doit
+     se voir AU MOMENT ou on le tape.
+     --------------------------------------------------------------- */
+  bloc('Ce que le carnet a lu, à l’écran', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    fen.App.m.majCatalogueOutils(e, 'Ceinture de judo', 'Sangles');
+
+    v.egal(fen.App.m.musclesDeLOutil(['Ceinture de judo']).length, 0,
+           '[temoin] cet outil n’ajoute AUCUN muscle — c’est tout l’objet '
+         + 'du bloc : sans la ligne, rien ne le distinguerait d’un inconnu');
+
+    fen.App.vues.reglages.rendre(vue);
+
+    /* LE RANGEMENT N'EST PAS SUR LE CHEMIN HEUREUX. Ecrit a la fin du
+       dernier `then`, il ne s'execute pas quand le bloc sort plus tot — le
+       panneau reste ouvert, le catalogue reste rempli, et les blocs
+       SUIVANTS tombent pour une raison qui n'est pas la leur. Mesure du
+       27/10, chute P : 29 controles etrangers disparus. */
+    function ranger() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.ui.vider(vue);
+        e.outils.length = 0;
+      });
+    }
+
+    return attendre(160).then(function () {
+      Array.prototype.forEach.call(vue.querySelectorAll('.equip-cat'), function (b) {
+        if (b.getAttribute('aria-expanded') !== 'true') b.click();
+      });
+      var ligne = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('.item-ligne'), function (n) {
+        if (!ligne && n.textContent.indexOf('Ceinture de judo') === 0) ligne = n;
+      });
+      v.vrai(!!ligne, 'l’outil a sa ligne au catalogue');
+      if (!ligne) return ranger();
+      ligne.click();
+
+      return attendre(140).then(function () {
+        var pan = doc.querySelector('.panneau');
+        var dit = pan && pan.querySelector('.dit-lu');
+        v.vrai(!!dit, 'la fiche porte la ligne de lecture');
+        if (!dit) return ranger();
+
+        v.vrai(dit.textContent.indexOf('ceinture de judo') >= 0,
+               'elle NOMME le mot lu : « ' + dit.textContent.slice(0, 60) + ' »');
+        v.vrai(dit.textContent.indexOf('aucun muscle') >= 0,
+               'et elle dit qu’il n’ajoute aucun muscle, au lieu de se taire');
+        /* L'EFFET, PAS LA DECLARATION. La premiere ecriture lisait la
+           CLASSE — elle serait restee verte avec une regle CSS qui ne
+           gagne pas, et c'est precisement ce que j'ai cru voir le 27/10
+           (c'etait le cache du navigateur, mais le controle, lui, ne
+           l'aurait jamais dit). On compare donc la couleur PEINTE a celle
+           d'une ligne ordinaire du meme panneau. */
+        var ordinaire = Array.prototype.filter.call(
+          pan.querySelectorAll('.item-resume'),
+          function (n) { return n !== dit; })[0];
+        v.vrai(!!ordinaire,
+               '[temoin] le panneau porte une autre ligne de même classe — '
+             + 'sans quoi la comparaison suivante n’aurait pas de témoin');
+        v.vrai(ordinaire
+            && fen.getComputedStyle(dit).color
+               !== fen.getComputedStyle(ordinaire).color,
+               'et elle se distingue À L’ŒIL : sa couleur n’est pas celle '
+             + 'd’une ligne ordinaire (' + (ordinaire
+                 ? fen.getComputedStyle(dit).color + ' contre '
+                 + fen.getComputedStyle(ordinaire).color : '?') + ')');
+
+        /* ELLE SUIT LA FRAPPE. Mesure de l'EFFET : on tape, on relit. */
+        var champ = pan.querySelector('input.champ');
+        champ.value = 'Poignée que j’ai faite moi-même';
+        champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+        return attendre(60).then(function () {
+          v.vrai(dit.textContent.indexOf('Nom libre') === 0,
+                 'un nom que rien ne reconnaît éteint la ligne DÈS la frappe');
+          v.egal(fen.getComputedStyle(dit).color,
+                 fen.getComputedStyle(ordinaire).color,
+                 'et la couleur redevient celle d’une ligne ordinaire');
+          v.egal(dit.textContent.indexOf('faute'), -1,
+                 'sans rien reprocher — un nom libre est le cas normal');
+
+          /* LE MONTAGE, lui aussi a l'ecran : ecrit dans la revue depuis
+             le 26/10 et jamais arrive jusqu'ici avant le 27/10. */
+          var mo = pan.querySelector('.dit-monte');
+          /* LIRE PAR UNE FONCTION, jamais `mo.textContent` nu : ecrit nu,
+             le bloc PLANTERAIT si la ligne disparaissait, et emporterait
+             les autres. Lecon du 27/10, payee sur le banc du modele — 39
+             controles perdus pour un `.indexOf` sans garde. */
+          function txtMo() { return mo ? mo.textContent : ''; }
+          v.vrai(!!mo, 'la fiche porte la ligne de montage');
+          v.egal(txtMo(), '',
+                 'elle se tait sur un nom que rien ne reconnaît');
+
+          champ.value = 'Fat Gripz';
+          champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+          return attendre(60).then(function () {
+            v.vrai(txtMo().indexOf('Se monte sur') === 0,
+                   'et elle dit où ça se monte dès la frappe');
+            v.vrai(txtMo().indexOf('Pas sur') > 0
+                && txtMo().indexOf('sangle') > 0,
+                   'y compris ce sur quoi ça ne se monte PAS : « '
+                 + txtMo().slice(txtMo().indexOf('Pas sur'), 999)
+                     .slice(0, 48) + '… »');
+
+            champ.value = 'Titan Grip Iron Wrist 60 mm';
+          champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+          return attendre(60).then(function () {
+            v.vrai(dit.textContent.indexOf('iron wrist') >= 0
+                && dit.textContent.indexOf('5 muscle(s)') >= 0,
+                   'et un outil qui PROPOSE dit combien : « '
+                 + dit.textContent.slice(0, 70) + ' »');
+            v.egal(txtMo().indexOf('Pas sur'), -1,
+                   'et la ligne de montage se tait sur ce qu’on ne sait '
+                 + 'pas : « ' + txtMo().slice(0, 48) + '… »');
+
+            return ranger();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  /* ---------------------------------------------------------------
+     Les positions de mousqueton, A L'ECRAN
+
+     MB, 27/10 : « propose les trois positions de mousqueton en reglages ».
+     Le modele les suggere ; ce bloc mesure qu'elles ARRIVENT dans la fiche
+     de l'outil, qu'on les atteint au doigt, et surtout qu'un appui n'en
+     CREE aucune — il ouvre la fiche avec le nom ecrit. Le piege n 5 a
+     l'echelle d'un geste : le modele et le rendu, jamais l'un sans
+     l'autre.
+     --------------------------------------------------------------- */
+  bloc('Positions de mousqueton, au doigt', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    fen.App.m.majCatalogueOutils(e, 'Golden Grip Wrist Wrench', 'Poignées AW');
+
+    v.egal(fen.App.m.reglagesProposes(e, 'Golden Grip Wrist Wrench').length, 3,
+           '[temoin] le modèle en suggère trois sur cet outil — sans quoi le '
+         + 'reste du bloc serait vrai pour rien');
+
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(160).then(function () {
+      Array.prototype.forEach.call(vue.querySelectorAll('.equip-cat'), function (b) {
+        if (b.getAttribute('aria-expanded') !== 'true') b.click();
+      });
+      var ligne = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('.item-ligne'), function (n) {
+        if (!ligne && n.textContent.indexOf('Golden Grip Wrist Wrench') === 0) ligne = n;
+      });
+      v.vrai(!!ligne, 'l’outil a sa ligne au catalogue');
+      if (!ligne) { fen.App.ui.vider(vue); e.outils.length = 0; return; }
+      ligne.click();
+
+      return attendre(140).then(function () {
+        var pan = doc.querySelector('.panneau');
+        v.vrai(!!pan, 'un appui ouvre la fiche de l’outil');
+        if (!pan) return;
+
+        var offres = Array.prototype.filter.call(
+          pan.querySelectorAll('button'),
+          function (b) { return b.textContent.indexOf('+ Mousqueton') === 0; });
+        v.egal(offres.length, 3, 'la fiche OFFRE les trois positions');
+        v.egal(offres.map(function (b) { return b.textContent; }).join(' | '),
+               '+ Mousqueton au centre | + Mousqueton à l’extérieur'
+             + ' | + Mousqueton à l’intérieur',
+               'nommées comme MB les dit, et dans cet ordre');
+        /* MESURER LA PLUS PETITE, et non « combien sont trop petites » :
+           la chute du 27/10 l'a dit — sur une liste VIDE, « aucune n'est
+           trop petite » est vrai pour rien. Ecrit ainsi, zero offre rend
+           zero pixel, et le controle tombe. */
+        var basse = offres.length ? Math.min.apply(null, offres.map(function (b) {
+          return Math.round(b.getBoundingClientRect().height);
+        })) : 0;
+        v.vrai(basse >= 44,
+               'la plus petite offre fait au moins 44 px de haut (' + basse
+             + ' px) — une offre qu’on rate au pouce n’est pas une offre');
+        v.vrai(pan.textContent.indexOf('aucune ne s’ajoute avant que tu '
+             + 'l’enregistres') >= 0,
+               'et l’aide dit ce que l’offre ne fait PAS');
+
+        /* GARDE : sans elle, un ecran qui n'offre rien ferait planter
+           `offres[1]` et le bloc entier disparaitrait du rapport — muet la
+           ou il doit parler. Il doit RENDRE son echec, pas l'emporter. */
+        if (offres.length < 2) {
+          var x0 = pan.querySelector('.panneau-entete .bt-icone');
+          if (x0) x0.click();
+          fen.App.ui.vider(vue);
+          e.outils.length = 0;
+          return;
+        }
+
+        offres[1].click();
+        return attendre(140).then(function () {
+          var tous = doc.querySelectorAll('.panneau');
+          var fiche = tous[tous.length - 1];
+          var champ = fiche && fiche.querySelector('input.champ');
+          /* NOMMER LE PANNEAU, pas seulement constater qu'il y en a un :
+             la fiche de l'OUTIL porte elle aussi un `.champ`, et le
+             controle serait vert sans que rien ne s'ouvre. */
+          v.egal(fiche && fiche.getAttribute('aria-label'), 'Nouveau réglage',
+                 'un appui ouvre la fiche du RÉGLAGE, par-dessus celle de '
+               + 'l’outil');
+          v.vrai(!!champ, 'et elle a son champ de nom');
+          v.egal(champ && champ.value, 'Mousqueton à l’extérieur',
+                 'avec le nom DÉJÀ écrit — un appui, et il reste modifiable');
+          v.egal(fen.App.m.reglagesOutil(e, 'Golden Grip Wrist Wrench').length, 0,
+                 'et RIEN n’est encore au catalogue : c’est lui qui enregistre');
+
+          Array.prototype.forEach.call(tous, function (p) {
+            var x = p.querySelector('.panneau-entete .bt-icone');
+            if (x) x.click();
+          });
+          return attendre(80).then(function () {
+            fen.App.ui.vider(vue);
+            e.outils.length = 0;
+          });
         });
       });
     });
