@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 351 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 381 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -168,8 +168,8 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 ```bash
 python -m http.server 8713
 ```
-- **http://localhost:8713/banc/** — le modèle. **904 contrôles, 29 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **447 contrôles, 21 blocs.**
+- **http://localhost:8713/banc/** — le modèle. **914 contrôles, 29 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **467 contrôles, 22 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
   la planche anatomique de chacun, sa citation **mot pour mot** et le lien vers la source.
@@ -231,6 +231,23 @@ python -m http.server 8713
   - **Le carnet DIT où l'outil se monte, et ne refuse rien.** « Pas sur une sangle : il
     n'y a rien à grossir. » Quand rien n'est connu, il se tait — treize types sur
     dix-sept — au lieu d'écrire « rien de connu » ou de l'inventer.
+
+  **Le catalogue des marques, en 1.36.0.** MB, 27/10 : « je ne vois que les 4 que j’ai
+  ajoutés à la main, je ne vois pas Titan Grip avec les sous catégories ». **56
+  références, 4 marques, 16 familles**, 2,1 Ko — dérivées des fiches de revue, pas
+  saisies à part. Il **ne livre rien dans l’équipement** : c’est une référence qu’on
+  parcourt, et un appui ouvre la fiche de l’outil avec le nom écrit ; c’est
+  l’enregistrement qui pose. Deux contrôles le tiennent — un carnet neuf reste vide, et
+  parcourir ne change rien. Une référence que le carnet ne sait pas lire porte la marque
+  `libre` et le dit : « AXE » est le seul cas, le mot étant trop générique pour qu’un type
+  le revendique.
+
+  **L’affichage a été CHOISI, pas supposé.** Trois maquettes cliquables
+  (`revue/simulations-equipement.html`, hors livraison), rendues avec les vraies données
+  et le vrai CSS ; MB a pris la troisième — une seule liste, son matériel en haut, les
+  marques repliées dessous, **tout replié au départ**. Cliquer a trouvé un défaut que la
+  lecture n’aurait pas vu : un outil qui touche **deux familles** affichait deux « Se
+  monte sur » anonymes.
 
   La planche de revue (`revue/equipement.html`, hors livraison) porte **cinq contrôles
   permanents** : un type sans fiche, une entrée du dictionnaire citée qui n'existe plus,

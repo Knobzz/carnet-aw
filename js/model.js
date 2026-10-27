@@ -1677,6 +1677,118 @@
      QUATRE SITES : goldengrip.com, mithrilarmwrestling.com, titangrip.de,
      wristball.net (ARMSPORT). Seuls les NEUF types deja poses sont
      enrichis — les seize candidats attendent la decision de MB. */
+  /* LE CATALOGUE DES MARQUES — MB, 27/10 : « je ne vois que les 4 que j'ai
+     ajoutes a la main, je ne vois pas Titan Grip avec les sous categories
+     et equipements propres a la marque ».
+
+     IL NE LIVRE RIEN DANS TON EQUIPEMENT, et c'est ce qui le rend
+     compatible avec la regle du projet — « rien n'est livre avec l'app, la
+     liste se construit avec ce que je saisis ». Ceci est une REFERENCE
+     qu'on parcourt, marque -> famille -> produit ; rien n'entre tant qu'on
+     n'a pas appuye. Meme forme que les positions de mousqueton : suggerer,
+     jamais creer. Ton equipement reste ce que TU as pose dedans.
+
+     IL EST DERIVE DES FICHES DE REVUE, pas saisi a part : chaque produit y
+     avait deja son lien marchand et sa famille, et un controle de la
+     planche exige que les deux listes se correspondent. `c` est la cle du
+     TYPE — la meme que dans `OUTILS_CONNUS` et `MONTAGE`.
+
+     IL DATERA. Les references changent, le carnet n'a aucun reseau pour se
+     rafraichir, et dans deux ans il montrera des produits disparus. C'est
+     le prix, il est dit, et c'est pour ca qu'il ne sert qu'a CHERCHER : un
+     nom qu'on ne trouve pas ici se tape a la main, comme avant.
+
+     `libre: 1` marque une reference que le carnet NE SAIT PAS LIRE : le
+     nom est trop generique pour qu'un type le revendique. « AXE » est le
+     seul cas — revendiquer le mot ferait proposer de la pronation a « axe
+     de poulie ». On la garde au catalogue parce qu'elle existe et qu'on
+     peut la posseder ; sa fiche dira franchement « nom libre ». Un
+     controle du banc exige que toute reference illisible porte cette
+     marque : le manque est NOMME, pas masque. */
+  var CATALOGUE_MARQUES = [
+    { m: 'Golden Grip', c: 'fat grip', n: 'Thick grips' },
+    { m: 'Golden Grip', c: 'fat grip', n: 'Axle Bar' },
+    { m: 'Titangrip', c: 'fat grip', n: 'Hand Grips (Hantelgriffe)' },
+    { m: 'Golden Grip', c: 'pronator', n: 'Popeye’s Pronator' },
+    { m: 'Golden Grip', c: 'pronator', n: 'Barbell Pronator' },
+    { m: 'Titangrip', c: 'pronator', n: 'Pronator Zylinder' },
+    { m: 'Titangrip', c: 'pronator', n: 'Pronator Ellipsoid' },
+    { m: 'Mithril', c: 'pronator', n: 'AXE', libre: 1 },
+    { m: 'Golden Grip', c: 'riser', n: 'Riser' },
+    { m: 'Golden Grip', c: 'riser', n: 'V-Bar Riser' },
+    { m: 'Titangrip', c: 'riser', n: 'Rising Buddy Light' },
+    { m: 'Mithril', c: 'riser', n: 'AXE', libre: 1 },
+    { m: 'Golden Grip', c: 'cup', n: 'OptiCup' },
+    { m: 'Golden Grip', c: 'cup', n: 'King’s Cup' },
+    { m: 'Mithril', c: 'cup', n: 'Independent Handle for Cupping' },
+    { m: 'Mithril', c: 'cup', n: 'Double Cupping Handle' },
+    { m: 'Golden Grip', c: 'toproll', n: 'Anti-Toproll Handle' },
+    { m: 'Mithril', c: 'toproll', n: 'Anti-Toproll V3' },
+    { m: 'Titangrip', c: 'toproll', n: 'Toproll Buddy' },
+    { m: 'Titangrip', c: 'toproll', n: 'Toproll Counter' },
+    { m: 'Mithril', c: 'hook', n: 'Heavy Hook' },
+    { m: 'Golden Grip', c: 'pinch', n: 'Pinch Grip Block' },
+    { m: 'Golden Grip', c: 'pinch', n: 'Plate Pinch' },
+    { m: 'Golden Grip', c: 'multispinner', n: 'Multispinner' },
+    { m: 'Mithril', c: 'multispinner', n: 'Multispinner 65mm' },
+    { m: 'Titangrip', c: 'multispinner', n: 'Multi Spinner' },
+    { m: 'Titangrip', c: 'multispinner', n: 'Multi Spinner Light' },
+    { m: 'Golden Grip', c: 'wrist roller', n: 'Wrist roller' },
+    { m: 'Golden Grip', c: 'wrist roller', n: 'Neutral Wrist Roller' },
+    { m: 'Titangrip', c: 'wrist roller', n: 'Forearm Roller' },
+    { m: 'Titangrip', c: 'iron wrist', n: 'Iron Wrist' },
+    { m: 'Titangrip', c: 'iron wrist', n: 'Iron Wrist Conic' },
+    { m: 'Titangrip', c: 'iron wrist', n: 'Rolling Handle' },
+    { m: 'Golden Grip', c: 'iron wrist', n: 'Double Rolling Row Handle' },
+    { m: 'Golden Grip', c: 'wrist wrench', n: 'Wrist Wrench' },
+    { m: 'Golden Grip', c: 'wrist wrench', n: 'Angular Wrist Wrench' },
+    { m: 'Golden Grip', c: 'wrist wrench', n: 'OptiWrench' },
+    { m: 'Titangrip', c: 'wrist wrench', n: 'Wrist Wrench' },
+    { m: 'ARMSPORT', c: 'wrist wrench', n: 'Premium Wrist Wrench' },
+    { m: 'Golden Grip', c: 'cone', n: 'Cone handle' },
+    { m: 'Mithril', c: 'cone', n: 'Conic Handle 35-60mm' },
+    { m: 'Mithril', c: 'cone', n: 'Eccentric Cone' },
+    { m: 'Titangrip', c: 'cone', n: 'Kegel Tool' },
+    { m: 'Golden Grip', c: 'eccentric', n: 'Eccentric Grip Handle' },
+    { m: 'Mithril', c: 'eccentric', n: 'Eccentric Handle' },
+    { m: 'Mithril', c: 'eccentric', n: 'Old School Eccentric Handle' },
+    { m: 'Mithril', c: 'eccentric', n: 'Eccentric Round Anti-Toproll' },
+    { m: 'Mithril', c: 'slippery', n: 'Soft & Slippery Handle' },
+    { m: 'Mithril', c: 'slippery', n: 'Towel' },
+    { m: 'Golden Grip', c: 'ceinture de judo', n: 'Armwrestling Judo Belt' },
+    { m: 'Golden Grip', c: 'ceinture de judo', n: 'Arm wrestling strap' },
+    { m: 'Titangrip', c: 'ceinture de judo', n: 'Trainingsgurt' },
+    { m: 'Mithril', c: 'ceinture de judo', n: 'Flat Strap' },
+    { m: 'Golden Grip', c: 'thumb', n: 'Thumb Pump' },
+    { m: 'Golden Grip', c: 'thumb', n: 'Thumb War' },
+    { m: 'Titangrip', c: 'thumb', n: 'Thumb Belt' }
+  ];
+
+  /* Les marques, dans l'ordre du releve — pas triees alphabetiquement : cet
+     ordre met en tete les deux que MB a nommees. */
+  function marquesConnues() {
+    var vues = {}, l = [];
+    CATALOGUE_MARQUES.forEach(function (p) {
+      if (vues[p.m]) return;
+      vues[p.m] = 1;
+      l.push(p.m);
+    });
+    return l;
+  }
+
+  /* Les produits d'une marque, groupes par FAMILLE. La cle du type suffit
+     ici : son nom lisible vit dans la fiche de revue, et le modele ne porte
+     que ce qui sert sur le telephone. */
+  function produitsDeLaMarque(marque) {
+    var par = {}, ordre = [];
+    CATALOGUE_MARQUES.forEach(function (p) {
+      if (p.m !== marque) return;
+      if (!par[p.c]) { par[p.c] = []; ordre.push(p.c); }
+      par[p.c].push(p.n);
+    });
+    return ordre.map(function (c) { return { cle: c, produits: par[c] }; });
+  }
+
   /* LES TROIS POSITIONS DE MOUSQUETON, ecrites UNE FOIS. MB, 27/10 :
      « uniformiser avec centre exterieur et interieur, et tout autre
      equipement qui a cette meme configuration ». Une liste par type aurait
@@ -1898,39 +2010,46 @@
      alors : treize des dix-sept sont dans ce cas. Ecrire « rien de connu »
      a l'ecran serait du bruit, et l'inventer serait pire. */
   var MONTAGE = {
-    'fat grip': {
+    'fat grip': { nom: 'Prise épaisse',
       monte: 'Barre, haltères, poignée de poulie, barre de traction — '
            + 'partout où la main entoure un cylindre.',
       pasSur: 'Une sangle : il n’y a rien à grossir. Un gripper non plus — '
             + 'sa poignée est sa mesure.' },
-    'pronator': { monte: 'Poulie, sangle, ou chargée à la plaque.', pasSur: null },
-    'riser': { monte: 'Poulie ou sangle.', pasSur: null },
-    'cup': { monte: 'Poulie ou sangle.', pasSur: null },
-    'toproll': { monte: 'Poulie ou table.', pasSur: null },
-    'hook': { monte: 'Poulie, sangle ou table.', pasSur: null },
-    'pinch': {
+    'pronator': { nom: 'Poignée de pronation', monte: 'Poulie, sangle, ou chargée à la plaque.', pasSur: null },
+    'riser': { nom: 'Riser', monte: 'Poulie ou sangle.', pasSur: null },
+    'cup': { nom: 'Poignée de cup', monte: 'Poulie ou sangle.', pasSur: null },
+    'toproll': { nom: 'Poignée de toproll', monte: 'Poulie ou table.', pasSur: null },
+    'hook': { nom: 'Poignée de hook', monte: 'Poulie, sangle ou table.', pasSur: null },
+    'pinch': { nom: 'Bloc de pince',
       monte: 'Se soulève, ou se charge à la plaque.',
       pasSur: 'Une barre : on ne pince pas ce qu’on entoure.' },
-    'multispinner': { monte: 'Poulie ou sangle.', pasSur: null },
-    'wrist roller': { monte: 'Se suspend, ou se monte sur un rack.', pasSur: null },
-    'iron wrist': { monte: 'Poulie, sangle, ou chargée sur un loading pin.', pasSur: null },
-    'wrist wrench': { monte: 'Poulie, ou chargée à la plaque au bout du levier.', pasSur: null },
-    'cone': { monte: 'Poulie ou sangle.', pasSur: null },
-    'eccentric': { monte: 'Poulie ou sangle.', pasSur: null },
-    'slippery': { monte: 'Poulie, sangle, ou passée sur une barre.', pasSur: null },
-    'ceinture de judo': {
+    'multispinner': { nom: 'Multispinner', monte: 'Poulie ou sangle.', pasSur: null },
+    'wrist roller': { nom: 'Rouleau de poignet', monte: 'Se suspend, ou se monte sur un rack.', pasSur: null },
+    'iron wrist': { nom: 'Poignée à rotation libre', monte: 'Poulie, sangle, ou chargée sur un loading pin.', pasSur: null },
+    'wrist wrench': { nom: 'Clé de poignet', monte: 'Poulie, ou chargée à la plaque au bout du levier.', pasSur: null },
+    'cone': { nom: 'Poignée conique', monte: 'Poulie ou sangle.', pasSur: null },
+    'eccentric': { nom: 'Poignée excentrée', monte: 'Poulie ou sangle.', pasSur: null },
+    'slippery': { nom: 'Poignée glissante', monte: 'Poulie, sangle, ou passée sur une barre.', pasSur: null },
+    'ceinture de judo': { nom: 'Ceinture de judo / sangle',
       monte: 'Surtout la poulie ; aussi autour d’une barre ou d’un montant.',
       pasSur: 'Pas de prise épaisse par-dessus : il n’y a rien à épaissir.' },
-    'corde': {
+    'corde': { nom: 'Corde (deux boules au bout)',
       monte: 'La poulie.',
       pasSur: 'Pas de prise épaisse par-dessus : il n’y a pas de poignée à '
             + 'épaissir.' },
-    'thumb': { monte: 'Sangle au pouce, ou outil tenu à deux.', pasSur: null }
+    'thumb': { nom: 'Travail du pouce', monte: 'Sangle au pouce, ou outil tenu à deux.', pasSur: null }
   };
 
   /* Ce qu'on sait du montage d'un nom d'outil — un enregistrement par type
      reconnu, parce qu'un outil qui porte deux mots connus se monte des deux
      facons. */
+  /* Le nom lisible d'un type, pour l'ecran. La cle sert au code ; elle ne
+     se montre pas a qui ouvre son equipement. */
+  function nomDuType(cle) {
+    var m = MONTAGE[cle];
+    return m && m.nom ? m.nom : cle;
+  }
+
   function montageDeLOutil(nomOutil) {
     var l = [];
     typesDeLOutil(nomOutil).forEach(function (k) {
@@ -3973,7 +4092,8 @@
      navigateur sous la main. */
 
   var CHAMPS_CONTEXTE = ['Version', 'Écran', 'Navigateur', 'Affichage',
-                         'Séances', 'Exercices connus', 'Programmes', 'Outils',
+                         'Séances', 'Exercices connus', 'Programmes',
+                         'Équipements',
                          'Taille des données', 'Stockage durable'];
 
   function contexteTechnique(etat, env) {
@@ -3995,7 +4115,7 @@
       'Séances': compte(e.seances),
       'Exercices connus': compte(e.exercices),
       'Programmes': compte(e.programmes),
-      'Outils': compte(e.outils),
+      'Équipements': compte(e.outils),
       'Taille des données': d.tailleKo == null ? inconnu : d.tailleKo + ' Ko',
       'Stockage durable': d.durable === true ? 'accordé'
                         : d.durable === false ? 'refusé' : inconnu
@@ -4053,8 +4173,11 @@
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     musclesDeLOutil: musclesDeLOutil, OUTILS_CONNUS: OUTILS_CONNUS,
     typesDeLOutil: typesDeLOutil, motsReconnus: motsReconnus,
+    CATALOGUE_MARQUES: CATALOGUE_MARQUES, marquesConnues: marquesConnues,
+    produitsDeLaMarque: produitsDeLaMarque,
     POSITIONS_MOUSQUETON: POSITIONS_MOUSQUETON,
     MONTAGE: MONTAGE, montageDeLOutil: montageDeLOutil,
+    nomDuType: nomDuType,
     sourceDuMouvement: sourceDuMouvement,
     chargeParMuscle: chargeParMuscle,
     musclesParMouvement: musclesParMouvement, chargeEpicondyle: chargeEpicondyle,

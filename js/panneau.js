@@ -425,11 +425,11 @@
           });
         }, function (v) {
           exo.outils = v;
-          /* LE BOUTON REVIENT. Sans cet appel il restait cache apres le
-             tout premier outil tape : on venait de remplir son equipement
-             et rien ne le montrait. Trouve par le controle du banc, pas a
-             l'oeil. */
-          majBtEquip();
+          /* LA LISTE SUIT. Sans cet appel, taper un outil ne le faisait pas
+             apparaitre sous « Le mien » : on venait de remplir son
+             equipement et rien ne le montrait. Trouve par le controle du
+             banc, pas a l'oeil. */
+          majEquip();
           rafraichirReglages();
           /* L'outil est la CINQUIEME source de proposition depuis le
              26/10 : sans ce rafraichissement, on tapait « Fat Gripz »
@@ -523,39 +523,152 @@
 
       /* Taper marche quand on connaît le nom. Passé une vingtaine d'outils,
          il faut pouvoir ouvrir son équipement et en cocher plusieurs. */
-      var btEquip = h('button', { type: 'button', class: 'bt', style: 'margin-top:7px;width:100%' });
-      /* L'AIDE DIT LE GESTE, ET POURQUOI LE BOUTON N'EST PAS LA.
-         MB, 27/10 : « comment je sélectionne l'équipement quand je crée un
-         exo ? pas possible ». Reproduit : ça marchait, mais il fallait
-         deviner ENTRÉE, et le bouton gris se lisait « c'est cassé ». */
+      /* ---- L'AFFICHAGE C, choisi par MB le 27/10 apres avoir clique les
+         trois simulations : « une seule liste, mon materiel en haut, les
+         marques repliees dessous », puis « avec la possibilite de replier
+         les miens aussi, TOUT EST REPLIE A LA BASE ».
+
+         Tout replie, c'est ce qui rend la chose tenable : la fiche
+         d'exercice est deja longue, et le releve des marques ne doit pas se
+         mettre en travers de qui ne le cherche pas. Chaque section se
+         remplit a l'OUVERTURE, pas avant — 56 references construites pour
+         rien a chaque ouverture de fiche seraient payees par tout le monde.
+
+         ET RIEN NE S'AJOUTE TOUT SEUL : une reference de marque ouvre la
+         fiche de l'outil avec son nom ecrit, et c'est l'enregistrement qui
+         pose. Le parcours ne pose jamais. */
       var aideOutils = h('div', { class: 'item-resume', style: 'margin-top:7px' });
-      function majBtEquip() {
-        var n = (etat().outils || []).length;
-        btEquip.textContent = n ? 'Choisir dans mon équipement (' + n + ')'
-                                : 'Choisir dans mon équipement';
-        var vide = !n && !(exo.outils || []).length;
-        btEquip.disabled = vide;
-        /* ON LE RETIRE au lieu de le griser : un bouton éteint se lit
-           « cassé », et c'est exactement ce que MB a compris. */
-        btEquip.hidden = vide;
-        aideOutils.textContent = vide
-          ? 'Tape le nom de l’outil, puis Entrée. Ton équipement est encore '
-          + 'vide : ce que tu ajoutes ici y entre aussi, et tu pourras le '
-          + 'cocher d’un geste la prochaine fois.'
-          : 'Tape le nom puis Entrée, ou choisis dans ton équipement. Un '
-          + 'outil tapé ici y entre aussi.';
+      var boiteC = h('div', { style: 'margin-top:7px' });
+
+      function basculerOutil(nom) {
+        var l = (exo.outils || []).slice();
+        var i = -1, k;
+        for (k = 0; k < l.length; k++) {
+          if (A.m.slug(l[k]) === A.m.slug(nom)) i = k;
+        }
+        if (i >= 0) l.splice(i, 1); else l.push(nom);
+        exo.outils = l;
+        rafraichirOutils();
+        rafraichirReglages();
+        rafraichirMuscles();
+        majEquip();
       }
-      majBtEquip();
-      btEquip.addEventListener('click', function () {
-        choisirOutils(etat(), exo.outils || [], function (liste) {
-          exo.outils = liste;
-          rafraichirOutils();
-          rafraichirReglages();
-          majBtEquip();
+      function porte(nom) {
+        return (exo.outils || []).some(function (x) {
+          return A.m.slug(x) === A.m.slug(nom);
         });
-      });
-      grOutils.appendChild(btEquip);
+      }
+
+      /* Une section repliee qui ne se construit qu'a l'ouverture. */
+      var ouverts = {};
+      function section(cle, titre, combien, remplir) {
+        var tete = h('button', { type: 'button', class: 'equip-cat',
+                                 'aria-expanded': ouverts[cle] ? 'true' : 'false' },
+          h('b', { text: titre }),
+          h('span', { text: String(combien) }));
+        var corps = h('div', { style: 'padding-left:6px' });
+        corps.hidden = !ouverts[cle];
+        function peindre() {
+          A.ui.vider(corps);
+          if (ouverts[cle]) remplir(corps);
+        }
+        peindre();
+        tete.addEventListener('click', function () {
+          ouverts[cle] = !ouverts[cle];
+          tete.setAttribute('aria-expanded', ouverts[cle] ? 'true' : 'false');
+          corps.hidden = !ouverts[cle];
+          peindre();
+        });
+        boiteC.appendChild(tete);
+        boiteC.appendChild(corps);
+      }
+
+      function lignePorte(nom, droite, f) {
+        var b = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+          h('b', { text: nom }), h('span', { text: droite }));
+        b.addEventListener('click', f);
+        return b;
+      }
+
+      function majEquip() {
+        A.ui.vider(boiteC);
+        /* LE CATALOGUE *ET* CE QUE L'EXERCICE PORTE DEJA. Un outil tape a
+           l'instant n'entre au catalogue qu'a l'enregistrement : sans
+           l'union, on venait de l'ajouter et « Le mien » restait vide, ou
+           pire, absent. Le controle du banc l'a dit. */
+        var vus = {}, mien = [];
+        (etat().outils || []).forEach(function (o) {
+          vus[A.m.slug(o.nom)] = 1;
+          mien.push(o.nom);
+        });
+        (exo.outils || []).forEach(function (nom) {
+          if (vus[A.m.slug(nom)]) return;
+          vus[A.m.slug(nom)] = 1;
+          mien.push(nom);
+        });
+        aideOutils.textContent = mien.length
+          ? 'Tape le nom puis Entrée, ou déplie une section. Un outil tapé '
+          + 'ici entre aussi dans ton équipement.'
+          : 'Tape le nom de l’outil, puis Entrée. Ton équipement est encore '
+          + 'vide : ce que tu ajoutes ici y entre aussi.';
+
+        if (mien.length) {
+          section('mien', 'Le mien', mien.length, function (corps) {
+            mien.forEach(function (nom) {
+              corps.appendChild(lignePorte(nom, porte(nom) ? 'coché' : 'ajouter',
+                function () { basculerOutil(nom); }));
+            });
+            /* LE CHOIX MULTIPLE RESTE ATTEIGNABLE au-dela d'une poignee
+               d'outils : cocher trente lignes une par une n'est pas un
+               geste. En dessous, il couterait un aller-retour pour rien. */
+            if (mien.length > 8) {
+              corps.appendChild(lignePorte('Cocher plusieurs d’un coup',
+                mien.length + ' outils', function () {
+                  choisirOutils(etat(), exo.outils || [], function (liste) {
+                    exo.outils = liste;
+                    rafraichirOutils();
+                    rafraichirReglages();
+                    rafraichirMuscles();
+                    majEquip();
+                  });
+                }));
+            }
+          });
+        }
+
+        A.m.marquesConnues().forEach(function (mq) {
+          var familles = A.m.produitsDeLaMarque(mq);
+          var combien = familles.reduce(function (n, f) {
+            return n + f.produits.length;
+          }, 0);
+          section('m:' + mq, mq, combien, function (corps) {
+            familles.forEach(function (f) {
+              corps.appendChild(h('div', { class: 'item-resume',
+                                           text: A.m.nomDuType(f.cle) }));
+              f.produits.forEach(function (nom) {
+                var connu = !!A.m.trouverOutil(etat(), A.m.slug(nom));
+                var nm = A.m.musclesDeLOutil([nom]).length;
+                corps.appendChild(lignePorte(nom,
+                  porte(nom) ? 'coché'
+                             : connu ? 'chez toi'
+                                     : (nm ? nm + ' muscle(s)' : 'nom libre'),
+                  function () {
+                    if (connu) { basculerOutil(nom); return; }
+                    A.vues.reglages.editerOutil(null, function () {
+                      if (A.m.trouverOutil(etat(), A.m.slug(nom))
+                          && !porte(nom)) basculerOutil(nom);
+                      majEquip();
+                    }, nom);
+                  }));
+              });
+            });
+          });
+        });
+      }
+      majEquip();
+
       grOutils.appendChild(aideOutils);
+      grOutils.appendChild(boiteC);
       c.appendChild(grOutils);
       c.appendChild(grReglages);
 

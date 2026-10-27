@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations — choisir l’équipement sur un exercice</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .intro { max-width: 1140px; margin: 0 auto 16px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .intro p { margin: 4px 0; color: var(--texte-2); font-size: .92rem; }
+  .barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+           margin-top: 10px; }
+  .trace { font-size: .86rem; color: var(--bleu-vif); min-height: 20px; }
+  .rangee { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+            max-width: 1140px; margin: 0 auto; }
+  .sim { width: 340px; flex: 0 0 340px; }
+  .sim > h2 { font-size: 1rem; margin: 0 0 2px; }
+  .sim > .pourquoi { font-size: .82rem; color: var(--texte-2); margin: 0 0 8px;
+                     min-height: 60px; }
+  .ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+           background: var(--fond-2); padding: 12px; min-height: 360px; }
+  .ecran-tete { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .ecran-tete .titre { font-weight: 650; flex: 1; }
+  .cout { font-size: .8rem; color: var(--texte-2); margin-top: 8px;
+          border-top: 1px solid var(--trait); padding-top: 6px; }
+  .cout b { color: var(--texte); }
+  .sous { font-size: .76rem; letter-spacing: .04em; text-transform: uppercase;
+          color: var(--texte-2); margin: 10px 0 4px; }
+  .gestes { font-size: .78rem; color: var(--texte-2); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Choisir l’équipement sur un exercice — trois affichages, cliquables</h1>
+  <p>MB, 27/10 : « j’aimerai pouvoir avoir Titan Grip / Golden Grip etc, et
+     ensuite des sous catégories propres à ces marques » · « une simulation
+     plus poussée, où je peux cliquer et voir comment ça réagit ».</p>
+  <p><strong>Tout réagit.</strong> Les trois écrans partagent le même
+     équipement : ce que tu ajoutes dans l’un apparaît dans les autres. Les
+     données sont celles du modèle, le CSS est celui de l’app, la largeur est
+     320 px. <strong>Rien n’est écrit dans ton vrai carnet</strong> — cette
+     page ne touche pas au stockage.</p>
+  <div class="barre">
+    <button class="bt bt-petit" id="raz" type="button">Remettre à zéro</button>
+    <span class="trace" id="trace">Clique dans un écran : ce que l’appui fait
+      s’écrit ici.</span>
+  </div>
+  <p id="bilan"></p>
+</div>
+
+<div class="rangee" id="rangee"></div>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script>
+(function () {
+  'use strict';
+  var m = window.App.m;
+
+  var DEPART = ['Fat Gripz', 'Titan Grip Iron Wrist 60 mm', 'Poulie haute',
+                'Ceinture de judo'];
+  var mien = DEPART.slice();
+  /* Chaque simulation garde sa PROFONDEUR : 0 = l'ecran de depart, puis la
+     liste des marques, puis une marque, puis la fiche d'un produit. C'est la
+     pile de panneaux de l'app, repliee dans une colonne pour qu'on puisse
+     comparer les trois cote a cote. */
+  var ou = [{}, {}, {}];
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+  function bouton(cls, txt, f) {
+    var b = el('button', cls, txt);
+    b.type = 'button';
+    if (f) b.addEventListener('click', f);
+    return b;
+  }
+  function ligne(gras, droite, f) {
+    var b = el('button', 'item-ligne item-bouton');
+    b.type = 'button';
+    b.appendChild(el('b', null, gras));
+    if (droite != null) b.appendChild(el('span', null, droite));
+    if (f) b.addEventListener('click', f);
+    return b;
+  }
+  function dit(t) { document.getElementById('trace').textContent = t; }
+  function possede(nom) {
+    return mien.some(function (x) { return m.slug(x) === m.slug(nom); });
+  }
+  function compte(marque) {
+    return m.produitsDeLaMarque(marque).reduce(function (n, f) {
+      return n + f.produits.length;
+    }, 0);
+  }
+
+  /* La fiche d'un produit, identique dans les trois : c'est elle qui POSE,
+     et elle seule. Parcourir ne pose jamais. */
+  function fiche(i, nom, retour) {
+    var c = el('div');
+    var tete = el('div', 'ecran-tete');
+    tete.appendChild(bouton('bt bt-petit', '← Retour', function () {
+      ou[i] = retour; dit('Retour : rien n’a été posé.'); rendre();
+    }));
+    tete.appendChild(el('div', 'titre', 'Nouvel outil'));
+    c.appendChild(tete);
+
+    var ch = el('input', 'champ');
+    ch.value = nom;
+    c.appendChild(el('div', 'item-resume', 'Nom de l’outil'));
+    c.appendChild(ch);
+
+    var mots = m.motsReconnus(nom);
+    var nm = m.musclesDeLOutil([nom]).length;
+    var lu = el('div', 'item-resume dit-lu' + (mots.length ? ' dit-reconnu' : ''));
+    lu.textContent = mots.length
+      ? 'Reconnu : « ' + mots.join(' », « ') + ' ». '
+        + (nm ? nm + ' muscle(s) proposé(s) aux exercices qui l’emploient.'
+              : 'Il n’ajoute aucun muscle — il change ce que tu tiens, pas ce '
+              + 'qui travaille.')
+      : 'Nom libre — le carnet n’y reconnaît rien, et ça ne gêne pas : coche '
+      + 'ses muscles dans les exercices qui l’emploient.';
+    c.appendChild(lu);
+
+    var mo = m.montageDeLOutil(nom);
+    if (mo.length) {
+      var b = el('div', 'item-resume dit-monte');
+      var plusieurs = mo.length > 1;
+      mo.forEach(function (x) {
+        b.appendChild(el('div', null, (plusieurs
+          ? m.nomDuType(x.type) + ' — se monte sur : ' : 'Se monte sur : ')
+          + x.monte));
+        if (x.pasSur) b.appendChild(el('div', 'dit-pas', 'Pas sur : ' + x.pasSur));
+      });
+      c.appendChild(b);
+    }
+
+    var pos = m.reglagesProposes(null, nom);
+    if (pos.length) {
+      c.appendChild(el('div', 'item-resume',
+        'Cet outil se monte de plusieurs façons : ' + pos.join(' · ')));
+    }
+
+    var barre = el('div', 'enrobe');
+    barre.style.marginTop = '10px';
+    barre.appendChild(bouton('bt', 'Annuler', function () {
+      ou[i] = retour; dit('Annulé : rien n’a été posé.'); rendre();
+    }));
+    barre.appendChild(bouton('bt bt-primaire', 'Enregistrer', function () {
+      var v = ch.value.trim();
+      if (v && !possede(v)) mien.push(v);
+      ou[i] = {};
+      dit('Posé dans ton équipement : « ' + v + ' ». C’est l’ENREGISTREMENT '
+        + 'qui pose, jamais le parcours.');
+      rendre();
+    }));
+    c.appendChild(barre);
+    return c;
+  }
+
+  function listeMarques(i, retour) {
+    var c = el('div');
+    var tete = el('div', 'ecran-tete');
+    tete.appendChild(bouton('bt bt-petit', '← Retour', function () {
+      ou[i] = retour; rendre();
+    }));
+    tete.appendChild(el('div', 'titre', 'Les marques'));
+    c.appendChild(tete);
+    c.appendChild(el('div', 'item-resume',
+      'Un relevé de ' + m.CATALOGUE_MARQUES.length + ' références, pour '
+    + 'retrouver le tien sans le taper. Rien n’entre tant que tu n’as pas '
+    + 'enregistré.'));
+    m.marquesConnues().forEach(function (mq) {
+      c.appendChild(ligne(mq, compte(mq) + ' réf.', function () {
+        ou[i] = { marque: mq, retour: retour };
+        dit('Ouvert : ' + mq + ' — ' + m.produitsDeLaMarque(mq).length
+          + ' familles. Rien n’a été posé.');
+        rendre();
+      }));
+    });
+    return c;
+  }
+
+  function uneMarque(i, marque, retour) {
+    var c = el('div');
+    var tete = el('div', 'ecran-tete');
+    tete.appendChild(bouton('bt bt-petit', '← Retour', function () {
+      ou[i] = { marques: 1, retour: retour }; rendre();
+    }));
+    tete.appendChild(el('div', 'titre', marque));
+    c.appendChild(tete);
+    m.produitsDeLaMarque(marque).forEach(function (f) {
+      c.appendChild(el('div', 'sous', m.nomDuType(f.cle)));
+      f.produits.forEach(function (nom) {
+        var deja = possede(nom);
+        var nm = m.musclesDeLOutil([nom]).length;
+        c.appendChild(ligne(nom,
+          deja ? 'déjà chez toi' : (nm ? nm + ' muscle(s)' : 'nom libre'),
+          function () {
+            ou[i] = { fiche: nom, retour: { marque: marque, retour: retour } };
+            dit('Ouvert la fiche de « ' + nom + ' ». Rien n’est encore posé.');
+            rendre();
+          }));
+      });
+    });
+    return c;
+  }
+
+  function monEquipement(i, cocher) {
+    var boite = el('div');
+    mien.forEach(function (nom) {
+      boite.appendChild(ligne(nom, cocher ? 'coché' : m.motsReconnus(nom).length
+        ? 'reconnu' : 'nom libre', function () {
+        dit('« ' + nom + ' » est déjà chez toi : un appui le coche sur '
+          + 'l’exercice.');
+      }));
+    });
+    return boite;
+  }
+
+  /* --- A : deux boutons --- */
+  function simA(i) {
+    var e = ou[i];
+    if (e.fiche) return fiche(i, e.fiche, e.retour);
+    if (e.marque) return uneMarque(i, e.marque, e.retour);
+    if (e.marques) return listeMarques(i, {});
+    var c = el('div');
+    c.appendChild(el('div', 'titre', 'Équipements'));
+    var ch = el('input', 'champ');
+    ch.placeholder = 'Fat Gripz, Wrist Wrench, Titan Grip Iron Wrist…';
+    c.appendChild(ch);
+    var b1 = bouton('bt', 'Choisir dans mon équipement (' + mien.length + ')',
+      function () { ou[i] = { sien: 1 }; rendre(); });
+    b1.style.cssText = 'margin-top:7px;width:100%';
+    c.appendChild(b1);
+    var b2 = bouton('bt', 'Parcourir les marques ('
+      + m.CATALOGUE_MARQUES.length + ')', function () {
+      ou[i] = { marques: 1 }; dit('Ouvert le relevé des marques.'); rendre();
+    });
+    b2.style.cssText = 'margin-top:7px;width:100%';
+    c.appendChild(b2);
+    if (e.sien) {
+      c.appendChild(el('div', 'sous', 'Mon équipement'));
+      c.appendChild(monEquipement(i, true));
+      c.appendChild(bouton('bt bt-petit', '← Retour', function () {
+        ou[i] = {}; rendre();
+      }));
+    } else {
+      c.appendChild(el('div', 'item-resume',
+        'Tape le nom puis Entrée, choisis dans ton équipement, ou parcours '
+      + 'les marques.'));
+    }
+    return c;
+  }
+
+  /* --- B : un ecran, deux onglets --- */
+  function simB(i) {
+    var e = ou[i];
+    if (e.fiche) return fiche(i, e.fiche, e.retour);
+    if (e.marque) return uneMarque(i, e.marque, e.retour);
+    var c = el('div');
+    c.appendChild(el('div', 'titre', 'Ajouter un équipement'));
+    var ong = el('div', 'enrobe');
+    [['Le mien (' + mien.length + ')', 'mien'],
+     ['Les marques (' + m.CATALOGUE_MARQUES.length + ')', 'marques']]
+      .forEach(function (t) {
+        var p = bouton('puce', t[0], function () {
+          ou[i] = { onglet: t[1] }; rendre();
+        });
+        p.setAttribute('aria-pressed', (e.onglet || 'mien') === t[1] ? 'true' : 'false');
+        p.style.flex = '1';
+        ong.appendChild(p);
+      });
+    c.appendChild(ong);
+    var boite = el('div');
+    boite.style.marginTop = '8px';
+    if ((e.onglet || 'mien') === 'mien') {
+      boite.appendChild(monEquipement(i, true));
+    } else {
+      m.marquesConnues().forEach(function (mq) {
+        boite.appendChild(ligne(mq, compte(mq) + ' réf.', function () {
+          ou[i] = { marque: mq, retour: { onglet: 'marques' } };
+          dit('Ouvert : ' + mq + '. Rien n’a été posé.');
+          rendre();
+        }));
+      });
+    }
+    c.appendChild(boite);
+    return c;
+  }
+
+  /* --- C : une liste, tout replie --- */
+  var ouverts = {};
+  function simC(i) {
+    var e = ou[i];
+    if (e.fiche) return fiche(i, e.fiche, e.retour);
+    var c = el('div');
+    c.appendChild(el('div', 'titre', 'Équipements'));
+    var ch = el('input', 'champ');
+    ch.placeholder = 'Fat Gripz, Wrist Wrench…';
+    c.appendChild(ch);
+    c.appendChild(el('div', 'sous', 'Le mien'));
+    c.appendChild(monEquipement(i, true));
+    c.appendChild(el('div', 'sous', 'Par marque'));
+    m.marquesConnues().forEach(function (mq) {
+      var tete = bouton('equip-cat', null, function () {
+        ouverts[mq] = !ouverts[mq];
+        dit(ouverts[mq] ? 'Déplié : ' + mq + '. Rien n’a été posé.'
+                        : 'Replié : ' + mq + '.');
+        rendre();
+      });
+      tete.appendChild(el('b', null, mq));
+      tete.appendChild(el('span', null, String(compte(mq))));
+      tete.setAttribute('aria-expanded', ouverts[mq] ? 'true' : 'false');
+      c.appendChild(tete);
+      if (!ouverts[mq]) return;
+      var corps = el('div');
+      corps.style.paddingLeft = '6px';
+      m.produitsDeLaMarque(mq).forEach(function (f) {
+        corps.appendChild(el('div', 'sous', m.nomDuType(f.cle)));
+        f.produits.forEach(function (nom) {
+          var nm = m.musclesDeLOutil([nom]).length;
+          corps.appendChild(ligne(nom,
+            possede(nom) ? 'déjà chez toi' : (nm ? nm + ' muscle(s)' : 'nom libre'),
+            function () {
+              ou[i] = { fiche: nom, retour: {} };
+              dit('Ouvert la fiche de « ' + nom + ' ». Rien n’est encore posé.');
+              rendre();
+            }));
+        });
+      });
+      c.appendChild(corps);
+    });
+    return c;
+  }
+
+  var SIMS = [
+    { nom: 'A — Deux boutons', f: simA,
+      pourquoi: 'Ce qui existe DÉJÀ côté Réglages, porté tel quel dans la '
+              + 'fiche d’exercice.',
+      cout: 'Ce qu’il coûte : <b>deux appuis</b> avant de voir une marque, et '
+          + 'un bouton de plus dans une fiche déjà longue.' },
+    { nom: 'B — Un écran, deux onglets', f: simB,
+      pourquoi: 'Un seul panneau, et l’on bascule entre ce qu’on possède et '
+              + 'le relevé des marques.',
+      cout: 'Ce qu’il coûte : <b>un onglet de plus à comprendre</b>, et le '
+          + 'relevé passe au même rang que ton matériel — alors qu’il ne '
+          + 't’appartient pas.' },
+    { nom: 'C — Une liste, tout replié', f: simC,
+      pourquoi: 'Ton matériel en haut, les marques repliées dessous. Aucun '
+              + 'aller-retour : tout se déplie sur place.',
+      cout: 'Ce qu’il coûte : <b>l’écran le plus long</b>, et le relevé reste '
+          + 'sous les yeux même quand on ne le cherche pas.' }
+  ];
+
+  var r = document.getElementById('rangee');
+  function rendre() {
+    r.textContent = '';
+    SIMS.forEach(function (s, i) {
+      var d = el('div', 'sim');
+      d.appendChild(el('h2', null, s.nom));
+      d.appendChild(el('p', 'pourquoi', s.pourquoi));
+      var ec = el('div', 'ecran');
+      ec.appendChild(s.f(i));
+      d.appendChild(ec);
+      var c = el('div', 'cout');
+      c.innerHTML = s.cout;
+      d.appendChild(c);
+      r.appendChild(d);
+    });
+    var familles = {};
+    m.CATALOGUE_MARQUES.forEach(function (p) { familles[p.c] = 1; });
+    document.getElementById('bilan').textContent =
+      m.CATALOGUE_MARQUES.length + ' références · ' + m.marquesConnues().length
+      + ' marques · ' + Object.keys(familles).length + ' familles sur '
+      + m.OUTILS_CONNUS.length + ' types · ton équipement simulé : '
+      + mien.length + ' outil(s).';
+    document.title = '✓ ' + m.CATALOGUE_MARQUES.length + ' réf. — Simulations';
+  }
+
+  document.getElementById('raz').addEventListener('click', function () {
+    mien = DEPART.slice();
+    ou = [{}, {}, {}];
+    ouverts = {};
+    dit('Remis à zéro.');
+    rendre();
+  });
+
+  rendre();
+}());
+</script>
+</body>
+</html>

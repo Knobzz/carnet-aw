@@ -2445,7 +2445,22 @@
                    'et la ligne de montage se tait sur ce qu’on ne sait '
                  + 'pas : « ' + txtMo().slice(0, 48) + '… »');
 
-            return ranger();
+            /* DEUX FAMILLES, DEUX LIGNES NOMMEES. « Iron Wrist Conic » est
+               une poignee a rotation libre ET une poignee conique : deux
+               « Se monte sur » de suite ne disaient pas lequel venait d'ou.
+               Trouve en CLIQUANT la simulation du 27/10. */
+            champ.value = 'Iron Wrist Conic';
+            champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+            return attendre(60).then(function () {
+              v.egal(fen.App.m.montageDeLOutil('Iron Wrist Conic').length, 2,
+                     '[temoin] cet outil touche bien DEUX familles — sans '
+                   + 'quoi le contrôle suivant serait vrai pour rien');
+              v.vrai(txtMo().indexOf('Poignée à rotation libre —') >= 0
+                  && txtMo().indexOf('Poignée conique —') >= 0,
+                     'chaque montage NOMME sa famille quand il y en a '
+                   + 'plusieurs : « ' + txtMo().slice(0, 60) + '… »');
+              return ranger();
+            });
             });
           });
         });
@@ -2593,16 +2608,54 @@
         return attendre(80).then(function () { e.outils.length = 0; });
       }
 
-      var bt = Array.prototype.filter.call(pan.querySelectorAll('button'),
-        function (b) { return b.textContent.indexOf('Choisir dans mon') === 0; })[0];
-      v.vrai(!!bt, '[temoin] le bouton existe dans le gabarit');
-      /* L'EFFET, PAS L'ATTRIBUT. Ecrit `bt.hidden`, ce controle etait VERT
-         pendant que le bouton restait peint en gris a l'ecran : `.bt` pose
-         `display: inline-flex`, qui bat la regle du navigateur. C'est la
-         capture qui l'a dit, pas le banc. On mesure donc la HAUTEUR. */
-      v.vrai(!bt || bt.getBoundingClientRect().height === 0,
-             'mais il n’est PAS PEINT quand l’équipement est vide : un '
-           + 'bouton éteint se lit « c’est cassé »');
+        /* L'AFFICHAGE C (MB, 27/10) : plus de bouton « Choisir dans mon
+           equipement », mais des sections REPLIEES. Ce bloc mesurait le
+           bouton, et trois de ses controles etaient ecrits `!bt || ...` :
+           le bouton parti, ils sont devenus VRAIS A VIDE au lieu de
+           tomber. Seul le temoin a parle. On mesure donc ce qui existe. */
+        function sections() {
+          return Array.prototype.slice.call(pan.querySelectorAll('.equip-cat'));
+        }
+        function marques() {
+          return sections().filter(function (b) {
+            return b.textContent.indexOf('Golden Grip') === 0
+                || b.textContent.indexOf('Titangrip') === 0;
+          });
+        }
+        function sectionMienne() {
+          return sections().filter(function (b) {
+            return b.textContent.indexOf('Le mien') === 0;
+          });
+        }
+        v.egal(marques().length, 2,
+               'les marques ont leur section dans la fiche d’exercice');
+        v.egal(marques().filter(function (b) {
+          return b.getAttribute('aria-expanded') !== 'false';
+        }).length, 0,
+               'et TOUT est replié au départ — la fiche est déjà longue');
+        v.egal(sectionMienne().length, 0,
+               '« Le mien » ne s’affiche pas quand l’équipement est '
+             + 'vide : une section à zéro n’apprend rien');
+        v.egal(marques().filter(function (b) {
+          return b.getBoundingClientRect().height < 44;
+        }).length, 0, 'chaque section se touche au pouce');
+
+        /* ELLE S'OUVRE SUR PLACE : c'est tout l'interet de C.
+
+           LA GARDE N'EST PAS DU LUXE : ecrit `marques()[1].click()` nu, ce
+           controle a PLANTE sous la chute du 27/10 et emporte le bloc
+           SUIVANT avec lui — les panneaux restaient ouverts. Troisieme
+           fois de la journee que je paie la meme faute. */
+        var deux = marques()[1];
+        if (deux) deux.click();
+        var lignesM = pan.querySelectorAll('.item-ligne').length;
+        v.vrai(!!deux && lignesM > 0,
+               'déplier une marque montre ses produits SANS quitter la '
+             + 'fiche (' + lignesM + ' lignes)');
+        v.vrai(pan.textContent.indexOf('Clé de poignet') > 0,
+               'avec ses familles NOMMÉES, pas leurs clés');
+        v.egal(e.outils.length, 0, 'et déplier n’a RIEN posé');
+        if (deux) deux.click();
 
       var aide = null;
       Array.prototype.forEach.call(pan.querySelectorAll('.item-resume'), function (n) {
@@ -2655,10 +2708,114 @@
         v.egal((exo.outils || []).join(','), 'Fat Gripz',
                'taper puis Entrée POSE l’outil sur l’exercice');
         v.egal(champ.value, '', 'et le champ se vide pour le suivant');
-        v.vrai(!bt || bt.getBoundingClientRect().height > 0,
-               'le bouton réapparaît — peint, pas seulement déclaré — dès '
-             + 'qu’il y a quelque chose à y choisir');
+        v.egal(sectionMienne().length, 1,
+               '« Le mien » APPARAÎT dès le premier outil posé — sans '
+             + 'quoi on vient de remplir son équipement et rien ne le '
+             + 'montre');
         return ranger();
+      });
+    });
+  });
+
+  /* ---------------------------------------------------------------
+     PARCOURIR LES MARQUES
+
+     MB, 27/10 : « je ne vois que les 4 que j'ai ajoutes a la main, je ne
+     vois pas Titan Grip avec les sous categories et equipements propres a
+     la marque ». Ce bloc mesure les deux moities : que le catalogue
+     s'ouvre et se lise, et surtout qu'il NE POSE RIEN — la regle du projet
+     est que rien n'est livre dans l'equipement.
+     --------------------------------------------------------------- */
+  bloc('Parcourir les marques', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+
+    fen.App.vues.reglages.rendre(vue);
+
+    function ranger() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.ui.vider(vue);
+        e.outils.length = 0;
+      });
+    }
+
+    return attendre(200).then(function () {
+      var bt = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('button'), function (b) {
+        if (!bt && b.textContent.indexOf('Parcourir les marques') === 0) bt = b;
+      });
+      v.vrai(!!bt, 'l’écran propose de parcourir les marques');
+      if (!bt) return ranger();
+      v.vrai(bt.getBoundingClientRect().height >= 44,
+             'et le bouton se touche au pouce ('
+           + Math.round(bt.getBoundingClientRect().height) + ' px)');
+      bt.click();
+
+      return attendre(160).then(function () {
+        var pan = doc.querySelector('.panneau');
+        var lignes = pan ? Array.prototype.map.call(
+          pan.querySelectorAll('.item-ligne'),
+          function (n) { return n.textContent; }) : [];
+        v.egal(lignes.length, 4, 'les quatre marques sont listées');
+        v.vrai(lignes.join(' ').indexOf('Titangrip') >= 0,
+               'Titangrip en fait partie — c’est celle que MB a nommée');
+
+        var tg = null;
+        Array.prototype.forEach.call(pan.querySelectorAll('.item-ligne'), function (n) {
+          if (!tg && n.textContent.indexOf('Titangrip') === 0) tg = n;
+        });
+        if (!tg) return ranger();
+        tg.click();
+
+        return attendre(160).then(function () {
+          var ps = doc.querySelectorAll('.panneau');
+          var q = ps[ps.length - 1];
+          v.egal(q.getAttribute('aria-label'), 'Titangrip',
+                 'un appui ouvre la marque');
+          var titres = Array.prototype.map.call(
+            q.querySelectorAll('.groupe > label, .groupe > .lib, .groupe b'),
+            function (n) { return n.textContent.trim(); });
+          var txt = q.innerText;
+          /* LES FAMILLES PORTENT LEUR NOM. Avant le 27/10 l'ecran affichait
+             la CLE : « fat grip », « pronator ». */
+          v.vrai(txt.indexOf('Clé de poignet') > 0,
+                 'les familles portent leur NOM, pas leur clé');
+          v.egal(txt.indexOf('wrist wrench'), -1,
+                 'et la clé ne s’affiche nulle part');
+
+          var prod = null;
+          Array.prototype.forEach.call(q.querySelectorAll('.item-ligne'), function (n) {
+            if (!prod && n.textContent.indexOf('Iron Wrist Conic') === 0) prod = n;
+          });
+          v.vrai(!!prod, 'un produit de la marque est là');
+          v.egal(e.outils.length, 0,
+                 'et PARCOURIR n’a rien posé dans l’équipement');
+          if (!prod) return ranger();
+          prod.click();
+
+          return attendre(200).then(function () {
+            var ps2 = doc.querySelectorAll('.panneau');
+            var fiche = ps2[ps2.length - 1];
+            var champ = fiche && fiche.querySelector('input.champ');
+            v.egal(fiche && fiche.getAttribute('aria-label'), 'Nouvel outil',
+                   'un appui ouvre la fiche de l’outil');
+            v.egal(champ && champ.value, 'Iron Wrist Conic',
+                   'avec le nom DÉJÀ écrit, et modifiable');
+            v.egal(e.outils.length, 0,
+                   'et RIEN n’est encore au catalogue : c’est lui qui '
+                 + 'enregistre');
+            var lu = fiche && fiche.querySelector('.dit-lu');
+            v.vrai(lu && lu.textContent.indexOf('iron wrist') >= 0,
+                   'la fiche dit déjà ce qu’elle a lu dans ce nom');
+            return ranger();
+          });
+        });
       });
     });
   });

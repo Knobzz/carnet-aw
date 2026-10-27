@@ -2637,6 +2637,62 @@
            'le carnet dit quelque chose EXACTEMENT quand il a reconnu '
          + 'quelque chose');
 
+    /* ---- LE CATALOGUE DES MARQUES (MB, 27/10) ----
+
+       « Je ne vois que les 4 que j'ai ajoutes a la main. » C'est une
+       REFERENCE qu'on parcourt ; elle ne pose rien dans l'equipement. */
+    v.egal(A.m.marquesConnues().join(' · '),
+           'Golden Grip · Titangrip · Mithril · ARMSPORT',
+           'quatre marques, dans l’ordre du relevé');
+    v.vrai(A.m.CATALOGUE_MARQUES.length >= 50,
+           'et une cinquantaine de références (' + A.m.CATALOGUE_MARQUES.length
+         + ')');
+
+    /* IL NE LIVRE RIEN. La regle n 6 du projet tient : un etat neuf a un
+       equipement VIDE, catalogue ou pas. */
+    var neuf = A.store.vide();
+    v.egal(neuf.outils.length, 0,
+           'un carnet neuf a un équipement VIDE — le catalogue des marques '
+         + 'ne s’y déverse pas');
+    A.m.marquesConnues().forEach(function (m) { A.m.produitsDeLaMarque(m); });
+    v.egal(neuf.outils.length, 0,
+           'et le PARCOURIR ne change rien non plus');
+
+    /* CHAQUE PRODUIT POINTE UN TYPE QUI EXISTE, et son nom est lisible par
+       le modele : une reference qu'on ne sait pas lire est une impasse. */
+    var clesT = {};
+    A.m.OUTILS_CONNUS.forEach(function (k) { clesT[k.mots[0]] = 1; });
+    v.egal(A.m.CATALOGUE_MARQUES.filter(function (p) {
+      return !clesT[p.c];
+    }).map(function (p) { return p.n; }).join(' · '), '',
+           'chaque référence pointe une famille qui existe');
+    /* ILLISIBLE SE DIT, et ne s'excuse pas. « AXE » est trop generique
+       pour qu'un type le revendique : la reference reste au catalogue, mais
+       elle porte `libre` et sa fiche dira « nom libre ». */
+    v.egal(A.m.CATALOGUE_MARQUES.filter(function (p) {
+      return !A.m.typesDeLOutil(p.n).length && !p.libre;
+    }).map(function (p) { return p.n; }).join(' · '), '',
+           'toute référence que le carnet ne sait pas LIRE porte la marque '
+         + '« libre » — un manque nommé, jamais masqué');
+    v.egal(A.m.CATALOGUE_MARQUES.filter(function (p) {
+      return p.libre && A.m.typesDeLOutil(p.n).length;
+    }).map(function (p) { return p.n; }).join(' · '), '',
+           'et aucune ne la porte à tort : une marque qui survit à sa raison '
+         + 'devient un mensonge');
+    v.egal(A.m.CATALOGUE_MARQUES.filter(function (p) { return p.libre; }).length,
+           2, '[temoin] deux références sont dans ce cas — les deux lignes '
+         + 'de l’AXE, qui est à la fois pronation et rising');
+
+    /* LES FAMILLES ONT UN NOM LISIBLE : sans lui l'ecran affichait
+       « fat grip » et « pronator » a qui ouvre son equipement. */
+    v.egal(A.m.nomDuType('wrist wrench'), 'Clé de poignet',
+           'une famille porte son nom, pas sa clé');
+    v.egal(A.m.OUTILS_CONNUS.filter(function (k) {
+      return A.m.nomDuType(k.mots[0]) === k.mots[0];
+    }).map(function (k) { return k.mots[0]; }).join(' · '), '',
+           'et les DIX-SEPT en ont un — une clé qui s’affiche telle quelle '
+         + 'est un oubli, pas un choix');
+
     /* ---- OU CA SE MONTE (MB, 26/10, livre le 27/10) ---- */
     v.egal((A.m.montageDeLOutil('Fat Gripz')[0] || {}).monte || '',
            'Barre, haltères, poignée de poulie, barre de traction — '

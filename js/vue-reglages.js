@@ -231,13 +231,17 @@
 
   /* Fiche d'un outil : nom + catégorie, la catégorie en saisie libre avec
      autocomplétion sur celles déjà employées. `outil` null = création. */
-  function editerOutil(outil, apres) {
+  function editerOutil(outil, apres, nomSuggere) {
     var e = etat();
     var neuf = !outil;
     var appliquer = null;
 
     A.panneau.ouvrir(neuf ? 'Nouvel outil' : outil.nom, function (c, fermer) {
-      var champNom = h('input', { class: 'champ', value: neuf ? '' : outil.nom,
+      /* `nomSuggere` vient du catalogue des marques : le nom est deja
+         ecrit, et il reste MODIFIABLE. La fiche s'ouvre quand meme — c'est
+         l'utilisateur qui enregistre, et il voit ce qu'il cree. */
+      var champNom = h('input', { class: 'champ',
+                                  value: neuf ? (nomSuggere || '') : outil.nom,
                                   placeholder: 'Poulie haute, Titan Grip Iron Wrist…' });
       c.appendChild(A.ui.groupe('Nom de l’outil', champNom));
 
@@ -295,8 +299,15 @@
            disent le contraire l'un de l'autre, et colles ils se lisent
            comme une seule phrase. */
         A.ui.vider(ou);
+        /* QUAND IL Y EN A PLUSIEURS, chaque ligne nomme sa famille : « Iron
+           Wrist Conic » est une poignee a rotation libre ET une poignee
+           conique, et deux « Se monte sur » de suite ne disaient pas lequel
+           venait d'ou. Trouve en cliquant la simulation, pas a la lecture. */
+        var plusieurs = l.length > 1;
         l.forEach(function (x) {
-          ou.appendChild(h('div', { text: 'Se monte sur : ' + x.monte }));
+          var tete = plusieurs ? A.m.nomDuType(x.type) + ' — se monte sur : '
+                               : 'Se monte sur : ';
+          ou.appendChild(h('div', { text: tete + x.monte }));
           if (x.pasSur) {
             ou.appendChild(h('div', { class: 'dit-pas',
                                       text: 'Pas sur : ' + x.pasSur }));
@@ -712,7 +723,12 @@
     /* --- équipement --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Équipement' }));
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Rien n’est livré avec l’app. Un exercice peut porter plusieurs outils — « Titan Grip » et « Poulie haute » ensemble, par exemple. Les catégories sont les tiennes : tape-en une nouvelle et elle existe.' }));
+      text: 'Ton équipement ne contient que ce que tu y mets : rien n’y '
+          + 'entre tout seul. Les marques ci-dessous sont un relevé à '
+          + 'parcourir, pas une liste livrée. Un exercice peut porter '
+          + 'plusieurs outils — « Titan Grip » et « Poulie haute » ensemble. '
+          + 'Les catégories sont les tiennes : tape-en une nouvelle et elle '
+          + 'existe.' }));
 
     var btOutilNeuf = h('button', { class: 'bt bt-large', style: 'margin-bottom:10px',
                                     text: '+ Ajouter un outil' });
@@ -720,6 +736,66 @@
       editerOutil(null, function () { rendre(hote); });
     });
     hote.appendChild(btOutilNeuf);
+
+    /* ---- PARCOURIR LES MARQUES ----
+       MB, 27/10 : « je ne vois pas Titan Grip avec les sous categories et
+       equipements propres a la marque ». C'est une REFERENCE, pas une
+       livraison : rien n'entre dans son equipement tant qu'il n'a pas
+       appuye, et l'appui ouvre la fiche avec le nom ecrit. La liste
+       ci-dessous reste vide tant qu'il n'a rien pose. */
+    var btMarques = h('button', { class: 'bt bt-large', style: 'margin-bottom:10px',
+                                  text: 'Parcourir les marques ('
+                                      + A.m.CATALOGUE_MARQUES.length + ')' });
+    btMarques.addEventListener('click', function () { ouvrirMarques(); });
+    hote.appendChild(btMarques);
+
+    function ouvrirMarques() {
+      A.panneau.ouvrir('Les marques', function (c) {
+        c.appendChild(h('div', { class: 'item-resume' },
+          'Un relevé de ' + A.m.CATALOGUE_MARQUES.length + ' références, pour '
+        + 'retrouver le tien sans le taper. Rien n’entre dans ton équipement '
+        + 'tant que tu n’as pas enregistré. Il datera : ce que tu ne trouves '
+        + 'pas ici, tape-le à la main.'));
+        A.m.marquesConnues().forEach(function (marque) {
+          var familles = A.m.produitsDeLaMarque(marque);
+          var combien = familles.reduce(function (n, f) {
+            return n + f.produits.length;
+          }, 0);
+          var b = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+            h('b', { text: marque }),
+            h('span', { text: combien + ' référence' + (combien > 1 ? 's' : '') }));
+          b.addEventListener('click', function () { ouvrirMarque(marque); });
+          c.appendChild(b);
+        });
+      }, [{ nom: 'Fermer', classe: 'bt-primaire',
+            action: function (fermer) { fermer(); } }]);
+    }
+
+    function ouvrirMarque(marque) {
+      A.panneau.ouvrir(marque, function (c, fermer) {
+        A.m.produitsDeLaMarque(marque).forEach(function (f) {
+          var boite = h('div');
+          f.produits.forEach(function (nom) {
+            var deja = !!A.m.trouverOutil(e, A.m.slug(nom));
+            var b = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+              h('b', { text: nom }),
+              h('span', { text: deja ? 'déjà chez toi'
+                                     : A.m.musclesDeLOutil([nom]).length
+                                       + ' muscle(s)' }));
+            b.addEventListener('click', function () {
+              fermer();
+              editerOutil(null, function () { rendre(hote); }, nom);
+            });
+            boite.appendChild(b);
+          });
+          /* LA FAMILLE PORTE SON NOM, pas sa cle : « Cle de poignet », et
+             non « wrist wrench ». La cle sert au code — elle n'a rien a
+             faire sous les yeux de qui ouvre son equipement. */
+          c.appendChild(A.ui.groupe(A.m.nomDuType(f.cle), boite));
+        });
+      }, [{ nom: 'Fermer', classe: 'bt-primaire',
+            action: function (fermer) { fermer(); } }]);
+    }
 
     if (!e.outils.length) {
       hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun outil' }),
@@ -822,5 +898,10 @@
   }
 
   A.vues = A.vues || {};
-  A.vues.reglages = { rendre: rendre, titre: function () { return 'Réglages'; } };
+  /* `editerOutil` sort d'ici depuis le 27/10 : la fiche d'exercice en a
+     besoin pour l'affichage C, ou un appui sur une reference de marque
+     ouvre la fiche de l'outil avec le nom deja ecrit. Elle reste DEFINIE
+     ici, aupres de l'ecran qui la possede. */
+  A.vues.reglages = { rendre: rendre, editerOutil: editerOutil,
+                      titre: function () { return 'Réglages'; } };
 })(window.App || (window.App = {}));
