@@ -2803,25 +2803,35 @@
        platine a ses trous EMPILES, pas lateraux. */
     A.m.majCatalogueOutils(f, 'Titan Grip Iron Wrist 60 mm', 'Poignées AW');
     v.egal(A.m.reglagesProposes(f, 'Titan Grip Iron Wrist 60 mm').join(' · '),
-           'Mousqueton en haut · Mousqueton au milieu · Mousqueton en bas',
-           'une poignée à rotation libre suggère SES trois positions');
+           'Mousqueton au centre · Mousqueton à l’extérieur'
+         + ' · Mousqueton à l’intérieur',
+           'une poignée à rotation libre suggère les trois positions');
     v.egal(A.m.reglagesProposes(f, 'Rolling Handle').join(' · '),
-           'Mousqueton en haut · Mousqueton au milieu · Mousqueton en bas',
+           'Mousqueton au centre · Mousqueton à l’extérieur'
+         + ' · Mousqueton à l’intérieur',
            'et le rolling handle aussi — c’est le TYPE qui les porte, pas '
          + 'le produit');
 
-    /* DEUX TYPES, DEUX VOCABULAIRES : les copier d'un outil sur l'autre
-       aurait fait dire « exterieur » a une platine verticale. */
-    var ponts = A.m.reglagesProposes(null, 'Golden Grip Wrist Wrench')
-      .filter(function (n) {
-        return A.m.reglagesProposes(null, 'Iron Wrist').indexOf(n) >= 0;
-      });
-    v.vrai(A.m.reglagesProposes(null, 'Iron Wrist').length === 3,
-           '[temoin] la poignée en suggère bien trois — sans quoi le '
-         + 'contrôle suivant serait vrai pour rien');
-    v.egal(ponts.join(','), '',
-           'les deux types ne partagent AUCUN nom de position : chacun dit '
-         + 'ce qu’on voit sur SON matériel');
+    /* CE CONTROLE DISAIT L'INVERSE jusqu'au 27/10 : « les deux types ne
+       partagent AUCUN nom ». J'avais donne a la poignee son propre
+       vocabulaire — « en haut / au milieu / en bas » — parce que ses trous
+       sont empiles. MB a tranche pour un vocabulaire unique, avec
+       l'argument qui me manquait : il TIENT l'outil, et la platine est au
+       cote de la main. Le controle mesure donc maintenant l'UNIFORMITE,
+       et il tombe si quelqu'un redonne un vocabulaire propre a un type. */
+    var cleP = A.m.reglagesProposes(null, 'Golden Grip Wrist Wrench');
+    var ironP = A.m.reglagesProposes(null, 'Iron Wrist');
+    v.vrai(cleP.length === 3 && ironP.length === 3,
+           '[temoin] les deux types en suggèrent bien trois — sans quoi '
+         + 'l’égalité suivante serait vraie pour rien');
+    v.egal(ironP.join(' · '), cleP.join(' · '),
+           'les deux types disent les positions avec les MÊMES mots : on ne '
+         + 'réapprend pas le même réglage d’un outil à l’autre');
+
+    /* ET D'UNE SEULE LISTE : deux copies du meme trio auraient derive au
+       premier ajout. */
+    v.egal(A.m.POSITIONS_MOUSQUETON.join(' · '), cleP.join(' · '),
+           'et ces mots viennent d’UNE seule liste, pas d’une copie par type');
 
     /* ET AUCUNE NE PORTE DE MUSCLE, sur l'un comme sur l'autre : sur la
        cle parce qu'ils y sont deja, ici parce qu'aucune source ne dit quel

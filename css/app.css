@@ -280,6 +280,13 @@ a { color: var(--bleu); }
 /* Meme les boutons secondaires tiennent la cible de 44 px : ils se touchent
    en salle, main moite, sans regarder. */
 .bt-petit { min-height: var(--tap); padding: 0 12px; font-size: .84rem; }
+/* `.bt` pose `display: inline-flex`, qui BAT la regle du navigateur pour
+   `[hidden]`. Sans cette ligne, un bouton qu'on masque reste PEINT, et gris
+   — c'est ce qui s'est passe le 27/10 sur « Choisir dans mon equipement ».
+   Celle-ci, on l'a vue servir : la capture d'ecran le montrait, et le
+   controle la voit tomber. */
+.bt[hidden] { display: none; }
+
 .bt-fantome { background: none; border-color: transparent; color: var(--bleu); }
 .bt-danger { color: var(--tendon); border-color: var(--tendon); background: none; }
 .bt-danger.arme { background: var(--tendon); border-color: var(--tendon); color: #fff; }

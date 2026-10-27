@@ -457,14 +457,32 @@
       v.egal(libelles.indexOf('Forces de Larratt'), -1,
              '« Forces de Larratt » n’apparaît plus nulle part dans la fiche');
 
-      /* L'aide sous « Outils » a été retirée : la fiche était bavarde. Celle
-         sous « Structures chargées » a été retirée puis REDEMANDÉE, courte :
-         ce qui était reproché était le bavardage, pas l'explication. */
-      var gOutils = groupe('Outils');
+      /* CE CONTROLE EXIGEAIT ZERO AIDE SOUS « OUTILS » jusqu'au 27/10, et
+         il est tombe ce jour-la. Il avait raison de tomber : l'aide avait
+         ete retiree parce que la fiche etait BAVARDE, et le groupe est
+         reste muet — au point que MB a cru la fonction absente, « pas
+         possible dans la configuration que je voulais ».
+
+         Le precedent etait juste a cote, dans le meme commentaire :
+         « Structures chargees » avait perdu son aide puis l'avait REPRISE,
+         courte. Ce qui etait reproche etait le bavardage, pas
+         l'explication. Le controle mesure donc maintenant la BRIEVETE, qui
+         est ce que la decision d'origine protegeait.
+
+         Et le groupe s'appelle « Equipements » depuis le 27/10. */
+      var gOutils = groupe('Équipements');
       var gStruct = groupe('Structures chargées');
       v.vrai(!!gOutils && !!gStruct, '[temoin] les deux groupes sont là');
-      if (gOutils) v.egal(gOutils.querySelectorAll('.item-resume').length, 0,
-                          'plus d’aide sous « Outils »');
+      v.egal(groupe('Outils'), null,
+             'plus aucun groupe ne s’appelle « Outils » : le reste de l’app '
+           + 'dit « mon équipement »');
+      var aideEq = gOutils && gOutils.querySelector('.item-resume');
+      v.vrai(!!aideEq, 'le groupe « Équipements » porte une aide — sans elle, '
+           + 'personne ne devine qu’il faut faire Entrée');
+      v.vrai(!aideEq || aideEq.textContent.length <= 220,
+             'et elle reste COURTE (' + (aideEq ? aideEq.textContent.length : 0)
+           + ' caractères) : c’est le bavardage qui avait été reproché, pas '
+           + 'l’explication');
       if (gStruct) {
         var aide = gStruct.querySelector('.item-resume');
         v.vrai(!!aide, 'une aide sous « Structures chargées » — elle a été redemandée');
@@ -689,7 +707,7 @@
     return attendre(120).then(function () {
       var pan = doc.querySelector('.panneau');
       var saisie = pan.querySelector('.multi input.champ');
-      v.vrai(!!saisie, 'le champ « Outils » est là');
+      v.vrai(!!saisie, 'le champ « Équipements » est là');
       if (!saisie) return;
 
       saisie.focus();
@@ -2534,6 +2552,113 @@
             e.outils.length = 0;
           });
         });
+      });
+    });
+  });
+
+  /* ---------------------------------------------------------------
+     POSER UN OUTIL SUR UN EXERCICE, quand l'equipement est VIDE
+
+     MB, 27/10 : « comment je selectionne l'equipement quand je cree un
+     exo ? pas possible dans la configuration que je voulais ». Reproduit :
+     ca marchait: taper + ENTREE posait l'outil ET l'ajoutait au catalogue.
+     Mais la touche n'etait nulle part ecrite, et le bouton « Choisir dans
+     mon equipement » restait la, DESACTIVE, opacite 0.45 — un bouton
+     eteint se lit « c'est casse ».
+     --------------------------------------------------------------- */
+  bloc('Poser un outil quand l’équipement est vide', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    var exo = fen.App.m.exerciceProgramme({ nom: 'Curl' });
+    var rendu = null;
+
+    v.egal(e.outils.length, 0,
+           '[temoin] l’équipement est vide — c’est le cas que MB a vécu, et '
+         + 'tout le bloc en dépend');
+
+    fen.App.panneau.editerExercice(exo, { titre: 'Essai' },
+                                   function (x) { rendu = x; });
+
+    return attendre(200).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche d’exercice s’ouvre');
+      if (!pan) return;
+
+      function ranger() {
+        Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+          var x = p.querySelector('.panneau-entete .bt-icone');
+          if (x) x.click();
+        });
+        return attendre(80).then(function () { e.outils.length = 0; });
+      }
+
+      var bt = Array.prototype.filter.call(pan.querySelectorAll('button'),
+        function (b) { return b.textContent.indexOf('Choisir dans mon') === 0; })[0];
+      v.vrai(!!bt, '[temoin] le bouton existe dans le gabarit');
+      /* L'EFFET, PAS L'ATTRIBUT. Ecrit `bt.hidden`, ce controle etait VERT
+         pendant que le bouton restait peint en gris a l'ecran : `.bt` pose
+         `display: inline-flex`, qui bat la regle du navigateur. C'est la
+         capture qui l'a dit, pas le banc. On mesure donc la HAUTEUR. */
+      v.vrai(!bt || bt.getBoundingClientRect().height === 0,
+             'mais il n’est PAS PEINT quand l’équipement est vide : un '
+           + 'bouton éteint se lit « c’est cassé »');
+
+      var aide = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('.item-resume'), function (n) {
+        if (!aide && n.textContent.indexOf('Tape le nom') === 0) aide = n;
+      });
+      v.vrai(!!aide, 'une aide prend sa place');
+      var t = aide ? aide.textContent : '';
+      v.vrai(t.indexOf('Entrée') > 0,
+             'elle NOMME la touche qui valide — personne ne devine '
+           + '« Entrée » sur un clavier de téléphone');
+      v.vrai(t.indexOf('y entre aussi') > 0,
+             'et elle dit que l’outil tapé rejoint l’équipement : « '
+           + t.slice(0, 64) + '… »');
+
+      /* ET LE GESTE MARCHE VRAIMENT — l'effet, pas la declaration. */
+      var champ = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('input.champ'), function (n) {
+        /* On reconnait le champ par SA PLACE, pas par le texte de son
+           exemple : l'exemple a change le 27/10, et un controle accroche a
+           un libelle se casse au premier renommage. */
+        if (!champ && n.closest && n.closest('.multi')) champ = n;
+      });
+      v.vrai(!!champ, 'le champ de saisie libre est là');
+      if (!champ) return ranger();
+
+      /* LES EXEMPLES DU CHAMP MARCHENT — MB, 27/10 : « mets des exemples
+         qui marchent, deux des trois ne sont pas bons ». Mesure : les
+         TROIS etaient muets.
+
+         ET ON LIT LE VRAI PLACEHOLDER. Ma premiere ecriture recopiait les
+         trois noms dans le banc et les mesurait eux-memes : elle serait
+         restee verte en remettant les anciens exemples dans l'ecran. Un
+         controle qui se mesure contre lui-meme ne prouve rien. */
+      var ex = (champ.placeholder || '').replace(/[…\.]+$/, '')
+                 .split(',').map(function (x) { return x.trim(); })
+                 .filter(Boolean);
+      v.vrai(ex.length >= 2,
+             '[temoin] le champ propose des exemples (' + ex.length + ')');
+      v.egal(ex.filter(function (x) {
+        return !fen.App.m.musclesDeLOutil([x]).length;
+      }).join(' · '), '',
+             'et CHACUN est reconnu par le carnet : un exemple muet apprend '
+           + 'le contraire de ce qu’il montre');
+      champ.value = 'Fat Gripz';
+      champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      champ.dispatchEvent(new fen.KeyboardEvent('keydown',
+        { key: 'Enter', bubbles: true }));
+
+      return attendre(140).then(function () {
+        v.egal((exo.outils || []).join(','), 'Fat Gripz',
+               'taper puis Entrée POSE l’outil sur l’exercice');
+        v.egal(champ.value, '', 'et le champ se vide pour le suivant');
+        v.vrai(!bt || bt.getBoundingClientRect().height > 0,
+               'le bouton réapparaît — peint, pas seulement déclaré — dès '
+             + 'qu’il y a quelque chose à y choisir');
+        return ranger();
       });
     });
   });

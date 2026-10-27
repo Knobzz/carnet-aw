@@ -1677,6 +1677,15 @@
      QUATRE SITES : goldengrip.com, mithrilarmwrestling.com, titangrip.de,
      wristball.net (ARMSPORT). Seuls les NEUF types deja poses sont
      enrichis — les seize candidats attendent la decision de MB. */
+  /* LES TROIS POSITIONS DE MOUSQUETON, ecrites UNE FOIS. MB, 27/10 :
+     « uniformiser avec centre exterieur et interieur, et tout autre
+     equipement qui a cette meme configuration ». Une liste par type aurait
+     derive au premier ajout — c'est le genre de doublon qui se decouvre
+     quand deux outils ne disent plus la meme chose du meme geste. */
+  var POSITIONS_MOUSQUETON = ['Mousqueton au centre',
+                              'Mousqueton à l’extérieur',
+                              'Mousqueton à l’intérieur'];
+
   var OUTILS_CONNUS = [
     { mots: ['fat grip', 'fat gripz', 'thick grip', 'thick grips',
              'prise epaisse', 'barre epaisse', 'manchon', 'manchons',
@@ -1731,11 +1740,15 @@
          « Durch die verschiedenen Einstellungsmoeglichkeiten laesst sich
          die Belastung so veraendern ».
 
-         LES NOMS DISENT CE QU'ON VOIT, pas ce qu'on en deduit : les trous
-         sont EMPILES, pas lateraux — « en haut / au milieu / en bas », et
-         non « exterieur / interieur » comme sur la cle. Un nom qui decrit
-         la mecanique qu'on suppose, au lieu de l'objet qu'on tient, se
-         retrouve faux le jour ou la supposition tombe.
+         UN SEUL VOCABULAIRE POUR TOUS — MB, 27/10 : « uniformiser avec
+         centre, exterieur et interieur ». J'avais d'abord ecrit « en haut
+         / au milieu / en bas » ici, parce que les trous de la platine sont
+         EMPILES et non lateraux, et que je voulais que le nom dise ce
+         qu'on VOIT. MB tranche pour un vocabulaire unique, et il a
+         l'argument qui me manquait : il TIENT l'outil. La platine est au
+         COTE de la main — haut et bas de l'objet sont exterieur et
+         interieur de la prise. Deux vocabulaires obligeaient en plus a
+         reapprendre le meme reglage d'un outil a l'autre.
 
          SANS MUSCLES, et ici ce n'est PAS pour la meme raison que la cle.
          Sur la cle, les muscles des deux bords etaient deja dans les dix
@@ -1744,8 +1757,7 @@
          AUCUNE source ne dit quel bord charge quel trou — ni Titangrip, qui
          s'arrete a « la charge change ». Les poser serait les deviner. Ils
          restent donc a l'utilisateur, qui tient l'outil. */
-      reglages: ['Mousqueton en haut', 'Mousqueton au milieu',
-                 'Mousqueton en bas'] },
+      reglages: POSITIONS_MOUSQUETON },
 
     /* Un levier au bout du poignet. MB, 27/10 : « on peut mettre le
        mousqueton au centre, a l'exterieur ou a l'interieur, ce qui va
@@ -1773,8 +1785,7 @@
        quand il voudra — la fiche le permet depuis toujours. */
     { mots: ['wrist wrench', 'wrench', 'optiwrench'],
       entrees: ['Wrist curl', 'Wrist curl inversé'],
-      reglages: ['Mousqueton au centre', 'Mousqueton à l’extérieur',
-                 'Mousqueton à l’intérieur'] },
+      reglages: POSITIONS_MOUSQUETON },
 
     /* Le diametre change sur la longueur : la main glisse vers le gros
        bout si elle ne tient pas. RAISONNE — l'etude de Krings mesure le
@@ -4042,6 +4053,7 @@
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     musclesDeLOutil: musclesDeLOutil, OUTILS_CONNUS: OUTILS_CONNUS,
     typesDeLOutil: typesDeLOutil, motsReconnus: motsReconnus,
+    POSITIONS_MOUSQUETON: POSITIONS_MOUSQUETON,
     MONTAGE: MONTAGE, montageDeLOutil: montageDeLOutil,
     sourceDuMouvement: sourceDuMouvement,
     chargeParMuscle: chargeParMuscle,

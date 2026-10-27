@@ -425,6 +425,11 @@
           });
         }, function (v) {
           exo.outils = v;
+          /* LE BOUTON REVIENT. Sans cet appel il restait cache apres le
+             tout premier outil tape : on venait de remplir son equipement
+             et rien ne le montrait. Trouve par le controle du banc, pas a
+             l'oeil. */
+          majBtEquip();
           rafraichirReglages();
           /* L'outil est la CINQUIEME source de proposition depuis le
              26/10 : sans ce rafraichissement, on tapait « Fat Gripz »
@@ -432,7 +437,14 @@
              qu'on retouche le nom. La moitie livree, piege n 5. */
           rafraichirMuscles();
         },
-          'Dumbbell, poulie haute, Titan Grip…'));
+          /* DES EXEMPLES QUI MARCHENT — MB, 27/10 : « deux des trois ne
+             sont pas bons ». Mesure : les TROIS etaient muets. « Dumbbell »,
+             « poulie haute » et « Titan Grip » ne sont reconnus par rien,
+             zero muscle chacun. Les trois d'aujourd'hui proposent 5, 10 et 5
+             muscles, et un controle du banc exige qu'ils restent reconnus —
+             un exemple qui ne marche pas apprend le contraire de ce qu'il
+             montre. */
+          'Fat Gripz, Wrist Wrench, Titan Grip Iron Wrist…'));
       }
 
       /* ---- les réglages de chaque outil ----
@@ -504,16 +516,34 @@
 
       rafraichirOutils();
       rafraichirReglages();
-      var grOutils = A.ui.groupe('Outils', boiteOutils);
+      /* « Equipements », et non « Outils » — MB, 27/10. Le reste de l'app
+         dit deja « mon equipement » : deux mots pour la meme chose se
+         paient en hesitation a chaque ouverture de fiche. */
+      var grOutils = A.ui.groupe('Équipements', boiteOutils);
 
       /* Taper marche quand on connaît le nom. Passé une vingtaine d'outils,
          il faut pouvoir ouvrir son équipement et en cocher plusieurs. */
       var btEquip = h('button', { type: 'button', class: 'bt', style: 'margin-top:7px;width:100%' });
+      /* L'AIDE DIT LE GESTE, ET POURQUOI LE BOUTON N'EST PAS LA.
+         MB, 27/10 : « comment je sélectionne l'équipement quand je crée un
+         exo ? pas possible ». Reproduit : ça marchait, mais il fallait
+         deviner ENTRÉE, et le bouton gris se lisait « c'est cassé ». */
+      var aideOutils = h('div', { class: 'item-resume', style: 'margin-top:7px' });
       function majBtEquip() {
         var n = (etat().outils || []).length;
         btEquip.textContent = n ? 'Choisir dans mon équipement (' + n + ')'
                                 : 'Choisir dans mon équipement';
-        btEquip.disabled = !n && !(exo.outils || []).length;
+        var vide = !n && !(exo.outils || []).length;
+        btEquip.disabled = vide;
+        /* ON LE RETIRE au lieu de le griser : un bouton éteint se lit
+           « cassé », et c'est exactement ce que MB a compris. */
+        btEquip.hidden = vide;
+        aideOutils.textContent = vide
+          ? 'Tape le nom de l’outil, puis Entrée. Ton équipement est encore '
+          + 'vide : ce que tu ajoutes ici y entre aussi, et tu pourras le '
+          + 'cocher d’un geste la prochaine fois.'
+          : 'Tape le nom puis Entrée, ou choisis dans ton équipement. Un '
+          + 'outil tapé ici y entre aussi.';
       }
       majBtEquip();
       btEquip.addEventListener('click', function () {
@@ -525,6 +555,7 @@
         });
       });
       grOutils.appendChild(btEquip);
+      grOutils.appendChild(aideOutils);
       c.appendChild(grOutils);
       c.appendChild(grReglages);
 
