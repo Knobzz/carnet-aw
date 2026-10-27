@@ -157,7 +157,7 @@ banc/ihm.html + ihm.js     banc d'interface — rectangles réels, style calcul�
 
 ## Le banc de recette
 
-Deux pages, **1 381 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
+Deux pages, **1 388 contrôles**, et un lanceur pour ne plus avoir à les ouvrir à la main.
 
 ```bash
 node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête, rend 1 si rouge
@@ -169,7 +169,7 @@ node outils/banc.js        # sert les fichiers, ouvre les deux pages sans tête,
 python -m http.server 8713
 ```
 - **http://localhost:8713/banc/** — le modèle. **914 contrôles, 29 blocs.**
-- **http://localhost:8713/banc/ihm.html** — l'interface. **467 contrôles, 22 blocs.**
+- **http://localhost:8713/banc/ihm.html** — l'interface. **474 contrôles, 23 blocs.**
 - **http://localhost:8713/revue/** — la **planche de revue**, qui n'est pas un banc :
   elle montre le **dictionnaire d'exercices tel qu'il est livré**, muscle par muscle, avec
   la planche anatomique de chacun, sa citation **mot pour mot** et le lien vers la source.

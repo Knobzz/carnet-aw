@@ -104,6 +104,10 @@
       + s('store.js') + s('model.js') + s('ui.js') + s('panneau.js')
       + s('vue-exercice.js') + s('vue-suivi.js') + s('vue-seance.js')
       + s('vue-programmes.js') + s('vue-recup.js') + s('vue-reglages.js')
+      /* `vue-sparring.js` MANQUAIT jusqu'au 27/10 : `A.vues.sparring` etait
+         undefined dans l'hote, l'appui ne faisait rien, et toute la vue
+         echappait au banc. Trouve en branchant le sparring sur Seance. */
+      + s('vue-sparring.js')
       + '</body></html>';
   }
 
@@ -3072,6 +3076,80 @@
      « Programmes » est le libellé le plus long : s'il ne tient pas, il se
      coupe en deux lignes et décale toute la barre.
      ================================================================ */
+
+  /* ---------------------------------------------------------------
+     NOTER UN SPARRING DEPUIS SEANCE
+
+     MB, 27/10 : « en rajouter un c'est dans journal, c'est peu intuitif,
+     ptete faire un onglet special sparring ? » Un septieme onglet ne tient
+     pas — mesure dans le bloc « Barre d'onglets a 320 px » : les six
+     occupent deja 318 px sur 320. Le geste entre donc dans Seance, qui est
+     l'ecran ou l'on vient pour s'entrainer, et RESTE dans Journal.
+     --------------------------------------------------------------- */
+  bloc('Noter un sparring depuis Séance', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    var avant = e.seances.length;
+
+    fen.App.vues.seance.rendre(vue);
+
+    return attendre(200).then(function () {
+      function boutons() {
+        return Array.prototype.map.call(vue.querySelectorAll('button'),
+          function (b) { return b.textContent.trim(); });
+      }
+      var bt = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('button'), function (b) {
+        if (!bt && b.textContent.indexOf('Noter un sparring') > 0) bt = b;
+      });
+      v.vrai(!!bt,
+             'l’écran Séance propose de noter un sparring — sans quoi il '
+           + 'faut le chercher dans Journal : « ' + boutons().join(' | ') + ' »');
+      if (!bt) { fen.App.ui.vider(vue); return; }
+      v.vrai(bt.getBoundingClientRect().height >= 44,
+             'et il se touche au pouce ('
+           + Math.round(bt.getBoundingClientRect().height) + ' px)');
+      v.vrai(vue.textContent.indexOf('Démarrer une séance libre') >= 0,
+             '[temoin] le démarrage d’une séance libre est toujours là — '
+           + 'on AJOUTE un chemin, on n’en retire pas');
+
+      /* ET IL OUVRE VRAIMENT LA FICHE : l'effet, pas la declaration. */
+      bt.click();
+      return attendre(220).then(function () {
+        var pan = doc.querySelector('.panneau');
+        v.vrai(!!pan, 'un appui ouvre la fiche du sparring');
+        var dedans = pan ? pan.textContent : '';
+        v.vrai(dedans.indexOf('Sparring') >= 0 || dedans.indexOf('sparring') >= 0,
+               'et c’est bien celle du sparring : « '
+             + (pan ? pan.getAttribute('aria-label') : '?') + ' »');
+
+        /* CE QUE L'APP PROMET VRAIMENT : le sparring s'enregistre A MESURE
+           — chaque champ sauve a la frappe — donc fermer le GARDE. Ma
+           premiere ecriture attendait l'inverse et elle est tombee ; c'est
+           elle qui avait tort, pas l'app.
+
+           L'ASPERITE RESTE, et elle est nommee : sur un sparring NEUF la
+           fiche n'offre aucun « Supprimer » (il n'apparait qu'a l'edition
+           d'un existant). Un appui par erreur laisse donc une ligne au
+           journal. Le bouton pose sur Seance le 27/10 rend cet appui plus
+           facile — raison de plus pour que ce controle le DISE. */
+        var x = pan && pan.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+        return attendre(160).then(function () {
+          v.egal(fen.App.store.etat().seances.length, avant + 1,
+                 'fermer GARDE le sparring : il s’enregistre à mesure, comme '
+               + 'le reste de l’app');
+          v.egal(dedans.indexOf('Supprimer'), -1,
+                 'et un sparring NEUF n’offre PAS de le retirer — l’appui par '
+               + 'erreur se répare depuis le Journal, pas d’ici');
+          var l = fen.App.store.etat().seances;
+          l.splice(l.length - 1, 1);
+          fen.App.ui.vider(vue);
+        });
+      });
+    });
+  });
 
   bloc('Barre d’onglets à 320 px', function (v, h) {
     var fen = h.fen, doc = h.doc;

@@ -597,6 +597,29 @@
     var libre = h('button', { class: 'bt bt-large', text: 'Démarrer une séance libre' });
     libre.addEventListener('click', function () { lancer(null); });
     hote.appendChild(libre);
+
+    /* ---- LE SPARRING, ICI AUSSI ----
+       MB, 27/10 : « en rajouter un c'est dans journal, c'est peu intuitif,
+       ptete faire un onglet special sparring ? »
+
+       UN SEPTIEME ONGLET NE TIENT PAS, et c'est mesure : a 320 px les six
+       occupent 318, le plus etroit fait 51 px et « Programmes » 63. Un
+       septieme les ferait tomber vers 45 — sous les 44 px de surface
+       tactile que tout le reste de l'app respecte.
+
+       Un sparring EST une seance, et c'est ICI qu'on vient quand on va
+       s'entrainer. Le geste y entre sans couter un onglet. Il reste AUSSI
+       dans Journal : c'est la qu'on relit, et retirer un chemin qui marche
+       pour en ajouter un autre ne repare rien. */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'À la table' }));
+    var spar = h('button', { class: 'bt bt-large', text: '+ Noter un sparring' });
+    spar.addEventListener('click', function () {
+      /* On RESTE dans Séance : il vient de noter un fait passé, pas de
+         changer d'écran. Le toast de `nouveau` confirme, et le Journal le
+         montrera quand il ira le relire. */
+      A.vues.sparring.nouveau(function () { accueil(hote); });
+    });
+    hote.appendChild(spar);
   }
 
   function lancer(programme) {
