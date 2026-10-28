@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revue du lot 1.43.0 — Carnet AW</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 16px 14px 60px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .page { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  .sous { color: var(--texte-2); font-size: .92rem; margin: 0 0 20px; }
+  h2 { font-size: 1.05rem; margin: 26px 0 4px; padding-top: 14px;
+       border-top: 2px solid var(--trait-fort); }
+  h2:first-of-type { border-top: 0; padding-top: 0; }
+  .dit { color: var(--texte-2); font-size: .88rem; margin: 0 0 10px; }
+  .dit b { color: var(--texte); }
+  .fiche { border: 1px solid var(--trait); border-radius: var(--r);
+           background: var(--fond-2); padding: 11px 13px; margin-bottom: 10px; }
+  .fiche h3 { margin: 0 0 3px; font-size: 1rem; }
+  .ecr { font-size: .8rem; color: var(--texte-2); margin-bottom: 7px; }
+  .mus { display: flex; flex-wrap: wrap; gap: 5px; }
+  .mus span { font-size: .78rem; border: 1px solid var(--trait-fort);
+              border-radius: 999px; padding: 2px 9px; color: var(--texte-2); }
+  .ok { color: var(--bleu-vif); border-color: var(--bleu) !important; }
+  .ko { color: var(--tendon); border-color: var(--tendon) !important; }
+  .cmp { font-size: .8rem; margin-top: 7px; color: var(--texte-2); }
+  .cmp b { color: var(--bleu-vif); }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--trait); }
+  th { color: var(--texte-2); font-weight: 550; font-size: .78rem; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .ecarte { opacity: .62; }
+  .lien { display: inline-block; margin-top: 8px; color: var(--bleu-vif); }
+  .demo { border: 1px solid var(--trait-fort); border-radius: 10px;
+          background: var(--fond); padding: 12px; width: 320px;
+          box-sizing: border-box; }
+  .mesure { font-size: .8rem; color: var(--laiton); margin-top: 8px;
+            font-variant-numeric: tabular-nums; min-height: 20px; }
+  .cote { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Ce que contient le lot 1.43.0</h1>
+  <p class="sous">Tout ce qui suit est lu dans <b>le vrai modèle</b>
+     (<code>js/model.js</code>), pas recopié à la main : cette planche ne peut
+     pas dire autre chose que ce qui sera livré.</p>
+  <div id="corps"></div>
+</div>
+
+<script src="js/model.js"></script>
+<script>
+var m = window.App.m;
+var corps = document.getElementById('corps');
+
+function el(t, c, x) {
+  var n = document.createElement(t);
+  if (c) n.className = c;
+  if (x != null) n.textContent = x;
+  return n;
+}
+function h2(t) { corps.appendChild(el('h2', null, t)); }
+function dit(html) {
+  var d = el('div', 'dit');
+  d.innerHTML = html;
+  corps.appendChild(d);
+  return d;
+}
+function nomMuscle(id) {
+  var mu = m.muscle(id);
+  return mu ? mu.nom : id;
+}
+
+/* ================= 1. LES QUATRE TRACTIONS PARTIELLES ================= */
+h2('1 — Les quatre tractions partielles');
+dit('Demandées le 28/10. <b>Chacune porte les muscles de sa version '
+  + 'pleine</b> : une amplitude partielle ne recrute pas un muscle de plus, '
+  + 'elle déplace l’accent — et le carnet ne modélise pas l’accent. Ce '
+  + 'qu’elles apportent est un <b>nom à soi</b> : deux lignes au journal, '
+  + 'deux entrées dans la dernière sollicitation.');
+
+var PAIRES = [
+  ['Traction partielle', 'Pull up'],
+  ['Traction partielle supinée', 'Chin up'],
+  ['Traction partielle prise serrée', 'Traction prise serrée'],
+  ['Traction partielle prise large', 'Traction prise large']
+];
+
+PAIRES.forEach(function (p) {
+  var d = m.ficheDictionnaire(p[0]);
+  var plein = m.ficheDictionnaire(p[1]);
+  var f = el('div', 'fiche');
+  f.appendChild(el('h3', null, d ? d.nom : p[0] + ' — ABSENTE'));
+  if (!d) { corps.appendChild(f); return; }
+  f.appendChild(el('div', 'ecr', 'Écritures reconnues : '
+                 + (d.aussi || []).join(' · ')));
+  var mus = el('div', 'mus');
+  d.muscles.forEach(function (id) { mus.appendChild(el('span', null, nomMuscle(id))); });
+  f.appendChild(mus);
+
+  var pareil = plein && d.muscles.join(',') === plein.muscles.join(',');
+  var c = el('div', 'cmp');
+  c.innerHTML = pareil
+    ? 'Mêmes muscles que <b>' + p[1] + '</b> — ' + d.muscles.length + ' muscles.'
+    : 'DIFFÈRE de « ' + p[1] + ' » : à vérifier.';
+  f.appendChild(c);
+
+  /* CHAQUE ECRITURE EST RELUE PAR LE MOTEUR DE NOMS : une ecriture qui ne
+     rend pas les memes muscles que son entree est une ecriture qui ment. */
+  var lignes = el('div', 'cmp');
+  var txt = [];
+  [d.nom].concat(d.aussi || []).forEach(function (e) {
+    var lu = m.musclesDuNom(e).join(',');
+    txt.push((lu === d.muscles.join(',') ? '✓ ' : '✗ ') + e);
+  });
+  lignes.innerHTML = 'Relecture de chaque écriture : ' + txt.join(' &nbsp; ');
+  f.appendChild(lignes);
+
+  corps.appendChild(f);
+});
+
+dit('<b>Cinq écritures ont été écartées</b>, et c’est le banc qui les a '
+  + 'refusées : « Partial pullup » et « Partial chinup » (mots collés, le '
+  + 'lecteur de noms ne trouve rien), « Partial wide grip » (idem), et '
+  + 'surtout <b>« Partial close grip »</b>, qui rendait grand pectoral, '
+  + '<b>deltoïde et triceps</b> — un développé couché, pas une traction.');
+
+var preuve = el('div', 'fiche ecarte');
+preuve.appendChild(el('h3', null, 'Ce que rendraient les écritures écartées'));
+var tb = el('table');
+tb.innerHTML = '<tr><th>écriture</th><th>ce que le carnet y lit</th></tr>';
+['Partial pullup', 'Partial chinup', 'Partial wide grip',
+ 'Partial close grip', 'Partial close grip pull up'].forEach(function (e) {
+  var lu = m.musclesDuNom(e);
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>' + e + '</td><td>'
+    + (lu.length ? lu.map(nomMuscle).join(', ') : '<i>rien</i>') + '</td>';
+  tb.appendChild(tr);
+});
+preuve.appendChild(tb);
+corps.appendChild(preuve);
+
+/* ============ 1 bis. LES MOUVEMENTS DEDUITS D'UN NOM ============ */
+h2('1 bis — Les mouvements, déduits d’un nom');
+dit('C’est la machinerie neuve que rien ne montrait. Avant, la case '
+  + '« Mouvements » d’un exercice était <b>facultative</b> : si tu ne la '
+  + 'cochais pas, le suivi de technique restait vide. Le carnet lit '
+  + 'maintenant le NOM, comme il lit déjà les muscles — mais <b>ce que tu as '
+  + 'coché à la main gagne toujours</b>, la lecture ne sert que si la case '
+  + 'est vide.');
+
+var tm = el('table');
+tm.innerHTML = '<tr><th>mouvement</th><th>mots qui le déclenchent</th></tr>';
+m.FORCES.forEach(function (f) {
+  var mots = (m.MOTS_FORCE || {})[f.id] || [];
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td><b>' + f.nom + '</b></td><td>'
+    + mots.map(function (x) { return '« ' + x + ' »'; }).join(' · ') + '</td>';
+  tm.appendChild(tr);
+});
+corps.appendChild(tm);
+
+dit('<b>« press » n’y est pas, et c’est mesuré</b> : le mot est pris par '
+  + '« bench press », « overhead press » et « close grip bench press », '
+  + 'trois entrées livrées. Un mot qui désigne trois exercices de '
+  + 'musculation ne peut pas désigner un style de bras de fer.');
+
+dit('Et <b>pas d’inférence depuis les muscles</b> : ceux du RISING '
+  + 'contiennent biceps, brachial et deltoïde. Un curl ordinaire les '
+  + 'propose tous les trois — il se lirait comme un rising, ce qu’il n’est '
+  + 'pas. Seuls les mots du geste le disent.');
+
+/* CE QUE LE DICTIONNAIRE Y GAGNE, entree par entree. */
+var avecMvt = [];
+m.DICTIONNAIRE.forEach(function (d) {
+  var f = m.forcesDuNom(d.nom);
+  if (f.length) avecMvt.push({ nom: d.nom, f: f });
+});
+var fm = el('div', 'fiche');
+fm.appendChild(el('h3', null, 'Les ' + avecMvt.length + ' entrées du dictionnaire '
+                            + 'qui portent un mouvement (sur ' + m.DICTIONNAIRE.length + ')'));
+var tt = el('table');
+tt.innerHTML = '<tr><th>exercice</th><th>mouvement déduit</th><th>style</th></tr>';
+avecMvt.forEach(function (x) {
+  var styles = [];
+  m.STYLES_AW.forEach(function (st) {
+    if (x.f.some(function (id) { return st.forces.indexOf(id) >= 0; })) styles.push(st.nom);
+  });
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>' + x.nom + '</td><td>'
+    + x.f.map(m.nomForce).join(' · ').toLowerCase() + '</td><td>'
+    + (styles.join(' ou ') || '—') + '</td>';
+  tt.appendChild(tr);
+});
+fm.appendChild(tt);
+corps.appendChild(fm);
+
+/* LES DEUX GARDES, mesurees en direct. */
+var fg = el('div', 'fiche');
+fg.appendChild(el('h3', null, 'Les deux gardes — et ce qu’elles coûtaient sans elles'));
+var tg = el('table');
+tg.innerHTML = '<tr><th>nom</th><th>ce que le carnet en déduit</th>'
+             + '<th>sans la garde</th></tr>';
+[['Wrist curl', 'cupping', '—'],
+ ['Wrist curl inversé', '', 'cupping — or c’est une EXTENSION'],
+ ['Reverse wrist curl', '', 'cupping — même piège'],
+ ['Wrist curl avec poignée de hook', 'cupping',
+  'supination — « poignée de hook » est un OUTIL'],
+ ['Bench press', '', '—'],
+ ['Overhead press', '', '—'],
+ ['Curl marteau', '', '—']].forEach(function (r) {
+  var lu = m.forcesDuNom(r[0]).map(m.nomForce).join(' · ').toLowerCase();
+  var juste = lu === r[1];
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>' + r[0] + '</td>'
+    + '<td style="color:' + (juste ? 'var(--bleu-vif)' : 'var(--tendon)') + '">'
+    + (lu || '<i>rien</i>') + '</td>'
+    + '<td style="opacity:.7">' + r[2] + '</td>';
+  tg.appendChild(tr);
+});
+fg.appendChild(tg);
+corps.appendChild(fg);
+
+dit('La colonne de droite n’est pas une hypothèse : ce sont les valeurs '
+  + '<b>mesurées avant que les gardes existent</b>. Le dictionnaire contient '
+  + 'un « Wrist curl inversé », et il comptait comme du cupping.');
+
+/* ================= 2. LE PRESS ================= */
+h2('2 — Le press, déclarable sur un sparring');
+dit('Il manquait au vocabulaire. Les styles qu’on peut cocher sur un '
+  + 'sparring sont maintenant :');
+var sty = el('div', 'mus');
+m.STYLES.forEach(function (s) {
+  sty.appendChild(el('span', s.id === 'press' ? 'ok' : '', s.nom));
+});
+corps.appendChild(sty);
+dit('<b>À l’entraînement il reste illisible</b>, et je n’ai pas inventé de '
+  + 'force pour combler : son seul mouvement est la <i>side pressure</i>, '
+  + 'partagée avec le hook, et les mots « press », « close grip » et '
+  + '« shoulder press » appartiennent tous au développé couché. Le tableau '
+  + 'ci-dessous est <b>dérivé</b>, pas écrit en dur — le jour où le press '
+  + 'gagne un mouvement à lui, il devient lisible sans qu’on touche au code.');
+
+var ts = el('table');
+ts.innerHTML = '<tr><th>style</th><th>mouvements</th>'
+             + '<th>mouvements qui ne sont QU’À LUI</th></tr>';
+var lis = m.stylesLisibles();
+lis.lisibles.concat(lis.aveugles).forEach(function (x) {
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td><b>' + x.style.nom + '</b></td>'
+    + '<td>' + x.style.forces.map(m.nomForce).join(' · ').toLowerCase() + '</td>'
+    + '<td class="' + (x.propres.length ? 'ok' : 'ko') + '">'
+    + (x.propres.length ? x.propres.map(m.nomForce).join(' · ').toLowerCase()
+                        : 'aucun — non lisible') + '</td>';
+  tr.querySelector('td:last-child').style.color =
+    x.propres.length ? 'var(--bleu-vif)' : 'var(--tendon)';
+  ts.appendChild(tr);
+});
+corps.appendChild(ts);
+
+/* ================= 3. LE REGLAGE QUI COCHE ================= */
+h2('3 — Un réglage coche ses muscles');
+dit('Avant, cliquer un réglage changeait ce qui était <i>proposé</i> et '
+  + 'n’écrivait rien. Cocher un <b>Mouvement</b>, lui, appliquait ses '
+  + 'muscles depuis le 26/10. Les deux gestes sont maintenant cohérents. '
+  + 'Démo : un Wrist Wrench dont la position extérieure porte les deux '
+  + 'pronateurs.');
+
+var demo = el('div', 'demo');
+var exoDemo = { nom: '', outils: ['Wrist Wrench'], muscles: [] };
+var REGLAGES = [
+  { nom: 'Mousqueton au centre', muscles: [] },
+  { nom: 'Mousqueton à l’extérieur', muscles: ['rond_pronateur', 'carre_pronateur'] },
+  { nom: 'Mousqueton à l’intérieur', muscles: ['supinateur'] }
+];
+var ligneP = el('div', 'mus');
+var etat = el('div', 'mesure');
+function majDemo() {
+  etat.textContent = 'Muscles cochés sur l’exercice : '
+    + (exoDemo.muscles.length
+        ? exoDemo.muscles.map(nomMuscle).join(', ')
+        : 'aucun');
+}
+REGLAGES.forEach(function (r) {
+  var b = el('button', 'puce', r.nom);
+  b.type = 'button';
+  b.addEventListener('click', function () {
+    Array.prototype.forEach.call(ligneP.children, function (x) {
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+    r.muscles.forEach(function (id) {
+      if (exoDemo.muscles.indexOf(id) < 0) exoDemo.muscles.push(id);
+    });
+    majDemo();
+  });
+  b.setAttribute('aria-pressed', 'false');
+  ligneP.appendChild(b);
+});
+demo.appendChild(el('div', 'ecr', 'Réglage de l’outil — Wrist Wrench'));
+demo.appendChild(ligneP);
+demo.appendChild(etat);
+majDemo();
+corps.appendChild(demo);
+dit('<b>Cocher ajoute, changer de réglage ne retire pas</b> — même règle '
+  + 'que les mouvements depuis le 26/10 : deux réglages peuvent partager un '
+  + 'muscle, et un retrait effacerait ce qu’un autre avait posé.');
+
+/* ================= 4. LE GESTE D'EQUIPEMENT ================= */
+h2('4 — Choisir un équipement');
+dit('Prendre un produit de marque l’<b>attache</b>, sans ouvrir de '
+  + 'formulaire : la cause était une comparaison par slug exact, et ton '
+  + '« Titan Grip » n’est pas « Titan Grip Iron Wrist ». La section se '
+  + 'replie ensuite et l’écran revient sur la case — mesuré sur l’écran '
+  + 'réel à 320 px : <b>2 661 px → 572 px</b>.');
+var a = el('a', 'lien', '→ les trois gestes, cliquables (la maquette que tu as choisie)');
+a.href = 'revue/simulations-equipement-geste.html';
+corps.appendChild(a);
+
+/* ================= 5. CE QUI A MAIGRI ================= */
+h2('5 — Le Suivi, allégé');
+dit('Treize textes d’aide raccourcis, en deux passes — la seconde après '
+  + 'mesure à l’écran, parce que le relevé par fichier n’avait pas vu la '
+  + 'ligne de portée à quatre lignes. <b>Ce qui est gardé</b> : tout ce qui '
+  + 'sert à LIRE l’écran — une légende de couleur, une unité, ce qu’un zéro '
+  + 'veut dire. <b>Ce qui part</b> : les justifications.');
+dit('Le bloc « Mouvements » a été <b>supprimé</b>, pas neutralisé : ses six '
+  + 'chiffres vivent sous leur style, « Toproll : pronation 6 · rising 4 · '
+  + 'back pressure 0 ». Un bloc de moins, aucun chiffre de moins. Et la '
+  + '<b>récup est sortie</b> de Régions &amp; Muscles — elle reste dans ce '
+  + 'qui touche à la douleur, parce que cent répétitions d’élastique tirent '
+  + 'sur le tendon.');
+</script>
+</body>
+</html>

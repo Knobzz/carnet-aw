@@ -1285,10 +1285,15 @@
     });
 
     lis.aveugles.forEach(function (x) {
+      /* DECLARABLE EN SPARRING, mais toujours pas lisible ICI : sa seule
+         force est partagee, et aucun mot ne le designe sans heurter
+         « bench press » ou « overhead press » — trois entrees livrees. On
+         le DIT, on n'invente pas une force pour combler. */
       f.appendChild(h('div', { class: 'dit-a-part' },
-        h('b', { text: x.style.nom + ' — non lisible. ' }),
+        h('b', { text: x.style.nom + ' — non lisible ici. ' }),
         x.style.forces.map(A.m.nomForce).join(' et ').toLowerCase()
-      + ' est partagée avec un autre style. Ce n’est pas un zéro.'));
+      + ' est partagée avec un autre style. Déclare-le sur tes sparrings : '
+      + 'il s’y compte.'));
     });
 
     /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce
@@ -1368,9 +1373,8 @@
 
     /* Le PRESS manque aux styles déclarables, et c’est une décision, pas un
        oubli : l’ajouter changerait la fiche de sparring. */
-    f.appendChild(h('div', { class: 'dit-a-part' },
-      h('b', { text: 'Le press n’est pas proposé ici. ' }),
-      'Si tu presses, c’est une entrée à ajouter.'));
+    /* LE PRESS EST DECLARABLE depuis le 28/10. Ce bloc disait qu'il
+       manquait ; il ne manque plus, et le dire encore serait faux. */
     return f;
   }
 

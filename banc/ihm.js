@@ -1867,12 +1867,19 @@
       v.egal(puces[1].getAttribute('aria-pressed'), 'true', 'la puce le montre');
       v.egal(puces[0].getAttribute('aria-pressed'), 'false', 'et « Aucun » se relâche');
 
-      /* Le réglage nourrit la proposition : c'est tout son intérêt. */
+      /* LE REGLAGE COCHE SES MUSCLES, il ne les PROPOSE plus — MB, 28/10 :
+         « je clique sur un, ca influence mon exo et les muscles tout
+         simplement ». C'est le meme geste qu'un mouvement, qui coche depuis
+         le 26/10. Il n'y a donc plus rien a proposer : le bouton disparait
+         parce qu'il n'a plus de travail, et c'est ce qu'on mesure. */
+      var dejaCoches = (brouillon.muscles || []).length;
+      v.vrai(dejaCoches > 0,
+             'poser un réglage COCHE ses muscles, directement ('
+           + dejaCoches + ')');
       var bt = null;
       Array.prototype.forEach.call(pan.querySelectorAll('button'), function (b) {
         if (b.textContent.indexOf('Proposer d’après') === 0) bt = b;
       });
-      v.vrai(!!bt, 'le bouton de proposition s’active');
       if (bt) {
         v.vrai(bt.textContent.indexOf('le réglage de l’outil') >= 0,
                'et dit D’OÙ ça vient : du réglage, pas de l’anatomie ('
@@ -3017,6 +3024,60 @@
                + 'c’est un effet de bord du geste, pas une décision à '
                + 'prendre (« ' + pose + ' »)');
 
+          /* ---- APRES LE CHOIX : REPLIE, ET REVENU A LA CASE ----
+
+             MB, 28/10, apres trois maquettes cliquables : « Replier ».
+
+             CE CONTROLE MESURE LA POSITION PEINTE, pas l'appel. J'ai
+             d'abord employe `scrollIntoView` : il n'a RIEN fait, deux
+             essais de suite, et seule la capture d'ecran l'a dit — le
+             chiffre que je mesurais, lui, bougeait (2 661 -> 1 880) parce
+             que replier seize produits raccourcit la page. Une mesure sans
+             capture aurait valide un ecran faux. */
+          var cat2 = Array.prototype.filter.call(pan.querySelectorAll('.equip-cat'),
+            function (b) { return /titangrip/i.test(b.textContent); })[0];
+          v.egal(cat2 ? cat2.getAttribute('aria-expanded') : '(absente)', 'false',
+                 'la section d’où vient le choix se REPLIE');
+          v.egal(Array.prototype.filter.call(pan.querySelectorAll('.equip-cat'),
+                   function (b) { return b.getAttribute('aria-expanded') === 'true'; }).length,
+                 0, 'et aucune autre ne reste ouverte');
+
+          var boite = pan.querySelector('.panneau-corps');
+          var champ = pan.querySelector('.multi, .auto, .champ-multi')
+                    || (pan.querySelector('.jeton-ret') || {}).parentNode;
+          v.vrai(!!boite, '[temoin] le corps du panneau est bien le conteneur qui défile');
+          if (boite) {
+            var jeton = null;
+            Array.prototype.forEach.call(pan.querySelectorAll('*'), function (n) {
+              if (!jeton && n.children.length === 0
+                  && n.textContent.trim() === 'Iron Wrist') jeton = n;
+            });
+            v.vrai(!!jeton, '[temoin] le jeton de l’équipement choisi est peint');
+            if (jeton) {
+              var rj = jeton.getBoundingClientRect();
+              var rb = boite.getBoundingClientRect();
+              var defile = boite.scrollHeight > boite.clientHeight + 4;
+              if (defile) {
+                v.vrai(rj.top >= rb.top - 2 && rj.top <= rb.top + 180,
+                       'et l’écran est REVENU sur la case : le jeton se voit '
+                     + 'à ' + Math.round(rj.top - rb.top) + ' px du haut du '
+                     + 'cadre');
+              } else {
+                /* [temoin] ASSUME : l'hote du banc est plus haut qu'un
+                   telephone, et le panneau y tient SANS defiler — il n'y a
+                   donc rien a ramener. Le retour a la case a ete verifie
+                   sur l'ecran reel a 320x700, capture a l'appui : 2 661 px
+                   avant, le libelle « Equipements » en haut apres. Ce qui
+                   se mesure ICI, c'est que rien ne bouge quand rien ne doit
+                   bouger. */
+                v.vrai(boite.scrollTop === 0,
+                       '[temoin] le panneau tient sans défiler dans le banc '
+                     + '(' + boite.clientHeight + ' px de haut) : rien à '
+                     + 'ramener, et rien ne bouge');
+              }
+            }
+          }
+
           /* ---- ET LE REGLAGE SE POSE SANS QUITTER L'EXERCICE ---- */
           var bt = Array.prototype.filter.call(pan.querySelectorAll('button'),
             function (b) { return b.textContent.indexOf('+ Réglage') === 0; })[0];
@@ -3447,9 +3508,13 @@
     v.vrai(ts.indexOf('2 sparr.') >= 0, 'les deux sparrings en hook sont comptés');
     v.vrai(ts.indexOf('10') >= 0 && ts.indexOf('35') >= 0,
            'rounds et minutes sont là, séparés');
-    v.vrai(ts.indexOf('Le press n’est pas proposé ici') >= 0,
-           'et le carnet DIT que le press manque à ses styles déclarables — '
-         + 'un manque nommé n’est pas un oubli');
+    /* LE PRESS EST DECLARABLE depuis le 28/10 : ce bloc disait qu'il
+       manquait, et le dire encore serait faux. Ce qui se mesure est qu'il
+       est bien PROPOSE. */
+    v.egal(ts.indexOf('Le press n’est pas proposé ici'), -1,
+           'le carnet ne dit plus que le press manque — il ne manque plus');
+    v.vrai(fen.App.m.STYLES.some(function (x) { return x.id === 'press'; }),
+           'et il est déclarable sur un sparring');
     v.vrai(vue.querySelectorAll('.periodes').length === 1,
            'le sélecteur de période revient ici : les blocs de sparring le lisent');
 

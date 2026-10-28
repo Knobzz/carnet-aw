@@ -555,8 +555,33 @@
           }
           function poser(nom) {
             A.m.poserReglage(exo, nomOutil, nom);
+            /* POSER UN REGLAGE COCHE SES MUSCLES, directement — MB, 28/10 :
+               « je clique sur un, ca influence mon exo et les muscles tout
+               simplement ».
+
+               C'EST LE MEME GESTE QU'UN MOUVEMENT, et il suit la meme regle
+               depuis le 26/10 : cocher AJOUTE, changer de reglage ne retire
+               pas. Deux reglages peuvent partager un muscle, et un retrait
+               effacerait ce qu'un autre avait pose. Le reglage vient de MB
+               lui-meme, il a ecrit ses muscles : ce n'est pas une
+               proposition, c'est sa declaration. */
+            var choisi = null;
+            l.forEach(function (r) { if (r.nom === nom) choisi = r; });
+            var ajoutes = 0;
+            if (choisi && (choisi.muscles || []).length) {
+              var fusion = A.m.muscles(exo).slice();
+              choisi.muscles.forEach(function (id) {
+                if (fusion.indexOf(id) < 0) { fusion.push(id); ajoutes += 1; }
+              });
+              exo.muscles = A.m.muscles({ muscles: fusion });
+              rafraichirMuscles();
+            }
             majPuces();
             majAideMuscles();
+            if (ajoutes) {
+              A.ui.toast(ajoutes + ' muscle' + (ajoutes > 1 ? 's' : '')
+                       + ' coché' + (ajoutes > 1 ? 's' : '') + ' — « ' + nom + ' »');
+            }
           }
           [{ nom: null, texte: 'Aucun' }].concat(l.map(function (r) {
             return { nom: r.nom, texte: r.nom };
@@ -614,6 +639,75 @@
         rafraichirMuscles();
         majEquip();
       }
+      /* ---- APRES UN CHOIX : REPLIER, ET REVENIR A LA CASE ----
+
+         MB, 28/10 : « si j'ai beaucoup scrolle, je ne vois que les
+         equipements et c'est pas top visuellement, il faudrait revenir
+         dans la case equipement quand j'ai clique sur quelque chose, voir
+         reduire la categorie ou j'ai clique ? » Trois maquettes cliquables
+         lui ont ete montrees ; il a pris celle-la.
+
+         CE QUE LA MESURE A DIT, et qui a reduit le choix de trois a deux :
+         « replier sans remonter » n'existe pas. Replier Titangrip, qui
+         porte seize produits, raccourcit la page SOUS la position de
+         defilement, et le navigateur ramene tout seul en haut — 592 px -> 0
+         dans les deux maquettes. On remonte donc explicitement, plutot que
+         de laisser le hasard d'une longueur decider ou on atterrit.
+
+         SEULEMENT A L'AJOUT. Decocher depuis la liste n'est pas un geste de
+         fin : on est en train de corriger, on ne veut pas etre renvoye
+         ailleurs.
+
+         CE QUE CA COUTE, ET C'EST ASSUME : un produit par ouverture. Pour
+         en prendre trois dans la meme marque, il faut la rouvrir trois
+         fois. C'est le prix que MB a choisi en voyant les deux. */
+      /* UN TIMER, PAS `requestAnimationFrame`.
+
+         Le banc l'a dit : rAF ne se declenche PAS dans une trame qui n'est
+         pas peinte, et le retour a la case ne se faisait jamais la-bas
+         (jeton a 626 px du haut au lieu du haut). Sur un telephone ou le
+         panneau est visible, ca marchait — c'est exactement le genre de
+         dependance qui tient par chance.
+
+         Un `setTimeout(0)` suffit : il passe apres la repeinte de la liste,
+         et `getBoundingClientRect` force la mise en page de toute facon. */
+      function apresRepeinte(f) { setTimeout(f, 0); }
+
+      function choisirDepuis(cle, nom) {
+        var ajout = !porte(nom);
+        if (ajout) ouverts[cle] = false;
+        basculerOutil(nom);
+        /* ON POSE LA POSITION, ON NE LA DEMANDE PAS.
+
+           `scrollIntoView` n'a RIEN fait ici, deux essais de suite : la
+           case restait 1 237 px au-dessus de l'ecran. Le conteneur est
+           `.panneau-corps`, et le seul deplacement observe venait du
+           raccourcissement de la page — pas de l'appel. Plutot que de
+           chercher pourquoi l'API se tait, on calcule `scrollTop` : c'est
+           deterministe, et ca se mesure.
+
+           ET SUR LA TRAME SUIVANTE : `basculerOutil` repeint, replier seize
+           produits raccourcit la page, et une position calculee avant la
+           repeinte vise ce qui n'existe plus. */
+        if (ajout && grOutils) {
+          apresRepeinte(function () {
+            var boite = grOutils.parentNode;
+            while (boite && boite !== document.body
+                   && boite.scrollHeight <= boite.clientHeight + 4) {
+              boite = boite.parentNode;
+            }
+            if (!boite || boite === document.body) return;
+            /* DELTA DE RECTANGLES, et non somme d'`offsetTop` : la chaine
+               des `offsetParent` saute tout parent non positionne, et le
+               libelle du groupe se retrouvait rogne en haut de l'ecran.
+               Deux rectangles et une soustraction ne sautent rien. */
+            var rg = grOutils.getBoundingClientRect();
+            var rb = boite.getBoundingClientRect();
+            boite.scrollTop = Math.max(0, boite.scrollTop + (rg.top - rb.top) - 10);
+          });
+        }
+      }
+
       function porte(nom) {
         return (exo.outils || []).some(function (x) {
           return A.m.slug(x) === A.m.slug(nom);
@@ -677,7 +771,7 @@
           section('mien', 'Le mien', mien.length, function (corps) {
             mien.forEach(function (nom) {
               corps.appendChild(lignePorte(nom, porte(nom) ? 'coché' : 'ajouter',
-                function () { basculerOutil(nom); }));
+                function () { choisirDepuis('mien', nom); }));
             });
             /* LE CHOIX MULTIPLE RESTE ATTEIGNABLE au-dela d'une poignee
                d'outils : cocher trente lignes une par une n'est pas un
@@ -735,7 +829,7 @@
                       A.m.majCatalogueOutils(etat(), nom, '');
                       A.store.sauver(true);
                     }
-                    basculerOutil(nom);
+                    choisirDepuis('m:' + mq, nom);
                   }));
               });
             });

@@ -1281,6 +1281,52 @@
               'Neutral grip pull up'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'biceps',
                 'brachial', 'brachio_radial'] },
+    /* ---- LES QUATRE TRACTIONS PARTIELLES ----
+
+       Demande de MB le 2026-10-28 : « il me faut 4 fiches pour la partial,
+       partial chin up, partial pull up, partial close grip et partial wide
+       grip ».
+
+       CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, et c'est un choix
+       mesure, pas une facilite : une amplitude partielle ne RECRUTE pas un
+       muscle de plus, elle deplace l'accent. Le dictionnaire dit ce qui
+       travaille ; il ne dit pas combien, ni ou dans la course. Ajouter ou
+       retirer un muscle parce que le geste s'arrete a mi-hauteur serait
+       inventer une precision que le carnet n'a pas.
+
+       CE QU'ELLES APPORTENT QUAND MEME : un nom a soi. « Traction
+       partielle » et « Traction » sont deux exercices dans le journal, deux
+       lignes dans la derniere sollicitation, et deux entrees separees dans
+       le volume. C'est ce que MB demandait — pouvoir les distinguer. */
+    { nom: 'Traction partielle',
+      /* « Partial pullup » colle les deux mots : le lecteur de noms cherche
+         « pull up » comme DEUX mots, et ne trouve rien. Ecarte plutot que
+         livre muet — une ecriture qui ne dit rien est pire qu'absente, elle
+         se propose et ne remplit pas. */
+      aussi: ['Partial pull up', 'Traction partielle pronée',
+              'Partial traction'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
+                'biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Traction partielle supinée',
+      aussi: ['Partial chin up', 'Chin up partiel'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
+                'biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Traction partielle prise serrée',
+      /* « CLOSE GRIP » EST PRIS PAR LE DEVELOPPE COUCHE, et la mesure est
+         sans appel : « Partial close grip » rend grand_pectoral, DELTOIDE
+         et TRICEPS — un developpe, pas une traction. « Partial close grip
+         pull up » y ajoute les deux de trop. Meme piege que « press », et
+         que le « grip » tout court que le carnet ecarte deja. */
+      aussi: ['Traction partielle neutre',
+              'Partial neutral grip pull up'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
+                'biceps', 'brachial', 'brachio_radial'] },
+    { nom: 'Traction partielle prise large',
+      /* « Partial wide grip » seul ne dit rien au lecteur de noms ; avec
+         « pull up » il dit juste. On garde celle qui parle. */
+      aussi: ['Partial wide grip pull up', 'Traction partielle large'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
+                'biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Traction prise large',
       aussi: ['Traction large', 'Wide grip pull up', 'Wide pull up'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
@@ -2298,9 +2344,19 @@
     { id: 'aucune',        nom: 'Aucune' }
   ];
 
+  /* LE PRESS ENTRE le 2026-10-28, a la demande de MB. Il manquait, et
+     l'ecran de suivi le DISAIT plutot que de faire comme si : « Le press
+     n'est pas propose ici. Si tu presses, c'est une entree a ajouter ».
+
+     ORDRE : les trois styles d'abord, « Mixte » en dernier — c'est le
+     fourre-tout, et un fourre-tout ne se lit pas comme un style.
+
+     RIEN N'EST PERDU DU PASSE : un sparring deja note porte son id, et les
+     trois anciens ne bougent pas. */
   var STYLES = [
     { id: 'hook',    nom: 'Hook' },
     { id: 'toproll', nom: 'Toproll' },
+    { id: 'press',   nom: 'Press' },
     { id: 'mixte',   nom: 'Mixte' }
   ];
 
