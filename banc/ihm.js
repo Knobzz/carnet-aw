@@ -2985,6 +2985,10 @@
     /* SON DECOR : un « Titan Grip » deja chez lui, et un produit de la
        marque dont le nom est PLUS LONG. C'est tout le piege. */
     fen.App.m.majCatalogueOutils(e, 'Titan Grip', 'Poignées');
+    /* ET UN IRON WRIST, reconnu, SANS reglage declare : c'est le decor du
+       geste neuf — le carnet lui connait trois positions, l'ecran doit les
+       offrir. */
+    fen.App.m.majCatalogueOutils(e, 'Iron Wrist', 'Poignées');
 
     var exo = { nom: '', outils: [] };
     fen.App.panneau.editerExercice(exo, function () {});
@@ -3076,6 +3080,46 @@
                      + 'ramener, et rien ne bouge');
               }
             }
+          }
+
+          /* ---- LES POSITIONS CONNUES SE POSENT EN UN APPUI ----
+
+             MB, 28/10 : « ceux deja ajoutes, qui ont un reglage deja
+             existant, doit etre selectionnable quand il est ajoute a l'exo,
+             et directement sur la page, sans avoir a cliquer sur
+             "+ Reglage pour Iron Wrist", puis ensuite choisir, c'est trop
+             lourd. »
+
+             LE CARNET CONNAISSAIT DEJA ces positions — MB les avait vues le
+             27/10, sourcees sur la photo Titangrip. Ce qui manquait est que
+             l'ecran ne lisait que les reglages DECLARES. */
+          var sug = pan.querySelectorAll('.puces .puce');
+          v.egal(sug.length, 3,
+                 'un Iron Wrist propose ses TROIS positions, directement, '
+               + 'sans passer par un bouton');
+          v.vrai(pan.textContent.indexOf('Le carnet reconnaît cet équipement') >= 0,
+                 'et il dit d’où elles viennent — une puce qui apparaît sans '
+               + 'provenance inquiète');
+
+          var ext = null;
+          Array.prototype.forEach.call(sug, function (b) {
+            if (/extérieur/.test(b.textContent)) ext = b;
+          });
+          v.vrai(!!ext, '[temoin] la position extérieure est là');
+          if (ext) {
+            ext.click();
+            var oo = fen.App.m.trouverOutil(fen.App.store.etat(),
+                                            fen.App.m.slug('Iron Wrist'));
+            v.egal(((oo || {}).reglages || []).length, 1,
+                   'UN SEUL appui la déclare sur l’équipement — pas de '
+                 + 'formulaire, pas de second écran');
+            v.egal(fen.App.m.reglageDe(exo, 'Iron Wrist'),
+                   'Mousqueton à l’extérieur',
+                   'et la pose sur l’exercice dans le même geste');
+            v.egal(fen.App.m.reglagesProposes(fen.App.store.etat(),
+                     'Iron Wrist').length, 2,
+                   'les deux autres restent proposées : on n’a pas à les '
+                 + 'retaper');
           }
 
           /* ---- ET LE REGLAGE SE POSE SANS QUITTER L'EXERCICE ---- */

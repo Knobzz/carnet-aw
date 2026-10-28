@@ -1428,6 +1428,11 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    pour que la difference se voie sans avoir a lire. */
 .jeton-connu { border-color: var(--bleu); color: var(--bleu-vif); background: var(--bleu-doux); font-weight: 550; }
 
+/* Une position que le carnet CONNAIT de l'equipement, pas encore declaree :
+   elle se touche comme les autres, mais elle se distingue — sinon on ne
+   sait pas ce qu'on a pose soi-meme. */
+.puce.puce-suggeree { border-style: dashed; color: var(--texte-2); }
+
 /* ---------- échelle d'intensité de douleur ---------- */
 
 .popo-echelle {

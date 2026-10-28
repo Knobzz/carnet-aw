@@ -1837,8 +1837,17 @@
      controle du banc exige que toute reference illisible porte cette
      marque : le manque est NOMME, pas masque. */
   var CATALOGUE_MARQUES = [
+    /* LE CADRE, et les deux accessoires qui manquaient. Mesure du 28/10 :
+       quatre des six etaient deja la et bien lus ; ces deux-la, non. */
+    { m: 'Golden Grip', c: 'armwrestling buddies', n: 'Armwrestling Buddies (cadre)' },
+    { m: 'Golden Grip', c: 'fat grip', n: 'Offset Cylinder Handle' },
+    { m: 'Golden Grip', c: 'toproll', n: 'Anti-Toproll Handle with Strap' },
     { m: 'Golden Grip', c: 'fat grip', n: 'Thick grips' },
     { m: 'Golden Grip', c: 'fat grip', n: 'Axle Bar' },
+    /* LE CADRE DU MULTI-TOOL — https://titangrip.de/multi-tool, 29,99 €.
+       Il entre AVANT ses accessoires, parce que c'est lui qu'on achete
+       d'abord : « Hast du schon einen Rahmen? ». */
+    { m: 'Titangrip', c: 'multi tool', n: 'Multi-Tool (Rahmen)' },
     { m: 'Titangrip', c: 'fat grip', n: 'Hand Grips (Hantelgriffe)' },
     { m: 'Golden Grip', c: 'pronator', n: 'Popeye’s Pronator' },
     { m: 'Golden Grip', c: 'pronator', n: 'Barbell Pronator' },
@@ -1929,12 +1938,67 @@
                               'Mousqueton à l’extérieur',
                               'Mousqueton à l’intérieur'];
 
+  /* ---------- LES ACCESSOIRES DU MULTI-TOOL ----------
+
+     Un reglage de type etait jusqu'ici une CHAINE — un nom, rien de plus.
+     Il peut maintenant etre `{ nom, comme }`, ou `comme` nomme une FAMILLE
+     deja connue du carnet. Ses muscles sont alors ceux de cette famille,
+     DERIVES et non recopies : le jour ou le cone gagne un muscle,
+     l'accessoire cone le gagne aussi.
+
+     SOURCE DES DIX NOMS : https://titangrip.de/multi-tool
+     « Hast du schon einen Rahmen? » puis « Wahle deine Aufsatze! ».
+
+     DEUX SANS FAMILLE, ET C'EST MESURE : les fiches produit de « Wrist Pro »
+     et « Multi Hand Grip » ne portent AUCUNE description — nom, prix,
+     reference, stock, rien d'autre. Les ranger dans une famille serait les
+     deviner. Ils entrent sans muscles, et l'ecran le dit. */
+  /* LES SIX ACCESSOIRES DU CADRE GOLDEN GRIP.
+
+     Chacun est deja un produit reconnu du catalogue — c'est pourquoi aucun
+     n'a besoin de `comme` : la famille se lit dans son nom. Mesure avant
+     ecriture : Offset Cylinder 5 muscles, Anti-Toproll avec sangle 6,
+     Eccentric Grip 4, King's Cup 5, Anti-Toproll 6, Cone 1.
+
+     LES CINQ TROUS NE SONT PAS ICI, et c'est un choix. Le fabricant dit
+     « 5 holes in the frame to allow you to focus on different fingers » —
+     mais JAMAIS quel trou charge quel doigt. Six accessoires font six
+     puces ; six accessoires fois cinq trous en feraient trente, pour une
+     precision que personne ne peut remplir. Le trou se note dans le nom du
+     reglage, qui est libre. */
+  var ACCESSOIRES_BUDDIES = [
+    { nom: 'Offset Cylinder Handle', comme: 'fat grip' },
+    { nom: 'Anti-Toproll Handle with Strap', comme: 'toproll' },
+    { nom: 'Eccentric Grip Handle', comme: 'eccentric' },
+    { nom: 'King’s Cup', comme: 'cup' },
+    { nom: 'Anti-Toproll Handle', comme: 'toproll' },
+    { nom: 'Cone Handle', comme: 'cone' }
+  ];
+
+  var AUFSATZ_MULTITOOL = [
+    { nom: 'Zylinder S', comme: 'fat grip' },
+    { nom: 'Zylinder M', comme: 'fat grip' },
+    { nom: 'Zylinder L', comme: 'fat grip' },
+    { nom: 'Zylinder XL', comme: 'fat grip' },
+    { nom: 'Exzentrisch', comme: 'eccentric' },
+    { nom: 'Kegel', comme: 'cone' },
+    { nom: 'Toproll Counter', comme: 'toproll' },
+    { nom: 'Wrist Pro' },
+    { nom: 'Multi Hand Grip' }
+  ];
+
   var OUTILS_CONNUS = [
     { mots: ['fat grip', 'fat gripz', 'thick grip', 'thick grips',
              'prise epaisse', 'barre epaisse', 'manchon', 'manchons',
              'axle bar', 'hand grips', 'hantelgriffe', 'round handle',
              'multihandle', 'cylinder grip', 'cylinder handle',
-             'brick handles'],
+             'brick handles',
+             /* LES CYLINDRES DU MULTI-TOOL. « zylinder » SEUL est interdit :
+                « Pronator Zylinder » est un produit Titangrip deja reconnu
+                comme PRONATEUR, et le mot designerait alors deux familles —
+                la regle du « grip tout court ». On prend le nom complet de
+                l'accessoire, qui ne designe que lui. */
+             'aufsatz zylinder', 'zylinder aufsatz'],
       muscles: ['fcr', 'fcu', 'ecrl', 'ecrb', 'ecu'] },
     { mots: ['pronator', 'pronateur', 'popeye', 'multipuller',
              'death roll', 'pronation handle'],
@@ -2038,8 +2102,23 @@
 
     /* L'axe de charge n'est pas au centre de la main : le poignet resiste
        a une torsion permanente. RAISONNE. */
-    { mots: ['eccentric', 'excentre', 'excentree'],
+    { mots: ['eccentric', 'excentre', 'excentree', 'exzentrisch'],
       entrees: ['Pronation', 'Supination'] },
+
+    /* LE CADRE, ET RIEN QUE LE CADRE. Un Multi-Tool nu ne travaille RIEN :
+       c'est l'accessoire monte dessus qui decide, et c'est pourquoi il n'a
+       ni `muscles` ni `entrees`. Ses reglages portent tout.
+
+       MB, 28/10 : « c'est une poignee metallique ou tu peux mettre
+       differentes poignees d'armwrestling dessus ». */
+    { mots: ['multi tool', 'multitool', 'multi-tool', 'rahmen'],
+      reglages: AUFSATZ_MULTITOOL },
+
+    /* L'AUTRE CADRE, celui de Golden Grip. Meme principe, meme absence de
+       muscles propres : « All attachments can roll freely around the
+       handle », et c'est l'accessoire monte qui travaille. */
+    { mots: ['armwrestling buddies', 'buddies', 'armwrestling buddy'],
+      reglages: ACCESSOIRES_BUDDIES },
 
     /* La prise glisse expres. RAISONNE : c'est la definition du geste. */
     { mots: ['slippery', 'towel', 'serviette'],
@@ -2176,6 +2255,24 @@
            + 'partout où la main entoure un cylindre.',
       pasSur: 'Une sangle : il n’y a rien à grossir. Un gripper non plus — '
             + 'sa poignée est sa mesure.' },
+    /* LE CADRE, et ce qu'il recoit. Source : https://titangrip.de/multi-tool
+       — « Hast du schon einen Rahmen? » puis « Wahle deine Aufsatze! ».
+       Il n'a pas de muscles a lui : c'est l'accessoire monte qui decide,
+       et ses reglages portent tout. */
+    'multi tool': { nom: 'Multi-Tool (cadre à accessoires)',
+      monte: 'Poulie ou sangle, avec un accessoire monté dessus — cylindre, '
+           + 'cône, excentrique, toproll counter.',
+      pasSur: 'Rien, tant qu’aucun accessoire n’est monté : le cadre seul '
+            + 'ne travaille aucun muscle.' },
+    /* CINQ TROUS, la ou le Multi-Tool en a trois. Source :
+       https://www.goldengrip.com/products/armwrestling-buddies-pick-and-choose/
+       « 5 holes in the frame to allow you to focus on different fingers ». */
+    'armwrestling buddies': { nom: 'Armwrestling Buddies (cadre à accessoires)',
+      monte: 'Poulie ou sangle, avec un accessoire vissé dessus. Cinq trous '
+           + 'dans le cadre changent le doigt sollicité — le fabricant ne '
+           + 'dit pas lequel charge lequel.',
+      pasSur: 'Rien, tant qu’aucun accessoire n’est vissé : le cadre seul ne '
+            + 'travaille aucun muscle.' },
     'pronator': { nom: 'Poignée de pronation', monte: 'Poulie, sangle, ou chargée à la plaque.', pasSur: null },
     'riser': { nom: 'Riser', monte: 'Poulie ou sangle.', pasSur: null },
     'cup': { nom: 'Poignée de cup', monte: 'Poulie ou sangle.', pasSur: null },
@@ -2829,8 +2926,48 @@
      l'utilisateur qui sait ce que SON matériel sollicite, et le carnet le
      lui propose ensuite au lieu de le lui redemander. */
 
+  /* L'OUTIL QUI PORTE LES REGLAGES, quand ce n'est pas celui qu'on nomme.
+
+     MB, 28/10 : ses positions existaient, et l'ecran disait « Pas encore de
+     reglage ». Mesure : la liste de marque attache le nom COURT — la
+     section porte deja « Titangrip » — et son catalogue tenait le nom
+     COMPLET. `trouverOutil` compare par slug exact : deux noms pour un
+     objet, et les reglages disparaissent.
+
+     LA RECHERCHE ELARGIE NE RENOMME RIEN et ne fusionne rien : elle
+     retrouve seulement un outil dont le nom CONTIENT celui-ci comme une
+     suite de mots entiere, et qui porte des reglages. « Iron Wrist »
+     retrouve « Titan Grip Iron Wrist » ; il ne retrouvera jamais
+     « Wrist Wrench », parce que « iron wrist » n'y est pas.
+
+     LE PLUS COURT GAGNE a egalite de qualite : entre deux porteurs, celui
+     dont le nom est le plus proche du mot cherche. Et `porteur` est RENDU,
+     pour que l'ecran puisse DIRE d'ou viennent les reglages — un reglage
+     qui apparait sans qu'on sache de quel objet il vient est pire que pas
+     de reglage. */
+  function outilPorteurDeReglages(etat, nomOutil) {
+    var s = slug(nomOutil);
+    if (!s) return null;
+    var exact = trouverOutil(etat, s);
+    if (exact && (exact.reglages || []).length) return exact;
+
+    /* `slug` ne laisse passer que des lettres, des chiffres et des espaces :
+       il n'y a RIEN à échapper ici. Une première version échappait quand
+       même les métacaractères, et son expression était mal formée — la page
+       ne chargeait plus du tout. Mesurer ce dont on a besoin coûte moins
+       qu'une précaution qu'on écrit de travers. */
+    var motif = new RegExp('(^| )' + s + '( |$)');
+    var gagnant = null;
+    (etat && etat.outils || []).forEach(function (o) {
+      if (!o || !(o.reglages || []).length) return;
+      if (!motif.test(o.slug || slug(o.nom))) return;
+      if (!gagnant || (o.nom || '').length < (gagnant.nom || '').length) gagnant = o;
+    });
+    return gagnant || exact || null;
+  }
+
   function reglagesOutil(etat, nomOutil) {
-    var o = trouverOutil(etat, slug(nomOutil));
+    var o = outilPorteurDeReglages(etat, nomOutil);
     return (o && Array.isArray(o.reglages)) ? o.reglages : [];
   }
 
@@ -2852,10 +2989,14 @@
      au centre » à côté du « Mousqueton au centre » qu'on vient de créer est
      la façon la plus sûre d'en obtenir deux. Sans `etat`, pas de filtre :
      la fonction reste mesurable seule. */
+  /* Le nom d'un reglage de type, qu'il soit une chaine ou `{ nom, comme }`. */
+  function nomDuReglageType(r) { return (r && r.nom) ? r.nom : r; }
+
   function reglagesProposes(etat, nomOutil) {
     var noms = [], vus = {};
     typesDeLOutil(nomOutil).forEach(function (k) {
-      (k.reglages || []).forEach(function (n) {
+      (k.reglages || []).forEach(function (r) {
+        var n = nomDuReglageType(r);
         var cle = slug(n);
         if (vus[cle]) return;
         vus[cle] = 1;
@@ -2864,6 +3005,34 @@
     });
     if (!etat) return noms;
     return noms.filter(function (n) { return !trouverReglage(etat, nomOutil, n); });
+  }
+
+  /* Les muscles qu'un reglage SUGGERE emporte, quand sa famille est connue.
+
+     DERIVES, jamais recopies : on relit la famille nommee par `comme`. Un
+     accessoire sans famille rend [] — et c'est la reponse juste pour
+     « Wrist Pro » et « Multi Hand Grip », que le fabricant ne decrit pas. */
+  function musclesDuReglagePropose(nomOutil, nomReglage) {
+    var cible = slug(nomReglage), trouve = null;
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      (k.reglages || []).forEach(function (r) {
+        if (trouve) return;
+        if (slug(nomDuReglageType(r)) === cible) trouve = r;
+      });
+    });
+    if (!trouve || !trouve.comme) return [];
+    var fam = null;
+    OUTILS_CONNUS.forEach(function (k) {
+      if (!fam && k.mots.indexOf(trouve.comme) >= 0) fam = k;
+    });
+    if (!fam) return [];
+    var ids = [];
+    (fam.muscles || []).forEach(function (id) { ids.push(id); });
+    (fam.entrees || []).forEach(function (nom) {
+      var d = entreeDuDictionnaire(nom);
+      if (d) (d.muscles || []).forEach(function (id) { ids.push(id); });
+    });
+    return muscles({ muscles: ids });
   }
 
   /* Pose ou met à jour un réglage. `id` sert au renommage : sans lui, changer
@@ -4768,8 +4937,11 @@
     ZONES_RESSENTIES: ZONES_RESSENTIES, zoneRessentie: zoneRessentie,
     musclesDesZones: musclesDesZones,
     outilProche: outilProche,
-    reglagesOutil: reglagesOutil, trouverReglage: trouverReglage,
+    reglagesOutil: reglagesOutil,
+    outilPorteurDeReglages: outilPorteurDeReglages, trouverReglage: trouverReglage,
     reglagesProposes: reglagesProposes,
+    musclesDuReglagePropose: musclesDuReglagePropose,
+    AUFSATZ_MULTITOOL: AUFSATZ_MULTITOOL,
     majReglageOutil: majReglageOutil, supprimerReglageOutil: supprimerReglageOutil,
     reglageDe: reglageDe, poserReglage: poserReglage, reglagesPortes: reglagesPortes,
     outilDit: outilDit,

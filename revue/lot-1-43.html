@@ -309,6 +309,65 @@ dit('<b>Cocher ajoute, changer de réglage ne retire pas</b> — même règle '
   + 'que les mouvements depuis le 26/10 : deux réglages peuvent partager un '
   + 'muscle, et un retrait effacerait ce qu’un autre avait posé.');
 
+/* ========= 3 bis. QUELS EQUIPEMENTS ONT DES REGLAGES ========= */
+h2('3 bis — Quels équipements ont des réglages, et lesquels n’en ont pas');
+dit('MB, 28/10 : « Iron Wrist de chez Titan Grip a la possibilité de mettre '
+  + 'le mousqueton sur le centre, extérieur ou intérieur ». <b>Le carnet le '
+  + 'savait déjà</b> — tu l’avais vu toi-même le 27/10, et les positions '
+  + 'sont sourcées sur la photo du fabricant et son texte : « <i>Durch die '
+  + 'verschiedenen Einstellungsmöglichkeiten lässt sich die Belastung so '
+  + 'verändern</i> ».');
+dit('<b>Ce qui manquait est l’écran</b> : la fiche d’exercice ne lisait que '
+  + 'les réglages que tu avais DÉCLARÉS, jamais ceux que le type connaît. '
+  + 'Tu ajoutais un Iron Wrist et la ligne disait « Pas encore de réglage ». '
+  + 'Elle propose maintenant les trois positions, et <b>un appui suffit</b> : '
+  + 'elle s’applique à l’exercice et devient un réglage à toi.');
+
+var avec = [], sans = [], inconnus = [];
+m.marquesConnues().forEach(function (mq) {
+  m.produitsDeLaMarque(mq).forEach(function (f) {
+    f.produits.forEach(function (nom) {
+      var t = m.typesDeLOutil(nom);
+      var r = m.reglagesProposes(null, nom);
+      var ligne = { mq: mq, nom: nom, r: r, t: t };
+      if (!t.length) inconnus.push(ligne);
+      else if (r.length) avec.push(ligne);
+      else sans.push(ligne);
+    });
+  });
+});
+
+var fa = el('div', 'fiche');
+fa.appendChild(el('h3', null, 'Les ' + avec.length + ' équipements qui portent '
+                            + 'des positions'));
+var ta = el('table');
+ta.innerHTML = '<tr><th>marque</th><th>produit</th><th>positions</th></tr>';
+avec.forEach(function (x) {
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>' + x.mq + '</td><td><b>' + x.nom + '</b></td><td>'
+    + x.r.join(' · ') + '</td>';
+  ta.appendChild(tr);
+});
+fa.appendChild(ta);
+corps.appendChild(fa);
+
+dit('<b>' + sans.length + ' produits n’en portent aucune</b>, et c’est '
+  + 'voulu : un Fat Gripz ou une poignée fixe n’a rien à régler. '
+  + (inconnus.length
+      ? '<b>' + inconnus.length + ' ne sont pas lus du tout</b> — les deux '
+      + '« AXE », marqués <i>libres</i> exprès : j’avais d’abord cru y voir '
+      + 'sept positions de mousqueton, c’étaient les boulons d’assemblage, '
+      + 'et Mithril décrit une géométrie FIXE. La correction est venue en '
+      + 'ouvrant la page du fabricant.'
+      : ''));
+
+var fs = el('div', 'fiche ecarte');
+fs.appendChild(el('h3', null, 'Les ' + sans.length + ' sans position — à vérifier si tu en connais une'));
+var ls = el('div', 'mus');
+sans.forEach(function (x) { ls.appendChild(el('span', null, x.mq + ' · ' + x.nom)); });
+fs.appendChild(ls);
+corps.appendChild(fs);
+
 /* ================= 4. LE GESTE D'EQUIPEMENT ================= */
 h2('4 — Choisir un équipement');
 dit('Prendre un produit de marque l’<b>attache</b>, sans ouvrir de '

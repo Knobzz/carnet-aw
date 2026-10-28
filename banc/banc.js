@@ -2647,10 +2647,41 @@
     var sansMuscle = A.m.OUTILS_CONNUS.filter(function (k) {
       return !A.m.musclesDeLOutil([k.mots[0]]).length;
     }).map(function (k) { return k.mots[0]; });
-    v.egal(sansMuscle.sort().join(' · '), 'ceinture de judo · corde',
-           'DEUX types seulement ne proposent rien, et ce sont les deux '
-         + 'accessoires de liaison — toute autre entrée dans cette liste '
-         + 'serait un oubli, pas un choix');
+    /* TROIS DEPUIS LE 28/10, et le troisieme est d'une autre espece : le
+       MULTI-TOOL est un CADRE. Les deux premiers ne proposent rien parce
+       qu'ils ne font que RELIER — une sangle, une corde. Lui ne propose
+       rien parce que ce qu'il travaille depend de l'ACCESSOIRE monte
+       dessus, et ses reglages le portent.
+
+       Source : https://titangrip.de/multi-tool. Le controle garde sa
+       force : toute QUATRIEME entree ici serait un oubli. */
+    /* QUATRE DEPUIS QUE GOLDEN GRIP A SON CADRE. Deux espèces, et c'est
+       tout : ce qui RELIE (sangle, corde) et ce qui REÇOIT (les deux
+       cadres). Toute cinquième entrée serait un oubli. */
+    v.egal(sansMuscle.sort().join(' · '),
+           'armwrestling buddies · ceinture de judo · corde · multi tool',
+           'QUATRE types ne proposent rien : deux qui RELIENT, et deux '
+         + 'CADRES dont l’accessoire monté décide');
+    v.egal(A.m.reglagesProposes(null, 'Multi-Tool').length, 9,
+           'le Multi-Tool porte ses NEUF accessoires en réglages : c’est là '
+         + 'que ses muscles vivent');
+    v.egal(A.m.reglagesProposes(null, 'Armwrestling Buddies').length, 6,
+           'et les Armwrestling Buddies leurs SIX — « Full set includes a '
+         + 'metal frame, 6 attachments »');
+    v.vrai(mrp('Armwrestling Buddies', 'Cone Handle').length > 0
+           && mrp('Armwrestling Buddies', 'King’s Cup').length > 0,
+           'chacun des six emporte les muscles de sa famille');
+    /* NEUVIEME FOIS DE LA SESSION. Sur la version d'avant cette fonction
+       n'existe pas, et l'appel nu tuait le bloc — le reste de la chute
+       devenait illisible. L'enveloppe rend une valeur neutre. */
+    function mrp(outil, reg) {
+      return A.m.musclesDuReglagePropose
+           ? A.m.musclesDuReglagePropose(outil, reg) : [];
+    }
+    v.vrai(mrp('Multi-Tool', 'Kegel').length > 0
+           && mrp('Multi-Tool', 'Wrist Pro').length === 0,
+           'chaque accessoire emporte les muscles de SA famille — et ceux '
+         + 'que le fabricant ne décrit pas n’en emportent aucun');
 
     /* UN SEUL ENDROIT DECIDE : si `typesDeLOutil` ne voit rien, ni les
        muscles ni les reglages ne peuvent apparaitre. Les trois etaient

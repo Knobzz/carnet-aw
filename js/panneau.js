@@ -526,8 +526,64 @@
         var aucunOutil = !(exo.outils || []).length;
         (exo.outils || []).forEach(function (nomOutil) {
           var l = A.m.reglagesOutil(etat(), nomOutil);
+          /* CE QUE LE TYPE PROPOSE compte autant que ce qui est declare.
+             Un Iron Wrist a trois positions de mousqueton, le carnet le
+             sait depuis le 27/10, et l'ecran l'ignorait. */
+          var suggeres = A.m.reglagesProposes(etat(), nomOutil);
           boiteReglages.appendChild(h('div', { class: 'item-resume',
                                                style: 'margin-top:6px', text: nomOutil }));
+          /* UNE POSITION SUGGEREE SE POSE EN UN APPUI. Elle est DECLAREE
+             sur l'outil au passage, sans formulaire : au prochain exercice
+             c'est un reglage ordinaire, et ses muscles s'y ajoutent depuis
+             la fiche quand MB le voudra. */
+          function poserSuggere(nom) {
+            /* IL EMPORTE LES MUSCLES DE SA FAMILLE, quand elle est connue.
+               Monter le Kegel sur un Multi-Tool donne les muscles du cone,
+               sans rien a saisir — c'est tout l'interet. Un accessoire que
+               le fabricant ne decrit pas rend [], et c'est la reponse
+               juste : « Wrist Pro » et « Multi Hand Grip » n'ont AUCUNE
+               description sur titangrip.de, les deux fiches ouvertes. */
+            var mus = A.m.musclesDuReglagePropose
+                    ? A.m.musclesDuReglagePropose(nomOutil, nom) : [];
+            A.m.majReglageOutil(etat(), nomOutil, nom, mus);
+            A.m.poserReglage(exo, nomOutil, nom);
+            if (mus.length) {
+              var fusion = A.m.muscles(exo).slice(), neufs = 0;
+              mus.forEach(function (id) {
+                if (fusion.indexOf(id) < 0) { fusion.push(id); neufs += 1; }
+              });
+              exo.muscles = A.m.muscles({ muscles: fusion });
+              if (neufs) A.ui.toast(neufs + ' muscle' + (neufs > 1 ? 's' : '')
+                                  + ' coché' + (neufs > 1 ? 's' : '')
+                                  + ' — « ' + nom + ' »');
+            }
+            A.store.sauver(true);
+            rafraichirReglages();
+            rafraichirMuscles();
+            majAideMuscles();
+          }
+
+          if (!l.length && suggeres.length) {
+            boiteReglages.appendChild(h('div', { class: 'item-resume',
+              style: 'margin:-2px 0 0;opacity:.8',
+              /* « POSITIONS » ETAIT FAUX pour un Multi-Tool : ses reglages
+                 sont des ACCESSOIRES qu'on monte, pas des trous. Un mot
+                 neutre couvre les deux sans mentir sur aucun. */
+              text: 'Le carnet reconnaît cet équipement et lui connaît '
+                  + 'ceux-ci. Touche-en un : il s’applique à l’exercice et '
+                  + 'devient le tien.' }));
+            var rangeeS = h('div', { class: 'puces' });
+            suggeres.forEach(function (nom) {
+              var b = h('button', { type: 'button', class: 'puce', text: nom,
+                                    'aria-pressed': 'false' });
+              b.addEventListener('click', function () { poserSuggere(nom); });
+              rangeeS.appendChild(b);
+            });
+            boiteReglages.appendChild(rangeeS);
+            boiteReglages.appendChild(boutonReglage(nomOutil));
+            return;
+          }
+
           if (!l.length) {
             /* La panne silencieuse de ce dessin : les réglages sont rangés
                par nom d'outil, donc « Titan Grip … 60 mm » et « …60mm » sont
@@ -590,6 +646,17 @@
             b.addEventListener('click', function () { poser(o.nom); });
             puces.push({ nom: o.nom, bouton: b });
             rangee.appendChild(b);
+          });
+          /* LES SUGGESTIONS QUI RESTENT se posent au bout de la rangee :
+             MB a declare « Centre », le carnet sait qu'il existe aussi
+             « Exterieur » et « Interieur », et les lui cacher l'obligerait
+             a les retaper. */
+          suggeres.forEach(function (nom) {
+            var bs = h('button', { type: 'button', class: 'puce puce-suggeree',
+                                   text: nom, 'aria-pressed': 'false',
+                                   title: 'Position connue de cet équipement' });
+            bs.addEventListener('click', function () { poserSuggere(nom); });
+            rangee.appendChild(bs);
           });
           majPuces();
           boiteReglages.appendChild(rangee);
