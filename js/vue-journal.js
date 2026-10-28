@@ -210,7 +210,8 @@
      aucun autre ecran ne la montre, l'onglet Recup ne presentant que le
      jour courant. */
   function detailRecup(se, surFin) {
-    A.panneau.ouvrir('Récupération du ' + A.m.dateCourte(se.date),
+    A.panneau.ouvrir((se.routineNom || 'Récupération')
+                   + ' du ' + A.m.dateCourte(se.date),
       function (c, fermer) {
         /* « exercices » : un ✓ par exercice, donc un compte par exercice.
            Le nombre de series se lit sur la ligne — « 4 × 50 reps ». */
@@ -255,7 +256,7 @@
     var it = h('div', { class: 'item' });
     var c = A.m.compteRecup(se);
     it.appendChild(h('div', { class: 'item-titre' },
-      h('h3', { text: 'Récupération' }),
+      h('h3', { text: se.routineNom || 'Récupération' }),
       h('span', { class: 'item-date', text: A.m.dateCourte(se.date) })));
     it.appendChild(h('div', { class: 'item-resume',
       text: c.faits + ' / ' + c.total + ' exercice' + (c.total > 1 ? 's' : '') }));

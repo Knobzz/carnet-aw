@@ -17,9 +17,15 @@
       exercices: [],
       outils: [],
       programmes: [],
-      /* La routine de recuperation : un programme comme les autres, mais un
-         seul, et qui ne se lance pas — il se coche, jour apres jour. */
+      /* Les seances de recuperation : des programmes comme les autres, mais
+         qui ne se lancent pas — ils se cochent, jour apres jour. Plusieurs
+         depuis le 2026-10-28, a la demande de MB.
+
+         `routineRecup` SURVIT, tenue a jour sur la premiere de la liste :
+         une version anterieure reservie par le service worker y retrouve
+         une seance au lieu d'un ecran vide. */
       routineRecup: null,
+      routinesRecup: [],
       /* Les releves de douleur du lendemain : independants des seances, parce
          que le lendemain d'une grosse seance est souvent un jour de repos. */
       releves: [],
@@ -52,6 +58,7 @@
     if (Array.isArray(brut.outils)) d.outils = brut.outils;
     if (Array.isArray(brut.programmes)) d.programmes = brut.programmes;
     if (brut.routineRecup && typeof brut.routineRecup === 'object') d.routineRecup = brut.routineRecup;
+    if (Array.isArray(brut.routinesRecup)) d.routinesRecup = brut.routinesRecup;
     if (Array.isArray(brut.releves)) d.releves = brut.releves;
     if (Array.isArray(brut.seances)) d.seances = brut.seances;
     if (brut.reglages && typeof brut.reglages === 'object') {

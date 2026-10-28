@@ -3135,8 +3135,14 @@
     v.vrai(doc.body.textContent.indexOf('4 séries') >= 0,
            'la carte dit « 4 séries » : sans ce mot, un seul ✓ laisserait '
          + 'croire qu’une seule série est en jeu');
-    v.vrai(doc.body.textContent.indexOf('0 / 1 fait') >= 0,
-           'et l’en-tête compte les EXERCICES : « 0 / 1 », pas « 0 / 4 »');
+    /* MISE A JOUR DU 28/10 : depuis qu'il y a PLUSIEURS seances de recup,
+       l'en-tete compte les SEANCES et c'est la CARTE qui compte ses
+       exercices. Le controle mesure les deux, chacun a sa place. */
+    v.vrai(doc.body.textContent.indexOf('0 / 1 séance faite') >= 0,
+           'l’en-tête compte les SÉANCES faites du jour');
+    v.vrai(doc.body.textContent.indexOf('0 / 1 exercice') >= 0,
+           'et la carte compte ses EXERCICES : « 0 / 1 », pas « 0 / 4 » — '
+         + 'les quatre séries ne font qu’un exercice');
 
     var champ = doc.querySelector('.recup-ligne .serie-saisie');
     v.vrai(!!champ && champ.placeholder === '50',
@@ -3154,11 +3160,14 @@
            'et les QUATRE séries sont cochées d’un seul appui');
     v.egal(faites.filter(function (s) { return s.repsReel === '50'; }).length, 4,
            'chacune prend sa cible : « fait comme prévu », pas « valeur inconnue »');
-    v.vrai(doc.body.textContent.indexOf('1 / 1 fait') >= 0,
-           'l’en-tête passe à « 1 / 1 fait », et non « 4 / 4 »');
+    v.vrai(doc.body.textContent.indexOf('1 / 1 séance faite') >= 0,
+           'l’en-tête passe à « 1 / 1 séance faite », et non « 4 / 4 »');
     v.vrai(!!doc.querySelector('.recup-exo')
            && doc.querySelector('.recup-exo').classList.contains('faite'),
-           'la carte se marque');
+           'la carte de l’exercice se marque');
+    v.vrai(!!doc.querySelector('.recup-seance')
+           && doc.querySelector('.recup-seance').classList.contains('faite'),
+           'et la SÉANCE aussi, puisque son seul exercice est fait');
 
     /* --- ce que MB voulait VOIR dans le journal --- */
     fen.App.vues.journal.rendre(vue);
@@ -3361,21 +3370,157 @@
     fen.App.store.etat().seances = [];
   });
 
+  /* ------------------------------------------------------------------
+     LE NOM D'UNE SÉANCE VALIDE CE QU'IL CONTIENT
+
+     MB, 28/10 : « je valide le nom qui a les exos à l'intérieur, et on est
+     bien ». Le ✓ de l'en-tête est le geste principal ; ouvrir la carte sert
+     à corriger une valeur, pas à faire le travail.
+     ------------------------------------------------------------------ */
+  bloc('Le nom d’une séance valide ses exercices', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+    e.routineRecup = null;
+    e.routinesRecup = [];
+
+    /* MEMES ENVELOPPES : sur 1.39.0 ces fonctions n'existent pas, et
+       l'ecran ne rend aucune carte. Chaque controle doit tomber avec SA
+       valeur plutot que d'emporter ses voisins. */
+    var m = fen.App.m;
+    function ajout(nom) {
+      return m.ajouterRoutineRecup ? m.ajouterRoutineRecup(e, nom)
+                                   : { id: 'absent-' + nom, nom: nom, exercices: [] };
+    }
+    function dujour(et) { return m.recupsDuJour ? m.recupsDuJour(et) : []; }
+    var r1 = ajout('Récup poignet');
+    r1.exercices = [
+      m.exerciceProgramme({ nom: 'Side pressure', typeCharge: 'elastique',
+        colonnes: ['reps'], series: [{ repsCible: '50' }, { repsCible: '50' },
+                                     { repsCible: '50' }, { repsCible: '50' }] }),
+      m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
+        colonnes: ['reps'], series: [{ repsCible: '30' }] })
+    ];
+    var r2 = ajout('Récup coude');
+    r2.exercices = [m.exerciceProgramme({ nom: 'Pronation lente',
+      typeCharge: 'elastique', colonnes: ['reps'], series: [{ repsCible: '20' }] })];
+
+    fen.App.vues.recup.rendre(vue);
+
+    /* ---- deux cartes, nommées, repliées ---- */
+    var cartes = doc.querySelectorAll('.recup-seance');
+    v.egal(cartes.length, 2, 'deux séances font deux cartes');
+    v.egal(Array.prototype.map.call(doc.querySelectorAll('.recup-seance-nom b'),
+             function (b) { return b.textContent; }).join(' / '),
+           'Récup poignet / Récup coude', 'et chacune porte son nom');
+    v.egal(doc.querySelectorAll('.recup-corps').length, 0,
+           'À DEUX, elles sont repliées : le nom suffit à valider, ouvrir '
+         + 'ne sert qu’à corriger');
+    v.egal(doc.querySelectorAll('.recup-exo').length, 0,
+           '[temoin] donc aucune ligne d’exercice n’est peinte');
+    v.vrai(doc.body.textContent.indexOf('0 / 2 séances faites') >= 0,
+           'l’en-tête compte les SÉANCES — et il accorde : « séances '
+         + 'faites », pas « séances faite »');
+
+    /* ---- le ✓ de la tête est atteignable au doigt ---- */
+    var oks = doc.querySelectorAll('.recup-seance > .recup-seance-tete .serie-ok');
+    v.egal(oks.length, 2, 'chaque carte a son ✓');
+    var mini = 9999;
+    Array.prototype.forEach.call(oks, function (o) {
+      var r = o.getBoundingClientRect();
+      mini = Math.min(mini, Math.min(r.width, r.height));
+    });
+    v.vrai(mini >= 44, 'et il garde 44 px (' + Math.round(mini) + ' px)');
+
+    /* ---- UN appui sur le nom, et TOUT est fait ---- */
+    if (oks.length) oks[0].click();
+    var e2 = fen.App.store.etat();
+    var jours = dujour(e2);
+    v.egal(jours.length, 1, 'le ✓ fait entrer UNE journée au journal');
+    v.egal(jours.length ? jours[0].routineNom : '', 'Récup poignet',
+           'et elle porte le nom de la séance validée');
+    var faites = 0, total = 0;
+    (jours[0] || { exercices: [] }).exercices.forEach(function (ex) {
+      (ex.series || []).forEach(function (s) { total += 1; if (s.faite) faites += 1; });
+    });
+    v.egal(faites + '/' + total, '5/5',
+           'les CINQ séries des deux exercices sont cochées d’un seul appui '
+         + 'sur le nom — « je valide le nom qui a les exos à l’intérieur »');
+    v.vrai(doc.body.textContent.indexOf('1 / 2 séances faites') >= 0,
+           'l’en-tête passe à « 1 / 2 séances faites »');
+
+    var c0 = doc.querySelectorAll('.recup-seance')[0];
+    v.vrai(!!c0 && c0.classList.contains('faite'), 'la carte validée se marque');
+    var ok0 = c0 && c0.querySelector('.recup-seance-tete .serie-ok');
+    var c1 = doc.querySelectorAll('.recup-seance')[1];
+    var ok1 = c1 && c1.querySelector('.recup-seance-tete .serie-ok');
+    v.vrai(!!ok0 && !!ok1
+           && fen.getComputedStyle(ok0).backgroundColor
+              !== fen.getComputedStyle(ok1).backgroundColor,
+           'et son ✓ ne se confond pas avec celui de l’autre séance');
+
+    /* L'AUTRE SÉANCE N'A PAS BOUGÉ : c'est tout l'intérêt de les séparer. */
+    v.egal(m.recupDuJour ? m.recupDuJour(e2, null, r2.id) : null, null,
+           'l’autre séance reste intouchée — valider l’une ne valide pas '
+         + 'l’autre');
+
+    /* ---- le nom déplie ---- */
+    var nom1 = doc.querySelectorAll('.recup-seance-nom')[1];
+    if (nom1) nom1.click();
+    v.egal(doc.querySelectorAll('.recup-corps').length, 1,
+           'appuyer sur le nom déplie SA carte, et elle seule');
+    v.vrai(doc.body.textContent.indexOf('Pronation lente') >= 0,
+           'et on y voit ses exercices');
+
+    /* ---- un second appui défait ---- */
+    /* MON ATTENTE ETAIT FAUSSE, PAS LE CODE. Décocher ne retire PAS la
+       journée tant qu'une valeur y reste saisie — cocher a rempli les
+       réels depuis les cibles, et ils restent. C'est une règle écrite
+       depuis le premier jour, et le banc la tenait déjà ailleurs. Ce qui
+       doit redescendre, c'est le COMPTE de séances faites. */
+    var okA = doc.querySelectorAll('.recup-seance > .recup-seance-tete .serie-ok')[0];
+    if (okA) okA.click();
+    v.vrai(doc.body.textContent.indexOf('0 / 2 séances faites') >= 0,
+           'un second appui défait la séance : l’en-tête redescend à '
+         + '« 0 / 2 séances faites »');
+    v.egal(dujour(fen.App.store.etat()).length, 1,
+           '[temoin] la journée RESTE au journal : les valeurs saisies par '
+         + 'le ✓ y demeurent, et une journée qui porte des chiffres n’est '
+         + 'pas vide');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
+
+    fen.App.ui.vider(vue);
+    var fin = fen.App.store.etat();
+    fin.seances = [];
+    fin.routinesRecup = [];
+    fin.routineRecup = null;
+  });
+
   bloc('Récupération', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
     var e = fen.App.store.etat();
     e.seances = [];
     e.routineRecup = null;
+    e.routinesRecup = [];
 
-    /* --- rien de défini --- */
+    /* --- rien de défini ---
+       MISE A JOUR DU 28/10 : plusieurs seances nommees, donc le libelle
+       parle d'une PREMIERE seance et non d'une routine unique. */
     fen.App.vues.recup.rendre(vue);
     v.vrai(!!doc.querySelector('button'), 'l’écran vide propose un bouton');
-    v.vrai(doc.body.textContent.indexOf('Définir ma routine') >= 0,
-           'et il invite à définir la routine');
+    v.vrai(doc.body.textContent.indexOf('Définir ma première séance') >= 0,
+           'et il invite à définir la PREMIÈRE séance — il peut y en avoir '
+         + 'plusieurs depuis le 28/10');
     v.egal(doc.querySelectorAll('.recup-exo').length, 0, 'aucune ligne à cocher');
+    v.egal(doc.querySelectorAll('.recup-seance').length, 0, 'et aucune carte');
 
-    /* --- une routine de deux exercices --- */
+    /* --- une séance de deux exercices ---
+       Elle est posee par l'ANCIENNE cle : c'est la migration qu'on mesure
+       au passage, et elle doit la faire entrer dans la liste. */
     var routine = fen.App.m.routineRecupVierge();
     routine.exercices = [
       fen.App.m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
@@ -3387,8 +3532,17 @@
     e.routineRecup = routine;
     fen.App.vues.recup.rendre(vue);
 
+    v.egal(doc.querySelectorAll('.recup-seance').length, 1,
+           'l’ancienne clé `routineRecup` devient UNE carte : la migration '
+         + 'ne jette rien');
+    v.egal(fen.App.m.routinesRecup(e).length, 1, 'et elle entre dans la liste');
+    v.vrai(doc.body.textContent.indexOf('Modifier') >= 0,
+           '[temoin] une seule séance reste DÉPLIÉE — l’écran d’avant ne '
+         + 'gagne pas un appui ; le bouton « Modifier » n’est visible '
+         + 'qu’ouverte');
+
     var exos = doc.querySelectorAll('.recup-exo');
-    v.egal(exos.length, 2, 'la routine se présente déjà prête : une ligne par exercice');
+    v.egal(exos.length, 2, 'la séance se présente déjà prête : une ligne par exercice');
     v.egal(e.seances.length, 0,
            'et RIEN n’est encore enregistré — une journée vide dirait qu’on l’a faite');
 
@@ -3431,19 +3585,27 @@
            'vidée de tout, la journée ressort du journal plutôt que d’y rester vide');
 
     /* --- tout cocher --- */
-    var btTout = null;
-    Array.prototype.forEach.call(doc.querySelectorAll('button'), function (b) {
-      if (b.textContent.indexOf('Tout marquer fait') >= 0) btTout = b;
-    });
-    v.vrai(!!btTout, 'un bouton coche toute la routine d’un geste');
-    btTout.click();
+    /* « TOUT MARQUER FAIT » A DISPARU le 28/10, et son geste est passé sur
+       le NOM de la séance : MB, « je valide le nom qui a les exos à
+       l'intérieur ». Un bouton de moins, et le geste est au même endroit
+       que ce qu'il valide. */
+    v.egal(doc.body.textContent.indexOf('Tout marquer fait'), -1,
+           'plus de bouton « Tout marquer fait » : son geste vit sur le nom '
+         + 'de la séance');
+    var btTout = doc.querySelector('.recup-seance > .recup-seance-tete .serie-ok');
+    v.vrai(!!btTout, 'le ✓ du nom coche toute la séance d’un geste');
+    if (btTout) btTout.click();
     v.egal(fen.App.m.compteRecup(fen.App.store.etat().seances[0]).faits, 2,
            'et il coche bien les deux');
-    var apres = null;
-    Array.prototype.forEach.call(doc.querySelectorAll('button'), function (b) {
-      if (b.textContent.indexOf('Tout décocher') >= 0) apres = b;
-    });
-    v.vrai(!!apres, 'son libellé devient « Tout décocher » une fois tout fait');
+    /* IL N'Y A PLUS DE LIBELLE QUI CHANGE : c'est le MÊME ✓ qui bascule, et
+       ce qui change est son ÉTAT. Un bouton qui se renomme demandait de
+       lire ; un ✓ qui se dore se voit. */
+    var teteOk = doc.querySelector('.recup-seance > .recup-seance-tete .serie-ok');
+    v.egal(teteOk ? teteOk.getAttribute('aria-pressed') : '(absent)', 'true',
+           'une fois tout fait, le ✓ du nom est marqué — c’est son ÉTAT qui '
+         + 'change, plus un libellé à lire');
+    v.vrai(!!doc.querySelector('.recup-seance.faite'),
+           'et la carte de la séance se dore');
 
     v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
            'et rien ne sort de l’écran à 320 px ' + '— mesuré au BORD DROIT des éléments, pas au scrollWidth, que « overflow-x: hidden » rend toujours vert');
@@ -3659,11 +3821,17 @@
            + 'sur l’écran Séance, et un geste à deux endroits ne dit pas '
            + 'lequel est le bon');
 
+      /* LA CARTE PORTE LE NOM DE SA SEANCE depuis le 28/10 : deux seances
+         de recup le meme jour seraient sinon indiscernables au journal. */
       var carte = null;
       Array.prototype.forEach.call(vue.querySelectorAll('.item'), function (n) {
-        if (!carte && n.textContent.indexOf('Récupération') >= 0) carte = n;
+        if (!carte && n.textContent.indexOf(routine.nom) >= 0) carte = n;
       });
       v.vrai(!!carte, '[temoin] la journée de récup est bien au journal');
+      v.vrai(!!carte && carte.textContent.indexOf(routine.nom) >= 0,
+             'et elle est titrée du NOM de la séance — « ' + routine.nom
+           + ' » — et non du mot générique : deux séances le même jour '
+           + 'doivent se distinguer');
       if (!carte) return ranger();
 
       /* LE NOMBRE DE SERIES, SUR LA CARTE. MB, 28/10 : « je ne vois que

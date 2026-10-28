@@ -626,13 +626,18 @@ select.champ { appearance: none; background-image: none; }
 }
 .serie-ok svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .serie.faite .serie-ok,
-.recup-exo.faite .serie-ok { background: var(--laiton); border-color: var(--laiton); color: #fff; }
+.recup-exo.faite > .recup-ligne .serie-ok,
+.recup-seance.faite > .recup-seance-tete .serie-ok {
+  background: var(--laiton); border-color: var(--laiton); color: #fff;
+}
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="clair"]) .serie.faite .serie-ok,
-  :root:not([data-theme="clair"]) .recup-exo.faite .serie-ok { color: #241a06; }
+  :root:not([data-theme="clair"]) .recup-exo.faite > .recup-ligne .serie-ok,
+  :root:not([data-theme="clair"]) .recup-seance.faite > .recup-seance-tete .serie-ok { color: #241a06; }
 }
 :root[data-theme="sombre"] .serie.faite .serie-ok,
-:root[data-theme="sombre"] .recup-exo.faite .serie-ok { color: #241a06; }
+:root[data-theme="sombre"] .recup-exo.faite > .recup-ligne .serie-ok,
+:root[data-theme="sombre"] .recup-seance.faite > .recup-seance-tete .serie-ok { color: #241a06; }
 
 .serie-actions {
   display: flex;
@@ -1051,6 +1056,46 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    Pas de colonne PRECEDENT ici : la routine est la meme tous les jours, et ce
    qu'on veut lire est la regularite, pas la progression. Les champs ont donc
    toute la largeur, moins le ✓. */
+
+/* ---------- une carte par seance de recup ----------
+   MB, 28/10 : « je valide le nom qui a les exos a l'interieur ». Le nom et
+   le ✓ sont donc sur la MEME ligne, et le ✓ garde son plancher de 44 px. */
+.recup-seance {
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  padding: 9px 10px;
+  margin-bottom: 10px;
+}
+.recup-seance.faite { background: var(--laiton-doux); border-color: var(--laiton); }
+.recup-seance-tete {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tap);
+  align-items: center;
+  gap: 8px;
+}
+/* Le nom est un BOUTON : il deplie. Il n'en a pas l'air, et c'est voulu —
+   la carte entiere repond, comme une ligne de liste. */
+.recup-seance-nom {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  min-height: var(--tap);
+  color: var(--texte);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.recup-seance-nom b { display: block; font-weight: 650; }
+.recup-seance-sous { display: block; font-size: .78rem; color: var(--texte-2); }
+.recup-corps { margin-top: 8px; }
+.recup-actions { display: flex; gap: 6px; }
+.recup-actions .bt { flex: 1; }
+
+/* Une seance pliee ne garde pas la marge basse de son dernier exercice. */
+.recup-corps .recup-exo:last-child { margin-bottom: 0; }
 
 .recup-exo {
   background: var(--fond-2);

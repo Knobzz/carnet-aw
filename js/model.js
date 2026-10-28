@@ -3073,6 +3073,9 @@
     (etat.exercices || []).forEach(unExercice);
     (etat.programmes || []).forEach(function (p) { (p.exercices || []).forEach(unExercice); });
     if (etat.routineRecup) (etat.routineRecup.exercices || []).forEach(unExercice);
+    (etat.routinesRecup || []).forEach(function (r) {
+      if (r) (r.exercices || []).forEach(unExercice);
+    });
     (etat.seances || []).forEach(function (s) {
       if (s && (s.type === 'muscu' || s.type === 'recup')) (s.exercices || []).forEach(unExercice);
     });
@@ -3191,16 +3194,82 @@
      et à seancesMuscuTriees() pour l'ignorer, donc au tonnage pour ne pas la
      voir. */
 
-  function routineRecupVierge() {
-    var p = programme('Ma routine de récupération');
+  function routineRecupVierge(nom) {
+    var p = programme(nom || 'Ma routine de récupération');
     p.description = 'Élastique, faible résistance, beaucoup de répétitions. '
                   + 'À cocher chaque jour.';
     return p;
   }
 
+  /* ---------- PLUSIEURS SÉANCES DE RÉCUP, NOMMÉES ----------
+
+     MB, 28/10 : « j'aimerai pouvoir ajouter des seances de recup et non pas
+     juste une, actuellement cela me limite, et niveau validation ce serait
+     plus simple, je valide le nom qui a les exos a l'interieur ».
+
+     LA MIGRATION NE JETTE RIEN. L'ancienne clé `routineRecup` portait UNE
+     routine ; elle devient la première de la liste. Et on continue à
+     l'ÉCRIRE : si le service worker resert un jour une version antérieure,
+     elle y retrouve au moins la première séance au lieu d'un écran vide.
+     Deux lignes, et un retour arrière qui ne coûte rien. */
+  function routinesRecup(etat) {
+    if (!etat) return [];
+    if (!Array.isArray(etat.routinesRecup)) etat.routinesRecup = [];
+    /* L'unique d'avant entre dans la liste si elle n'y est pas déjà. */
+    if (etat.routineRecup && typeof etat.routineRecup === 'object') {
+      var la = etat.routineRecup, dedans = false;
+      etat.routinesRecup.forEach(function (r) { if (r && r.id === la.id) dedans = true; });
+      if (!dedans) etat.routinesRecup.unshift(la);
+    }
+    return etat.routinesRecup;
+  }
+
+  /* Le pont vers l'ancienne clé, tenu à jour après chaque écriture.
+
+     IL NE PASSE PAS PAR `routinesRecup`, ET C'EST LE POINT. Celle-ci
+     REMETTRAIT `etat.routineRecup` dans la liste si elle n'y est plus —
+     c'est sa raison d'être. Appelée après une suppression, elle ressuscitait
+     donc la séance qu'on venait d'enlever : le banc l'a attrapé du premier
+     coup (« il en reste une · attendu 1 · obtenu 2 »). Ici on lit la liste
+     TELLE QU'ELLE EST. */
+  function tenirRoutineRecup(etat) {
+    if (!etat) return;
+    var l = Array.isArray(etat.routinesRecup) ? etat.routinesRecup : [];
+    etat.routineRecup = l.length ? l[0] : null;
+  }
+
+  function ajouterRoutineRecup(etat, nom) {
+    var l = routinesRecup(etat);
+    var r = routineRecupVierge(nom || ('Séance de récup ' + (l.length + 1)));
+    l.push(r);
+    tenirRoutineRecup(etat);
+    return r;
+  }
+
+  function supprimerRoutineRecup(etat, id) {
+    var l = routinesRecup(etat), i = -1;
+    for (var k = 0; k < l.length; k++) if (l[k] && l[k].id === id) i = k;
+    if (i < 0) return false;
+    l.splice(i, 1);
+    tenirRoutineRecup(etat);
+    return true;
+  }
+
+  function routineRecupPar(etat, id) {
+    var l = routinesRecup(etat);
+    for (var i = 0; i < l.length; i++) if (l[i] && l[i].id === id) return l[i];
+    return null;
+  }
+
+  /* La journée porte le NOM de sa séance, pas seulement son identifiant :
+     une séance supprimée ne doit pas rendre illisibles les journées déjà
+     faites. Le nom est une COPIE, comme les exercices — renommer la séance
+     ne réécrit pas le passé. */
   function seanceRecup(routine) {
     var s = { id: uid('re'), type: 'recup', date: aujourdHui(),
-              heure: new Date().toISOString(), note: '', douleurs: [], exercices: [] };
+              heure: new Date().toISOString(), note: '', douleurs: [],
+              routineId: routine && routine.id || null,
+              routineNom: routine && routine.nom || '', exercices: [] };
     if (routine) {
       s.exercices = renumeroter((routine.exercices || []).map(exerciceSeanceDepuisProgramme));
     }
@@ -3215,13 +3284,40 @@
       });
   }
 
-  function recupDuJour(etat, date) {
+  /* Sans `routineId`, la PREMIÈRE journée de récup de la date — ce que
+     faisait cette fonction quand il n'y avait qu'une routine, et ce dont
+     plusieurs appels dépendent encore. Avec, celle de CETTE séance. */
+  function recupDuJour(etat, date, routineId) {
     date = date || aujourdHui();
     var l = etat.seances || [];
     for (var i = 0; i < l.length; i++) {
-      if (l[i] && l[i].type === 'recup' && l[i].date === date) return l[i];
+      var s = l[i];
+      if (!s || s.type !== 'recup' || s.date !== date) continue;
+      if (routineId == null) return s;
+      if (s.routineId === routineId) return s;
     }
     return null;
+  }
+
+  /* Toutes les journées de récup d'une date : il peut y en avoir une par
+     séance validée. Les statistiques, elles, comptent les DATES distinctes
+     — faire deux séances un mardi reste un jour, et la série ne s'emballe
+     pas. */
+  function recupsDuJour(etat, date) {
+    date = date || aujourdHui();
+    return (etat.seances || []).filter(function (s) {
+      return s && s.type === 'recup' && s.date === date;
+    });
+  }
+
+  /* Combien de SÉANCES de récup faites aujourd'hui, sur combien de définies.
+     C'est le compte du geste de MB : « je valide le nom qui a les exos a
+     l'interieur ». */
+  function compteJourneeRecup(etat, date) {
+    var def = routinesRecup(etat).length;
+    var faites = 0;
+    recupsDuJour(etat, date).forEach(function (s) { if (recupFaite(s)) faites += 1; });
+    return { faites: faites, total: def };
   }
 
   /* Un jour compte comme FAIT des qu'une ligne est validee : une routine a
@@ -4519,6 +4615,10 @@
     seanceMuscu: seanceMuscu, seanceSparring: seanceSparring,
     sparringVierge: sparringVierge,
     routineRecupVierge: routineRecupVierge, seanceRecup: seanceRecup,
+    routinesRecup: routinesRecup, ajouterRoutineRecup: ajouterRoutineRecup,
+    supprimerRoutineRecup: supprimerRoutineRecup, routineRecupPar: routineRecupPar,
+    tenirRoutineRecup: tenirRoutineRecup, recupsDuJour: recupsDuJour,
+    compteJourneeRecup: compteJourneeRecup,
     seancesRecupTriees: seancesRecupTriees, recupDuJour: recupDuJour,
     recupFaite: recupFaite, compteRecup: compteRecup, statsRecup: statsRecup,
     resumeSeriesFaites: resumeSeriesFaites,

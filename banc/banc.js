@@ -3524,6 +3524,119 @@
            'mais celle de J-5 en sort : la fenêtre n’est pas décorative');
   });
 
+  /* ------------------------------------------------------------------
+     PLUSIEURS SÉANCES DE RÉCUP, NOMMÉES
+
+     MB, 28/10 : « j'aimerai pouvoir ajouter des séances de récup et non pas
+     juste une, actuellement cela me limite, et niveau validation ce serait
+     plus simple, je valide le nom qui a les exos à l'intérieur ».
+     ------------------------------------------------------------------ */
+  bloc('Plusieurs séances de récup', function (v) {
+    /* ENVELOPPES : sur la version d'avant, aucune de ces fonctions n'existe.
+       Sans elles, le bloc meurt au premier appel et ses vingt controles ne
+       sont jamais joues — la chute devient illisible. Posees AVANT de la
+       jouer, cette fois. */
+    function rs(e) { return A.m.routinesRecup ? A.m.routinesRecup(e) : []; }
+    function ajout(e, nom) {
+      return A.m.ajouterRoutineRecup ? A.m.ajouterRoutineRecup(e, nom)
+                                     : { id: 'absent-' + nom, nom: nom, exercices: [] };
+    }
+    function sup(e, id) {
+      return A.m.supprimerRoutineRecup ? A.m.supprimerRoutineRecup(e, id) : false;
+    }
+    function par(e, id) {
+      return A.m.routineRecupPar ? A.m.routineRecupPar(e, id) : null;
+    }
+    function dujour(e, d) { return A.m.recupsDuJour ? A.m.recupsDuJour(e, d) : []; }
+    function cj(e) {
+      return A.m.compteJourneeRecup ? A.m.compteJourneeRecup(e)
+                                    : { faites: -1, total: -1 };
+    }
+
+    /* ---- LA MIGRATION NE JETTE RIEN ---- */
+    var vieux = A.store.vide();
+    vieux.routineRecup = A.m.routineRecupVierge('Ma routine');
+    v.egal(rs(vieux).length, 1,
+           'l’ancienne clé `routineRecup` devient la PREMIÈRE de la liste');
+    /* HUITIEME index nu de la session, et il meurt exactement la ou on le
+       mesure : sur la version d'avant `rs()` rend [] et `[0].nom` leve. */
+    v.egal((rs(vieux)[0] || {}).nom, 'Ma routine', 'avec son nom');
+    v.egal(rs(vieux).length, 1,
+           '[temoin] et un second appel ne la dédouble pas — la migration '
+           + 'est idempotente, c’est ce qui la rend sûre à chaque rendu');
+
+    /* ---- LE PONT RESTE TENU, pour un retour arrière ---- */
+    var e = A.store.vide();
+    var a = ajout(e, 'Récup poignet');
+    var c = ajout(e, 'Récup coude');
+    v.egal(rs(e).length, 2, 'deux séances nommées cohabitent');
+    v.egal(e.routineRecup && e.routineRecup.nom, 'Récup poignet',
+           'et `routineRecup` reste tenue sur la PREMIÈRE : une version '
+         + 'antérieure reservie par le service worker y retrouve une séance '
+         + 'au lieu d’un écran vide');
+
+    v.egal((par(e, c.id) || {}).nom, 'Récup coude',
+           'une séance se retrouve par son identifiant');
+    v.egal(par(e, 'inexistant'), null,
+           'et un identifiant inconnu rend null plutôt que de planter');
+
+    /* ---- SUPPRIMER ---- */
+    v.vrai(sup(e, a.id), 'une séance se supprime');
+    v.egal(rs(e).length, 1, 'il en reste une');
+    v.egal(e.routineRecup && e.routineRecup.nom, 'Récup coude',
+           'et le pont suit la nouvelle première');
+    v.vrai(!sup(e, 'inexistant'),
+           'supprimer ce qui n’existe pas rend faux, sans rien casser');
+    sup(e, c.id);
+    v.egal(e.routineRecup, null,
+           'plus aucune séance : le pont devient null, pas une séance '
+         + 'fantôme');
+
+    /* ---- UNE JOURNÉE PAR SÉANCE, ET LE NOM EST UNE COPIE ---- */
+    var e2 = A.store.vide();
+    var r1 = ajout(e2, 'Récup poignet');
+    var r2 = ajout(e2, 'Récup coude');
+    r1.exercices = [A.m.exerciceProgramme({ nom: 'Side pressure', colonnes: ['reps'],
+                                            series: [{ repsCible: '50' }] })];
+    r2.exercices = [A.m.exerciceProgramme({ nom: 'Pronation', colonnes: ['reps'],
+                                            series: [{ repsCible: '20' }] })];
+    var j1 = A.m.seanceRecup(r1), j2 = A.m.seanceRecup(r2);
+    v.egal(j1.routineNom, 'Récup poignet', 'la journée porte le NOM de sa séance');
+    v.egal(j1.routineId, r1.id, 'et son identifiant');
+    e2.seances = [j1, j2];
+
+    v.egal(dujour(e2).length, 2,
+           'deux séances validées le même jour font DEUX journées de récup');
+    v.egal((A.m.recupDuJour(e2, null, r2.id) || {}).id, j2.id,
+           'et chacune se retrouve par sa séance');
+    v.egal((A.m.recupDuJour(e2) || {}).id, j1.id,
+           '[temoin] sans identifiant, la première — ce que faisait cette '
+         + 'fonction quand il n’y avait qu’une routine, et dont plusieurs '
+         + 'appels dépendent encore');
+
+    /* LE NOM EST UNE COPIE : renommer la séance ne réécrit pas le passé. */
+    r1.nom = 'Autre nom';
+    v.egal(e2.seances[0].routineNom, 'Récup poignet',
+           'renommer la séance ne réécrit PAS les journées déjà faites — '
+         + 'le nom y est une copie, comme les exercices');
+
+    /* ---- LE COMPTE DU JOUR porte sur les SÉANCES ---- */
+    var cjr = cj(e2);
+    v.egal(cjr.faites + '/' + cjr.total, '0/2',
+           'aucune cochée : « 0 / 2 séances »');
+    j1.exercices[0].series.forEach(function (s) { s.faite = true; });
+    v.egal(cj(e2).faites, 1,
+           'une séance cochée en fait UNE, quel que soit son nombre '
+         + 'd’exercices');
+
+    /* ---- LA SÉRIE DE JOURS NE S'EMBALLE PAS ---- */
+    var st = A.m.statsRecup(e2, 7);
+    v.egal(st.joursFaits, 1,
+           'deux séances un même jour restent UN jour : les statistiques '
+         + 'comptent les DATES, sinon la série doublerait à chaque séance '
+         + 'ajoutée');
+  });
+
   bloc('Récupération', function (v) {
     function jour(d, faits) {
       return { id: 're' + d, type: 'recup', date: d, heure: d + 'T20:00:00.000Z',
