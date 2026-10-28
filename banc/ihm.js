@@ -911,10 +911,19 @@
            s'est coupe en deux. */
         if (r.height > 26) coupes.push(lab.textContent);
       });
-      /* « Side pressure » est le libelle le plus long des barres de style :
-         c'est lui qui dit si un libelle se coupe a 320 px. */
-      v.vrai(noms.indexOf('Side pressure') >= 0,
-             '« Side pressure » est bien affiché — c’est la mesure partagée');
+      /* CE QU'IL MESURE EST « AUCUN LIBELLE NE SE COUPE », et il nommait
+         « Side pressure » en dur pour viser le plus long. MB a fait sortir
+         cette barre de la carte des styles le 28/10 : le controle tombait,
+         et il avait raison de tomber. Il prend desormais le plus long de
+         ceux qui SONT la, et l'ecrit — un libelle nomme en dur est une
+         chose que je choisis, pas un effet. */
+      var plusLong = noms.slice().sort(function (a, b) {
+        return b.length - a.length;
+      })[0] || '(aucun)';
+      v.vrai(noms.length > 0,
+             '[temoin] des libellés de barres sont mesurés — sans eux, '
+           + '« aucun ne se coupe » serait vrai pour rien (le plus long : '
+           + plusLong + ')');
       v.egal(coupes.length, 0,
              'aucun libellé ne se coupe en deux lignes (fautifs : '
            + (coupes.join(', ') || 'aucun') + ')');
@@ -925,117 +934,74 @@
              'la barre garde au moins 100 px de large (mesuré : '
            + Math.round(piste.getBoundingClientRect().width) + ')');
 
-      /* ---- UNE BARRE PARTAGEE N'EST PAS UN STYLE, ET L'ECRAN LE DIT ----
+      /* ---- LA CARTE DES STYLES NE PORTE QUE DES STYLES ----
 
-         MB, 28/10 : « Dans le suivi, je vois en technique le Side Pressure,
-         il me semble que ce n'est pas une technique. » Mesure du texte
-         rendu, avant correction : « Toproll 3 sér. / Hook 8 sér. / Side
-         pressure 5 sér. » — trois barres de même forme, dont une seule
-         n'est pas un style.
+         MB, 28/10, sur la 1.48.0 : « je vois toujours Side Pressure 3
+         séries dans le même encart que Toproll et Hook, ce n'est pas un
+         style, ça n'a rien à faire là. »
 
-         L'ORDRE DU DOCUMENT COMPTE : une explication posée APRÈS la barre
-         se lit trop tard. C'est pour ça que le contrôle compare les
-         positions au lieu de se contenter d'exister. */
-      var note = doc.querySelector('.barre-note');
-      var partagee = doc.querySelector('.barre.barre-partagee');
-      /* PAS UN [temoin] : la classe `barre-partagee` est NEUVE, donc ce
-         controle TOMBE sur la version d'avant. Il portait l'etiquette, et
-         la chute l'a demasque — « un [temoin] doit TENIR sur la version
-         d'avant » (piege n.1, dans son autre sens). */
-      v.vrai(!!partagee,
-             'la barre partagée porte sa propre classe : elle n’a plus la '
-           + 'forme exacte d’une barre de style');
-      v.vrai(!!note, 'et une ligne dit ce qu’elle est');
-      v.vrai(!!note && /pas un style/i.test(note.textContent),
-             'elle dit en clair que ce n’est PAS un style');
-      v.vrai(!!note && /hook/i.test(note.textContent)
-                    && /press/i.test(note.textContent),
-             'et elle nomme LES DEUX styles qui la portent — dérivés de '
-           + 'STYLES_AW, donc justes le jour où la table change');
-      v.vrai(!!note && !!partagee
-             && (note.compareDocumentPosition(partagee)
-                 & window.Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
-             'la ligne vient AVANT la barre : posée après, elle se lirait '
-           + 'quand le mal est fait');
+         Ma correction de la veille avait répondu à côté — j'avais ajouté
+         une LIGNE D'EXPLICATION au-dessus de la barre. Il ne demandait pas
+         une explication, il demandait que la barre SORTE.
 
-      /* ---- CE QUE LA FEDERATION DIT DE CHAQUE STYLE, A L'ECRAN ----
-         MB : « Vérifie sur quoi s'active la press, le hook et le toproll. »
-         La réponse est dans l'app, pas seulement dans un message. */
-      var appuis = doc.querySelectorAll('.appui-ligne');
-      v.vrai(appuis.length >= 4,
-             'l’écran dit sur quoi chaque style s’appuie, et ce que le '
-           + 'règlement officiel n’en dit pas (lignes : ' + appuis.length + ')');
-      var texteAppui = Array.prototype.map.call(appuis, function (x) {
-        return x.textContent;
-      }).join(' ~ ');
-      v.vrai(/Toproll\s*:\s*aucun muscle nommé/i.test(texteAppui),
-             'et pour le toproll il DIT qu’aucun muscle n’est nommé, au lieu '
-           + 'de combler');
-      v.vrai(/shoulder and triceps/.test(texteAppui),
-             'le press porte « shoulder and triceps », mot pour mot');
-
-      /* ---- LA REPONSE NE SE REPLIE PAS ----
-
-         MB : « je vois que ça m'indique "Ton accent" c'est le toproll, mais
-         je n'ai pas d'exo en lien avec le toproll de conseillés ». Ils
-         existaient, dans le corps REPLIÉ, sous une promesse visible.
-
-         ON MESURE L'EFFET, pas la classe : la liste est dans l'en-tête, sa
-         hauteur n'est pas nulle, et la carte est bien repliée à cet
-         instant. Les trois ensemble disent « visible sans ouvrir ». */
-      var tetes = doc.querySelectorAll('.remarque-tete');
-      v.vrai(tetes.length > 0,
-             '[temoin] des remarques sont rendues dans ce décor');
-      var avecExos = [];
-      Array.prototype.forEach.call(tetes, function (t) {
-        if (t.querySelector('.remarque-exos-tete')) avecExos.push(t);
+         ON MESURE L'EFFET : parmi les libellés de barres de CETTE carte, on
+         cherche un nom de MOUVEMENT. Sur la 1.48.0 « Side pressure » y est,
+         donc ce contrôle tombe. */
+      var titreStyle = null;
+      Array.prototype.forEach.call(doc.querySelectorAll('.sous-titre'), function (t) {
+        if (t.textContent.indexOf('Ton style — ') === 0) titreStyle = t;
       });
-      v.vrai(avecExos.length > 0,
-             'au moins une remarque porte ses exercices DANS l’en-tête');
-      var liste = avecExos[0] && avecExos[0].querySelector('.remarque-exos-tete');
-      v.vrai(!!liste && liste.getBoundingClientRect().height > 0,
-             'et cette liste a une hauteur : elle est peinte, pas seulement '
-           + 'présente dans le DOM');
-      v.egal(avecExos[0] ? avecExos[0].getAttribute('aria-expanded') : 'absent',
-             'false',
-             'alors que la carte est encore REPLIÉE — c’est tout l’objet du '
-           + 'correctif');
-      v.egal(doc.querySelectorAll('.remarque-corps .remarque-exos').length, 0,
-             'et la liste ne vit plus dans le corps replié : la règle CSS a '
-           + 'été supprimée avec elle, pas neutralisée');
-
-      /* ---- UNE PHRASE D'ARMWRESTLER SOUS LE STYLE DOMINANT ----
-
-         MB, 28/10 : « Avoir également une phrase d'un armwrestler sur un
-         style spécifique qu'on travaille peut être un chouette clin d'œil
-         et donner une impression de tendre vers tel ou tel style. »
-
-         ON NE FIGE PAS QUEL STYLE DOMINE dans ce décor : ce serait mesurer
-         mon décor et non le produit. On calcule le dominant comme l'écran
-         le calcule, et on exige que la ligne le NOMME. */
-      var clin = doc.querySelector('.clin-oeil');
-      v.vrai(!!clin, 'une phrase d’armwrestler paraît sous les styles');
-      var repart = fen.App.m.repartitionStyles(e, fen.App.m.joursDeLaFenetre(12));
-      var dom = null, max = 0;
-      fen.App.m.stylesLisibles().lisibles.forEach(function (x) {
-        var n = (repart.parStyle || {})[x.style.id] || 0;
-        if (n > max) { max = n; dom = x.style; }
+      v.vrai(!!titreStyle,
+             '[temoin] la section « Ton style » est rendue, avant de fouiller '
+           + 'sa carte');
+      var carteStyle = null, n2 = titreStyle;
+      while (n2 && !carteStyle) {
+        n2 = n2.nextElementSibling;
+        if (n2 && n2.classList && n2.classList.contains('carte')) carteStyle = n2;
+      }
+      v.vrai(!!carteStyle, '[temoin] et elle porte bien une carte');
+      var libelles = carteStyle
+        ? Array.prototype.map.call(carteStyle.querySelectorAll('.barre'),
+            function (b) { return b.firstElementChild.textContent; })
+        : [];
+      var nomsMouvements = fen.App.m.FORCES.map(function (x) { return x.nom; });
+      var intrus = libelles.filter(function (l) {
+        return nomsMouvements.indexOf(l) >= 0;
       });
-      v.vrai(!!dom && max > 0,
-             '[temoin] ce décor a bien un style dominant — sans lui, la '
-           + 'phrase ne doit PAS paraître, et son absence serait juste');
-      v.vrai(!!clin && !!dom
-             && clin.textContent.indexOf('Tu tends vers le ' + dom.nom.toLowerCase()) >= 0,
-             'et elle nomme le style dominant CALCULÉ, pas un style écrit '
-           + 'en dur (dominant mesuré : ' + (dom ? dom.nom : 'aucun') + ')');
-      v.vrai(!!clin && !!clin.querySelector('blockquote')
-             && clin.querySelector('blockquote').textContent.length > 40,
-             'la phrase est une CITATION et non un résumé : elle est rendue '
-           + 'en bloc de citation, et elle a la longueur d’une phrase');
-      var qui = clin && clin.querySelector('.remarque-qui a');
-      v.vrai(!!qui && /Larratt|Opperman|Todd/.test(qui.textContent),
-             'et elle porte QUI la dit, avec le lien où on la vérifie — une '
-           + 'citation sans auteur n’est pas une citation');
+      v.egal(intrus.join(' · '), '',
+             'aucune barre de cette carte ne porte un nom de MOUVEMENT : '
+           + 'l’encart des styles ne contient que des styles (libellés : '
+           + libelles.join(', ') + ')');
+      v.vrai(libelles.length > 0,
+             '[temoin] la carte porte quand même des barres — sinon « aucun '
+           + 'intrus » serait vrai pour rien');
+
+      /* ---- ET LE CHIFFRE EST DANS LA CARTE, SOUS SA PROPRE BARRE ----
+
+         Ces deux contrôles exigeaient une ligne « mouvement partagé » hors
+         de la carte, écrite une heure plus tôt pour que le chiffre de la
+         side pressure ne disparaisse pas. MB a ensuite fait relire les
+         pressions : elle n'appartient plus qu'au press, donc son chiffre
+         est DANS la carte, sous la barre du press. La ligne n'a plus
+         d'objet, et ces contrôles non plus. */
+      var noms3 = libelles.slice().sort().join(' · ');
+      v.egal(noms3, 'Hook · Press · Toproll',
+             'la carte porte les TROIS styles, le press compris : sa side '
+           + 'pressure n’appartient plus qu’à lui');
+      v.egal(Array.prototype.filter.call(doc.querySelectorAll('.item-resume'),
+        function (x) { return /mouvement partagé/i.test(x.textContent); }).length, 0,
+             'et aucune ligne ne parle plus de mouvement partagé : il n’y en '
+           + 'a plus un seul');
+
+      /* ---- LES TROIS BLOCS RETIRES NE SONT PLUS LA ---- */
+      v.egal(doc.querySelectorAll('.appui-ligne').length, 0,
+             '« Sur quoi chaque style s’appuie » a disparu, et sa règle CSS '
+           + 'avec lui');
+      v.egal(doc.querySelectorAll('.clin-oeil').length, 0,
+             'la citation d’armwrestler aussi — « oublie les citations »');
+      v.egal(doc.querySelectorAll('.barre-note, .barre-partagee').length, 0,
+             'et la ligne d’explication que j’avais ajoutée au-dessus de la '
+           + 'barre : ce n’était pas ce qu’il demandait');
 
       var sortis = debordements(doc, fen, LARGEUR);
       v.egal(sortis.join(' · '), '',
@@ -4393,12 +4359,30 @@
     v.vrai(t.indexOf('Séances de musculation') >= 0,
            'l’écran DIT sa portée — c’est ce qui manquait, pas le filtre');
     v.vrai(t.indexOf('Toproll') >= 0 && t.indexOf('Hook') >= 0,
-           'les deux styles lisibles sont nommés');
-    v.vrai(t.indexOf('Press — non lisible') >= 0,
-           'et le PRESS est dit NON LISIBLE plutôt que montré à zéro : '
-         + '« 0 série » se lirait « tu ne presses jamais »');
-    v.vrai(t.indexOf('Side pressure') >= 0,
-           'la mesure partagée se montre, à part et nommée');
+           'les deux premiers styles sont nommés');
+    /* ---- LE PRESS EST UN STYLE COMME LES DEUX AUTRES ----
+
+       Ce controle exigeait « Press — non lisible ». C'etait juste de la
+       premiere table ; MB a fait relire les pressions le 28/10, la side
+       pressure n'appartient plus qu'au press, et il se compte. Il tombait,
+       et il avait raison de tomber.
+
+       ET IL NE DOIT PLUS SE DIRE NON LISIBLE : si la phrase revenait, c'est
+       que la table a reglisse. */
+    /* PAS « LE MOT EST LA » : sur la version d'avant, la phrase « Press —
+       non lisible » contient le mot, et ce controle tenait pour cette
+       raison-la. Il exige que le press soit une BARRE. */
+    var libStyles = Array.prototype.map.call(vue.querySelectorAll('.barre'),
+      function (b) { return b.firstElementChild.textContent; });
+    v.vrai(libStyles.indexOf('Press') >= 0,
+           'le PRESS est une BARRE parmi les styles, comme les deux autres '
+         + '(libellés : ' + libStyles.slice(0, 4).join(', ') + ')');
+    v.egal(/non lisible/i.test(t), false,
+           'et plus rien ne le dit « non lisible » : sa side pressure '
+         + 'n’appartient plus qu’à lui');
+    v.egal(/mouvement partagé/i.test(t), false,
+           'il n’y a plus de mouvement partagé à mettre à part — l’écran '
+         + 's’est simplifié tout seul, par la table');
 
     /* L'ÉCART, qui est le fond de la demande. */
     v.vrai(t.indexOf('TOPROLL') >= 0 && t.indexOf('HOOK') >= 0
@@ -5200,9 +5184,37 @@
              + 'inerte, et la journée était définitive');
         if (!pan) return ranger();
 
+        /* ---- ELLE SE RE-DATE, ET C'EST L'ALTERNATIVE A LA SUPPRESSION ----
+
+           MB, 28/10 : « mon exo que j'avais fait hier a la date
+           d'aujourd'hui, dois je le supprimer ? » Sans ce champ, oui — et
+           il perdait la journee pour reparer une date. */
+        var champD = pan.querySelector('input[type="date"]');
+        v.vrai(!!champD, 'la fiche offre de CORRIGER la date de la journée');
+        v.egal(champD ? champD.value : '(aucun champ)', jour.date,
+               'et le champ arrive sur la date de la journée, pas vide');
+        /* HORS DE LA GARDE, et c'est la chute qui l'a impose : dans
+           `if (champD)`, ce controle n'etait pas JOUE sur la version
+           d'avant — ni vert ni rouge, simplement absent. Hors de la garde,
+           la date y vaut encore aujourd'hui, donc il tombe. */
+        var hier = (function () {
+          var x = new Date(); x.setDate(x.getDate() - 1);
+          var z = function (n) { return (n < 10 ? '0' : '') + n; };
+          return x.getFullYear() + '-' + z(x.getMonth() + 1) + '-' + z(x.getDate());
+        })();
+        if (champD) {
+          champD.value = hier;
+          champD.dispatchEvent(new fen.Event('input', { bubbles: true }));
+        }
+        v.egal((fen.App.store.etat().seances.filter(function (s) {
+          return s.id === jour.id;
+        })[0] || {}).date, hier,
+               'la corriger DÉPLACE la journée : c’est ce qu’il fallait '
+             + 'plutôt que l’effacer et la refaire aujourd’hui');
+
         var sup = Array.prototype.filter.call(pan.querySelectorAll('button'),
           function (b) { return b.textContent.indexOf('Supprimer cette journ') === 0; })[0];
-        v.vrai(!!sup, 'et la fiche offre de la supprimer');
+        v.vrai(!!sup, 'et la fiche offre toujours de la supprimer');
         if (!sup) return ranger();
 
         /* DEUX APPUIS, comme partout ailleurs : un seul effacerait une

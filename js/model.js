@@ -598,8 +598,12 @@
      « PRESS » N'Y EST PAS, ET C'EST MESURE : le mot est pris par « bench
      press », « overhead press » et « close grip bench press », trois
      entrees livrees. Un mot qui designe trois exercices de musculation ne
-     peut pas designer un style de bras de fer. Le press se suit donc
-     autrement — voir STYLES_AW.
+     peut pas designer un style de bras de fer.
+
+     LE PRESS SE LIT QUAND MEME, depuis le 28/10 : non par son nom, mais par
+     sa SIDE PRESSURE, qui n'appartient plus qu'a lui — voir STYLES_AW. Les
+     mots de `side_pressure` ci-dessous sont donc aussi ceux qui le rendent
+     visible.
 
      MESURE AVANT ECRITURE, sur les 42 entrees du dictionnaire : 14 portent
      un mouvement, et les 28 autres n'en portent aucun a tort. */
@@ -2724,87 +2728,92 @@
      TROIS DES SIX MOUVEMENTS RESTENT 'terrain' — rising, back et side
      pressure viennent d'une seule etude EMG et portent deja « restent a
      verifier » dans MUSCLES_PAR_MOUVEMENT. Toute lecture de style en
-     herite, et l'ecran le dit. */
+     herite, et l'ecran le dit.
+
+     ---- LES PRESSIONS RELUES LE 28/10, SUR CE QUE LA SOURCE NOMME ----
+
+     MB : « Relis selon la source ». La premiere table, validee le matin,
+     donnait la SIDE pressure au hook ; Toronto lui nomme la BACK pressure.
+
+     LA REGLE QUI TRANCHE : on retient ce que la source NOMME, pas ce
+     qu'elle decrit. Sans elle les trois styles se partageraient tout — le
+     toproll « roll the pressure BACK toward yourself » decrit une traction
+     arriere sans employer l'etiquette, et on retomberait sur des mouvements
+     partages qui ne designent personne.
+
+     CE QU'ELLE NOMME, MOT POUR MOT :
+       hook    « From there you apply BACK PRESSURE and bodyweight, rolling
+                 your opponent's hand into a position where you can drive it
+                 down on the inside. »      -> back pressure, nommee
+       toproll « then you open their hand and wrist and "roll" the pressure
+                 back toward yourself and down. »   -> AUCUNE pression nommee
+       press   « a forward power move […] you drive your weight and shoulder
+                 forward and over the top […] to push their hand down toward
+                 the pad. »                 -> AUCUNE pression nommee
+
+     LA SIDE PRESSURE AU PRESS EST UNE DEDUCTION, PAS UNE CITATION, et il
+     faut le lire comme tel. Toronto ne nomme aucune pression pour le press.
+     Deux choses la soutiennent : c'est la SEULE pression qui reste une fois
+     la back pressure nommee pour le hook, et sa definition — « driving
+     across toward the pin pad » — est celle qui ressemble le plus a « push
+     their hand down toward the pad ».
+
+     CE QUE CA CHANGE, MESURE : chaque mouvement devient attribuable a UN
+     seul style (`stylesParForce` rend 1 partout). Donc les TROIS styles
+     deviennent lisibles, `r.partage` se vide et `lis.aveugles` aussi —
+     sans qu'on touche a une ligne de l'ecran, puisque tout en derive. Sur
+     le decor du bac a sable : toproll 7 -> 3, hook 8 -> 12, press 0 et
+     aveugle -> 3 et lisible.
+
+     ET LE PRESS PEUT DESORMAIS S'AFFICHER A ZERO, ce qui n'est plus le
+     defaut qu'on evitait : « 0 » voulait dire « le carnet ne sait pas le
+     voir », il veut maintenant dire « tu n'as aucune serie de side
+     pressure », qui est vrai. La barre se grise comme les autres zeros. */
   var LIEN_TAWF = 'https://www.tawf.ca/league/learn/arm-wrestling-techniques';
 
-  /* ---- SUR QUOI CHAQUE STYLE S'APPUIE ----
+  /* CE QUI A ÉTÉ RETIRÉ ICI LE 28/10, pour qu'on ne le rajoute pas.
 
-     MB, 28/10 : « Vérifie sur quoi s'active la press, le hook et le
-     toproll. » Vérifié, et le résultat N'EST PAS SYMÉTRIQUE — c'est
-     pourquoi `appuie` porte la phrase telle quelle au lieu de la résumer.
+     Les styles portaient `appuie` (ce que Toronto nomme comme muscles),
+     `faute` (ce qu'elle écrit quand elle n'en nomme aucun), `citation` (une
+     phrase d'armwrestler) et `lien`. Les quatre s'affichaient dans « Ton
+     style », et MB a tranché : « trop de blabla […] il y a surcharge
+     d'info », « enlève le "Sur quoi chaque style s'appuie" », « oublie les
+     citations d'armwrestler célèbres ».
 
-     LE RÈGLEMENT OFFICIEL NE DÉFINIT AUCUNE TECHNIQUE, et c'est la mesure
-     qui compte le plus ici. Sur les 19 pages du règlement WAF 2023
-     (44 005 caractères) : « toproll » 0, « hook » 0, « technique » 0 ;
-     « press » 2 fois, les deux à l'intérieur de « back pressure », qu'il
-     traite en FAUTE. Les trois « style » y désignent le format de
-     compétition (« Stand-up Style ») et la largeur d'une sangle.
+     IL A RAISON, ET C'EST MESURÉ : sur le texte rendu dans le bac à sable,
+     le bloc pesait 1 650 caractères, il en pèse 289 — 82 % de moins, et
+     aucun CHIFFRE n'a disparu. Il était à 399 après ce retrait seul ; la
+     relecture des pressions a enlevé les 110 restants SANS qu'on touche
+     à l'écran, puisque les deux lignes qui partent dérivent de la table. Les quatre ajouts sont entrés le MÊME JOUR, chacun défendable
+     seul, et je n'ai jamais compté ce que le bloc pesait en entier.
 
-     LES STYLES VIENNENT DONC DES PAGES D'ENSEIGNEMENT, et deux fédérations
-     s'accordent sur EXACTEMENT ces trois : Toronto (déjà citée) et la
-     Nouvelle-Zélande, qui nomme « The Hook », « The Toproll », « The
-     Press » et rien d'autre.
-
-     `appuie: null` POUR LE TOPROLL, ET C'EST LA MESURE : Toronto ne lui
-     nomme aucun muscle. Elle écrit « Hand and finger length, wrist
-     strength, and timing matter more than sheer mass » — ce que `faute`
-     porte. On ne comble pas : l'écran dit qu'aucun muscle n'est nommé. */
+     `dit` RESTE, parce que la remarque « Ton accent » le cite. */
   var STYLES_AW = [
+    /* PAS DE PRESSION : Toronto n'en nomme aucune pour le toproll. Elle
+       DECRIT bien une traction arriere — « roll the pressure back toward
+       yourself » — mais la regle ci-dessus retient le mot, pas la
+       description, sans quoi la back pressure redeviendrait partagee et ne
+       designerait plus personne. */
     { id: 'toproll', nom: 'Toproll',
-      forces: ['pronation', 'rising', 'back_pressure'],
+      forces: ['pronation', 'rising'],
       dit: 'you pronate and slide your grip up toward your opponent’s '
          + 'fingertips […] then you open their hand and wrist and « roll » '
          + 'the pressure back toward yourself and down',
-      appuie: null,
-      faute: 'Hand and finger length, wrist strength, and timing matter '
-           + 'more than sheer mass',
-      /* LE TOPROLLEUR LE PLUS CONNU DU SPORT, disant que c'est devenu SA
-         meilleure technique après en avoir changé plusieurs fois. */
-      citation: {
-        dit: 'I, over the course of my career, changed techniques, changed '
-           + 'techniques, and probably my best technique is an open top roll '
-           + 'or a King’s Move now',
-        qui: 'Devon Larratt — The Joe Rogan Experience #2510',
-        lien: 'https://podcasts.happyscribe.com/the-joe-rogan-experience/'
-            + '2510-devon-larratt' },
       lien: LIEN_TAWF },
+    /* LA BACK PRESSURE EST NOMMEE ICI, et nulle part ailleurs : « From
+       there you apply back pressure and bodyweight ». */
     { id: 'hook', nom: 'Hook',
-      forces: ['supination', 'cupping', 'side_pressure'],
+      forces: ['supination', 'cupping', 'back_pressure'],
       dit: 'You supinate — turning your hand inward toward yourself — and '
          + 'curl your wrist […] drive it down on the inside',
-      appuie: 'It plays to raw wrist, hand, and bicep strength […] it also '
-            + 'loads the biceps and elbow the hardest',
-      faute: null,
-      /* LA PLUS JUSTE DES TROIS POUR CET ÉCRAN : un pro qui nomme son style
-         FAIBLE et qui le travaille. L'écran dit exactement ça — ce que MB
-         travaille le plus, et le moins. */
-      citation: {
-        dit: 'I’m paying special attention to training the hook. World '
-           + 'Championship, that is, the fight with Krasimir, showed me that '
-           + 'my hook is weak and needs more attention',
-        qui: 'Terence Opperman, entretien d’Artur Grigorjan pour Armpower.NET',
-        lien: 'https://www.xsportnews.com/armwrestling/'
-            + 'interview-terence-opperman-by-armpower-net/' },
       lien: LIEN_TAWF },
+    /* SA SIDE PRESSURE EST DEDUITE, pas citee — voir le commentaire de la
+       table. C'est elle qui rend le press LISIBLE : plus aucun mouvement
+       n'est partage. */
     { id: 'press', nom: 'Press',
       forces: ['side_pressure'],
       dit: 'you drive your weight and shoulder forward and over the top to '
          + 'push their hand down toward the pad',
-      appuie: 'It leans heavily on shoulder and triceps strength and good '
-            + 'bodyweight transfer',
-      faute: null,
-      /* ELLE PARLE D'UN MATCH, PAS D'UNE MÉTHODE, et c'est dit tel quel :
-         je n'ai trouvé AUCUNE phrase de pro expliquant la mécanique du
-         press en première personne. Les recherches rendaient des analyses
-         de journalistes, pas ses mots. Celle-ci est de lui, et elle nomme
-         la transition en press dans le round qui lui a donné le titre. */
-      citation: {
-        dit: 'I hated to see Oleg lose on fouls, especially after the round '
-           + 'three transition to a press',
-        qui: 'Michael Todd, après son titre à East vs West 24',
-        lien: 'https://www.sporf.com/devon-larratt-is-a-jedi-michael-todd-'
-            + 'explains-how-no-limits-helped-him-become-world-champion-at-'
-            + 'east-vs-west-armwrestling-24/' },
       lien: LIEN_TAWF }
   ];
 
@@ -2832,15 +2841,23 @@
   /* QUELS STYLES LE CARNET PEUT-IL LIRE a partir des exercices ?
 
      Un style n'est lisible que s'il porte au moins un mouvement QUE LUI
-     porte. Le press n'en a qu'un, la side pressure, et le hook la porte
-     aussi : le carnet ne peut donc pas le distinguer.
+     porte.
 
-     IL NE FAUT PAS AFFICHER « Press 0 serie » — ca se lirait « tu ne
-     presses jamais », qui est faux. Ce qui est vrai, c'est « le carnet ne
-     sait pas le voir », et c'est ce que l'ecran dit.
+     LES TROIS LE SONT DEPUIS LE 28/10, et personne n'a eu a coder ca : la
+     relecture des pressions sur ce que la source NOMME a rendu chaque
+     mouvement attribuable a un seul style, donc `aveugles` est vide. Le
+     commentaire d'avant disait « le press n'en a qu'un, la side pressure,
+     et le hook la porte aussi » — c'etait vrai de la premiere table, et
+     c'est ce que MB a fait relire.
 
-     DERIVE, jamais ecrit en dur : le jour ou le press gagne un mouvement a
-     lui, il devient lisible sans qu'on touche a ce code. */
+     LA BRANCHE DES AVEUGLES RESTE, et elle ne tire plus. Elle garde le jour
+     ou la table changerait ; un controle du banc dit qu'elle est vide
+     AUJOURD'HUI, et il tombera si un mouvement redevient partage.
+
+     ET « Press 0 serie » N'EST PLUS UN MENSONGE : avant, zero voulait dire
+     « le carnet ne sait pas le voir » ; maintenant il veut dire « tu n'as
+     aucune serie de side pressure », qui est vrai. La barre se grise comme
+     les autres zeros. */
   function stylesLisibles() {
     var par = stylesParForce(), lisibles = [], aveugles = [];
     STYLES_AW.forEach(function (st) {
@@ -5283,6 +5300,14 @@
   var SOURCES_REMARQUE = {
     tawf: { qui: 'Toronto Armwrestling Federation — How to train for arm wrestling',
             lien: 'https://www.tawf.ca/league/learn/how-to-train-for-arm-wrestling' },
+    /* DEUX PAGES DE LA MEME FEDERATION, ET ELLES NE DISENT PAS LA MEME
+       CHOSE. Defaut trouve le 28/10 en retirant le bloc d'appui : la
+       remarque « Ton accent » citait `dominant.dit`, qui vient de la page
+       TECHNIQUES, et affichait le lien de la page ENTRAINEMENT. Qui cliquait
+       ne trouvait pas la phrase — exactement ce que « chaque remarque porte
+       sa source » existe pour empecher. */
+    tawfTech: { qui: 'Toronto Armwrestling Federation — Arm wrestling techniques',
+                lien: LIEN_TAWF },
     hook2026: { qui: 'Marotta, Lopresti, Zangari et al. (Université de Catanzaro), '
                    + 'Applied Sciences 2026 — 11 athlètes spécialistes du hook',
                 lien: 'https://doi.org/10.3390/app16020713' },
@@ -5481,7 +5506,8 @@
              + ' sur ' + rep.total + ' le portent. Voici ce que ton '
              + 'dictionnaire propose pour le nourrir.',
         dit: dominant.dit,
-        source: SOURCES_REMARQUE.tawf,
+        /* LA PAGE TECHNIQUES, d'ou sort `dit` — pas la page entrainement. */
+        source: SOURCES_REMARQUE.tawfTech,
         exercices: exercicesPourStyle(dominant.id, 4)
       });
     }

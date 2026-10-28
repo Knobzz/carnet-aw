@@ -1372,10 +1372,20 @@
      le 28/10), et la table style → mouvements vient du glossaire de la
      fédération de Toronto, déjà citée par le catalogue pour le hook.
 
-     LE PRESS N’APPARAÎT PAS COMME UNE BARRE À ZÉRO. Son seul mouvement, la
-     side pressure, est partagé avec le hook : « Press 0 série » se lirait
-     « tu ne presses jamais », alors que la vérité est « le carnet ne sait
-     pas le voir ». La différence se dit, elle ne se devine pas.
+     LE PRESS S’AFFICHE DEPUIS LE 28/10, et même à zéro. MB : « relis selon
+     la source » — Toronto nomme la BACK pressure pour le hook, donc la side
+     pressure n’appartient plus qu’au press, qui devient lisible.
+
+     ET ZÉRO N’EST PLUS UN MENSONGE : ce commentaire disait « Press 0 série
+     se lirait tu ne presses jamais, alors que la vérité est le carnet ne
+     sait pas le voir ». C’était juste de la première table. Maintenant zéro
+     veut dire « tu n’as aucune série de side pressure », ce qui est vrai,
+     et la barre se grise comme les autres zéros.
+
+     LES DEUX BRANCHES DE L’ÉCRAN NE TIRENT PLUS — celle du mouvement
+     partagé et celle des styles aveugles. Elles restent : elles gardent le
+     jour où la table changerait, et un contrôle du banc dit qu’elles sont
+     vides aujourd’hui.
      ------------------------------------------------------------------ */
   /* ------------------------------------------------------------------
      TON RÉGIME — ce qui est TENU contre ce qui est MU
@@ -1494,47 +1504,34 @@
         h('span', { class: 'barre-val', text: n + ' sér.' })));
     });
 
-    /* ---- UNE BARRE PARTAGÉE N’EST PAS UN STYLE, ET ELLE LE DIT ----
-
-       MB, 28/10 : « Dans le suivi, je vois en technique le Side Pressure,
-       il me semble que ce n’est pas une technique. » Il a raison, et c’est
-       CET ÉCRAN qui le lui a appris. Mesure du texte rendu, avant
-       correction : « Toproll 3 sér. / Hook 8 sér. / Side pressure 5 sér. »
-       — trois barres de même forme dans le même groupe, dont une seule
-       n’est pas un style. Une nuance de gris ne porte pas ça.
-
-       Le partagé reste À PART, comme avant : le ranger sous l’un des deux
-       styles gonflerait celui-là au prix de l’autre. Ce qui change, c’est
-       qu’une ligne dit ce que c’est, et DE QUELS styles — dérivé de
-       STYLES_AW, jamais écrit en dur. Le jour où le press gagne un
-       mouvement à lui, cette ligne disparaît d’elle-même. */
-    var partagees = Object.keys(r.partage);
-    if (partagees.length) {
-      var dits = partagees.map(function (fid) {
-        var porteurs = A.m.STYLES_AW.filter(function (st) {
-          return st.forces.indexOf(fid) >= 0;
-        }).map(function (st) { return st.nom; });
-        return A.m.nomForce(fid).toLowerCase() + ' appartient au '
-             + porteurs.join(' ET au ');
-      });
-      barres.appendChild(h('div', { class: 'barre-note' },
-        h('b', { text: (partagees.length > 1 ? 'Mouvements partagés'
-                                             : 'Mouvement partagé')
-                       + ', pas un style : ' }),
-        dits.join(' ; ') + '.'));
-    }
-    partagees.forEach(function (fid) {
-      var n = r.partage[fid];
-      barres.appendChild(h('div', { class: 'barre barre-partagee' },
-        h('span', { text: A.m.nomForce(fid) }),
-        h('div', { class: 'barre-piste' },
-          h('i', { class: 'gen gen-partage', style: 'width:' + (n / max * 100) + '%' })),
-        h('span', { class: 'barre-val', text: n + ' sér.' })));
-    });
 
     corps.appendChild(barres);
     carte.appendChild(corps);
     f.appendChild(carte);
+
+    /* ---- LE MOUVEMENT PARTAGÉ, HORS DE LA CARTE ----
+
+       MB, 28/10 : « je vois toujours Side Pressure 3 séries dans le même
+       encart que Toproll et Hook, ce n’est pas un style, ça n’a rien à
+       faire là. »
+
+       MA CORRECTION D'HIER AVAIT RÉPONDU À CÔTÉ : j'avais ajouté une ligne
+       d'explication AU-DESSUS de la barre. Il ne demandait pas une
+       explication — il demandait que la barre sorte de l'encart. Elle sort.
+
+       SON CHIFFRE RESTE, et c'est tout ce qui reste : sans lui, les séries
+       de side pressure n'apparaîtraient nulle part dans le Suivi. Les
+       porteurs sont dérivés de STYLES_AW, donc le jour où le press gagne
+       un mouvement à lui, cette ligne disparaît d'elle-même. */
+    Object.keys(r.partage).forEach(function (fid) {
+      var porteurs = A.m.STYLES_AW.filter(function (st) {
+        return st.forces.indexOf(fid) >= 0;
+      }).map(function (st) { return st.nom.toLowerCase(); });
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
+        h('b', { text: A.m.nomForce(fid) + ' : ' }),
+        r.partage[fid] + ' — mouvement partagé par le '
+        + porteurs.join(' et le ') + '.'));
+    });
 
     /* LE DETAIL PAR MOUVEMENT, SOUS SON STYLE. Il remplace le bloc
        « Mouvements », retire le 28/10 : les six chiffres sont tous la, mais
@@ -1548,88 +1545,17 @@
         h('b', { text: x.style.nom + ' : ' }), dits.join(' · ')));
     });
 
+    /* ELLE RESTE, ET ELLE RACCOURCIT. MB a demandé moins de texte, pas
+       moins de chiffres — mais celle-ci n'est ni l'un ni l'autre : sans
+       elle, l'absence du press se lirait « tu ne presses jamais », ce qui
+       est faux. Elle passe de trois lignes à une. */
     lis.aveugles.forEach(function (x) {
-      /* DECLARABLE EN SPARRING, mais toujours pas lisible ICI : sa seule
-         force est partagee, et aucun mot ne le designe sans heurter
-         « bench press » ou « overhead press » — trois entrees livrees. On
-         le DIT, on n'invente pas une force pour combler. */
-      f.appendChild(h('div', { class: 'dit-a-part' },
-        h('b', { text: x.style.nom + ' — non lisible ici. ' }),
-        x.style.forces.map(A.m.nomForce).join(' et ').toLowerCase()
-      + ' est partagée avec un autre style. Déclare-le sur tes sparrings : '
-      + 'il s’y compte.'));
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
+        h('b', { text: x.style.nom + ' : ' }),
+        'non lisible ici, sa seule mesure est partagée. Déclare-le sur tes '
+      + 'sparrings.'));
     });
 
-    /* ---- SUR QUOI CHAQUE STYLE S’APPUIE ----
-
-       MB, 28/10 : « Vérifie sur quoi s’active la press, le hook et le
-       toproll. » La réponse vit ICI et pas dans un message, parce que
-       c’est ici qu’on lit les styles.
-
-       ELLE N’EST PAS SYMÉTRIQUE, et c’est tout l’intérêt : la fédération
-       nomme des muscles pour le hook et pour le press, et AUCUN pour le
-       toproll. `appuie: null` le dit, `faute` porte ce qu’elle écrit à la
-       place, et l’écran ne comble pas le trou. */
-    var appui = h('div', { class: 'dit-a-part' },
-      h('b', { text: 'Sur quoi chaque style s’appuie. ' }),
-      'Ce que la fédération écrit — rien de plus.');
-    A.m.STYLES_AW.forEach(function (st) {
-      appui.appendChild(h('div', { class: 'appui-ligne' },
-        h('b', { text: st.nom + ' : ' }),
-        st.appuie
-          ? '« ' + st.appuie + ' »'
-          : 'aucun muscle nommé. « ' + st.faute + ' »'));
-    });
-    appui.appendChild(h('div', { class: 'remarque-qui' },
-      h('a', { href: A.m.STYLES_AW[0].lien, target: '_blank', rel: 'noopener',
-               text: 'Toronto Armwrestling Federation — Arm wrestling techniques' })));
-    /* ET CE QUE L’OFFICIEL N’EN DIT PAS. MB demandait « à vérifier dans les
-       sources officielles » : le règlement de la WAF n’en dit rien, et un
-       écran qui s’appuierait dessus en silence tromperait. Les trois
-       chiffres sont comptés, pas estimés. */
-    appui.appendChild(h('div', { class: 'appui-ligne appui-officiel' },
-      h('b', { text: 'Le règlement officiel, lui, n’en dit rien. ' }),
-      'Sur les 19 pages du règlement WAF 2023, « toproll » et « hook » '
-    + 'n’apparaissent pas une seule fois, et « press » seulement dans '
-    + '« back pressure », qu’il traite en faute. Les trois styles viennent '
-    + 'des pages d’enseignement des fédérations — Toronto et la '
-    + 'Nouvelle-Zélande nomment les mêmes trois. Devon Larratt les nomme '
-    + 'aussi, de lui-même : « there’s like a few base moves in arm '
-    + 'wrestling, probably top rolling, hooking, and pressing ».'));
-    f.appendChild(appui);
-
-    /* ---- ET UN ARMWRESTLER SUR LE STYLE QUE TU TRAVAILLES ----
-
-       MB, 28/10 : « Avoir également une phrase d’un armwrestler sur un
-       style spécifique qu’on travaille peut être un chouette clin d’œil et
-       donner une impression de tendre vers tel ou tel style. »
-
-       UN SEUL STYLE, LE DOMINANT. Les trois phrases à la suite seraient
-       une page de citations ; une seule, celle du style qu’il porte le
-       plus, est le clin d’œil qu’il demande.
-
-       LE DOMINANT SE RECALCULE ICI et n’attend pas le bloc d’écart juste
-       en dessous : celui-là ne s’exécute que si des sparrings sont
-       déclarés, et la phrase n’a rien à voir avec les sparrings.
-
-       TROIS ATHLÈTES DIFFÉRENTS, TROIS PHRASES VÉRIFIÉES mot pour mot dans
-       des transcripts et des entretiens ouverts — voir `citation` dans
-       STYLES_AW. Un style sans citation n’affiche rien : on ne comble pas. */
-    var porte = null, combien = 0;
-    lis.lisibles.forEach(function (x) {
-      var n = r.parStyle[x.style.id] || 0;
-      if (n > combien) { combien = n; porte = x.style; }
-    });
-    if (porte && combien > 0 && porte.citation) {
-      f.appendChild(h('div', { class: 'dit-a-part clin-oeil' },
-        h('div', { class: 'clin-oeil-quoi',
-                   text: 'Tu tends vers le ' + porte.nom.toLowerCase() + '.' }),
-        h('blockquote', { class: 'remarque-dit',
-                          text: '« ' + porte.citation.dit + ' »' }),
-        h('div', { class: 'remarque-qui' },
-          h('a', { href: porte.citation.lien, target: '_blank', rel: 'noopener',
-                   text: porte.citation.qui }))));
-    }
 
     /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce
        qu’on travaille contre ce qu’on déclare à la table. */

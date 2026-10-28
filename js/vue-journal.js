@@ -213,6 +213,31 @@
     A.panneau.ouvrir((se.routineNom || 'Récupération')
                    + ' du ' + A.m.dateCourte(se.date),
       function (c, fermer) {
+        /* ---- LA DATE SE CORRIGE ICI ----
+
+           MB, 28/10 : « mon exo que j'avais fait hier a la date
+           d'aujourd'hui, dois je le supprimer ? » Non : la seule chose que
+           cette fiche offrait était « Supprimer cette journée », donc
+           corriger une date voulait dire EFFACER le jour — et le refaire
+           aujourd'hui l'aurait daté d'aujourd'hui. Il perdait la journée,
+           son compte dans « N jours sur les 7 derniers » et sa ligne au
+           journal, pour réparer une date.
+
+           MÊME CHAMP QUE LA FICHE DE SPARRING, qui le porte depuis
+           toujours : `<input type="date">` dans un `A.ui.groupe('Date')`.
+           Un second vocabulaire pour le même geste se paie en hésitation.
+
+           LE JOURNAL SE RE-REND À LA FERMETURE — `surFin` est déjà câblé
+           sur le bouton « Fermer ». La carte change donc de place et de
+           mois toute seule, sans qu'on redessine sous les doigts de MB. */
+        var champDate = h('input', { class: 'champ', type: 'date', value: se.date });
+        champDate.addEventListener('input', function () {
+          if (!champDate.value) return;
+          se.date = champDate.value;
+          A.store.sauver(true);
+        });
+        c.appendChild(A.ui.groupe('Date', champDate));
+
         /* « exercices » : un ✓ par exercice, donc un compte par exercice.
            Le nombre de series se lit sur la ligne — « 4 × 50 reps ». */
         var cpt = A.m.compteRecup(se);

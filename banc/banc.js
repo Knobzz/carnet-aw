@@ -3814,19 +3814,33 @@
            'pronation',
            'et la lecture ne sert que là où la case est VIDE');
 
-    /* ---- la table, et ce qu'elle rend lisible ---- */
-    v.egal(par.side_pressure, 2,
-           'la side pressure appartient à DEUX styles — hook et press');
-    v.egal((par.pronation || 0) + '' + (par.supination || 0) + (par.cupping || 0) + (par.rising || 0), '1111',
-           '[temoin] les autres n’appartiennent qu’à un seul : c’est ce qui '
-         + 'les rend attribuables');
+    /* ---- LA TABLE RELUE SUR CE QUE LA SOURCE NOMME ----
+
+       MB, 28/10 : « relis selon la source ». Toronto nomme la BACK pressure
+       pour le hook (« From there you apply back pressure and bodyweight »)
+       et AUCUNE pression pour le toproll ni pour le press. La side pressure
+       ne reste donc qu'au press, par deduction — et c'est ce qui le rend
+       lisible.
+
+       CE CONTROLE PORTE LE LOT : plus aucun mouvement n'est porte par deux
+       styles. Sur la version d'avant, `par.side_pressure` valait 2. */
+    var partages = Object.keys(par).filter(function (f) { return par[f] > 1; });
+    v.egal(partages.join(' · '), '',
+           'AUCUN mouvement n’appartient à deux styles : chacun des six '
+         + 'désigne un style et un seul');
+    v.egal(Object.keys(par).length, 6,
+           '[temoin] les six mouvements sont bien tous portés — sans eux, '
+         + '« aucun partagé » serait vrai pour rien');
+    v.egal(par.back_pressure + '' + par.side_pressure, '11',
+           'la back pressure est au HOOK, que la source nomme, et la side '
+         + 'pressure au PRESS, qui est la déduction assumée');
 
     v.egal(lis.lisibles.map(function (x) { return x.style.id; }).join(','),
-           'toproll,hook', 'deux styles sont lisibles');
-    v.egal(lis.aveugles.map(function (x) { return x.style.id; }).join(','),
-           'press',
-           'le PRESS ne l’est pas : son seul mouvement est partagé, et le '
-         + 'carnet ne peut pas dire lequel des deux tu travaillais');
+           'toproll,hook,press', 'les TROIS styles sont lisibles');
+    v.egal(lis.aveugles.length, 0,
+           'et aucun n’est aveugle : la branche de l’écran qui disait « non '
+         + 'lisible ici » ne tire plus, et ce contrôle tombera le jour où '
+         + 'un mouvement redeviendra partagé');
 
     /* ---- le comptage, sur un décor ---- */
     var e = A.store.vide();
@@ -3866,13 +3880,18 @@
     v.egal((r.parStyle.toproll || 0), 10,
            'le toproll compte ses séries — 6 de pronation et 4 de rising');
     v.egal((r.parStyle.hook || 0), 3, 'le hook les siennes — 3 de cupping');
-    v.egal((r.partage.side_pressure || 0), 5,
-           'et les 5 séries de side pressure sont mises À PART : les ranger '
-         + 'dans le hook le gonflerait au prix du press');
-    v.egal((r.parStyle.press || 0), 0,
-           '[temoin] le press reste à zéro — c’est pour ça que l’écran ne '
-         + 'l’affiche PAS comme une barre : « 0 » se lirait « jamais »');
-    v.egal(r.total, 18, 'le total compte le partagé aussi — 10 + 3 + 5');
+    /* LES 5 SERIES DE SIDE PRESSURE VONT AU PRESS, et plus « a part » : la
+       relecture du 28/10 leur a donne un seul proprietaire. */
+    v.egal((r.parStyle.press || 0), 5,
+           'et les 5 séries de side pressure vont au PRESS, qui les porte '
+         + 'seul depuis que la source a été relue');
+    v.egal(Object.keys(r.partage).length, 0,
+           'plus rien n’est mis à part : il n’y a plus de mouvement partagé '
+         + 'à ranger quelque part');
+    v.egal(r.total, 18,
+           '[temoin] le total NE BOUGE PAS — 10 + 3 + 5 des deux côtés. Il '
+         + 'tient avant comme après, et c’est tout son intérêt : la '
+         + 'relecture a RANGÉ les séries autrement sans en perdre une');
 
     /* UN EXERCICE SANS MOUVEMENT NE COMPTE PAS : le curl marteau porte
        7 séries et n’entre nulle part. C’est ce qui sépare « le carnet ne
@@ -3905,78 +3924,38 @@
     v.egal((court.parStyle.hook || 0), 0,
            'mais celle de J-5 en sort : la fenêtre n’est pas décorative');
 
-    /* ---- SUR QUOI CHAQUE STYLE S'APPUIE ----
+    /* ---- CE QUE MB A FAIT RETIRER, ET QUI NE DOIT PAS REVENIR ----
 
-       MB, 28/10 : « Vérifie sur quoi s'active la press, le hook et le
-       toproll. » Vérifié aux sources, et le résultat n'est PAS
-       symétrique — c'est ce que ces contrôles tiennent.
+       MB, 28/10, sur la 1.48.0 : « trop de blabla dans "ton style" […] il y
+       a surcharge d'info », « enlève le "Sur quoi chaque style s'appuie" »,
+       « oublie les citations d'armwrestler célèbres ».
 
-       `v.egal(x, null)` NE POUVAIT PAS TOMBER ICI : le banc traite
-       `undefined` et `null` comme égaux, et sur la version d'avant le
-       champ n'existe pas. D'où `'appuie' in st`, qui distingue
-       « explicitement aucun muscle » de « champ absent ». */
+       Dix contrôles mesuraient ici `appuie`, `faute` et `citation`. Ils
+       partent, et ceux-ci les remplacent : ils GARDENT sa décision, et ils
+       tombent sur la 1.48.0, où les champs existent encore. Si un prochain
+       passage les rajoute, le banc le dit. */
+    /* DECLARE ICI : il vivait dans le bloc de l'appui, que MB a fait
+       retirer, et ces controles le lisaient encore. Le bloc levait une
+       ReferenceError et perdait ses 47 controles. */
     var sty = A.m.STYLES_AW || [];
     v.egal(sty.length, 3,
-           '[temoin] le carnet connaît TROIS styles, et deux fédérations '
-         + 'n’en nomment pas un quatrième — le règlement WAF, lui, n’en '
-         + 'définit aucun');
-    var muets = sty.filter(function (st) {
-      return !('appuie' in st) || (!st.appuie && !st.faute);
-    }).map(function (st) { return st.nom; });
-    v.egal(muets.join(' · '), '',
-           'chaque style dit sur quoi il s’appuie — ou dit ce que la '
-         + 'fédération écrit à la place');
-
-    var tp = sty.filter(function (st) { return st.id === 'toproll'; })[0] || {};
-    v.vrai(('appuie' in tp) && tp.appuie === null,
-           'le TOPROLL n’en nomme AUCUN, explicitement : la fédération ne lui '
-         + 'nomme aucun muscle, et le carnet ne comble pas le trou');
-    v.vrai((tp.faute || '').indexOf('Hand and finger length') === 0,
-           'il porte à la place ce qu’elle écrit, mot pour mot');
-    v.vrai((((sty.filter(function (st) { return st.id === 'press'; })[0]
-             || {}).appuie) || '').indexOf('shoulder and triceps') > 0,
-           'le PRESS s’appuie sur l’épaule et le triceps — la réponse à ce '
-         + 'que MB demandait de vérifier');
-    v.vrai((((sty.filter(function (st) { return st.id === 'hook'; })[0]
-             || {}).appuie) || '').indexOf('bicep') > 0,
-           'et le HOOK sur le poignet, la main et le biceps');
-
-    /* ---- UNE PHRASE D'ARMWRESTLER SUR LE STYLE QU'ON TRAVAILLE ----
-
-       MB, 28/10 : « Avoir également une phrase d'un armwrestler sur un
-       style spécifique qu'on travaille peut être un chouette clin d'œil et
-       donner une impression de tendre vers tel ou tel style. »
-
-       ON MESURE LE CONTENU, PAS LA PRESENCE : un champ `citation` vide
-       passerait un contrôle d'existence. Le début exact de chaque phrase
-       est exigé, parce que c'est ce qui change si quelqu'un la réécrit —
-       et une phrase d'athlète réécrite n'est plus une citation. */
-    var sansCitation = sty.filter(function (st) {
-      var c = st.citation || {};
-      return !c.dit || !c.qui || !c.lien;
-    }).map(function (st) { return st.nom; });
-    v.egal(sansCitation.join(' · '), '',
-           'les TROIS styles portent une phrase d’armwrestler, avec qui la '
-         + 'dit et où elle se vérifie');
-    var par = {};
-    sty.forEach(function (st) { par[st.id] = st.citation || {}; });
-    v.vrai((par.toproll.dit || '').indexOf('I, over the course of my career') === 0,
-           'le TOPROLL porte les mots de Devon Larratt, mot pour mot');
-    v.vrai((par.hook.dit || '').indexOf('I’m paying special attention') === 0,
-           'le HOOK ceux de Terence Opperman — un pro qui nomme son style '
-         + 'FAIBLE et qui le travaille, ce que cet écran dit justement');
-    v.vrai((par.press.dit || '').indexOf('I hated to see Oleg lose') === 0,
-           'et le PRESS ceux de Michael Todd');
-    var memeAuteur = {};
-    var doublons = [];
+           '[temoin] le carnet connait TROIS styles — il tient des deux '
+         + 'cotes, et sans lui les boucles ci-dessous seraient vides');
+    var CHAMPS_RETIRES = ['appuie', 'faute', 'citation'];
+    var revenus = [];
     sty.forEach(function (st) {
-      var q = (st.citation || {}).qui || '';
-      if (memeAuteur[q]) doublons.push(q);
-      memeAuteur[q] = 1;
+      CHAMPS_RETIRES.forEach(function (k) {
+        if (k in st) revenus.push(st.nom + '.' + k);
+      });
     });
-    v.egal(doublons.join(' · '), '',
-           'et TROIS athlètes différents : trois fois le même nom se '
-         + 'lirait comme une seule opinion');
+    v.egal(revenus.join(' · '), '',
+           'aucun style ne porte `appuie`, `faute` ni `citation` : MB les a '
+         + 'fait retirer, et un champ qu’aucun écran ne lit se croit vivant');
+    var sansDit = sty.filter(function (st) { return !st.dit; })
+                     .map(function (st) { return st.nom; });
+    v.egal(sansDit.join(' · '), '',
+           '[temoin] chaque style garde son `dit` — la remarque « Ton '
+         + 'accent » le cite, donc lui ne part pas. Il tient des deux côtés');
 
     /* ---- LE JOUR QUI CHANGE PENDANT QUE L'APP DORT ----
 
@@ -4471,6 +4450,18 @@
     v.egal(dom.genre, 'positive',
            'et elle se dit positive : une lacune et un raccourci ne se '
          + 'reçoivent pas pareil');
+
+    /* ---- ELLE CITAIT UNE PAGE ET POINTAIT L'AUTRE ----
+
+       Defaut trouve le 28/10 en retirant le bloc d'appui : `dominant.dit`
+       vient de la page TECHNIQUES de Toronto, et la remarque affichait le
+       lien de la page ENTRAINEMENT. Qui cliquait ne trouvait pas la phrase
+       — ce que « chaque remarque porte sa source » existe pour empecher. */
+    v.vrai(((dom.source || {}).lien || '').indexOf('arm-wrestling-techniques') >= 0,
+           'elle pointe la page d’où sort sa phrase, et non l’autre page de '
+         + 'la même fédération');
+    v.vrai(((dom.source || {}).qui || '').indexOf('Arm wrestling techniques') >= 0,
+           'et elle la NOMME, pour qu’on sache laquelle des deux on ouvre');
 
     e.seances[0].exercices.push(exo('Wrist curl inversé', ['ecrl'], 1));
     v.egal(rem(e, 30).filter(function (x) { return x.id === 'extenseurs'; }).length, 0,
