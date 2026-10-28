@@ -220,11 +220,11 @@
 
         var lignes = h('div', { class: 'item-lignes' });
         (se.exercices || []).forEach(function (ex) {
-          var sr = (ex.series || [])[0];
+          /* Meme resume que la carte : je l'avais ecrite ce matin avec le
+             MEME defaut, en recopiant la ligne d'a cote. */
           lignes.appendChild(h('div', { class: 'item-ligne' },
             h('b', { text: ex.nom }),
-            h('span', { text: sr && sr.faite ? A.m.texteSerie(ex, sr)
-                                             : 'non fait' })));
+            h('span', { text: A.m.resumeSeriesFaites(ex) || 'non fait' })));
         });
         if ((se.exercices || []).length) c.appendChild(lignes);
 
@@ -260,12 +260,16 @@
 
     var lignes = h('div', { class: 'item-lignes' });
     (se.exercices || []).forEach(function (ex) {
-      var s = (ex.series || [])[0];
+      /* TOUTES LES SERIES, PAS LA PREMIERE. MB, 28/10 : « je ne vois que
+         l'exo >> 50 reps, et c'est tout […] il faudrait 4x50 reps ». Ceci
+         lisait `(ex.series || [])[0]` : quatre séries identiques se
+         disaient comme une seule.
+
+         Forme longue ici : la carte n'est pas serrée, et « 30 » tout seul
+         ne dit pas si ce sont des reps ou des secondes. */
       lignes.appendChild(h('div', { class: 'item-ligne' },
         h('b', { text: ex.nom }),
-        /* Forme longue ici : la carte n'est pas serrée, et « 30 » tout seul
-           ne dit pas si ce sont des reps ou des secondes. */
-        h('span', { text: s && s.faite ? A.m.texteSerie(ex, s) : 'non fait' })));
+        h('span', { text: A.m.resumeSeriesFaites(ex) || 'non fait' })));
     });
     if ((se.exercices || []).length) it.appendChild(lignes);
     it.addEventListener('click', function () {

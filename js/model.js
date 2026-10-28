@@ -3076,6 +3076,27 @@
     });
   }
 
+  /* LES SERIES FAITES, RESUMEES. Quatre series identiques se disent
+     « 4 × 50 reps » ; des series differentes se listent, parce que les
+     resumer les perdrait.
+
+     LE SEPARATEUR CHANGE QUAND LE TEXTE PORTE DEJA UN « × » : « 4 × 20 ×
+     12 kg » se lit de trois facons, « 4 séries · 20 × 12 kg » d'une seule.
+     Le cas arrive des qu'un exercice a charge ET reps. */
+  function resumeSeriesFaites(exo, court) {
+    var faites = (exo && exo.series || []).filter(function (s) {
+      return s && s.faite;
+    });
+    if (!faites.length) return '';
+    var textes = faites.map(function (s) { return texteSerie(exo, s, court); });
+    var memes = textes.every(function (t) { return t === textes[0]; });
+    if (!memes) return textes.join('  ');
+    if (textes.length === 1) return textes[0];
+    return textes[0].indexOf('×') >= 0
+      ? textes.length + ' séries · ' + textes[0]
+      : textes.length + ' × ' + textes[0];
+  }
+
   function compteRecup(se) {
     var total = 0, faits = 0;
     (se && se.exercices || []).forEach(function (ex) {
@@ -4261,6 +4282,7 @@
     routineRecupVierge: routineRecupVierge, seanceRecup: seanceRecup,
     seancesRecupTriees: seancesRecupTriees, recupDuJour: recupDuJour,
     recupFaite: recupFaite, compteRecup: compteRecup, statsRecup: statsRecup,
+    resumeSeriesFaites: resumeSeriesFaites,
     exerciceSeanceVierge: exerciceSeanceVierge, serieSeanceVierge: serieSeanceVierge,
     programmeDepuisSeance: programmeDepuisSeance, dupliquerProgramme: dupliquerProgramme,
     volumeSeance: volumeSeance, texteHorsTonnage: texteHorsTonnage,

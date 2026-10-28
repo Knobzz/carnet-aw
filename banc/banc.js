@@ -2942,6 +2942,70 @@
      le dico, doivent etre visibles ». Le predicat vit au modele : il ne
      depend d'aucun ecran.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     LES SERIES FAITES, RESUMEES
+
+     MB, 28/10 : « je ne vois que l'exo >> 50 reps, et c'est tout […] il
+     faudrait : Side Pressure  4x50 reps ». La carte du journal lisait
+     `(ex.series || [])[0]` : quatre series identiques se disaient comme
+     une seule.
+     --------------------------------------------------------------- */
+  bloc('Résumé des séries faites', function (v) {
+    function exo(nom, cols, n) {
+      var e = A.m.exerciceProgramme({ nom: nom, colonnes: cols });
+      e.series = [];
+      for (var i = 0; i < n; i++) e.series.push(A.m.serieSeanceVierge());
+      return e;
+    }
+
+    var a = exo('Side pressure', ['reps'], 4);
+    a.series.forEach(function (s) { s.repsReel = '50'; s.faite = true; });
+    v.egal(A.m.resumeSeriesFaites(a), '4 × 50 reps',
+           'quatre séries identiques se disent « 4 × 50 reps » — c’est la '
+         + 'forme que MB a demandée');
+
+    var b = exo('Pronation', ['reps'], 1);
+    b.series[0].repsReel = '30'; b.series[0].faite = true;
+    v.egal(A.m.resumeSeriesFaites(b), '30 reps',
+           'une seule série ne s’annonce pas « 1 × » : le compte ne sert '
+         + 'qu’à partir de deux');
+
+    var c = exo('Curl', ['reps'], 2);
+    c.series[0].repsReel = '12'; c.series[0].faite = true;
+    c.series[1].repsReel = '10'; c.series[1].faite = true;
+    v.egal(A.m.resumeSeriesFaites(c), '12 reps  10 reps',
+           'des séries DIFFÉRENTES se listent : les résumer les perdrait');
+
+    /* LE CAS AMBIGU : « 4 × 20 × 12 kg » se lit de trois facons. */
+    var d = exo('Développé', ['charge', 'reps'], 3);
+    d.series.forEach(function (s) {
+      s.chargeReel = '20'; s.repsReel = '12'; s.faite = true;
+    });
+    v.egal(A.m.resumeSeriesFaites(d), '3 séries · 20 × 12 kg',
+           'quand le texte porte DÉJÀ un « × », le compte change de '
+         + 'séparateur — sinon « 4 × 20 × 12 kg » se lit de trois façons');
+
+    var f = exo('Tenue', ['duree'], 4);
+    f.series.forEach(function (s) { s.dureeReel = '30'; s.faite = true; });
+    v.egal(A.m.resumeSeriesFaites(f), '4 × 30 s',
+           'et une durée se résume pareil');
+
+    var g = exo('Rien', ['reps'], 2);
+    g.series[0].repsReel = '20';
+    v.egal(A.m.resumeSeriesFaites(g), '',
+           'rien de validé ne rend RIEN — c’est l’écran qui dira « non '
+         + 'fait », pas le modèle');
+
+    /* LES NON VALIDEES NE COMPTENT PAS, meme remplies : c'est le ✓ qui
+       dit ce qui a ete fait, pas la presence d'un chiffre. */
+    var k = exo('Mixte', ['reps'], 3);
+    k.series[0].repsReel = '50'; k.series[0].faite = true;
+    k.series[1].repsReel = '50'; k.series[1].faite = true;
+    k.series[2].repsReel = '50';
+    v.egal(A.m.resumeSeriesFaites(k), '2 × 50 reps',
+           'une série remplie mais NON validée ne se compte pas');
+  });
+
   bloc('Au dictionnaire ou a moi', function (v) {
     v.vrai(A.m.auDictionnaire('Pull up'), 'un nom du dictionnaire en est');
     v.vrai(A.m.auDictionnaire('Traction'),

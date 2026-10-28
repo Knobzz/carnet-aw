@@ -3310,9 +3310,22 @@
     var depart = e.seances.length;
 
     var routine = fen.App.m.routineRecupVierge();
-    routine.exercices = [fen.App.m.exerciceProgramme({ nom: 'Extenseurs à élastique' })];
+    routine.exercices = [fen.App.m.exerciceProgramme({
+      nom: 'Extenseurs à élastique',
+      /* REPS SEULES : avec les colonnes par defaut (charge + reps) le texte
+         devient « — × 50 », et ce n'est pas ce qu'on mesure ici. */
+      colonnes: ['reps']
+    })];
+    /* QUATRE SERIES DE 50 REPS : le decor de MB, celui qui ne s'affichait
+       que comme « 50 reps » avant le 28/10. */
+    routine.exercices[0].series = [0, 1, 2, 3].map(function () {
+      return fen.App.m.serieProgramme({ repsCible: 50 });
+    });
     var jour = fen.App.m.seanceRecup(routine);
-    (jour.exercices[0].series || []).forEach(function (sr) { sr.faite = true; });
+    (jour.exercices[0].series || []).forEach(function (sr) {
+      sr.repsReel = '50';
+      sr.faite = true;
+    });
     e.seances.push(jour);
 
     fen.App.vues.journal.rendre(vue);
@@ -3344,6 +3357,12 @@
       });
       v.vrai(!!carte, '[temoin] la journée de récup est bien au journal');
       if (!carte) return ranger();
+
+      /* LE NOMBRE DE SERIES, SUR LA CARTE. MB, 28/10 : « je ne vois que
+         l'exo >> 50 reps, et c'est tout ». Elle lisait la PREMIERE série. */
+      v.vrai(carte.textContent.indexOf('4 × 50 reps') >= 0,
+             'la carte dit COMBIEN de séries, pas seulement la première : '
+           + '« 4 × 50 reps »');
 
       carte.click();
       return attendre(220).then(function () {
