@@ -688,17 +688,55 @@
        n'exporte un carnet, et l'exercice se tape avant l'outil qui le
        sert. Un ordre d'écran est une décision, pas un hasard du code. */
     /* --- catalogue --- */
+    /* ---- SEULS LES NOMS QUI NE SONT PAS AU DICTIONNAIRE ----
+       MB, 28/10 : « a partir du moment ou l'exo est dans le dico, pourquoi
+       le ravoir en visuel dans reglages ? » puis « seuls mes exos crees de
+       ma main doivent etre visibles ».
+
+       IL AVAIT RAISON, ET MON ARGUMENT ETAIT FAUX. Je lui avais dit que
+       l'entree gardait SES reglages. Mesure : deux usages du meme nom avec
+       des reglages differents ne font QU'UNE entree, et la seconde ECRASE
+       la premiere — kg devient elastique, charge+reps devient duree. Le
+       catalogue ne garde pas des reglages par exercice ; il garde un jeu
+       par NOM, et c'est le dernier. Ce qui garde vraiment les reglages,
+       c'est l'exercice lui-meme dans son programme ou sa seance.
+
+       CE QUI RESTE, ET QU'ON NE JETTE PAS : il PRE-REMPLIT le prochain
+       exercice du meme nom. Les entrees du dictionnaire continuent donc
+       d'etre memorisees — elles ne sont plus AFFICHEES. Et le carnet le
+       DIT, parce qu'une liste qui maigrit sans explication inquiete plus
+       qu'elle ne soulage.
+
+       PRECEDENT, lui, n'a jamais lu ce catalogue : il parcourt les seances.
+       Je l'avais range dans ses dependances, a tort. */
+    var aMoi = e.exercices.filter(function (x) {
+      return !A.m.auDictionnaire(x.nom);
+    });
+    var duDico = e.exercices.length - aMoi.length;
+
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Exercices connus' }));
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Le carnet n’a jamais de liste imposée : ce catalogue est seulement ce que tu as déjà saisi. Il alimente l’autocomplétion.' }));
+      text: 'Rien n’est livré ici : seuls tes exercices à toi, ceux qui ne '
+          + 'sont pas au dictionnaire, sont listés. Ils alimentent '
+          + 'l’autocomplétion.'
+          + (duDico
+              ? ' ' + duDico + ' nom' + (duDico > 1 ? 's' : '') + ' du '
+                + 'dictionnaire ' + (duDico > 1 ? 'sont mémorisés' : 'est mémorisé')
+                + ' sans être listé' + (duDico > 1 ? 's' : '') + ' : le carnet '
+                + 's’en sert pour te pré-remplir.'
+              : '') }));
 
-    if (!e.exercices.length) {
-      hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Catalogue vide' }),
-        'Il se remplira au premier exercice que tu saisiras.'));
+    if (!aMoi.length) {
+      hote.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: duDico ? 'Rien qui soit à toi' : 'Catalogue vide' }),
+        duDico
+          ? 'Tout ce que tu as employé vient du dictionnaire. Un exercice '
+            + 'que tu nommes toi-même apparaîtra ici.'
+          : 'Il se remplira au premier exercice que tu saisiras.'));
     } else {
-      var bloc2 = blocRepliable('Catalogue', e.exercices.length);
+      var bloc2 = blocRepliable('Catalogue', aMoi.length);
       var corps2 = bloc2.corps;
-      e.exercices.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (x) {
+      aMoi.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (x) {
         var sup = h('button', { class: 'bt-icone', text: '✕', 'aria-label': 'Oublier ' + x.nom });
         A.ui.confirmer2(sup, '✓ ?', function () {
           var i = e.exercices.indexOf(x);

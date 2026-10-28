@@ -2227,8 +2227,15 @@
         var c = b.querySelector('.equip-compte');
         return c ? c.textContent : '';
       });
-      v.egal(comptes.join(','), '3,1,1',
-             'le compte se lit sans ouvrir (catalogue, puis chaque catégorie)');
+      /* 1 ET NON 3 DEPUIS LE 28/10 : des trois graines, « Curl marteau »
+         et « Wrist curl » sont au DICTIONNAIRE et ne se listent plus — MB :
+         « seuls mes exos crees de ma main doivent etre visibles ». Seul
+         « Pronation Titan Grip » est a lui. Ce controle mesure donc deux
+         choses a la fois : que le compte se lit FERME, et qu'il ne compte
+         que les siens. */
+      v.egal(comptes.join(','), '1,1,1',
+             'le compte se lit sans ouvrir, et il ne compte que les SIENS : '
+           + 'deux des trois graines sont au dictionnaire');
 
       var petits = entetes.filter(function (b) {
         return b.getBoundingClientRect().height < 44;
@@ -2262,6 +2269,72 @@
      annoncée aux lecteurs d'écran, et touchable à 44 px. Elle était un div
      avec un curseur.
      ================================================================ */
+  /* ---------------------------------------------------------------
+     LE CATALOGUE NE MONTRE QUE CE QUI EST A LUI
+
+     MB, 28/10 : « ce qui me gene c'est la surcharge d'informations […] a
+     partir du moment ou l'exo est dans le dico, pourquoi le ravoir en
+     visuel dans reglages ? » puis « seuls mes exos crees de ma main doivent
+     etre visibles ».
+
+     Les noms du dictionnaire restent MEMORISES — ils pre-remplissent le
+     prochain exercice du meme nom — mais ils ne sont plus AFFICHES, et le
+     carnet le dit : une liste qui maigrit sans explication inquiete plus
+     qu'elle ne soulage.
+     --------------------------------------------------------------- */
+  bloc('Le catalogue ne montre que les miens', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.exercices.length = 0;
+    ['Wrist curl', 'Traction', 'Pull up', 'Mon exo maison', 'Curl bizarre']
+      .forEach(function (n) {
+        fen.App.m.majCatalogue(e, { nom: n, typeCharge: 'kg' });
+      });
+
+    v.egal(e.exercices.length, 5,
+           '[temoin] cinq noms sont mémorisés, dont trois du dictionnaire');
+
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(220).then(function () {
+      var cat = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('.equip-cat'), function (b) {
+        if (!cat && b.textContent.indexOf('Catalogue') === 0) cat = b;
+      });
+      v.vrai(!!cat, 'le catalogue a son bloc');
+      if (!cat) { fen.App.ui.vider(vue); e.exercices.length = 0; return; }
+
+      v.vrai(cat.textContent.indexOf('2') >= 0,
+             'et il en annonce DEUX, pas cinq : « ' + cat.textContent.trim()
+           + ' »');
+      if (cat.getAttribute('aria-expanded') !== 'true') cat.click();
+
+      return attendre(160).then(function () {
+        var t = vue.innerText;
+        v.vrai(t.indexOf('Mon exo maison') >= 0 && t.indexOf('Curl bizarre') >= 0,
+               'les deux noms à lui sont listés');
+        v.egal(t.indexOf('Wrist curl'), -1,
+               'et un nom du dictionnaire ne l’est pas');
+        v.egal(t.indexOf('Traction\n'), -1,
+               'une ÉCRITURE du dictionnaire non plus — « Traction » est '
+             + 'une écriture de « Pull up »');
+        v.vrai(t.indexOf('3 noms du dictionnaire sont mémorisés') >= 0,
+               'et le carnet DIT combien il en garde sans les montrer — '
+             + 'une liste qui maigrit sans raison inquiète');
+
+        /* ILS SONT TOUJOURS MEMORISES : c'est tout l'interet du choix de
+           MB, « cache-les », plutot que de ne plus les cataloguer. */
+        v.egal(fen.App.store.etat().exercices.length, 5,
+               'les cinq restent MÉMORISÉS : c’est l’affichage qui change, '
+             + 'pas la mémoire');
+
+        fen.App.ui.vider(vue);
+        fen.App.store.etat().exercices.length = 0;
+      });
+    });
+  });
+
   bloc('Mon équipement, au doigt', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');

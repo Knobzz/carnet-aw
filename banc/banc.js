@@ -2935,6 +2935,43 @@
      MB, 27/10 : « un sparring neuf ferme sans rien ecrire ne doit rien
      laisser ». Le predicat vit au modele : il ne depend d'aucun ecran.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     CE NOM EST-IL AU DICTIONNAIRE ?
+
+     MB, 28/10 : « seuls mes exos crees de ma main, car pas presents dans
+     le dico, doivent etre visibles ». Le predicat vit au modele : il ne
+     depend d'aucun ecran.
+     --------------------------------------------------------------- */
+  bloc('Au dictionnaire ou a moi', function (v) {
+    v.vrai(A.m.auDictionnaire('Pull up'), 'un nom du dictionnaire en est');
+    v.vrai(A.m.auDictionnaire('Traction'),
+           'une ÉCRITURE aussi — « Traction » est une écriture de « Pull '
+         + 'up », et ce qu’on en fait ne peut pas dépendre de l’orthographe');
+    v.vrai(A.m.auDictionnaire('PULL UP'),
+           'et la casse ne décide de rien');
+    v.vrai(A.m.auDictionnaire('Déviation ulnaire'),
+           'les accents non plus');
+    v.egal(A.m.auDictionnaire('Mon exo maison'), false,
+           'un nom que personne n’a écrit au dictionnaire n’en est pas');
+    v.egal(A.m.auDictionnaire(''), false, 'et un nom vide non plus');
+
+    /* CHAQUE ENTREE SE RECONNAIT ELLE-MEME, nom ET ecritures. Ecrit a la
+       main, ce controle aurait teste trois noms ; la boucle les prend tous,
+       et une entree ajoutee demain est couverte sans qu'on y pense. */
+    var ratés = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      if (!A.m.auDictionnaire(d.nom)) ratés.push(d.nom);
+      (d.aussi || []).forEach(function (a) {
+        if (!A.m.auDictionnaire(a)) ratés.push(d.nom + ' ← ' + a);
+      });
+    });
+    v.vrai(A.m.DICTIONNAIRE.length > 0,
+           '[temoin] le dictionnaire n’est pas vide — sans quoi la boucle '
+         + 'ci-dessous serait vraie pour rien');
+    v.egal(ratés.join(' · '), '',
+           'les 42 entrées ET toutes leurs écritures se reconnaissent');
+  });
+
   bloc('Sparring vierge', function (v) {
     var sp = A.m.seanceSparring();
     v.vrai(A.m.sparringVierge(sp),

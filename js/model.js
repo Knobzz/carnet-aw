@@ -1962,6 +1962,21 @@
              'corde de triceps'] }
   ];
 
+  /* CE NOM EST-IL AU DICTIONNAIRE ? Par SLUG, et sur les ECRITURES aussi :
+     « Traction » est une ecriture de « Pull up », et ce qu'on en fait ne
+     peut pas dependre de l'orthographe employee. */
+  function auDictionnaire(nom) {
+    var s = slug(nom);
+    if (!s) return false;
+    for (var i = 0; i < DICTIONNAIRE.length; i++) {
+      var d = DICTIONNAIRE[i];
+      if (slug(d.nom) === s) return true;
+      var a = d.aussi || [];
+      for (var j = 0; j < a.length; j++) if (slug(a[j]) === s) return true;
+    }
+    return false;
+  }
+
   function entreeDuDictionnaire(nom) {
     for (var i = 0; i < DICTIONNAIRE.length; i++) {
       if (DICTIONNAIRE[i].nom === nom) return DICTIONNAIRE[i];
@@ -4260,6 +4275,7 @@
     PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
     joursDeLaFenetre: joursDeLaFenetre,
     DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
+    auDictionnaire: auDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
