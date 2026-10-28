@@ -2041,6 +2041,400 @@
              'et le réglage s’en va avec l’outil — « Mousqueton dehors » '
            + 'sur un outil absent ne veut rien dire');
       v.egal((exo.outils || []).length, 0, '[temoin] l’outil est bien parti');
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.store.etat().outils.length = 0;
+      });
+    });
+  });
+
+  /* ================================================================
+     AJOUTER UN EXO AU DICTIONNAIRE — le geste, dans la fiche
+
+     MB : « le dictionnaire devrait logiquement, a terme, tout comprendre,
+     voir meme rajouter un exo au dictionnaire ».
+
+     TROIS ETATS, ET LE TROISIEME EST LE PIEGE : sur un nom DEJA LIVRE, le
+     bouton se tait. Proposer « ajouter » la fabriquerait un homonyme que
+     personne n'a demande — c'est-a-dire le conflit qu'on vient d'outiller.
+     ================================================================ */
+  bloc('Verser un exo à mon dictionnaire', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+    if (Array.isArray(e.dictionnairePerso)) e.dictionnairePerso.length = 0;
+
+    /* ENVELOPPES. Sur 1.46.3 ces fonctions n'existent pas : sans elles, le
+       bloc LEVE a la premiere, et il emporte ses voisins — il laisse meme
+       un `.panneau` ouvert dans l'iframe, que les blocs suivants
+       retrouvent. Trois blocs etrangers sont tombes comme ca. */
+    function dp() {
+      return m.dictionnairePerso ? m.dictionnairePerso(fen.App.store.etat()) : [];
+    }
+
+    /* PAR SA CLASSE, PAS PAR SON TEXTE. Le chercher sur le mot
+       « dictionnaire » attrapait la LIGNE D'AUTOCOMPLETION, qui porte le
+       jeton « mon dictionnaire » — et deux controles mesuraient alors un
+       element qui n'etait pas le bouton. Ils passaient tous les deux. */
+    function btDico() {
+      var pan = doc.querySelector('.panneau');
+      return pan ? pan.querySelector('.bt-dico') : null;
+    }
+
+    /* Un nom que le carnet ne connait PAS, et des colonnes de tenue : les
+       deux doivent faire le voyage. */
+    var exo = m.exerciceProgramme({ nom: 'Tenue de coude à 90',
+                                    colonnes: ['charge', 'duree'] });
+    exo.muscles = ['biceps', 'brachial', 'brachio_radial'];
+    fen.App.panneau.editerExercice(exo, { titre: 'Essai' }, function () {});
+
+    return attendre(160).then(function () {
+      v.vrai(!!doc.querySelector('.panneau'), 'la fiche s’ouvre');
+
+      /* ---- 1. UN NOM INCONNU : le bouton propose ---- */
+      var bt = btDico();
+      v.vrai(!!bt && !bt.hidden, 'un nom que le carnet ignore fait paraître le bouton');
+      v.vrai(!!bt && bt.textContent.indexOf('Tenue de coude à 90') >= 0,
+             'et il NOMME ce qu’il va verser — un bouton qui dit « ajouter » '
+           + 'tout court laisse deviner quoi');
+      var r = bt ? bt.getBoundingClientRect() : { height: 0 };
+      v.vrai(r.height >= 44, 'il se touche au pouce (' + Math.round(r.height) + ' px)');
+
+      /* ---- 2. ON VERSE ---- */
+      if (bt) bt.click();
+      var fiches = dp();
+      v.egal(fiches.length, 1, 'un appui crée la fiche');
+      v.egal(fiches.length ? fiches[0].nom : '', 'Tenue de coude à 90',
+             'avec le nom tel qu’il est écrit');
+      v.egal(fiches.length ? m.muscles(fiches[0]).length : 0, 3, 'et ses trois muscles');
+      v.egal(fiches.length ? (fiches[0].colonnes || []).join('+') : '',
+             'charge+duree',
+             'SES COLONNES partent avec : c’est ce qui fera revenir la tenue '
+           + 'comme une tenue, et non comme du dynamique');
+
+      /* ---- 3. LE BOUTON NE MENT PAS SUR CE QU'IL RESTE A FAIRE ---- */
+      var bt2 = btDico();
+      v.vrai(!!bt2 && bt2.disabled,
+             'il s’éteint : il n’y a plus rien à verser');
+      v.vrai(!!bt2 && /Déjà/.test(bt2.textContent), 'et il le dit');
+
+      /* ---- 4. CHANGER LES MUSCLES LE RALLUME ---- */
+      exo.muscles = ['biceps'];
+      /* On passe par le champ du NOM pour declencher le rafraichissement :
+         c'est le chemin reel, celui que MB emprunte. */
+      var champ = doc.querySelector('.panneau .champ');
+      if (champ) champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      var bt3 = btDico();
+      var vu = bt3 ? bt3.textContent : '(pas de bouton)';
+      v.vrai(!!bt3 && !bt3.disabled,
+             'changer les muscles le rallume (' + vu + ')');
+      /* LE CONTROLE DIT CE QU'IL VOIT. Un « attendu true, obtenu false » ne
+         m'apprend rien ; le texte reel, si. */
+      v.egal(vu.indexOf('Mettre à jour') === 0 ? 'Mettre à jour…' : vu,
+             'Mettre à jour…',
+             'et le mot change — « ajouter » mentirait sur une fiche qui existe');
+
+      /* ---- 5. LE PIEGE : UN NOM DEJA LIVRE ---- */
+      var pan = doc.querySelector('.panneau');
+      var x = pan && pan.querySelector('.panneau-entete .bt-icone');
+      if (x) x.click();
+      return attendre(80);
+    }).then(function () {
+      var exo2 = m.exerciceProgramme({ nom: 'Wrist curl' });
+      exo2.muscles = ['fcr', 'fcu'];
+      fen.App.panneau.editerExercice(exo2, { titre: 'Essai 2' }, function () {});
+      return attendre(160);
+    }).then(function () {
+      var bt = btDico();
+      v.vrai(!bt || bt.hidden,
+             'sur un nom DÉJÀ LIVRÉ, le bouton se tait : proposer « ajouter » '
+           + 'fabriquerait l’homonyme qu’on vient d’outiller');
+
+      return ranger();
+    }).catch(function (err) {
+      /* On nettoie, PUIS on relance : l'erreur doit rester visible dans le
+         rapport, mais elle ne doit pas laisser l'iframe sale. */
+      return ranger().then(function () { throw err; });
+    });
+
+    /* LE NETTOYAGE SURVIT A LA CHUTE. Il etait dans le dernier `.then()`,
+       donc il ne tournait pas quand un controle levait plus haut — et le
+       panneau reste ouvert empoisonnait les blocs suivants. */
+    function ranger() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var b = p.querySelector('.panneau-entete .bt-icone');
+        if (b) b.click();
+      });
+      return attendre(80).then(function () {
+        var fin = fen.App.store.etat();
+        if (Array.isArray(fin.dictionnairePerso)) fin.dictionnairePerso.length = 0;
+      });
+    }
+  });
+
+  /* ================================================================
+     TON REGIME, A L'ECRAN
+
+     Le regime se LIT des colonnes. L'etat vide est la partie qui compte :
+     il sera frequent, et un bloc qui se tait passe pour un bloc absent —
+     paye deux fois deja (`blocRecup`, puis `blocRemarques`).
+     ================================================================ */
+  bloc('Ton régime, à l’écran', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+
+    function jourIl(n) {
+      var d = new fen.Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function s(reps, duree) {
+      return { id: 'x' + Math.random(), type: 'normale', faite: true, faiteA: null,
+               chargeCible: '', repsCible: '', dureeCible: '', chargeReel: '20',
+               repsReel: reps == null ? '' : String(reps),
+               dureeReel: duree == null ? '' : String(duree), rpe: null };
+    }
+    function exo(nom, cols, series) {
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: fen.App.m.slug(nom), aw: true,
+               typeCharge: 'kg', colonnes: cols, muscles: ['fcr'], forces: [],
+               structures: [], outils: [], consigne: '', reposSecondes: 90,
+               series: series };
+    }
+
+    /* ---- RIEN QUE DU DYNAMIQUE : l'etat vide doit PARLER ---- */
+    e.seances = [{ id: 'm1', type: 'muscu', date: jourIl(2), heure: '', note: '',
+                   douleurs: [], exercices: [
+      exo('Wrist curl', ['charge', 'reps'], [s(12), s(12)])] }];
+    fen.App.vues.suivi.rendre(vue);
+    var t = doc.body.textContent;
+    v.vrai(/Ton régime/i.test(t),
+           'le bloc est là MÊME sans tenue — sinon la fonctionnalité paraît '
+         + 'absente, et MB l’a déjà cherchée deux fois');
+    v.vrai(t.indexOf('Aucune tenue sur cette période') >= 0, 'et le silence se dit');
+    v.vrai(t.indexOf('SECONDES sans reps') >= 0,
+           'l’état vide dit CE QUI FERAIT une tenue : sans ça on ne distingue '
+         + 'pas « tu n’en fais pas » de « le carnet ne sait pas les voir »');
+    v.vrai(t.indexOf('Aucune recommandation ici') >= 0,
+           'et le bloc annonce qu’il ne conseille rien — aucune source ne le '
+         + 'permet pour l’avant-bras');
+
+    /* ---- AVEC UNE TENUE ---- */
+    rangerSousOnglet(doc);
+    e.seances[0].exercices.push(
+      exo('Cup hold', ['charge', 'duree'], [s(null, 30), s(null, 30), s(null, 25)]));
+    fen.App.vues.suivi.rendre(vue);
+    var t2 = doc.body.textContent;
+    v.egal(t2.indexOf('Aucune tenue sur cette période'), -1,
+           'une tenue éteint l’état vide — les deux ne coexistent jamais');
+    v.vrai(/Tenue\s*:\s*3 séries/.test(t2.replace(/\s+/g, ' ')),
+           'trois séries tenues sont comptées');
+    v.vrai(/Tenu\s*:\s*Cup hold/.test(t2.replace(/\s+/g, ' ')),
+           'et le bloc NOMME ce qui a été tenu');
+    v.vrai(t2.indexOf('1:25 sous tension') >= 0,
+           'le temps sous tension est en SECONDES, pas en reps : deux unités '
+         + 'qui ne s’additionnent pas');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
+
+    rangerSousOnglet(doc);
+    fen.App.ui.vider(vue);
+    fen.App.store.etat().seances = [];
+  });
+
+  /* ================================================================
+     L'ARBITRAGE D'UN HOMONYME — « le carnet demande » (MB, 28/10)
+
+     Ce qui compte pour trancher, c'est ce qu'on PERD. Deux listes cote a
+     cote obligent a les comparer de l'oeil ; le carnet le fait.
+     ================================================================ */
+  bloc('Deux fiches pour un nom', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+    if (Array.isArray(e.dictionnairePerso)) e.dictionnairePerso.length = 0;
+
+    /* ENVELOPPES : sur 1.46.3 rien de tout ceci n'existe, et le bloc levait
+       a la PREMIERE ligne — 0 controle sur 1, et ses voisins avec. */
+    function ajout(nom, mus) {
+      if (m.ajouterAuDictionnaire) return m.ajouterAuDictionnaire(e, nom, mus);
+      return null;
+    }
+    function dp(et) { return m.dictionnairePerso ? m.dictionnairePerso(et) : []; }
+    function confl(et) { return m.conflitsDictionnaire ? m.conflitsDictionnaire(et) : []; }
+    function fiche(nom, et) {
+      return m.ficheDictionnaire ? m.ficheDictionnaire(nom, et) : null;
+    }
+
+    /* LE DECOR : une fiche a moi qui porte le nom d'une fiche livree. C'est
+       ce qu'une future version produirait. */
+    ajout('Wrist curl', ['biceps', 'fcr', 'fcu']);
+    fen.App.vues.reglages.rendre(vue);
+    var t = doc.body.textContent;
+
+    v.vrai(t.indexOf('Mon dictionnaire') >= 0, 'la section existe');
+    v.vrai(t.indexOf('Deux fiches pour « Wrist curl »') >= 0,
+           'le conflit se montre, et il nomme la fiche');
+    v.vrai(t.indexOf('c’est LA TIENNE qui joue') >= 0,
+           'il DIT ce qui joue en attendant — sans ça, « le carnet demande » '
+         + 'se lirait « le carnet attend », et MB croirait que rien ne marche');
+    v.vrai(/Biceps/.test(t) && /Long palmaire/.test(t),
+           'les deux jeux de muscles sont là');
+    v.vrai(t.indexOf('te ferait perdre Biceps') >= 0,
+           'et l’ÉCART est calculé : ce qu’on perd, pas deux listes à '
+         + 'comparer de l’œil');
+
+    function btn(txt) {
+      return Array.prototype.filter.call(doc.querySelectorAll('button'),
+        function (b) { return b.textContent.indexOf(txt) >= 0; })[0] || null;
+    }
+
+    /* ---- « JE GARDE LA MIENNE » : rien n'est supprime ---- */
+    var b1 = btn('Je garde la mienne');
+    v.vrai(!!b1, '[temoin] le bouton est là');
+    if (b1) b1.click();
+    var e2 = fen.App.store.etat();
+    v.egal(confl(e2).length, 0, 'le conflit s’éteint');
+    v.egal(dp(e2).length, 1, 'et ma fiche reste');
+    v.vrai(!!(fiche('Wrist curl', e2) || {}).aMoi, 'c’est elle qui joue');
+    v.egal(doc.body.textContent.indexOf('Deux fiches pour « Wrist curl »'), -1,
+           'et la carte disparaît de l’écran');
+
+    /* ---- « PRENDRE CELLE DU CARNET » : deux appuis, et ma fiche part ---- */
+    dp(e2).forEach(function (f) { delete f.arbitre; });
+    fen.App.vues.reglages.rendre(vue);
+    var b2 = btn('Prendre celle du carnet');
+    v.vrai(!!b2, '[temoin] le second bouton est là');
+    if (b2) b2.click();
+    v.egal(dp(fen.App.store.etat()).length, 1,
+           'UN seul appui ne supprime rien : c’est un geste destructeur');
+    if (b2) b2.click();
+    var e3 = fen.App.store.etat();
+    v.egal(dp(e3).length, 0, 'le second appui supprime ma fiche');
+    v.vrai(!(fiche('Wrist curl', e3) || {}).aMoi, 'et la livrée reprend la main');
+    v.egal(m.muscles(fiche('Wrist curl', e3) || { muscles: [] }).length, 5,
+           'avec ses cinq muscles');
+
+    /* ---- ELLE SURVIT A UN RECHARGEMENT ----
+
+       LE DEFAUT QUE CE CONTROLE N'AVAIT PAS VU, et qu'un bac a sable a
+       trouve : `normaliser()` est une LISTE BLANCHE, et `dictionnairePerso`
+       n'y etait pas. La fiche existait en memoire, l'ecran la montrait,
+       les bancs etaient verts — et elle disparaissait au premier
+       rechargement. Un export/import la perdait aussi.
+
+       `charger()` relit depuis le stockage et repasse par `normaliser` :
+       c'est le chemin exact d'un demarrage. */
+    m.ajouterAuDictionnaire(fen.App.store.etat(), 'Tenue de coude à 90',
+                            ['biceps', 'brachial'], ['charge', 'duree']);
+    fen.App.store.sauver(true);
+    fen.App.store.charger();
+    var apres = dp(fen.App.store.etat());
+    v.egal(apres.length, 1,
+           'une fiche SURVIT à un rechargement — `normaliser` est une liste '
+         + 'blanche, et la clé doit y être nommée');
+    v.egal(apres.length ? apres[0].nom : '', 'Tenue de coude à 90',
+           'avec son nom');
+    v.egal(apres.length ? (apres[0].colonnes || []).join('+') : '', 'charge+duree',
+           'et ses colonnes : une tenue qui revient en reps n’est plus une tenue');
+    v.vrai(apres.length ? !!apres[0].aMoi : false,
+           'et elle se sait toujours à moi');
+
+    /* On repart propre pour le dernier contrôle. */
+    fen.App.store.etat().dictionnairePerso.length = 0;
+    fen.App.store.sauver(true);
+
+    /* ---- SANS FICHE, L'ECRAN LE DIT ---- */
+    fen.App.vues.reglages.rendre(vue);
+    v.vrai(doc.body.textContent.indexOf('Aucune fiche à toi') >= 0,
+           'un dictionnaire vide le dit, et explique comment en créer une');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
+
+    fen.App.ui.vider(vue);
+    var fin = fen.App.store.etat();
+    if (Array.isArray(fin.dictionnairePerso)) fin.dictionnairePerso.length = 0;
+  });
+
+  /* ================================================================
+     UN REGLAGE RETIRE REPREND SES MUSCLES
+
+     MB, 28/10 : « si je decoche l'outil montable, les muscles concernes de
+     l'outil reste coche [...] Idem pour le mousqueton. Tout devrait se
+     decocher quand je clique sur aucun. »
+
+     LA REGLE D'AVANT DISAIT L'INVERSE (26/10) : « changer de reglage ne
+     retire pas », par crainte d'effacer ce qu'un AUTRE reglage avait pose.
+     La crainte etait fondee ; la conclusion ne l'etait pas. On regarde qui
+     revendique encore le muscle, et on retire le reste.
+     ================================================================ */
+  bloc('« Aucun » décoche ce que le réglage avait posé', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+
+    m.majCatalogueOutils(e, 'Titan Grip', 'Poignées AW');
+    m.majReglageOutil(e, 'Titan Grip', 'Mousqueton dehors', ['ecrl', 'ecrb', 'ecu']);
+    m.majReglageOutil(e, 'Titan Grip', 'Mousqueton dedans', ['fcu', 'fcr']);
+
+    var exo = m.exerciceProgramme({ nom: 'Essai M', outils: ['Titan Grip'] });
+    exo.muscles = ['biceps'];          /* coché À LA MAIN : il doit survivre */
+    fen.App.panneau.editerExercice(exo, { titre: 'Essai' }, function () {});
+
+    return attendre(160).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+      function puce(txt) {
+        return Array.prototype.filter.call(pan.querySelectorAll('.puce'),
+          function (p) { return p.textContent === txt; })[0] || null;
+      }
+      function combien(ids) {
+        return m.muscles(exo).filter(function (id) { return ids.indexOf(id) >= 0; }).length;
+      }
+      var DEHORS = ['ecrl', 'ecrb', 'ecu'], DEDANS = ['fcu', 'fcr'];
+
+      var p1 = puce('Mousqueton dehors');
+      v.vrai(!!p1, '[temoin] la position déclarée est proposée');
+      if (p1) p1.click();
+      v.egal(combien(DEHORS), 3, 'poser le mousqueton coche ses trois extenseurs');
+
+      /* ---- CHANGER DE POSITION NE CUMULE PAS ---- */
+      var p2 = puce('Mousqueton dedans');
+      v.vrai(!!p2, '[temoin] la seconde position est là');
+      if (p2) p2.click();
+      v.egal(combien(DEHORS), 0,
+             'changer de position REPREND les muscles de l’ancienne — sans '
+           + 'ça les deux positions se cumulaient, et l’exercice finissait '
+           + 'par tout charger');
+      v.egal(combien(DEDANS), 2, 'et elle pose les siens');
+
+      /* ---- « AUCUN » REMET TOUT A PLAT ---- */
+      var pa = puce('Aucun');
+      v.vrai(!!pa, '[temoin] « Aucun » est proposé');
+      if (pa) pa.click();
+      v.egal(combien(DEHORS.concat(DEDANS)), 0,
+             '« Aucun » décoche tout ce que le réglage avait posé — le mot '
+           + 'de MB : « tout devrait se décocher quand je clique sur aucun »');
+      v.vrai(m.muscles(exo).indexOf('biceps') >= 0,
+             'et le muscle coché À LA MAIN survit à tout ça : on ne reprend '
+           + 'que ce que le réglage avait posé lui-même');
+      v.egal(m.reglageDe(exo, 'Titan Grip'), null, '[temoin] plus de réglage posé');
+
+      /* ---- RE-APPUYER SUR LE MEME NE FAIT PAS CLIGNOTER ---- */
+      if (p1) p1.click();
+      v.egal(combien(DEHORS), 3, '[temoin] on repose « dehors »');
+      if (p1) p1.click();
+      v.egal(combien(DEHORS), 3,
+             're-appuyer sur le réglage DÉJÀ posé ne le décoche pas : ce '
+           + 'n’est pas un changement');
 
       Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
         var x = p.querySelector('.panneau-entete .bt-icone');
@@ -2235,7 +2629,8 @@
         if (n.classList && n.classList.contains('sous-titre')) titres.push(n.textContent);
       });
       v.egal(titres.join(' · '),
-             'Thème · En salle · Exercices connus · Équipement · Sauvegarde · '
+             'Thème · En salle · Exercices connus · Équipement · '
+           + 'Mon dictionnaire · Sauvegarde · '
            + 'État du stockage · Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
 
@@ -3977,13 +4372,24 @@
                consigne: '', reposSecondes: 90, series: l };
     }
 
-    /* --- LE DÉCOR DE MB : un carnet qui TRAVAILLE et ne déclenche rien ---
-       Des fléchisseurs ET des extenseurs, aucun sparring. C’est le cas
-       ordinaire, et c’est exactement là que l’écran se taisait. */
+    /* --- UN DECOR QUI NE DECLENCHE RIEN, et il faut maintenant y penser :
+       CINQ faits sont surveilles depuis le 28/10.
+
+         - des flechisseurs ET des extenseurs  -> pas la remarque 1 ;
+         - aucun sparring                      -> ni la 2 ni la 5 ;
+         - `aw: false`                         -> pas celle du pectoral ;
+         - des noms SANS MOUVEMENT lisible     -> pas celle du style
+           dominant. « Curl marteau » n'en porte aucun, le carnet le dit
+           lui-meme dans l'etat vide du bloc « Ton style ».
+
+       Chacune de ces quatre conditions est une remarque ecartee, et c'est
+       pour ca qu'elles sont ecrites : sans elles, ce bloc re-tombera au
+       prochain ajout sans qu'on sache pourquoi. */
     e.seances = [{ id: 'm1', type: 'muscu', date: jourIl(3), heure: '',
                    note: '', douleurs: [],
-                   exercices: [exo('Wrist curl', ['fcr', 'fcu'], 4),
-                               exo('Wrist curl inversé', ['ecrl', 'ecrb'], 3)] }];
+                   exercices: [exo('Curl marteau', ['fcr', 'fcu'], 4),
+                               exo('Extension triceps', ['ecrl', 'ecrb'], 3)] }];
+    e.seances[0].exercices.forEach(function (x) { x.aw = false; });
 
     fen.App.vues.suivi.rendre(vue);
     var txt = doc.body.textContent;
@@ -3995,20 +4401,59 @@
     v.vrai(txt.indexOf('Rien à signaler sur cette période') >= 0,
            'et le silence se dit');
     v.vrai(txt.indexOf('sans AUCUN extenseur') >= 0
-           && txt.indexOf('coude médial') >= 0,
-           'l’état vide NOMME les deux faits surveillés : sans ça, on ne '
-         + 'distingue pas « rien à signaler » de « le carnet ne regarde '
-         + 'pas ça »');
+           && txt.indexOf('coude médial') >= 0
+           && txt.indexOf('torse antérieur') >= 0,
+           'l’état vide NOMME les faits surveillés, les trois neufs '
+         + 'compris : sans ça, on ne distingue pas « rien à signaler » de '
+         + '« le carnet ne regarde pas ça »');
     v.egal(doc.querySelectorAll('.remarque').length, 0,
            '[temoin] et aucune carte n’est peinte : rien ne se déclenche');
 
     /* --- LA CHUTE : on retire les extenseurs, la carte doit paraître --- */
-    e.seances[0].exercices = [exo('Wrist curl', ['fcr', 'fcu'], 4)];
+    /* UN NOM MUET, et des flechisseurs : `exo('Wrist curl', ...)` en
+       declenchait DEUX, parce que « wrist curl » porte le mouvement
+       `cupping` et fait donc paraitre aussi la remarque du style dominant.
+       Le nom compte autant que les muscles — mesure : 2 cartes au lieu
+       d'une. « Curl marteau » ne porte aucun mouvement, le carnet le dit
+       lui-meme dans l'etat vide de « Ton style ». */
+    e.seances[0].exercices = [exo('Curl marteau', ['fcr', 'fcu'], 4)];
+    e.seances[0].exercices[0].aw = false;   /* ni celle du pectoral */
     rangerSousOnglet(doc);
     fen.App.vues.suivi.rendre(vue);
     var cartes = doc.querySelectorAll('.remarque');
     v.egal(cartes.length, 1,
            'des fléchisseurs SEULS font paraître une carte');
+
+    /* ---- ET ELLE ARRIVE REPLIEE, le fait lisible sans ouvrir ----
+       MB, 28/10 : « plusieurs recommandations, donc penser a faire quelque
+       chose de lisible, que l'on peut reduire ». */
+    var tete = doc.querySelector('.remarque-tete');
+    v.vrai(!!tete, 'la carte porte un en-tête qui se touche');
+    v.egal(tete ? tete.getAttribute('aria-expanded') : '(aucun)', 'false',
+           'et elle arrive REPLIÉE');
+    v.egal(doc.querySelectorAll('.remarque-corps:not([hidden])').length, 0,
+           'donc aucun corps n’est peint');
+    v.vrai(tete && tete.textContent.indexOf('ZÉRO sur le postérieur') >= 0,
+           'mais le FAIT se lit sans ouvrir — replier n’est supportable que '
+         + 'si la ligne qui reste dit quelque chose');
+    /* LE TEXTE, PAS SA CASSE. « LACUNE » n'existe que dans le CSS
+       (`text-transform: uppercase`) ; `textContent` rend « Lacune ». Le
+       controle mesurait la mise en forme au lieu du contenu. */
+    v.vrai(tete && tete.textContent.indexOf('Lacune') >= 0,
+           'et son genre se lit aussi : une lacune n’est pas un raccourci');
+    /* VISIBLE, pas PRESENTE. La citation existe dans le DOM d'une carte
+       repliee — son conteneur porte `hidden`. Compter les elements sans
+       regarder leur conteneur mesurait le markup, pas l'ecran. */
+    v.egal(doc.querySelectorAll('.remarque-corps:not([hidden]) .remarque-dit').length, 0,
+           'la citation, elle, attend qu’on ouvre');
+    var r0 = tete ? tete.getBoundingClientRect() : { height: 0 };
+    v.vrai(r0.height >= 44, 'l’en-tête se touche au pouce ('
+                          + Math.round(r0.height) + ' px)');
+
+    if (tete) tete.click();
+    v.egal(tete.getAttribute('aria-expanded'), 'true', 'un appui l’ouvre');
+    v.egal(doc.querySelectorAll('.remarque-corps:not([hidden]) .remarque-dit').length, 1,
+           'et la citation paraît');
     v.vrai(doc.body.textContent.indexOf('Rien à signaler sur cette période') < 0,
            'et l’état vide disparaît — les deux ne coexistent jamais');
     var lien = doc.querySelector('.remarque-qui a');

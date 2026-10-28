@@ -1141,7 +1141,8 @@
     { nom: 'Finger curl',
       aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts'],
       muscles: ['flechisseurs_doigts', 'court_flechisseur_auriculaire'] },
-    { nom: 'Dead hang',
+    /* Pendu à la barre ou marche du fermier : on tient, on ne répète pas. */
+    { nom: 'Dead hang', colonnes: ['charge', 'duree'],
       aussi: ['Tenue à la barre', 'Suspension', 'Barre fixe en tenue',
               'Farmer walk', 'Marche du fermier'],
       muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
@@ -1169,7 +1170,10 @@
       muscles: ['biceps', 'brachial', 'fcr', 'long_palmaire', 'fcu',
                 'flechisseurs_doigts', 'supinateur',
                 'long_flechisseur_pouce'] },
-    { nom: 'Cup hold',
+    /* UNE TENUE : elle le dit dans ses propres écritures. Des SECONDES,
+       pas des reps — et c'est ce qui la fait compter comme tenue dans le
+       régime du Suivi. */
+    { nom: 'Cup hold', colonnes: ['charge', 'duree'],
       aussi: ['Tenue en cup', 'Tenue de poignet fermé'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
@@ -2201,14 +2205,127 @@
   /* Par SLUG, et sur les ECRITURES aussi : « Traction » doit ramener
      l'entree « Pull up ». La comparaison par `===` sur le nom exact
      manquait les deux. */
-  function ficheDictionnaire(nom) {
-    var s = slug(nom);
-    if (!s) return null;
-    for (var i = 0; i < DICTIONNAIRE.length; i++) {
-      var d = DICTIONNAIRE[i];
+  /* ---------- MON DICTIONNAIRE ----------
+
+     MB : « le dictionnaire devrait logiquement, a terme, tout comprendre,
+     voir meme rajouter un exo au dictionnaire ».
+
+     UNE FICHE A MOI PORTE LE NOM ET LES MUSCLES, rien d'autre. C'est le
+     contrat ecrit le 23/10 pour les fiches livrees : une entree ne remplit
+     QUE les muscles. Une fiche a moi qui reposerait en plus le type de
+     charge ou les outils se comporterait autrement qu'une fiche livree, et
+     rien a l'ecran ne dirait pourquoi.
+
+     LA CLE EST INERTE POUR LES VERSIONS ANTERIEURES : 1.46 relit sans
+     broncher une sauvegarde qui la porte, elle l'ignore. Le retour arriere
+     ne coute rien. */
+  function dictionnairePerso(etat) {
+    if (!etat) return [];
+    if (!Array.isArray(etat.dictionnairePerso)) etat.dictionnairePerso = [];
+    return etat.dictionnairePerso;
+  }
+
+  /* La recherche d'une fiche, sur un fonds donne : le nom ET ses autres
+     ecritures. Un seul endroit ou cette boucle est ecrite — elle vivait en
+     deux exemplaires et c'est ainsi qu'on les fait diverger. */
+  function chercherFiche(fonds, s) {
+    for (var i = 0; i < fonds.length; i++) {
+      var d = fonds[i];
       if (slug(d.nom) === s) return d;
       var a = d.aussi || [];
       for (var j = 0; j < a.length; j++) if (slug(a[j]) === s) return d;
+    }
+    return null;
+  }
+
+  /* MA FICHE PASSE DEVANT LA FICHE LIVREE, et ce n'est pas un arbitrage —
+     c'est l'absence d'arbitrage. MB a choisi « le carnet demande » : tant
+     qu'il n'a pas tranche, ce qui joue est ce qui jouait hier, c'est-a-dire
+     sa fiche. `conflitsDictionnaire()` l'empeche d'etre silencieux. */
+  function ficheDictionnaire(nom, etat) {
+    var s = slug(nom);
+    if (!s) return null;
+    return chercherFiche(dictionnairePerso(etat), s)
+        || chercherFiche(DICTIONNAIRE, s);
+  }
+
+  function ficheLivree(nom) {
+    var s = slug(nom);
+    return s ? chercherFiche(DICTIONNAIRE, s) : null;
+  }
+
+  /* Ajouter : le nom tel que MB l'ecrit, et les muscles tels qu'il les a
+     coches. Rien n'est devine. Un nom deja present chez lui met a jour sa
+     fiche plutot que d'en creer une seconde — deux fiches du meme nom, et
+     la recherche n'en montrerait qu'une, au hasard de l'ordre. */
+  /* `cols` : les colonnes de l'exercice d'ou vient la fiche. Elles ne sont
+     retenues que si elles DIFFERENT du defaut — sinon on alourdirait les
+     fiches avec une information qui ne dit rien. Ce n'est pas une
+     devinette : c'est ce que MB a pose lui-meme sur cet exercice, et c'est
+     ce qui fera revenir sa tenue comme une tenue. */
+  function colonnesSiParticulieres(cols) {
+    var l = (cols || []).slice();
+    if (!l.length) return null;
+    return l.join(',') === COLONNES_DEFAUT.join(',') ? null : l;
+  }
+
+  function ajouterAuDictionnaire(etat, nom, lesMuscles, cols) {
+    var l = dictionnairePerso(etat);
+    var s = slug(nom);
+    if (!s) return null;
+    var part = colonnesSiParticulieres(cols);
+    var deja = chercherFiche(l, s);
+    if (deja) {
+      deja.nom = nom;
+      deja.muscles = muscles({ muscles: lesMuscles });
+      if (part) deja.colonnes = part; else delete deja.colonnes;
+      return deja;
+    }
+    var f = { id: uid('dic'), nom: nom, aussi: [],
+              muscles: muscles({ muscles: lesMuscles }),
+              creeLe: aujourdHui(), aMoi: true };
+    if (part) f.colonnes = part;
+    l.push(f);
+    return f;
+  }
+
+  function supprimerDuDictionnaire(etat, id) {
+    var l = dictionnairePerso(etat);
+    for (var i = 0; i < l.length; i++) {
+      if (l[i].id === id) { l.splice(i, 1); return true; }
+    }
+    return false;
+  }
+
+  /* LES HOMONYMES — « le carnet demande » (MB, 28/10).
+
+     Un conflit nait quand une version livre une fiche portant le nom d'une
+     fiche que MB avait ecrite. Le carnet ne tranche pas : il rend les
+     deux, avec leurs muscles, pour que MB voie ce qu'il garde et ce qu'il
+     perd. En attendant, c'est la sienne qui joue — voir
+     `ficheDictionnaire`.
+
+     `arbitre` eteint le conflit sans rien supprimer : MB a dit « je garde
+     la mienne », et on ne le lui redemande pas a chaque ouverture. */
+  function conflitsDictionnaire(etat) {
+    var out = [];
+    dictionnairePerso(etat).forEach(function (f) {
+      if (f.arbitre) return;
+      var liv = ficheLivree(f.nom);
+      if (liv) out.push({ perso: f, livree: liv });
+    });
+    return out;
+  }
+
+  /* `garde` vaut 'moi' ou 'livree'. Rien d'autre n'est accepte : un
+     troisieme cas silencieux serait un arbitrage que personne n'a demande. */
+  function trancherConflit(etat, id, garde) {
+    var l = dictionnairePerso(etat);
+    for (var i = 0; i < l.length; i++) {
+      if (l[i].id !== id) continue;
+      if (garde === 'livree') { l.splice(i, 1); return 'livree'; }
+      if (garde === 'moi') { l[i].arbitre = true; return 'moi'; }
+      return null;
     }
     return null;
   }
@@ -3258,21 +3375,40 @@
      au panneau de ne reprendre que les muscles. */
   function entreeDictionnaire(d, ecriture) {
     var nom = ecriture || d.nom;
+    /* LES COLONNES DE LA FICHE, QUAND ELLE EN A. Une tenue sans colonne
+       Duree arrive en reps, et tout ce qui lit le regime la compte
+       dynamique — c'est ce qui faisait dire « aucune tenue » a un carnet
+       qui en portait. Les fiches sans `colonnes` gardent le defaut, donc
+       45 des 46 ne bougent pas. */
     return { id: 'dict:' + slug(nom), nom: nom, slug: slug(nom),
              entree: d.nom,
-             aw: false, typeCharge: 'kg', colonnes: COLONNES_DEFAUT.slice(),
+             aw: false, typeCharge: 'kg',
+             colonnes: (d.colonnes || COLONNES_DEFAUT).slice(),
              cote: null, prise: null, muscles: d.muscles.slice(),
              forces: [], structures: [], outils: [], reglages: {},
-             vuLe: null, duDictionnaire: true, aussi: (d.aussi || []).slice() };
+             vuLe: null, duDictionnaire: true, aMoi: !!d.aMoi,
+             aussi: (d.aussi || []).slice() };
   }
 
   /* Le dictionnaire se cherche sur le nom ET sur ses autres ecritures :
      taper « reverse wrist » doit trouver « Wrist curl inverse ». */
-  function suggestionsDictionnaire(q, dejaVus) {
+  /* LES DEUX FONDS, LES MIENNES D'ABORD. Elles passent devant pour la meme
+     raison que dans `ficheDictionnaire` : MB les a ecrites expres. */
+  function fondsDictionnaire(etat) {
+    return dictionnairePerso(etat).concat(DICTIONNAIRE);
+  }
+
+  function suggestionsDictionnaire(q, dejaVus, etat) {
     if (!q) return [];
-    var debut = [], dedans = [];
-    DICTIONNAIRE.forEach(function (d) {
-      if (dejaVus.indexOf(slug(d.nom)) >= 0) return;
+    var debut = [], dedans = [], vusIci = {};
+    fondsDictionnaire(etat).forEach(function (d) {
+      /* UNE FICHE A MOI MASQUE SON HOMONYME LIVRE, sans quoi la liste en
+         montrerait deux du meme nom et MB ne saurait pas laquelle il
+         choisit. Le conflit, lui, se dit dans les Reglages. */
+      var cle = slug(d.nom);
+      if (vusIci[cle]) return;
+      vusIci[cle] = 1;
+      if (dejaVus.indexOf(cle) >= 0) return;
       var ecritures = [d.nom].concat(d.aussi || []);
       /* On retient L'ECRITURE qui correspond le mieux, pas seulement sa
          position : c'est elle que MB verra et gardera. A egalite, le nom
@@ -3325,12 +3461,12 @@
        le contrat ecrit le 23/10. Ses specificites, MB les repose a chaque
        fois, et c'est ce qu'il demande. */
     var miens = debut.concat(dedans).map(function (x) {
-      var d = ficheDictionnaire(x.nom);
+      var d = ficheDictionnaire(x.nom, etat);
       return d ? entreeDictionnaire(d, x.nom) : x;
     });
     if (miens.length >= n) return miens.slice(0, n);
     var vus = miens.map(function (x) { return x.slug; });
-    return miens.concat(suggestionsDictionnaire(q, vus)).slice(0, n);
+    return miens.concat(suggestionsDictionnaire(q, vus, etat)).slice(0, n);
   }
 
   /* ---------- migration, À LA LECTURE ----------
@@ -3951,6 +4087,53 @@
   }
 
   /* ---------- colonne PRÉCÉDENT ---------- */
+
+  /* ---------- LE REGIME : TENU contre MU ----------
+
+     LA REGLE TIENT EN UNE LIGNE, et elle lit un EFFET : des secondes sans
+     reps, c'est une tenue. Rien n'est declare, donc rien ne peut mentir —
+     une case « isometrique » bien cochee peut coiffer des series en reps,
+     un `dureeReel` sans `repsReel`, non.
+
+     POURQUOI PAS « duree > 0 » TOUT COURT : un exercice peut porter les
+     DEUX colonnes (« 10 reps en 40 s »), et c'est du dynamique chronometre,
+     pas une tenue. C'est l'ABSENCE de reps qui fait la tenue. */
+  function estTenue(ex) {
+    return aColonne(ex, 'duree') && !aColonne(ex, 'reps');
+  }
+
+  function repartitionRegime(etat, depuisJours) {
+    var r = { tenue: { series: 0, secondes: 0, exercices: [] },
+              dynamique: { series: 0, reps: 0, exercices: [] },
+              total: 0 };
+    var vus = { tenue: {}, dynamique: {} };
+
+    seancesMuscuTriees(etat).forEach(function (se) {
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var faites = (ex.series || []).filter(function (x) { return x.faite; });
+        if (!faites.length) return;
+        var cle = estTenue(ex) ? 'tenue' : 'dynamique';
+        r[cle].series += faites.length;
+        r.total += faites.length;
+        faites.forEach(function (x) {
+          if (cle === 'tenue') {
+            var d = secondes(x.dureeReel);
+            if (d != null) r.tenue.secondes += d;
+          } else {
+            var p = nombre(x.repsReel);
+            if (p != null) r.dynamique.reps += p;
+          }
+        });
+        /* QUELS exercices, et pas seulement combien : « 3 séries tenues »
+           ne dit pas lesquelles, et c'est la premiere question qu'on pose
+           en lisant le chiffre. */
+        var sl = slug(ex.nom);
+        if (!vus[cle][sl]) { vus[cle][sl] = 1; r[cle].exercices.push(ex.nom); }
+      });
+    });
+    return r;
+  }
 
   function seancesMuscuTriees(etat) {
     return etat.seances.filter(function (s) { return s.type === 'muscu'; })
@@ -4838,8 +5021,49 @@
             lien: 'https://www.tawf.ca/league/learn/how-to-train-for-arm-wrestling' },
     hook2026: { qui: 'Marotta, Lopresti, Zangari et al. (Université de Catanzaro), '
                    + 'Applied Sciences 2026 — 11 athlètes spécialistes du hook',
-                lien: 'https://doi.org/10.3390/app16020713' }
+                lien: 'https://doi.org/10.3390/app16020713' },
+    /* L'ETUDE EMG DU BRAS DE FER, enfin nommee. Elle etait invoquee trois
+       fois dans le carnet sans l'etre. Dix sujets entraines, tests
+       dynamiques et statiques. */
+    silva2009: { qui: 'de Oliveira Silva et al., Journal of Electromyography '
+                    + 'and Kinesiology 2009;19(6):e448-57 — 10 sujets '
+                    + 'entraînés, EMG en conditions simulées',
+                 lien: 'https://pubmed.ncbi.nlm.nih.gov/19091596/' },
+    /* PAS UNE SOURCE QUI SOUTIENT : une source qui CONTREDIT. Elle ne
+       s'affiche que sous la remarque de complementarite, pour dire ce
+       qu'on sait contre elle. */
+    larratt: { qui: 'Devon Larratt, principes d’entraînement rapportés par '
+                  + 'armwrestlingworld.com — source de terrain, pas une mesure',
+               lien: 'https://armwrestlingworld.com/devon-larratt/' }
   };
+
+  /* Les exercices du dictionnaire qui portent un MOUVEMENT de ce style.
+     Rien n'est invente : on relit `forcesDuNom` sur ses propres fiches. */
+  function exercicesPourStyle(styleId, combien) {
+    var st = styleAW(styleId);
+    if (!st) return [];
+    var out = [];
+    DICTIONNAIRE.forEach(function (d) {
+      if (out.length >= (combien || 4)) return;
+      var f = forcesDuNom(d.nom);
+      if (f.some(function (x) { return st.forces.indexOf(x) >= 0; })) out.push(d.nom);
+    });
+    return out;
+  }
+
+  /* Des SERIES de bras de fer, cochees « spécifique bras de fer ». C'est le
+     decompte qui dit « il fait ce sport », independamment du nom ecrit. */
+  function seriesAW(etat, depuisJours) {
+    var n = 0;
+    seancesMuscuTriees(etat).forEach(function (se) {
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        if (!ex || !ex.aw) return;
+        n += (ex.series || []).filter(function (x) { return x.faite; }).length;
+      });
+    });
+    return n;
+  }
 
   /* LES EXTENSEURS DU POIGNET, ET EUX SEULS.
 
@@ -4880,6 +5104,7 @@
     if (flech > 0 && ext === 0) {
       out.push({
         id: 'extenseurs',
+        genre: 'lacune',
         titre: 'Aucun extenseur du poignet',
         texte: flech + ' série' + (flech > 1 ? 's' : '') + ' sur l’avant-bras '
              + 'antérieur, et ZÉRO sur le postérieur.',
@@ -4910,6 +5135,7 @@
     if (hooks > 0 && douleursMediales > 0) {
       out.push({
         id: 'hook-medial',
+        genre: 'lacune',
         titre: 'Hook et coude médial',
         texte: hooks + ' sparring' + (hooks > 1 ? 's' : '') + ' déclaré'
              + (hooks > 1 ? 's' : '') + ' en hook, et ' + douleursMediales
@@ -4921,6 +5147,94 @@
            + 'associated with the development of medial epicondylitis.',
         source: SOURCES_REMARQUE.hook2026,
         exercices: []
+      });
+    }
+
+    /* ---- 3. LE GRAND PECTORAL, QUE LE SPORT EXIGE ----
+       MB, 28/10 : « le hook ne fait il pas travailler les épaules
+       également ? » La mesure va plus loin que l'intuition : l'EMG trouve
+       le GRAND PECTORAL agoniste PRINCIPAL du bras de fer, pas seulement
+       participant. Et le déclencheur reste un ZÉRO, pas un ratio. */
+    var aw = seriesAW(etat, depuisJours);
+    var torse = c.parRegion.torse_av || 0;
+    if (aw > 0 && torse === 0) {
+      out.push({
+        id: 'pectoral',
+        genre: 'lacune',
+        titre: 'Aucun travail du torse antérieur',
+        texte: aw + ' série' + (aw > 1 ? 's' : '') + ' marquée'
+             + (aw > 1 ? 's' : '') + ' « spécifique bras de fer », et ZÉRO '
+             + 'sur le torse antérieur.',
+        dit: 'It can be concluded that the PM [pectoralis major] and FCU '
+           + '[flexor carpi ulnaris] muscles participate as agonists in the '
+           + 'simulated armwrestling whereas the BB and PT muscles seem to '
+           + 'perform secondary functions.',
+        source: SOURCES_REMARQUE.silva2009,
+        exercices: exercicesPourMuscles(['grand_pectoral'], 4)
+      });
+    }
+
+    /* ---- 4. TON STYLE DOMINANT, ET DE QUOI LE NOURRIR ----
+       La demande positive de MB : « proposer des exos en rapport avec le
+       hook ». Ce n'est pas un reproche et ce n'est pas un conseil — c'est
+       un raccourci vers son propre dictionnaire. */
+    var rep = repartitionStyles(etat, depuisJours);
+    var dominant = null, meilleur = 0;
+    STYLES_AW.forEach(function (st) {
+      var n = (rep.parStyle || {})[st.id] || 0;
+      if (n > meilleur) { meilleur = n; dominant = st; }
+    });
+    if (dominant && meilleur > 0) {
+      out.push({
+        id: 'dominant',
+        genre: 'positive',
+        titre: 'Ton accent : le ' + dominant.nom.toLowerCase(),
+        texte: meilleur + ' série' + (meilleur > 1 ? 's' : '')
+             + ' sur ' + rep.total + ' le portent. Voici ce que ton '
+             + 'dictionnaire propose pour le nourrir.',
+        dit: dominant.dit,
+        source: SOURCES_REMARQUE.tawf,
+        exercices: exercicesPourStyle(dominant.id, 4)
+      });
+    }
+
+    /* ---- 5. UN SEUL STYLE DECLARE EN SPARRING ----
+
+       LA SEULE REMARQUE DU CARNET QUI NE CITE PERSONNE, et elle le DIT.
+
+       MB l'a choisie en connaissant son prix : je lui avais ecrit que rien
+       ne soutient l'equilibrage des styles et que Larratt le combat. Elle
+       existe donc parce qu'il l'a demandee, et elle porte ce qui la
+       contredit — `contre`. C'est la seule facon de la livrer sans trahir
+       la regle que le carnet tient partout ailleurs.
+
+       LE DECLENCHEUR EST UN ZERO, PAS UN RATIO : « tu ne declares QUE du
+       hook » est un fait ; « trop de hook » serait un seuil invente. */
+    var parStyle = dec.parStyle || {};
+    var joues = STYLES_AW.filter(function (st) { return (parStyle[st.id] || 0) > 0; });
+    var muets = STYLES_AW.filter(function (st) { return !(parStyle[st.id] || 0); });
+    if (joues.length === 1 && muets.length && dec.total > 1) {
+      var seul = joues[0];
+      out.push({
+        id: 'un-seul-style',
+        genre: 'choix',
+        titre: 'Tu ne déclares que du ' + seul.nom.toLowerCase(),
+        texte: dec.total + ' sparrings déclarés, tous en ' + seul.nom.toLowerCase()
+             + ' — zéro en ' + muets.map(function (x) {
+                 return x.nom.toLowerCase(); }).join(' et en ') + '.',
+        /* PAS DE `dit` NI DE `source` : personne ne dit ça. */
+        dit: null,
+        source: null,
+        demande: 'Tu m’as demandé cette remarque le 28 octobre. Aucune source '
+               + 'ne recommande d’équilibrer les styles : le seuil serait de '
+               + 'moi, alors le carnet n’en pose aucun et se contente du zéro.',
+        contre: {
+          dit: 'peak performance demands abandoning equilibrium entirely',
+          source: SOURCES_REMARQUE.larratt
+        },
+        exercices: muets.reduce(function (acc, st) {
+          return acc.concat(exercicesPourStyle(st.id, 2));
+        }, [])
       });
     }
 
@@ -5101,7 +5415,9 @@
     forcesDeLExercice: forcesDeLExercice,
     STYLES_AW: STYLES_AW, styleAW: styleAW, stylesParForce: stylesParForce,
     repartitionStyles: repartitionStyles, stylesDeclares: stylesDeclares,
+    estTenue: estTenue, repartitionRegime: repartitionRegime,
     remarques: remarques, exercicesPourMuscles: exercicesPourMuscles,
+    exercicesPourStyle: exercicesPourStyle, seriesAW: seriesAW,
     EXTENSEURS_POIGNET: EXTENSEURS_POIGNET,
     SOURCES_REMARQUE: SOURCES_REMARQUE,
     stylesLisibles: stylesLisibles,
@@ -5110,6 +5426,11 @@
     PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
     joursDeLaFenetre: joursDeLaFenetre,
     DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
+    dictionnairePerso: dictionnairePerso, ficheLivree: ficheLivree,
+    ajouterAuDictionnaire: ajouterAuDictionnaire,
+    supprimerDuDictionnaire: supprimerDuDictionnaire,
+    conflitsDictionnaire: conflitsDictionnaire,
+    trancherConflit: trancherConflit,
     auDictionnaire: auDictionnaire, ficheDictionnaire: ficheDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,

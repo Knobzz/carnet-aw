@@ -3740,6 +3740,229 @@
      styles. La recherche n'a rien donne pour le premier, et Larratt
      combat la seconde.
      ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+     MON DICTIONNAIRE
+
+     MB : « le dictionnaire devrait logiquement, a terme, tout comprendre,
+     voir meme rajouter un exo au dictionnaire ».
+
+     ET L'ARBITRAGE DES HOMONYMES : MB, 28/10, « le carnet demande ». Le
+     carnet ne tranche donc pas — mais quelque chose doit jouer en
+     attendant, et c'est SA fiche : ce qui etait vrai hier.
+     ------------------------------------------------------------------ */
+  bloc('Mon dictionnaire', function (v) {
+    function dp(e) { return A.m.dictionnairePerso ? A.m.dictionnairePerso(e) : []; }
+    function ajout(e, nom, mus, cols) {
+      return A.m.ajouterAuDictionnaire
+           ? A.m.ajouterAuDictionnaire(e, nom, mus, cols) : null;
+    }
+    function fiche(nom, e) {
+      return A.m.ficheDictionnaire ? A.m.ficheDictionnaire(nom, e) : null;
+    }
+    function conflits(e) {
+      return A.m.conflitsDictionnaire ? A.m.conflitsDictionnaire(e) : [];
+    }
+
+    var e = A.store.vide();
+    v.egal(dp(e).length, 0, '[temoin] un carnet neuf n’a aucune fiche à lui');
+
+    /* ---- UNE FICHE PORTE LE NOM ET LES MUSCLES ---- */
+    var f = ajout(e, 'Tenue de coude à 90', ['biceps', 'brachial']);
+    v.egal(dp(e).length, 1, 'verser un exercice crée UNE fiche');
+    v.egal((f || {}).nom, 'Tenue de coude à 90', 'elle garde le nom tel qu’il est écrit');
+    v.egal(((f || {}).muscles || []).length, 2, 'et ses deux muscles');
+    v.vrai(!!(f || {}).aMoi, 'elle se sait à moi — c’est ce qui la distingue à l’écran');
+    v.egal((f || {}).colonnes, undefined,
+           'sans colonnes particulières, elle n’en porte PAS : une fiche ne '
+         + 'se charge pas d’une information qui ne dit rien');
+
+    /* ---- LES COLONNES PARTENT AVEC, SI ELLES DIFFERENT ----
+       Ce n'est pas une devinette : c'est ce que MB a pose sur CET exercice,
+       et c'est ce qui fera revenir sa tenue comme une tenue. */
+    var t = ajout(e, 'Tenue en cup lourde', ['fcr'], ['charge', 'duree']);
+    v.egal(((t || {}).colonnes || []).join('+'), 'charge+duree',
+           'des colonnes particulières partent avec la fiche');
+    var d = ajout(e, 'Curl à moi', ['biceps'], ['charge', 'reps']);
+    v.egal((d || {}).colonnes, undefined,
+           'les colonnes par DÉFAUT, non — sinon toutes les fiches les '
+         + 'porteraient pour rien');
+
+    /* ---- LE MEME NOM MET A JOUR, IL NE DOUBLE PAS ----
+       Deux fiches du meme nom, et la recherche n'en montrerait qu'une, au
+       hasard de l'ordre. */
+    var avant = dp(e).length;
+    ajout(e, 'tenue de coude à 90', ['biceps', 'brachial', 'brachio_radial']);
+    v.egal(dp(e).length, avant,
+           'le même nom, écrit autrement, MET À JOUR et ne double pas');
+    v.egal(A.m.muscles(fiche('Tenue de coude à 90', e)).length, 3,
+           'et ses muscles sont les nouveaux');
+
+    /* ---- MA FICHE PASSE DEVANT LA FICHE LIVREE ---- */
+    v.vrai(!!A.m.ficheLivree('Wrist curl'),
+           '[temoin] « Wrist curl » est bien une fiche livrée — c’est le décor');
+    ajout(e, 'Wrist curl', ['biceps', 'fcr', 'fcu']);
+    var joue = fiche('Wrist curl', e);
+    v.vrai(!!joue && !!joue.aMoi,
+           'quand les deux existent, c’est la MIENNE qui joue : rien ne '
+         + 'change sous les pieds de MB sans qu’il l’ait voulu');
+    v.egal(A.m.muscles(joue).length, 3, 'avec SES muscles, pas ceux du carnet');
+
+    /* ---- ET LE CONFLIT SE DIT ---- */
+    var c = conflits(e);
+    v.egal(c.length, 1, 'le carnet DÉTECTE l’homonyme — « le carnet demande »');
+    v.egal(c.length ? c[0].perso.nom : '', 'Wrist curl', 'et il le nomme');
+    v.egal(c.length ? A.m.muscles(c[0].livree).length : 0, 5,
+           'il rend aussi la fiche livrée, avec ses cinq muscles : sans elle '
+         + 'on ne peut pas trancher');
+    v.egal(conflits(A.store.vide()).length, 0,
+           '[temoin] un carnet sans fiche à lui n’a aucun conflit');
+
+    /* ---- TRANCHER, DANS LES DEUX SENS ---- */
+    var idWc = dp(e).filter(function (x) { return A.m.slug(x.nom) === A.m.slug('Wrist curl'); })[0].id;
+    A.m.trancherConflit(e, idWc, 'moi');
+    v.egal(conflits(e).length, 0, '« je garde la mienne » éteint le conflit');
+    v.egal(dp(e).filter(function (x) { return x.id === idWc; }).length, 1,
+           'sans rien supprimer');
+    v.vrai(fiche('Wrist curl', e).aMoi, 'et la mienne joue toujours');
+
+    dp(e).forEach(function (x) { if (x.id === idWc) delete x.arbitre; });
+    A.m.trancherConflit(e, idWc, 'livree');
+    v.egal(dp(e).filter(function (x) { return x.id === idWc; }).length, 0,
+           '« prendre celle du carnet » supprime ma fiche');
+    v.vrai(!fiche('Wrist curl', e).aMoi, 'et la livrée reprend la main');
+    v.egal(A.m.muscles(fiche('Wrist curl', e)).length, 5, 'avec ses cinq muscles');
+
+    /* ---- UN TROISIEME CAS N'EXISTE PAS ----
+       Un arbitrage silencieux serait une decision que personne n'a demandee. */
+    var id2 = dp(e)[0].id;
+    v.egal(A.m.trancherConflit(e, id2, 'peut-etre'), null,
+           'un verdict inconnu ne fait RIEN : pas de troisième cas silencieux');
+    v.egal(A.m.trancherConflit(e, 'jamais-vu', 'moi'), null,
+           '[temoin] et un id inconnu non plus');
+
+    /* ---- LA SUPPRESSION ---- */
+    var n0 = dp(e).length;
+    v.vrai(A.m.supprimerDuDictionnaire(e, id2), 'une fiche se supprime');
+    v.egal(dp(e).length, n0 - 1, 'et elle est partie');
+    v.egal(A.m.supprimerDuDictionnaire(e, 'jamais-vu'), false,
+           '[temoin] supprimer une fiche absente ne ment pas');
+  });
+
+  /* ------------------------------------------------------------------
+     LE REGIME — ce qui est TENU contre ce qui est MU
+
+     Il se LIT des colonnes. Des secondes sans reps, c'est une tenue. Rien
+     n'est declare, donc rien ne peut mentir.
+     ------------------------------------------------------------------ */
+  bloc('Ton régime', function (v) {
+    function tenue(ex) { return A.m.estTenue ? A.m.estTenue(ex) : false; }
+    function rep(e, j) {
+      return A.m.repartitionRegime ? A.m.repartitionRegime(e, j)
+           : { tenue: { series: 0, secondes: 0, exercices: [] },
+               dynamique: { series: 0, reps: 0, exercices: [] }, total: 0 };
+    }
+    function jourIl(n) {
+      var d = new Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function s(reps, duree) {
+      return { id: 'x' + Math.random(), type: 'normale', faite: true, faiteA: null,
+               chargeCible: '', repsCible: '', dureeCible: '', chargeReel: '20',
+               repsReel: reps == null ? '' : String(reps),
+               dureeReel: duree == null ? '' : String(duree), rpe: null };
+    }
+    function exo(nom, cols, series) {
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: A.m.slug(nom), aw: true,
+               typeCharge: 'kg', colonnes: cols, muscles: ['fcr'], forces: [],
+               structures: [], outils: [], consigne: '', reposSecondes: 90,
+               series: series };
+    }
+
+    /* ---- LA REGLE, SUR LES TROIS CAS ---- */
+    v.vrai(tenue(exo('T', ['charge', 'duree'], [])),
+           'des secondes SANS reps : une tenue');
+    v.egal(tenue(exo('D', ['charge', 'reps'], [])), false,
+           'des reps : du dynamique');
+    v.egal(tenue(exo('M', ['charge', 'reps', 'duree'], [])), false,
+           'les DEUX colonnes : du dynamique chronométré, pas une tenue — '
+         + 'c’est l’ABSENCE de reps qui fait la tenue');
+
+    /* ---- LE COMPTE, SUR UN DECOR ---- */
+    var e = A.store.vide();
+    e.seances = [{ id: 'm1', type: 'muscu', date: jourIl(2), heure: '', note: '',
+                   douleurs: [], exercices: [
+      exo('Wrist curl', ['charge', 'reps'], [s(12), s(12), s(10)]),
+      exo('Cup hold', ['charge', 'duree'], [s(null, 30), s(null, 30), s(null, 25)]),
+      exo('Pronation chrono', ['charge', 'reps', 'duree'], [s(10, 40)])
+    ] }];
+    var r = rep(e, 90);
+    v.egal(r.total, 7, 'sept séries validées en tout');
+    v.egal(r.dynamique.series, 4, 'quatre dynamiques — le chronométré en fait partie');
+    v.egal(r.tenue.series, 3, 'et trois tenues');
+    v.egal(r.dynamique.reps, 44, 'les reps s’additionnent du côté dynamique');
+    v.egal(r.tenue.secondes, 85, 'et les secondes du côté tenue');
+    v.egal(r.tenue.exercices.join(','), 'Cup hold',
+           'le bloc NOMME ce qui a été tenu : « 3 séries » appelle aussitôt '
+         + '« lesquelles »');
+
+    /* ---- LES DEUX UNITES NE SE MELANGENT PAS ---- */
+    v.egal(r.tenue.reps, undefined,
+           '[temoin] le côté tenue ne porte PAS de reps : des secondes et des '
+         + 'reps ne s’additionnent pas');
+
+    /* ---- UNE SERIE NON FAITE NE COMPTE PAS ---- */
+    e.seances[0].exercices[1].series[0].faite = false;
+    v.egal(rep(e, 90).tenue.series, 2, 'décocher une série la retire du compte');
+
+    /* ---- LA RECUP N'EST PAS DEDANS ----
+       MB, 28/10 : « les exos fait dans recup se repercutent dans Suivi >
+       Seances > Regions & Muscles, il ne faut pas ». Meme regle ici. */
+    e.seances.push({ id: 'r1', type: 'recup', date: jourIl(1), heure: '', note: '',
+                     douleurs: [], exercices: [
+      exo('Élastique tenue', ['charge', 'duree'], [s(null, 60), s(null, 60)])] });
+    v.egal(rep(e, 90).tenue.series, 2,
+           'la récup ne rentre PAS dans le régime des séances — même règle '
+         + 'que Régions & Muscles, demandée le 28/10');
+
+    v.egal(rep(A.store.vide(), 90).total, 0,
+           '[temoin] un carnet vide ne compte rien');
+  });
+
+  /* ---------- LES TENUES LIVREES PORTENT LEURS COLONNES ---------- */
+  bloc('Une fiche de tenue arrive en secondes', function (v) {
+    function fiches() { return A.m.DICTIONNAIRE || []; }
+    function entree(nom) {
+      var d = fiches().filter(function (x) { return x.nom === nom; })[0];
+      return d ? A.m.entreeDictionnaire(d, nom) : null;
+    }
+    var cup = entree('Cup hold'), hang = entree('Dead hang'), wc = entree('Wrist curl');
+
+    v.egal(cup ? A.m.colonnes(cup).join('+') : '(absente)', 'charge+duree',
+           '« Cup hold » arrive en SECONDES — sans ça le régime dirait '
+         + '« aucune tenue » à qui vient d’en faire trois');
+    v.egal(hang ? A.m.colonnes(hang).join('+') : '(absente)', 'charge+duree',
+           '« Dead hang » aussi : on tient, on ne répète pas');
+    v.egal(wc ? A.m.colonnes(wc).join('+') : '(absente)', 'charge+reps',
+           'un exercice dynamique garde le défaut');
+
+    /* CE QUI N'A PAS ETE TOUCHE, ET POURQUOI. Un pinch se tient souvent au
+       temps, mais il se fait aussi en levees comptees : la fiche est
+       ambigue, et deviner ferait basculer des series passees d'un regime a
+       l'autre sans que MB l'ait voulu. */
+    var pince = entree('Pince');
+    v.egal(pince ? A.m.colonnes(pince).join('+') : '(absente)', 'charge+reps',
+           '« Pince » n’a PAS été touchée : un pinch se tient ou se lève, et '
+         + 'deviner ferait basculer des séries passées');
+
+    var avec = fiches().filter(function (d) { return d.colonnes; });
+    v.egal(avec.length, 2,
+           'DEUX fiches seulement portent des colonnes, et les 44 autres '
+         + 'gardent le défaut');
+    v.egal(avec.map(function (d) { return d.nom; }).sort().join(', '),
+           'Cup hold, Dead hang', 'et ce sont bien celles-là');
+  });
+
   bloc('Ce que le carnet remarque', function (v) {
     function rem(e, j) { return A.m.remarques ? A.m.remarques(e, j) : []; }
     function jourIl(n) {
@@ -3771,8 +3994,13 @@
                    douleurs: [],
                    exercices: [exo('Wrist curl', ['fcr', 'fcu', 'long_palmaire'], 5)] }];
     var r1 = rem(e, 30);
-    v.egal(r1.length, 1, 'des fléchisseurs sans aucun extenseur font UNE remarque');
-    v.egal((r1[0] || {}).id, 'extenseurs', 'et c’est celle des extenseurs');
+    /* ON VERIFIE LAQUELLE, PAS COMBIEN. Ce bloc exigeait « UNE remarque »,
+       et il est tombe le jour ou trois se declenchaient sur ce decor — un
+       compte exact se casse a chaque ajout sans rien dire de plus. */
+    function ids(l) { return l.map(function (x) { return x.id; }); }
+    v.vrai(ids(r1).indexOf('extenseurs') >= 0,
+           'des fléchisseurs sans aucun extenseur font paraître la remarque '
+         + 'des extenseurs');
     v.vrai(((r1[0] || {}).dit || '').indexOf('Don’t skip the wrist extensors') === 0,
            'elle CITE la fédération, mot pour mot');
     v.vrai(((r1[0] || {}).source || {}).lien
@@ -3782,10 +4010,74 @@
     /* LE DECLENCHEUR SUIT LE MOT DE LA SOURCE. « training ONLY the flexing
        side » : UNE seule série d'extenseurs suffit à éteindre la remarque.
        C'est voulu — un ratio aurait été inventé. */
+    /* ---- LES TROIS REMARQUES DE PLUS, SUR LE MEME DECOR ----
+       MB, 28/10 : « je parlais plutot des lacunes ». Il a pris les trois
+       options, y compris celle qu'aucune source ne soutient. */
+    v.vrai(ids(r1).indexOf('pectoral') >= 0,
+           'du bras de fer sans AUCUN torse antérieur fait paraître la '
+         + 'remarque du grand pectoral');
+    var pec = r1.filter(function (x) { return x.id === 'pectoral'; })[0] || {};
+    v.vrai((pec.dit || '').indexOf('PM [pectoralis major]') >= 0,
+           'elle CITE l’étude EMG mot pour mot — le pectoral y est AGONISTE, '
+         + 'pas participant');
+    v.vrai(((pec.source || {}).lien || '').indexOf('19091596') >= 0,
+           'et elle porte enfin le PMID de cette étude, invoquée trois fois '
+         + 'dans le carnet sans jamais être nommée');
+    v.vrai((pec.exercices || []).length > 0,
+           'elle propose des exercices du dictionnaire qui chargent le torse');
+
+    v.vrai(ids(r1).indexOf('dominant') >= 0,
+           'le style dominant fait paraître la remarque POSITIVE');
+    var dom = r1.filter(function (x) { return x.id === 'dominant'; })[0] || {};
+    v.egal(dom.genre, 'positive',
+           'et elle se dit positive : une lacune et un raccourci ne se '
+         + 'reçoivent pas pareil');
+
     e.seances[0].exercices.push(exo('Wrist curl inversé', ['ecrl'], 1));
     v.egal(rem(e, 30).filter(function (x) { return x.id === 'extenseurs'; }).length, 0,
            'UNE seule série d’extenseur l’éteint : la source dit « only », '
          + 'pas « assez » — et aucun ratio n’a été inventé');
+
+    /* ---- UN SEUL STYLE DECLARE : LA REMARQUE SANS SOURCE ----
+
+       C'EST LA SEULE DU CARNET QUI NE CITE PERSONNE, et elle doit le DIRE.
+       MB l'a demandee en sachant qu'aucune source ne la soutient ; elle
+       porte donc sa demande ET ce qui la contredit. Une recommandation
+       sans source qui se tait sur son absence de source serait la seule
+       malhonnetete du carnet. */
+    var eS = A.store.vide();
+    eS.seances = [
+      { id: 's1', type: 'sparring', date: jourIl(1), style: 'hook', rounds: 5,
+        dureeMin: 20, cote: 'droite', partenaires: '', douleurs: [] },
+      { id: 's2', type: 'sparring', date: jourIl(3), style: 'hook', rounds: 4,
+        dureeMin: 15, cote: 'droite', partenaires: '', douleurs: [] }
+    ];
+    var rS = rem(eS, 30).filter(function (x) { return x.id === 'un-seul-style'; })[0];
+    v.vrai(!!rS, 'deux sparrings tous en hook font paraître la remarque de '
+                + 'complémentarité');
+    v.egal(rS ? rS.source : 'absente', null,
+           'elle ne porte AUCUNE source — parce qu’aucune ne la soutient');
+    v.egal(rS ? rS.dit : 'x', null, 'et aucune citation : personne ne dit ça');
+    v.vrai(!!(rS && rS.demande) && rS.demande.indexOf('28 octobre') >= 0,
+           'elle dit D’OÙ elle vient : la demande de MB du 28 octobre');
+    v.vrai(!!(rS && rS.contre)
+           && rS.contre.dit.indexOf('abandoning equilibrium') >= 0,
+           'et elle porte CE QUI LA CONTREDIT — Larratt, mot pour mot');
+    v.vrai(!!(rS && rS.contre && rS.contre.source
+              && rS.contre.source.lien.indexOf('armwrestlingworld') >= 0),
+           'avec le lien, pour qu’on puisse aller voir');
+    v.vrai((rS && rS.exercices || []).length > 0,
+           'et elle propose des exercices des styles muets');
+
+    /* LE DECLENCHEUR EST UN ZERO, PAS UN RATIO. Un seul sparring dans un
+       autre style l'eteint : « trop de hook » aurait demande un seuil que
+       personne ne donne, et que j'aurais invente. */
+    eS.seances.push({ id: 's3', type: 'sparring', date: jourIl(2), style: 'toproll',
+                      rounds: 2, dureeMin: 8, cote: 'droite', partenaires: '',
+                      douleurs: [] });
+    v.egal(rem(eS, 30).filter(function (x) { return x.id === 'un-seul-style'; }).length, 0,
+           'UN SEUL sparring dans un autre style l’éteint : le déclencheur '
+         + 'est un zéro, pas un seuil inventé');
 
     /* ---- LES EXERCICES PROPOSES SONT DES EXTENSEURS DU POIGNET ---- */
     var exos = A.m.exercicesPourMuscles

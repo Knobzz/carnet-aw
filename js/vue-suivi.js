@@ -1231,8 +1231,9 @@
     var l = A.m.remarques(e, A.m.joursDeLaFenetre(periode.semaines));
     var f = document.createDocumentFragment();
 
-    f.appendChild(section('Ce que le carnet remarque',
-      'Chaque constat cite qui le dit. Le carnet ne prescrit rien.'));
+    f.appendChild(section('Ce que le carnet remarque'
+      + (l.length ? ' (' + l.length + ')' : ''),
+      'Touche une remarque pour voir qui le dit. Le carnet ne prescrit rien.'));
 
     /* LE SILENCE SE DIT. Un fragment vide au milieu de dix blocs ne se voit
        pas, et MB a cherché les recommandations alors qu'elles étaient là.
@@ -1241,29 +1242,70 @@
     if (!l.length) {
       f.appendChild(h('div', { class: 'vide' },
         h('strong', { text: 'Rien à signaler sur cette période' }),
-        'Deux faits sont surveillés — deux, parce que deux sources seulement '
-      + 'le permettent : des fléchisseurs chargés sans AUCUN extenseur, et '
-      + 'des sparrings en hook avec une douleur au coude médial.'));
+        'Cinq faits sont surveillés : des fléchisseurs chargés sans AUCUN '
+      + 'extenseur, du hook avec une douleur au coude médial, du bras de fer '
+      + 'sans AUCUN torse antérieur, ton style dominant, et un seul style '
+      + 'déclaré en sparring.'));
       return f;
     }
 
+    /* QUEL GENRE DE REMARQUE, dit en un mot. « Lacune » et « ton accent »
+       ne se lisent pas pareil, et les confondre ferait passer un raccourci
+       pour un reproche. */
+    var GENRES = { lacune: 'Lacune', positive: 'Ton accent', choix: 'Ta demande' };
+
     l.forEach(function (r) {
-      var carte = h('div', { class: 'carte remarque' });
-      var corps = h('div', { class: 'carte-corps' });
-      corps.appendChild(h('div', { class: 'remarque-titre', text: r.titre }));
-      corps.appendChild(h('div', { class: 'remarque-fait', text: r.texte }));
-      corps.appendChild(h('blockquote', { class: 'remarque-dit', text: '« ' + r.dit + ' »' }));
-      var qui = h('div', { class: 'remarque-qui' });
-      var a = h('a', { href: r.source.lien, target: '_blank', rel: 'noopener',
-                       text: r.source.qui });
-      qui.appendChild(a);
-      corps.appendChild(qui);
+      var carte = h('div', { class: 'carte remarque remarque-' + (r.genre || 'lacune') });
+
+      /* L'EN-TETE PORTE LE FAIT, pas seulement le titre : replié, il faut
+         pouvoir lire ce qui est constaté sans ouvrir. C'est la leçon de la
+         récup — une ligne repliée qui ne dit rien oblige à tout ouvrir. */
+      var chevron = h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '▾' });
+      var tete = h('button', { type: 'button', class: 'remarque-tete',
+                               'aria-expanded': 'false' },
+        h('span', { class: 'remarque-chevron' }, chevron),
+        h('span', { class: 'remarque-tete-texte' },
+          h('span', { class: 'remarque-genre', text: GENRES[r.genre] || GENRES.lacune }),
+          h('span', { class: 'remarque-titre', text: r.titre }),
+          h('span', { class: 'remarque-fait', text: r.texte })));
+
+      var corps = h('div', { class: 'carte-corps remarque-corps', hidden: true });
+
+      /* CE QUI LE DIT — ou, pour la remarque de complémentarité, le fait
+         qu'elle ne cite personne. Elle ne se déguisera pas en science. */
+      if (r.dit) {
+        corps.appendChild(h('blockquote', { class: 'remarque-dit', text: '« ' + r.dit + ' »' }));
+      }
+      if (r.source) {
+        corps.appendChild(h('div', { class: 'remarque-qui' },
+          h('a', { href: r.source.lien, target: '_blank', rel: 'noopener',
+                   text: r.source.qui })));
+      }
+      if (r.demande) {
+        corps.appendChild(h('div', { class: 'remarque-demande' },
+          h('b', { text: 'Sans source. ' }), r.demande));
+      }
+      if (r.contre) {
+        corps.appendChild(h('blockquote', { class: 'remarque-dit remarque-contre' },
+          h('b', { text: 'Ce qui la contredit : ' }), '« ' + r.contre.dit + ' »'));
+        corps.appendChild(h('div', { class: 'remarque-qui' },
+          h('a', { href: r.contre.source.lien, target: '_blank', rel: 'noopener',
+                   text: r.contre.source.qui })));
+      }
 
       if ((r.exercices || []).length) {
         corps.appendChild(h('div', { class: 'remarque-exos' },
           h('b', { text: 'Dans ton dictionnaire : ' }),
           r.exercices.join(' · ')));
       }
+
+      tete.addEventListener('click', function () {
+        var ouvert = tete.getAttribute('aria-expanded') === 'true';
+        tete.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+        corps.hidden = ouvert;
+      });
+
+      carte.appendChild(tete);
       carte.appendChild(corps);
       f.appendChild(carte);
     });
@@ -1285,6 +1327,87 @@
      « tu ne presses jamais », alors que la vérité est « le carnet ne sait
      pas le voir ». La différence se dit, elle ne se devine pas.
      ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+     TON RÉGIME — ce qui est TENU contre ce qui est MU
+
+     Le régime se LIT des colonnes : des secondes sans reps, c'est une
+     tenue. C'est un effet, mesuré sur ce que MB a saisi — jamais une case
+     qu'il aurait cochée et qui pourrait démentir ses propres séries.
+     ------------------------------------------------------------------ */
+  function blocRegime(e, periode) {
+    var r = A.m.repartitionRegime(e, A.m.joursDeLaFenetre(periode.semaines));
+    var f = document.createDocumentFragment();
+
+    f.appendChild(section('Ton régime — ' + periode.nom,
+      'Lu sur tes séries : des secondes sans reps, c’est une tenue.'));
+
+    if (!r.total) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune série sur cette période' }),
+        'Le régime se lit sur des séries validées en musculation.'));
+      return f;
+    }
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    var barres = h('div', { class: 'barres' });
+    var max = Math.max(r.dynamique.series, r.tenue.series) || 1;
+
+    /* DEUX UNITÉS, ET ON NE LES ADDITIONNE PAS. Des reps et des secondes ne
+       se comparent pas : la barre compte les SÉRIES, qui sont la seule
+       chose commune, et le détail dit l'unité propre à chaque régime. */
+    [['Dynamique', r.dynamique.series, r.dynamique.reps + ' reps'],
+     ['Tenue', r.tenue.series, A.m.texteDuree(r.tenue.secondes)]
+    ].forEach(function (x) {
+      barres.appendChild(h('div', { class: 'barre' + (x[1] ? '' : ' barre-vide') },
+        h('span', { text: x[0] }),
+        h('div', { class: 'barre-piste' },
+          h('i', { class: 'gen', style: 'width:' + (x[1] / max * 100) + '%' })),
+        h('span', { class: 'barre-val', text: x[1] + ' sér.' })));
+    });
+
+    corps.appendChild(barres);
+    carte.appendChild(corps);
+    f.appendChild(carte);
+
+    f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
+      h('b', { text: 'Dynamique : ' }),
+      r.dynamique.series + ' série' + (r.dynamique.series > 1 ? 's' : '')
+      + ' · ' + r.dynamique.reps + ' reps'));
+    f.appendChild(h('div', { class: 'item-resume', style: 'margin:2px 2px 0' },
+      h('b', { text: 'Tenue : ' }),
+      r.tenue.series + ' série' + (r.tenue.series > 1 ? 's' : '')
+      + ' · ' + A.m.texteDuree(r.tenue.secondes) + ' sous tension'));
+
+    /* QUELS exercices : « 3 séries tenues » appelle aussitôt « lesquelles ». */
+    if (r.tenue.exercices.length) {
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
+        h('b', { text: 'Tenu : ' }), r.tenue.exercices.join(' · ')));
+    }
+
+    /* L'ÉTAT VIDE QUI COMPTE, et il sera fréquent : il distingue « tu n'en
+       fais pas » de « le carnet ne sait pas les voir ». Sans lui, une
+       colonne oubliée se lirait comme une absence d'entraînement. */
+    if (!r.tenue.series) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune tenue sur cette période' }),
+        'Le carnet lit une tenue sur des séries en SECONDES sans reps. Un '
+      + 'exercice tenu qui porte encore la colonne Reps est compté '
+      + 'dynamique : change ses colonnes dans sa fiche, et il basculera. '
+      + '« Cup hold » et « Dead hang » arrivent déjà en secondes.'));
+    }
+
+    /* CE QUE LE CARNET NE DIRA PAS, et il le dit. */
+    f.appendChild(h('div', { class: 'dit-a-part' },
+      h('b', { text: 'Aucune recommandation ici. ' }),
+      'Une revue systématique de 2025 ne trouve pas l’isométrique supérieur '
+    + 'à l’excentrique sur la tendinopathie du coude, et les données sur le '
+    + 'membre supérieur sont minces. Le carnet montre ta répartition ; il ne '
+    + 'la juge pas.'));
+
+    return f;
+  }
+
   function blocStyleEntrainement(e, periode) {
     var jours = A.m.joursDeLaFenetre(periode.semaines);
     var r = A.m.repartitionStyles(e, jours);
@@ -1591,6 +1714,10 @@
     hote.appendChild(blocRemarques(e, periode));
     hote.appendChild(blocStyleEntrainement(e, periode));
     hote.appendChild(blocVolume(e));
+    /* LE REGIME SUIT LE VOLUME : combien d'abord, de quelle maniere ensuite.
+       C'est l'ordre que MB a demande le 28/10 pour cet onglet — ce qu'on
+       travaille vient avant ou ca porte. */
+    hote.appendChild(blocRegime(e, periode));
     hote.appendChild(blocRegions(e, periode, refaire));
     hote.appendChild(blocMuscles(e, periode, refaire));
     /* DERNIERE SOLLICITATION PASSE APRES MUSCLES, a la demande de MB du

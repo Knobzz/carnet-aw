@@ -74,8 +74,18 @@
             if (!b.ecrit) { A.ui.toast('La fusion a échoué à l’écriture.'); return; }
             A.app.appliquerTheme();
             apres && apres();
-            A.ui.toast(b.seancesAjoutees + ' séance(s) et ' + b.programmesAjoutes
-                     + ' programme(s) ajoutés · ' + b.seancesGardees + ' déjà présentes, inchangées.');
+            /* LES FICHES SE DISENT AUSSI, et seulement quand il y en a :
+               une fusion muette serait pire qu'un remplacement, mais une
+               phrase qui annonce « 0 fiche » à qui n'en a aucune est du
+               bruit. */
+            var dit = b.seancesAjoutees + ' séance(s) et ' + b.programmesAjoutes
+                    + ' programme(s) ajoutés · ' + b.seancesGardees
+                    + ' déjà présentes, inchangées.';
+            if (b.fichesAjoutees || b.fichesGardees) {
+              dit += ' Dictionnaire : ' + b.fichesAjoutees + ' fiche(s) ajoutée(s), '
+                   + b.fichesGardees + ' gardée(s).';
+            }
+            A.ui.toast(dit);
           } },
         { nom: 'Remplacer — effacer ' + e.seances.length + ' séance(s) d’ici',
           classe: 'bt-danger', action: function () {
@@ -882,6 +892,115 @@
 
 
     /* --- sauvegarde --- */
+    /* ------------------------------------------------------------------
+       MON DICTIONNAIRE
+
+       MB : « le dictionnaire devrait logiquement, a terme, tout comprendre,
+       voir meme rajouter un exo au dictionnaire ». Les fiches s'ecrivent
+       dans la fiche d'exercice ; elles se relisent et se suppriment ici.
+       ------------------------------------------------------------------ */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Mon dictionnaire' }));
+    var fiches = A.m.dictionnairePerso(e);
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      text: 'Les exercices que tu as versés toi-même. Une fiche rend ses '
+          + 'muscles, et rien d’autre — comme une fiche livrée. Elle se '
+          + 'crée depuis la fiche d’exercice, sous les muscles.' }));
+
+    /* --- LES HOMONYMES, s'il y en a --- */
+    var conflits = A.m.conflitsDictionnaire(e);
+    conflits.forEach(function (c) {
+      var carte = h('div', { class: 'carte' });
+      var corps = h('div', { class: 'carte-corps' });
+      corps.appendChild(h('div', { class: 'remarque-titre',
+        text: 'Deux fiches pour « ' + c.perso.nom + ' »' }));
+      corps.appendChild(h('div', { class: 'item-resume',
+        text: 'Une version du carnet a livré une fiche portant ce nom. '
+            + 'En attendant que tu tranches, c’est LA TIENNE qui joue — '
+            + 'rien n’a changé dans tes exercices.' }));
+
+      function liste(titre, ids) {
+        var l = h('div', { class: 'item-resume', style: 'margin-top:6px' });
+        l.appendChild(h('b', { text: titre + ' (' + ids.length + ') : ' }));
+        l.appendChild(document.createTextNode(
+          ids.length ? ids.map(A.m.nomCourtMuscle).join(', ') : 'aucun'));
+        return l;
+      }
+      var aMoiM = A.m.muscles(c.perso), livM = A.m.muscles(c.livree);
+      corps.appendChild(liste('La tienne', aMoiM));
+      corps.appendChild(liste('Celle du carnet', livM));
+
+      /* CE QU'ON PERD, calculé — pas deux listes à comparer de l'œil. */
+      var perdus = aMoiM.filter(function (id) { return livM.indexOf(id) < 0; });
+      var gagnes = livM.filter(function (id) { return aMoiM.indexOf(id) < 0; });
+      var ecart = h('div', { class: 'item-resume', style: 'margin-top:6px' });
+      if (!perdus.length && !gagnes.length) {
+        ecart.textContent = 'Les deux portent exactement les mêmes muscles : '
+                          + 'le choix ne change rien à tes chiffres.';
+      } else {
+        var bouts = [];
+        if (perdus.length) bouts.push('prendre celle du carnet te ferait perdre '
+          + perdus.map(A.m.nomCourtMuscle).join(', '));
+        if (gagnes.length) bouts.push('elle t’apporterait '
+          + gagnes.map(A.m.nomCourtMuscle).join(', '));
+        ecart.textContent = bouts.join(' ; ') + '.';
+      }
+      corps.appendChild(ecart);
+
+      var acts = h('div', { class: 'recup-actions' });
+      var btMoi = h('button', { class: 'bt bt-petit', text: 'Je garde la mienne' });
+      btMoi.addEventListener('click', function () {
+        A.m.trancherConflit(e, c.perso.id, 'moi');
+        A.store.sauver(true);
+        A.ui.toast('Ta fiche « ' + c.perso.nom + ' » reste celle qui joue.');
+        rendre(hote);
+      });
+      var btLiv = A.ui.confirmer2(
+        h('button', { class: 'bt bt-petit bt-danger', text: 'Prendre celle du carnet' }),
+        'Appuyer encore — ta fiche sera supprimée',
+        function () {
+          A.m.trancherConflit(e, c.perso.id, 'livree');
+          A.store.sauver(true);
+          A.ui.toast('Ta fiche est supprimée ; celle du carnet prend la main.');
+          rendre(hote);
+        });
+      acts.appendChild(btMoi);
+      acts.appendChild(btLiv);
+      corps.appendChild(acts);
+      carte.appendChild(corps);
+      hote.appendChild(carte);
+    });
+
+    if (!fiches.length) {
+      hote.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune fiche à toi' }),
+        'Quand tu nommes un exercice que le carnet ne connaît pas et que tu '
+      + 'coches ses muscles, un bouton apparaît sous les muscles pour le '
+      + 'verser ici. Ses muscles reviendront seuls la fois suivante.'));
+    } else {
+      var blocD = blocRepliable('Mes fiches', fiches.length);
+      fiches.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); })
+        .forEach(function (f) {
+          var sup = h('button', { class: 'bt-icone', text: '✕',
+                                  'aria-label': 'Retirer ' + f.nom + ' de mon dictionnaire' });
+          A.ui.confirmer2(sup, '✓ ?', function () {
+            A.m.supprimerDuDictionnaire(e, f.id);
+            A.store.sauver(true);
+            A.ui.toast('« ' + f.nom + ' » n’est plus dans ton dictionnaire. '
+                     + 'Tes exercices passés gardent leurs muscles.');
+            rendre(hote);
+          });
+          var n = A.m.muscles(f).length;
+          blocD.corps.appendChild(h('div', { class: 'item' },
+            h('div', { class: 'item-corps' },
+              h('div', { class: 'item-nom', text: f.nom }),
+              h('div', { class: 'item-resume',
+                         text: n + ' muscle' + (n > 1 ? 's' : '')
+                             + ' · ' + A.m.muscles(f).map(A.m.nomCourtMuscle).join(', ') })),
+            sup));
+        });
+      hote.appendChild(blocD.carte);
+    }
+
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde' }));
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
       text: 'Tout vit sur ce téléphone, dans le stockage du navigateur. Rien ne part sur un serveur. '

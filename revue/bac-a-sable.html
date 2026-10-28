@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bac à sable — Carnet AW</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond-3); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .page { max-width: 1180px; margin: 0 auto; display: flex; gap: 18px;
+          align-items: flex-start; flex-wrap: wrap; }
+  .cote { flex: 1; min-width: 300px; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .sous { color: var(--texte-2); font-size: .9rem; margin: 0 0 14px; }
+  .garde { border: 2px solid var(--laiton); border-radius: 10px; padding: 11px 13px;
+           margin-bottom: 14px; font-size: .88rem; background: var(--laiton-doux);
+           color: var(--texte); }
+  .garde b { color: var(--texte); }
+  h2 { font-size: .95rem; margin: 18px 0 6px; text-transform: uppercase;
+       letter-spacing: .04em; color: var(--texte-2); }
+  .bt { display: block; width: 100%; margin-bottom: 7px; }
+  ul { margin: 6px 0 0; padding-left: 20px; font-size: .88rem; color: var(--texte-2); }
+  li { margin-bottom: 5px; }
+  li b { color: var(--texte); }
+  .cadre { flex: 0 0 auto; border: 10px solid var(--trait-fort); border-radius: 26px;
+           background: #000; box-shadow: var(--ombre); }
+  iframe { display: block; border: 0; border-radius: 16px; background: var(--fond); }
+  .mesure { font-size: .8rem; color: var(--laiton); font-variant-numeric: tabular-nums;
+            margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="cote">
+    <h1>Bac à sable</h1>
+    <p class="sous">L’application <b>réelle</b>, entière, avec un carnet de démonstration.
+       Promène-toi, crée un exercice, coche, supprime : tout marche comme sur ton
+       téléphone.</p>
+
+    <div class="garde">
+      <b>Ton carnet n’est pas là-dedans.</b> Le cadre tourne sur une clé de
+      stockage séparée (<code>carnet-aw-bac</code>). Rien de ce que tu fais ici
+      ne touche tes vraies données, et rien de ce qui est ici n’en vient.
+    </div>
+
+    <h2>Le décor</h2>
+    <button class="bt bt-large bt-primaire" id="bt-charger">Charger le carnet de démonstration</button>
+    <button class="bt bt-large" id="bt-vider">Repartir d’un carnet vide</button>
+    <div class="mesure" id="mesure">—</div>
+
+    <h2>Ce qu’il y a à voir</h2>
+    <ul id="guide">
+      <li><b>Suivi ▸ Séances</b> — « Ton régime » : trois séries tenues (Cup hold)
+          contre du dynamique. Et « Ce que le carnet remarque », qui se déclenche
+          sur un fait réel du décor.</li>
+      <li><b>Récup</b> — deux séances nommées, repliées à l’arrivée, chevron sur
+          le nom. Touche le nom pour ouvrir ; le ✓ valide toute la séance.</li>
+      <li><b>Séance ▸ + Exercice</b> — tape un nom que le carnet ignore, coche des
+          muscles : un bouton paraît pour <b>le verser à ton dictionnaire</b>.
+          Tape ensuite les premières lettres : il revient, avec son jeton.</li>
+      <li><b>Réglages ▸ Mon dictionnaire</b> — tes fiches, et un <b>homonyme à
+          arbitrer</b> : le carnet montre les deux et ce que tu perdrais.</li>
+      <li><b>Un exercice ▸ Équipements</b> — le Multi-Tool et ses accessoires ;
+          décoche l’outil et regarde ses muscles repartir avec lui.</li>
+    </ul>
+  </div>
+
+  <div class="cadre">
+    <iframe id="app" width="390" height="800" title="Carnet AW — bac à sable"></iframe>
+  </div>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   ON CHARGE LE VRAI index.html, ON N'EN REECRIT PAS UN.
+
+   Le banc d'interface, lui, bâtit un hôte minimal : il mesure des
+   rectangles, il n'a pas besoin de la navigation. Ici c'est l'inverse —
+   MB veut SE PROMENER, donc il lui faut l'app entière, ses onglets, son
+   en-tête, son service worker en moins.
+
+   On lit index.html, on glisse `__BAC_A_SABLE` juste après <head> (donc
+   AVANT store.js, qui le lit pour choisir sa clé) et un <base> pour que
+   `js/…` et `icones/…` se résolvent comme à la racine. Puis srcdoc.
+   ------------------------------------------------------------------ */
+var cadre = document.getElementById('app');
+var mesure = document.getElementById('mesure');
+
+function dire(t) { mesure.textContent = t; }
+
+function monter(apres) {
+  dire('chargement…');
+  fetch('../index.html?t=' + Date.now()).then(function (r) { return r.text(); })
+    .then(function (html) {
+      /* Le service worker n'a rien à faire ici : il mettrait en cache une
+         app pointée sur une autre clé, et il survivrait à l'onglet. */
+      html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+      var tete = '<base href="../">'
+               + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+      html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+      cadre.setAttribute('srcdoc', html);
+      cadre.addEventListener('load', function once() {
+        cadre.removeEventListener('load', once);
+        /* Les scripts se posent après `load` : on laisse un tour. */
+        setTimeout(function () { apres(cadre.contentWindow); }, 120);
+      });
+    })
+    .catch(function (e) { dire('échec du chargement : ' + e.message); });
+}
+
+/* ------------------------------------------------------------------
+   LE DECOR — assez riche pour que CHAQUE fonctionnement se voie
+
+   Il est bâti avec le modèle de l'app, dans le cadre : pas une copie de
+   ses structures ici, qui divergerait au premier changement.
+   ------------------------------------------------------------------ */
+function decor(fen) {
+  var m = fen.App.m;
+  var e = fen.App.store.vide();
+
+  function jourIl(n) {
+    var d = new fen.Date(); d.setDate(d.getDate() - n);
+    var z = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  }
+  function s(reps, duree, charge) {
+    return { id: m.uid('s'), type: 'normale', faite: true, faiteA: null,
+             chargeCible: '', repsCible: '', dureeCible: '',
+             chargeReel: charge == null ? '' : String(charge),
+             repsReel: reps == null ? '' : String(reps),
+             dureeReel: duree == null ? '' : String(duree), rpe: null };
+  }
+  function exo(nom, cols, mus, series, extra) {
+    var x = { id: m.uid('e'), ordre: 0, nom: nom, slug: m.slug(nom), aw: true,
+              typeCharge: 'kg', colonnes: cols, muscles: mus, forces: [],
+              structures: [], outils: [], reglages: {}, consigne: '',
+              reposSecondes: 90, series: series };
+    if (extra) Object.keys(extra).forEach(function (k) { x[k] = extra[k]; });
+    return x;
+  }
+
+  /* --- DE L'EQUIPEMENT, dont un cadre à accessoires --- */
+  m.majCatalogueOutils(e, 'Multi-Tool (Rahmen)', 'Poignées AW');
+  m.majCatalogueOutils(e, 'Iron Wrist', 'Poignées AW');
+  m.majCatalogueOutils(e, 'Fat Gripz', 'Manchons');
+  m.majReglageOutil(e, 'Iron Wrist', 'Mousqueton à l’extérieur', ['ecrl', 'ecrb', 'ecu']);
+
+  /* --- DEUX SEANCES DE MUSCU : du dynamique, et une TENUE --- */
+  e.seances.push({
+    id: m.uid('m'), type: 'muscu', date: jourIl(2), heure: '', note: '',
+    douleurs: [],
+    exercices: [
+      exo('Toproll à la poulie', ['charge', 'reps'], ['rond_pronateur', 'ecrl', 'ecrb'],
+          [s(10, null, 30), s(10, null, 30), s(8, null, 35)]),
+      exo('Wrist curl', ['charge', 'reps'], ['fcr', 'fcu', 'long_palmaire'],
+          [s(12, null, 20), s(12, null, 20), s(10, null, 22)]),
+      exo('Cup hold', ['charge', 'duree'], ['fcr', 'fcu', 'flechisseurs_doigts'],
+          [s(null, 30, 15), s(null, 30, 15), s(null, 25, 15)])
+    ]
+  });
+  e.seances.push({
+    id: m.uid('m'), type: 'muscu', date: jourIl(5), heure: '', note: '',
+    /* UNE DOULEUR AU COUDE MEDIAL : avec les sparrings en hook ci-dessous,
+       c'est ce qui fait PARLER la remarque de Marotta et al. */
+    douleurs: [{ zone: 'coude_medial', cote: 'droite', intensite: 2 }],
+    exercices: [
+      exo('Hook à la poulie', ['charge', 'reps'], ['fcr', 'fcu', 'biceps'],
+          [s(10, null, 28), s(10, null, 28)]),
+      exo('Curl Larratt', ['charge', 'reps'], ['biceps', 'brachial', 'brachio_radial'],
+          [s(8, null, 18), s(8, null, 18)])
+    ]
+  });
+
+  /* --- DES SPARRINGS, en hook : le style se lit, et la remarque se déclenche --- */
+  e.seances.push({ id: m.uid('sp'), type: 'sparring', date: jourIl(1),
+    club: 'Club', dureeMin: 25, rounds: 8, style: 'hook', cote: 'droite',
+    partenaires: 'Marc', technique: '', ressenti: '', note: '', douleurs: [] });
+  e.seances.push({ id: m.uid('sp'), type: 'sparring', date: jourIl(4),
+    club: 'Club', dureeMin: 20, rounds: 6, style: 'hook', cote: 'droite',
+    partenaires: 'Julien', technique: '', ressenti: '', note: '', douleurs: [] });
+
+  /* --- DEUX SEANCES DE RECUP, nommées : le repli et le ✓ par séance --- */
+  var r1 = m.ajouterRoutineRecup(e, 'Avant-bras du soir');
+  r1.exercices = [
+    m.exerciceProgramme({ nom: 'Side pressure', typeCharge: 'elastique',
+      colonnes: ['reps'], series: [{ repsCible: '50' }, { repsCible: '50' },
+                                   { repsCible: '50' }, { repsCible: '50' }] }),
+    m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
+      colonnes: ['reps'], series: [{ repsCible: '30' }] })
+  ];
+  var r2 = m.ajouterRoutineRecup(e, 'Élastique du matin');
+  r2.exercices = [
+    m.exerciceProgramme({ nom: 'Pronation lente', typeCharge: 'elastique',
+      colonnes: ['reps'], series: [{ repsCible: '20' }] })
+  ];
+
+  /* --- MON DICTIONNAIRE : une fiche à moi, et un HOMONYME à arbitrer --- */
+  m.ajouterAuDictionnaire(e, 'Tenue de coude à 90', ['biceps', 'brachial'],
+                          ['charge', 'duree']);
+  m.ajouterAuDictionnaire(e, 'Wrist curl', ['biceps', 'fcr', 'fcu']);
+
+  fen.App.store.remplacer ? fen.App.store.remplacer(e) : poser(fen, e);
+  return e;
+}
+
+/* `remplacer` n'existe peut-être pas : on écrit alors par la clé, et on
+   recharge — le seul chemin qui ne suppose rien du store. */
+function poser(fen, e) {
+  try { fen.localStorage.setItem('carnet-aw-bac', JSON.stringify(e)); } catch (err) {}
+}
+
+function charger() {
+  monter(function (fen) {
+    if (!fen.App || !fen.App.m || typeof fen.App.m.ajouterAuDictionnaire !== 'function') {
+      dire('l’app servie est trop ancienne pour ce décor (il lui manque le '
+         + 'dictionnaire personnel) — recharge en forçant le cache.');
+      return;
+    }
+    var e;
+    try { e = decor(fen); }
+    catch (err) { dire('le décor a échoué : ' + err.message); return; }
+    poser(fen, e);
+    /* On remonte le cadre pour que l'app relise le carnet depuis sa clé :
+       c'est le chemin réel, celui d'un démarrage. */
+    monter(function (f2) {
+      /* TOUT EST COMPTÉ SUR L'ÉTAT RELU, rien n'est annoncé de mémoire.
+         La première version de cette ligne écrivait « 1 homonyme » en dur,
+         et elle l'a affiché alors qu'il n'y en avait aucun : les fiches ne
+         survivaient pas au rechargement. C'est le compte qui a vendu la
+         mèche — une phrase fixe aurait menti sans qu'on le sache. */
+      var et = f2.App.store.etat();
+      var n = (et.seances || []).length;
+      var recups = f2.App.m.routinesRecup(et).length;
+      var fiches = f2.App.m.dictionnairePerso(et).length;
+      var conflits = f2.App.m.conflitsDictionnaire(et).length;
+      dire(n + ' séances · ' + recups + ' séances de récup · '
+         + fiches + ' fiche(s) à toi · ' + conflits + ' homonyme(s) à arbitrer');
+    });
+  });
+}
+
+function vider() {
+  try { localStorage.removeItem('carnet-aw-bac'); } catch (e) {}
+  monter(function (fen) {
+    try { fen.localStorage.removeItem('carnet-aw-bac'); } catch (e) {}
+    monter(function () { dire('carnet vide — comme au premier lancement'); });
+  });
+}
+
+document.getElementById('bt-charger').addEventListener('click', charger);
+document.getElementById('bt-vider').addEventListener('click', vider);
+charger();
+</script>
+</body>
+</html>

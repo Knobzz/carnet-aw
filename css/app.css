@@ -1133,8 +1133,37 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    Une remarque n'est pas un chiffre : elle se lit, et sa source doit se
    voir sans qu'on la cherche. */
 .carte.remarque { border-left: 3px solid var(--bleu); }
-.remarque-titre { font-weight: 650; margin-bottom: 3px; }
-.remarque-fait { font-size: .88rem; color: var(--texte-2); }
+/* LE GENRE SE VOIT AVANT DE SE LIRE. Une lacune et un raccourci vers des
+   exercices ne se recoivent pas pareil ; les confondre ferait passer une
+   proposition pour un reproche. */
+.carte.remarque-positive { border-left-color: var(--laiton); }
+.carte.remarque-choix { border-left-color: var(--trait-fort); }
+
+/* L'EN-TETE EST UN BOUTON : la carte se replie. MB, 28/10 — « plusieurs
+   recommandations, donc penser a faire quelque chose de lisible, que l'on
+   peut reduire ». Meme grammaire que les sections d'equipement. */
+.remarque-tete {
+  display: flex; align-items: flex-start; gap: 9px; width: 100%;
+  background: none; border: 0; padding: 11px 13px; text-align: left;
+  color: inherit; font: inherit; cursor: pointer; min-height: var(--tap);
+}
+.remarque-chevron { flex: 0 0 auto; padding-top: 2px; }
+/* LA ROTATION VISAIT `.equip-cat`, pas cet en-tete : le chevron restait
+   pointe vers le BAS sur une carte REPLIEE, c'est-a-dire qu'il disait
+   l'inverse de l'etat. Mesure : `transform: none` au lieu de rotate(-90deg). */
+.remarque-tete[aria-expanded="false"] .equip-chevron { transform: rotate(-90deg); }
+.remarque-tete-texte { flex: 1; min-width: 0; }
+.remarque-genre {
+  display: block; font-size: .68rem; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--texte-3); margin-bottom: 1px;
+}
+.remarque-corps { padding-top: 0; }
+.remarque-titre { font-weight: 650; margin-bottom: 3px; display: block; }
+.remarque-fait { font-size: .88rem; color: var(--texte-2); display: block; }
+/* Une remarque SANS SOURCE le dit, et ne se deguise pas en science. */
+.remarque-demande { font-size: .82rem; color: var(--texte-2); margin: 8px 0 2px; }
+.remarque-demande b { color: var(--tendon); }
+.remarque-contre { border-left-color: var(--tendon); }
 .remarque-dit {
   margin: 8px 0 6px;
   padding-left: 9px;
@@ -1450,6 +1479,13 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    de provenance, les deux se lisaient pareil. Teinte differente du laiton,
    pour que la difference se voie sans avoir a lire. */
 .jeton-connu { border-color: var(--bleu); color: var(--bleu-vif); background: var(--bleu-doux); font-weight: 550; }
+/* MA fiche se distingue de la fiche livree : meme famille (le laiton du
+   dictionnaire), teinte PLEINE au lieu de l'outline. C'est ce qu'il faut
+   savoir pour arbitrer un homonyme — lire laquelle parle.
+   Le texte est sur --fond-2 et non --laiton-doux : mesure du contraste,
+   3,8:1 en clair avec le doux, 4,6:1 avec le fond. */
+.jeton-dico-moi { border-color: var(--laiton); color: var(--fond-2);
+                  background: var(--laiton); font-weight: 600; }
 
 /* Une position que le carnet CONNAIT de l'equipement, pas encore declaree :
    elle se touche comme les autres, mais elle se distingue — sinon on ne

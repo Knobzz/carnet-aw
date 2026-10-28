@@ -8,7 +8,20 @@
      seule ligne est ce qui empeche un banc ouvert par curiosite d'effacer un
      carnet construit sur des mois. L'isolation est STRUCTURELLE, pas une
      precaution que le banc doit penser a prendre — et le banc la mesure. */
-  var CLE = window.__BANC_IHM ? 'carnet-aw-banc-ihm' : 'carnet-aw-v1';
+  /* TROIS CLES, ET AUCUNE NE SE MELANGE AU CARNET REEL.
+
+     `__BANC_IHM`   : le banc d'interface, qui ecrit et efface sans arret.
+     `__BAC_A_SABLE`: la promenade de MB — l'app ENTIERE avec un carnet de
+                      demonstration, pour voir les fonctionnements sans
+                      toucher a ses donnees. Elle a sa propre cle et non
+                      celle du banc, sinon sa promenade laisserait un decor
+                      derriere elle et le banc mesurerait ce decor.
+
+     Les deux drapeaux se posent par l'hote AVANT ce fichier ; rien dans
+     l'app ne les pose, donc le carnet reel ne peut pas tomber dessus. */
+  var CLE = window.__BANC_IHM ? 'carnet-aw-banc-ihm'
+          : window.__BAC_A_SABLE ? 'carnet-aw-bac'
+          : 'carnet-aw-v1';
   var VERSION_DONNEES = 1;
 
   function vide() {
@@ -26,6 +39,11 @@
          une seance au lieu d'un ecran vide. */
       routineRecup: null,
       routinesRecup: [],
+      /* MON DICTIONNAIRE — les fiches que MB ecrit lui-meme (nom + muscles).
+         INERTE POUR LES VERSIONS ANTERIEURES : 1.46 relit sans broncher une
+         sauvegarde qui la porte, elle l'ignore. C'est la garantie de retour
+         arriere, et elle ne coute rien ici. */
+      dictionnairePerso: [],
       /* Les releves de douleur du lendemain : independants des seances, parce
          que le lendemain d'une grosse seance est souvent un jour de repos. */
       releves: [],
@@ -59,6 +77,12 @@
     if (Array.isArray(brut.programmes)) d.programmes = brut.programmes;
     if (brut.routineRecup && typeof brut.routineRecup === 'object') d.routineRecup = brut.routineRecup;
     if (Array.isArray(brut.routinesRecup)) d.routinesRecup = brut.routinesRecup;
+    /* SANS CETTE LIGNE, MON DICTIONNAIRE NE SURVIT A RIEN. `normaliser` est
+       une liste blanche : une cle qu'elle ignore disparait au premier
+       rechargement, et a l'import. Trouve dans le bac a sable, le 28/10 —
+       pas par un controle : la fonctionnalite marchait tant qu'on ne
+       rechargeait pas. */
+    if (Array.isArray(brut.dictionnairePerso)) d.dictionnairePerso = brut.dictionnairePerso;
     if (Array.isArray(brut.releves)) d.releves = brut.releves;
     if (Array.isArray(brut.seances)) d.seances = brut.seances;
     if (brut.reglages && typeof brut.reglages === 'object') {
@@ -188,7 +212,8 @@
     var entrant = normaliser(brut);
     var bilan = { seancesAjoutees: 0, seancesGardees: 0, relevesAjoutes: 0,
                   programmesAjoutes: 0, programmesGardes: 0,
-                  exercicesAjoutes: 0, outilsAjoutes: 0 };
+                  exercicesAjoutes: 0, outilsAjoutes: 0,
+                  fichesAjoutees: 0, fichesGardees: 0 };
 
     function parId(liste) {
       var m = {};
@@ -240,6 +265,26 @@
       etat.outils.push(o);
       vusOutils[o.slug] = true;
       bilan.outilsAjoutes += 1;
+    });
+
+    /* MES FICHES SUIVENT LA MEME REGLE QUE LE RESTE : l'identite est l'id,
+       celle qui est sous les doigts fait foi, et rien n'est supprime. Sans
+       ce bloc, importer une sauvegarde laissait le dictionnaire du carnet
+       courant intact mais perdait celles de la sauvegarde — une moitie. */
+    var mesFiches = Array.isArray(etat.dictionnairePerso) ? etat.dictionnairePerso : (etat.dictionnairePerso = []);
+    var vuesFiches = parId(mesFiches);
+    var nomsVus = {};
+    mesFiches.forEach(function (f) { if (f && f.nom && A.m) nomsVus[A.m.slug(f.nom)] = true; });
+    (entrant.dictionnairePerso || []).forEach(function (f) {
+      if (!f || !f.id) return;
+      if (vuesFiches[f.id]) { bilan.fichesGardees += 1; return; }
+      /* DEUX FICHES DU MEME NOM NE PEUVENT PAS COEXISTER : la recherche n'en
+         montrerait qu'une, au hasard de l'ordre. Celle d'ici gagne, comme
+         partout ailleurs dans cette fusion. */
+      if (A.m && nomsVus[A.m.slug(f.nom)]) { bilan.fichesGardees += 1; return; }
+      mesFiches.push(f);
+      if (A.m) nomsVus[A.m.slug(f.nom)] = true;
+      bilan.fichesAjoutees += 1;
     });
 
     bilan.ecrit = ecrire();

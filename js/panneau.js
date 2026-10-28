@@ -298,7 +298,12 @@
              coller le jeton « Kilos » laisserait croire qu'elle apporte un
              type de charge, qu'elle n'apporte pas. */
           if (x.duDictionnaire) {
-            j.push({ texte: 'dictionnaire', classe: 'jeton-dico' });
+            /* « LE MIEN » SE DISTINGUE DU LIVRE. Sans ça, MB ne saurait pas
+               si les muscles qui arrivent sont les siens ou ceux du carnet —
+               et c'est précisément ce qu'il faut savoir pour arbitrer un
+               homonyme. */
+            j.push(x.aMoi ? { texte: 'mon dictionnaire', classe: 'jeton-dico-moi' }
+                          : { texte: 'dictionnaire', classe: 'jeton-dico' });
             if (x.entree && x.entree !== x.nom) j.push({ texte: '= ' + x.entree });
             j.push({ texte: x.muscles.length + ' muscles' });
           } else {
@@ -544,6 +549,13 @@
              c'est un reglage ordinaire, et ses muscles s'y ajoutent depuis
              la fiche quand MB le voudra. */
           function poserSuggere(nom) {
+            /* MEME REGLE QUE `poser` : poser une suggestion REMPLACE le
+               reglage courant, donc elle en reprend les muscles. Sans ces
+               deux lignes, passer de « Centre » a « Exterieur » par la puce
+               suggeree cumulait les deux. */
+            var avant = A.m.reglageDe(exo, nomOutil);
+            var repris = (avant && A.m.slug(avant) !== A.m.slug(nom))
+                       ? reprendreReglage(nomOutil, avant) : [];
             /* IL EMPORTE LES MUSCLES DE SA FAMILLE, quand elle est connue.
                Monter le Kegel sur un Multi-Tool donne les muscles du cone,
                sans rien a saisir — c'est tout l'interet. Un accessoire que
@@ -554,18 +566,23 @@
                     ? A.m.musclesDuReglagePropose(nomOutil, nom) : [];
             A.m.majReglageOutil(etat(), nomOutil, nom, mus);
             A.m.poserReglage(exo, nomOutil, nom);
+            /* `neufs` est DECLARE ICI et non dans le `if` : il est lu plus
+               bas pour composer le message, et un `var` interne au bloc
+               rendrait `undefined` quand l'accessoire ne porte aucun muscle
+               — ce qui est le cas de « Wrist Pro » et « Multi Hand Grip ». */
+            var neufs = [];
             if (mus.length) {
-              var fusion = A.m.muscles(exo).slice(), neufs = [];
+              var fusion = A.m.muscles(exo).slice();
               mus.forEach(function (id) {
                 if (fusion.indexOf(id) < 0) { fusion.push(id); neufs.push(id); }
               });
               exo.muscles = A.m.muscles({ muscles: fusion });
-              noterPose(nomOutil, neufs);
-              if (neufs.length) A.ui.toast(neufs.length + ' muscle'
-                                  + (neufs.length > 1 ? 's' : '')
-                                  + ' coché' + (neufs.length > 1 ? 's' : '')
-                                  + ' — « ' + nom + ' »');
+              noterPose(nomOutil, nom, neufs);
             }
+            var dits = [];
+            if (neufs.length) dits.push('Coché : ' + neufs.map(A.m.nomCourtMuscle).join(', '));
+            if (repris.length) dits.push('décoché : ' + repris.map(A.m.nomCourtMuscle).join(', '));
+            if (dits.length) A.ui.toast(dits.join(' · ') + ' — « ' + nom + ' »');
             A.store.sauver(true);
             rafraichirReglages();
             rafraichirMuscles();
@@ -622,17 +639,24 @@
             });
           }
           function poser(nom) {
-            A.m.poserReglage(exo, nomOutil, nom);
-            /* POSER UN REGLAGE COCHE SES MUSCLES, directement — MB, 28/10 :
-               « je clique sur un, ca influence mon exo et les muscles tout
-               simplement ».
+            /* ON REPREND L'ANCIEN AVANT DE POSER LE NEUF.
 
-               C'EST LE MEME GESTE QU'UN MOUVEMENT, et il suit la meme regle
-               depuis le 26/10 : cocher AJOUTE, changer de reglage ne retire
-               pas. Deux reglages peuvent partager un muscle, et un retrait
-               effacerait ce qu'un autre avait pose. Le reglage vient de MB
-               lui-meme, il a ecrit ses muscles : ce n'est pas une
-               proposition, c'est sa declaration. */
+               MB, 28/10 : « tout devrait se decocher quand je clique sur
+               aucun ». La regle du 26/10 disait le contraire — « changer de
+               reglage ne retire pas » — par crainte d'effacer ce qu'un
+               autre reglage avait pose. La crainte etait juste, la
+               conclusion non : `encoreRevendique` regarde, et ne retire que
+               ce que plus personne ne reclame.
+
+               Re-appuyer sur le reglage DEJA pose ne reprend rien : ce
+               n'est pas un changement, et le decocher puis le recocher
+               ferait clignoter un toast pour rien. */
+            var avant = A.m.reglageDe(exo, nomOutil);
+            var repris = [];
+            if (avant && A.m.slug(avant) !== A.m.slug(nom || '')) {
+              repris = reprendreReglage(nomOutil, avant);
+            }
+            A.m.poserReglage(exo, nomOutil, nom);
             var choisi = null;
             l.forEach(function (r) { if (r.nom === nom) choisi = r; });
             var ajoutes = [];
@@ -642,14 +666,23 @@
                 if (fusion.indexOf(id) < 0) { fusion.push(id); ajoutes.push(id); }
               });
               exo.muscles = A.m.muscles({ muscles: fusion });
-              noterPose(nomOutil, ajoutes);
-              rafraichirMuscles();
+              noterPose(nomOutil, nom, ajoutes);
             }
+            if (ajoutes.length || repris.length) rafraichirMuscles();
             majPuces();
             majAideMuscles();
+            /* UN SEUL MESSAGE, QUI DIT LES DEUX SENS. Deux toasts coup sur
+               coup se chassent l'un l'autre, et c'est le premier — ce qui
+               part — qu'on perdrait. */
+            var dits = [];
             if (ajoutes.length) {
-              A.ui.toast(ajoutes.length + ' muscle' + (ajoutes.length > 1 ? 's' : '')
-                       + ' coché' + (ajoutes.length > 1 ? 's' : '') + ' — « ' + nom + ' »');
+              dits.push('Coché : ' + ajoutes.map(A.m.nomCourtMuscle).join(', '));
+            }
+            if (repris.length) {
+              dits.push('décoché : ' + repris.map(A.m.nomCourtMuscle).join(', '));
+            }
+            if (dits.length) {
+              A.ui.toast(dits.join(' · ') + (nom ? ' — « ' + nom + ' »' : '.'));
             }
           }
           [{ nom: null, texte: 'Aucun' }].concat(l.map(function (r) {
@@ -721,11 +754,51 @@
          jamais un muscle coche a la main, jamais un muscle qu'un mouvement
          ou un autre outil avait deja pose, puisqu'il n'etait pas dans
          `neufs`. */
-      var poseParOutil = {};
+      var poseParReglage = {};
 
-      function noterPose(nomOutil, ajoutes) {
-        var c = A.m.slug(nomOutil);
-        poseParOutil[c] = (poseParOutil[c] || []).concat(ajoutes);
+      /* « outil|reglage ». Un outil sans reglage a la clé « outil| ». */
+      function clefPose(nomOutil, nomReglage) {
+        return A.m.slug(nomOutil) + '|' + A.m.slug(nomReglage || '');
+      }
+
+      function noterPose(nomOutil, nomReglage, ajoutes) {
+        var c = clefPose(nomOutil, nomReglage);
+        poseParReglage[c] = (poseParReglage[c] || []).concat(ajoutes);
+      }
+
+      /* LA GARDE QUI MANQUAIT AU RAISONNEMENT DU 26/10. Il disait : « deux
+         réglages peuvent partager un muscle, et un retrait effacerait ce
+         qu'un autre avait posé », et il en concluait qu'il ne fallait rien
+         retirer. La crainte était fondée ; la conclusion, non. Il suffit
+         de REGARDER qui revendique encore le muscle.
+
+         La clé du réglage qu'on retire est supprimée AVANT l'appel : ce
+         qui reste ici, ce sont les autres. */
+      function encoreRevendique(id) {
+        var cles = Object.keys(poseParReglage), i;
+        for (i = 0; i < cles.length; i++) {
+          if (poseParReglage[cles[i]].indexOf(id) >= 0) return true;
+        }
+        return false;
+      }
+
+      /* Rend ce qui a VRAIMENT ete decoche, pour que l'appelant le DISE. */
+      function retirerMuscles(ids) {
+        var vraiment = ids.filter(function (id) { return !encoreRevendique(id); });
+        if (!vraiment.length) return [];
+        exo.muscles = A.m.muscles(exo).filter(function (id) {
+          return vraiment.indexOf(id) < 0;
+        });
+        return vraiment;
+      }
+
+      /* CE QU'UN SEUL REGLAGE A POSE. MB : « tout devrait se decocher quand
+         je clique sur aucun ». */
+      function reprendreReglage(nomOutil, nomReglage) {
+        var c = clefPose(nomOutil, nomReglage);
+        var ids = poseParReglage[c] || [];
+        delete poseParReglage[c];
+        return retirerMuscles(ids);
       }
 
       /* RETIRER UN OUTIL LUI REPREND CE QU'IL AVAIT POSE, et rien d'autre.
@@ -738,18 +811,21 @@
 
          Rend la liste reprise, pour que l'appelant le DISE. */
       function reprendreOutil(nom) {
-        var cle = A.m.slug(nom);
-        var aRetirer = poseParOutil[cle] || [];
-        delete poseParOutil[cle];
+        /* TOUT CE QUI A ETE POSE SOUS CET OUTIL, accessoires compris :
+           retirer le Multi-Tool doit reprendre ce que le Kegel avait posé
+           en étant monté dessus. D'où le préfixe plutôt qu'une clé. */
+        var pref = A.m.slug(nom) + '|';
+        var ids = [];
+        Object.keys(poseParReglage).forEach(function (c) {
+          if (c.indexOf(pref) !== 0) return;
+          ids = ids.concat(poseParReglage[c]);
+          delete poseParReglage[c];
+        });
         /* Le reglage pose sur cet outil s'en va avec lui : garder
            « Mousqueton a l'exterieur » sur un outil qu'on vient d'enlever
            n'a aucun sens. */
         A.m.poserReglage(exo, nom, null);
-        if (!aRetirer.length) return [];
-        exo.muscles = A.m.muscles(exo).filter(function (id) {
-          return aRetirer.indexOf(id) < 0;
-        });
-        return aRetirer;
+        return retirerMuscles(ids);
       }
 
       /* Ce que le champ a jetons vient de retirer, compare a l'etat d'avant. */
@@ -1070,6 +1146,14 @@
       var aideMuscles = h('div', { class: 'item-resume' });
       var btProposer = h('button', { type: 'button', class: 'bt',
                                      style: 'margin-top:7px;width:100%' });
+      /* VERSER CE NOM AU DICTIONNAIRE. Il porte le nom et les muscles, rien
+         d'autre — le contrat des fiches livrées, tenu à l'identique. */
+      /* UNE CLASSE, et non pas son texte, pour qu'on puisse le designer.
+         Le banc le cherchait par le mot « dictionnaire » et attrapait la
+         LIGNE D'AUTOCOMPLETION, qui porte le jeton « mon dictionnaire » :
+         deux controles mesuraient alors un element qui n'etait pas celui-la. */
+      var btDico = h('button', { type: 'button', class: 'bt bt-dico',
+                                 style: 'margin-top:7px;width:100%' });
 
       function majAideMuscles() {
         var l = A.m.muscles(exo);
@@ -1107,6 +1191,39 @@
               ? 'Proposer d’après ' + (depuis[prop.source] || 'ce qui est renseigné')
                 + ' (' + manquants.length + ')'
               : 'Proposition déjà appliquée');
+
+        majBtDico(l);
+      }
+
+      /* TROIS ÉTATS, ET JAMAIS UN BOUTON MORT.
+
+         Le cas qu'on pourrait croire anodin est celui du nom DÉJÀ LIVRÉ :
+         y proposer « ajouter » fabriquerait un homonyme que personne n'a
+         demandé — c'est-à-dire le conflit que MB vient de me demander
+         d'outiller. On ne crée pas le problème qu'on vient d'armer. */
+      function majBtDico(lesMuscles) {
+        var nom = champNom.value.trim();
+        var l = lesMuscles || A.m.muscles(exo);
+        if (!nom || !l.length) { btDico.hidden = true; return; }
+
+        var mienne = A.m.dictionnairePerso(etat()).filter(function (f) {
+          return A.m.slug(f.nom) === A.m.slug(nom);
+        })[0];
+        if (mienne) {
+          var pareil = (mienne.muscles || []).slice().sort().join(',')
+                     === l.slice().sort().join(',');
+          btDico.hidden = false;
+          btDico.disabled = pareil;
+          btDico.textContent = pareil
+            ? 'Déjà dans ton dictionnaire'
+            : 'Mettre à jour ta fiche (' + l.length + ' muscles)';
+          return;
+        }
+        if (A.m.ficheLivree(nom)) { btDico.hidden = true; return; }
+
+        btDico.hidden = false;
+        btDico.disabled = false;
+        btDico.textContent = 'Ajouter « ' + nom + ' » à ton dictionnaire';
       }
 
       function rafraichirMuscles() {
@@ -1137,6 +1254,25 @@
           : 'Proposé — à vérifier : les directions de poussée ne sont pas des actions articulaires.');
       });
 
+      btDico.addEventListener('click', function () {
+        var nom = champNom.value.trim();
+        var l = A.m.muscles(exo);
+        if (!nom || !l.length) return;
+        var neuve = !A.m.dictionnairePerso(etat()).some(function (f) {
+          return A.m.slug(f.nom) === A.m.slug(nom);
+        });
+        A.m.ajouterAuDictionnaire(etat(), nom, l, A.m.colonnes(exo));
+        A.store.sauver(true);
+        majBtDico();
+        /* LE MESSAGE DIT CE QUE LA FICHE FAIT ET CE QU'ELLE NE FAIT PAS.
+           Sans la seconde moitié, MB s'attendrait à retrouver son type de
+           charge et ses outils, et ne les retrouverait pas. */
+        A.ui.toast(neuve
+          ? '« ' + nom + ' » est dans ton dictionnaire : ses ' + l.length
+            + ' muscles reviendront seuls. Le type de charge et les outils, non.'
+          : 'Ta fiche « ' + nom + ' » porte maintenant ' + l.length + ' muscles.');
+      });
+
       /* L'entrée de secours : les noms latins ne parlent pas à tout le monde,
          et une case qu'on ne sait pas cocher reste vide. */
       var ouCaTire = A.ui.selecteurOuCaTire(
@@ -1149,6 +1285,7 @@
       var grMuscles = A.ui.groupe('Muscles sollicités', ouCaTire);
       grMuscles.appendChild(boiteMuscles);
       grMuscles.appendChild(btProposer);
+      grMuscles.appendChild(btDico);
       grMuscles.appendChild(aideMuscles);
       c.appendChild(grMuscles);
 
