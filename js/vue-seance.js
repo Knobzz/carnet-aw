@@ -245,6 +245,43 @@
     ligne.appendChild(num);
     ligne.appendChild(btPrec);
     cols.forEach(function (id) { ligne.appendChild(champs[id]); });
+
+    /* ---- LE MINUTEUR DE L'EXERCICE (MB, 28/10) ----
+       « Un exo avec juste du temps : je n'ai pas un timer qui fait les
+       60 sec, c'est primordial […] en plus du timer de repos. »
+
+       Il n'apparait QUE sur les exercices qui ont la colonne « Sec » : les
+       autres gardent exactement la ligne d'avant, et aucune grille ne
+       bouge pour rien.
+
+       IL NE SE PRESENTE JAMAIS MORT. La duree se lit au moment de l'appui
+       — d'abord ce qui est saisi, puis la cible — et si rien n'est note, il
+       le DIT au lieu de rester gris. C'est la lecon du bouton « Choisir
+       dans mon equipement », qui se lisait « c'est casse ». */
+    if (A.m.aColonne(exo, 'duree')) {
+      ligne.classList.add('a-minuteur');
+      var go = h('button', { type: 'button', class: 'serie-go', text: '▶',
+                             'aria-label': 'Lancer la durée de cette série' });
+      go.addEventListener('click', function () {
+        if (A.ui.chrono.actif()) {
+          A.ui.chrono.arreter();
+          go.setAttribute('aria-pressed', 'false');
+          return;
+        }
+        var saisi = champs.duree ? A.m.secondes(champs.duree.value) : null;
+        var sec = saisi || A.m.secondes(serie.dureeCible);
+        if (!sec) {
+          A.ui.toast('Note d’abord une durée pour cette série.');
+          if (champs.duree) champs.duree.focus();
+          return;
+        }
+        var r = exo.series.indexOf(serie) + 1;
+        A.ui.chrono.demarrer(sec, exo.nom + ' · ' + sec + ' s');
+        go.setAttribute('aria-pressed', 'true');
+      });
+      ligne.appendChild(go);
+    }
+
     ligne.appendChild(ok);
     majRpe();
     return ligne;
@@ -303,6 +340,15 @@
       cols.forEach(function (id) {
         entete.appendChild(h('span', { text: A.m.colonne(id).label(tc) }));
       });
+      /* LA COLONNE DU ▶, vide dans l'en-tete : sans elle, l'en-tete et les
+         lignes n'ont plus le meme nombre de colonnes et tout glisse d'un
+         cran. */
+      if (A.m.aColonne(exo, 'duree')) {
+        entete.classList.add('a-minuteur');
+        entete.appendChild(h('span'));
+      } else {
+        entete.classList.remove('a-minuteur');
+      }
       entete.appendChild(h('span'));
     }
     majEntete();

@@ -3100,6 +3100,136 @@
      montre une journee passee — l'onglet Recup ne presente que le jour
      courant. Elle etait donc DEFINITIVE.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     LE MINUTEUR D'UN EXERCICE EN DUREE
+
+     MB, 28/10 : « un exo avec juste du temps (par exemple 60 sec) : je n'ai
+     pas un timer qui fait les 60 sec, c'est primordial […] en plus du timer
+     de repos ». Affichage A, choisi apres avoir clique les trois
+     simulations : un ▶ sur la ligne, entre la duree et le ✓.
+     --------------------------------------------------------------- */
+  bloc('Minuteur d’un exercice en durée', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+    e.seances.length = 0;
+    e.programmes.length = 0;
+    e.seanceEnCoursId = null;
+
+    var prog = m.programme('Essai');
+    var enDuree = m.exerciceProgramme({ nom: 'Tenue en cup', colonnes: ['duree'] });
+    enDuree.series = [m.serieProgramme({ dureeCible: 60 }),
+                      m.serieProgramme({ dureeCible: 60 })];
+    var sansDuree = m.exerciceProgramme({ nom: 'Curl',
+                                          colonnes: ['charge', 'reps'] });
+    sansDuree.series = [m.serieProgramme({ chargeCible: 20, repsCible: 10 })];
+    prog.exercices = [enDuree, sansDuree];
+    e.programmes.push(prog);
+    var se = m.seanceMuscu(prog);
+    e.seances.push(se);
+    e.seanceEnCoursId = se.id;
+
+    fen.App.vues.seance.rendre(vue);
+
+    function ranger() {
+      fen.App.ui.chrono.arreter();
+      return attendre(80).then(function () {
+        fen.App.ui.vider(vue);
+        var st = fen.App.store.etat();
+        st.seances.length = 0;
+        st.programmes.length = 0;
+        st.seanceEnCoursId = null;
+      });
+    }
+
+    return attendre(260).then(function () {
+      var blocs = Array.prototype.slice.call(vue.querySelectorAll('.series'));
+      v.egal(blocs.length, 2, '[temoin] les deux exercices sont à l’écran');
+      if (blocs.length < 2) return ranger();
+
+      var gos = blocs[0].querySelectorAll('.serie-go');
+      v.egal(gos.length, 2,
+             'un exercice en durée porte un ▶ PAR SÉRIE');
+      v.egal(blocs[1].querySelectorAll('.serie-go').length, 0,
+             'et un exercice SANS durée n’en porte aucun — sa ligne ne '
+           + 'change pas d’un pixel');
+      /* RIEN A MESURER : on sort en le DISANT, au lieu de planter sur
+         `gos[0]` et d'emporter le reste du bloc. Quatrieme fois de la
+         session que cette forme se paie. */
+      if (!gos.length) return ranger();
+
+      /* L'EN-TETE SUIT, sinon tout glisse d'un cran. */
+      var e1 = blocs[0].parentNode.querySelector('.serie-entete')
+            || vue.querySelectorAll('.serie-entete')[0];
+      v.vrai(!!e1 && e1.className.indexOf('a-minuteur') >= 0,
+             'l’en-tête porte la même colonne que les lignes');
+
+      v.vrai(gos[0].getBoundingClientRect().height >= 44,
+             'le ▶ se touche au pouce ('
+           + Math.round(gos[0].getBoundingClientRect().height) + ' px)');
+
+      /* LE PRIX DE LA SIXIEME COLONNE, mesure sur la ligne reelle : le plus
+         petit champ de saisie doit tenir les 40 px du banc. */
+      var mini = Infinity;
+      Array.prototype.forEach.call(blocs[0].querySelectorAll('.serie .champ'),
+        function (c) {
+          var w = c.getBoundingClientRect().width;
+          if (w > 0 && w < mini) mini = w;
+        });
+      v.vrai(mini === Infinity || mini >= 40,
+             'et le champ de saisie tient les 40 px malgré la colonne de '
+           + 'plus (' + (mini === Infinity ? '—' : Math.round(mini) + ' px') + ')');
+
+      /* L'EFFET : le chrono part, avec la duree ET le nom. */
+      gos[0].click();
+      return attendre(220).then(function () {
+        var ch = doc.querySelector('.chrono');
+        v.vrai(!!ch && doc.body.classList.contains('chrono-ouvert'),
+               'un appui LANCE le chronomètre');
+        v.egal(ch ? ch.querySelector('.chrono-quoi').textContent : '',
+               'Tenue en cup · 60 s',
+               'il dit QUOI et COMBIEN — sans quoi on ne sait pas si c’est '
+             + 'le travail ou le repos qui tourne');
+        v.egal(ch ? ch.querySelector('.chrono-temps').textContent : '', '1:00',
+               'et il part de la durée de la série, pas du repos');
+        v.egal(gos[0].getAttribute('aria-pressed'), 'true',
+               'le ▶ montre qu’il tourne');
+
+        gos[0].click();
+        return attendre(200).then(function () {
+          v.egal(doc.body.classList.contains('chrono-ouvert'), false,
+                 'un second appui l’arrête');
+          v.egal(gos[0].getAttribute('aria-pressed'), 'false',
+                 'et le ▶ le montre aussi');
+
+          /* AUCUNE DUREE NOTEE : il le DIT au lieu de rester gris. C'est la
+             lecon du bouton « Choisir dans mon equipement ». */
+          var st = fen.App.store.etat();
+          st.seances[0].exercices[0].series.forEach(function (x) {
+            x.dureeCible = null;
+            x.dureeReel = null;
+          });
+          fen.App.vues.seance.rendre(vue);
+          return attendre(260).then(function () {
+            var g2 = vue.querySelectorAll('.serie-go')[0];
+            v.vrai(!!g2, '[temoin] le ▶ est toujours là sans durée notée');
+            if (g2) g2.click();
+            return attendre(220).then(function () {
+              v.egal(doc.body.classList.contains('chrono-ouvert'), false,
+                     'sans durée notée, rien ne part');
+              var t = doc.querySelector('.toast');
+              v.vrai(!!t && t.textContent.indexOf('durée') >= 0,
+                     'et il le DIT : « ' + (t ? t.textContent : 'rien')
+                   + ' »');
+              return ranger();
+            });
+          });
+        });
+      });
+    });
+  });
+
   bloc('Une journée de récup se supprime', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');

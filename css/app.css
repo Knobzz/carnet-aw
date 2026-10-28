@@ -457,6 +457,64 @@ select.champ { appearance: none; background-image: none; }
 .serie[data-cols="3"] > :nth-child(5) { grid-area: c3; }
 .serie-entete[data-cols="3"] > :nth-child(6),
 .serie[data-cols="3"] > :nth-child(6) { grid-area: ok; }
+/* ---- LE DEPART D'UN EXERCICE EN DUREE (MB, 28/10) ----
+   Une SIXIEME colonne, large comme une cible tactile, et seulement sur les
+   exercices qui ont la colonne « Sec » : les autres gardent exactement la
+   grille d'avant.
+
+   LE PRIX A ETE MESURE AVANT DE L'ECRIRE, sur la page de simulation et au
+   pire cas — trois colonnes de saisie, charge + reps + duree, celui qui
+   passe deja sur deux rangs. Le plus petit champ descend de 62 px a 46 px.
+   Le banc en exige 40 : ca tient. Je le croyais impossible ; la mesure a
+   dit le contraire. */
+.serie.a-minuteur {
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)
+                         var(--tap) var(--tap);
+}
+.serie-entete.a-minuteur[data-cols="1"],
+.serie.a-minuteur[data-cols="1"] {
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr)
+                         var(--tap) var(--tap);
+}
+.serie-entete.a-minuteur[data-cols="2"],
+.serie.a-minuteur[data-cols="2"] {
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)
+                         var(--tap) var(--tap);
+}
+/* A TROIS COLONNES, LE ▶ NE COUTE RIEN EN LARGEUR : la ligne est deja sur
+   DEUX rangs, et la colonne de droite porte le ▶ au-dessus du ✓. Garder six
+   colonnes ici faisait tomber le plus petit champ a 36 px — sous le
+   plancher de 40. C'est le banc qui l'a dit : ma page de simulation
+   annoncait 46 px, parce qu'elle mesurait un decor fabrique et non la vraie
+   ligne. */
+.serie-entete.a-minuteur[data-cols="3"],
+.serie.a-minuteur[data-cols="3"] {
+  grid-template-columns: 2.3rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)
+                         var(--tap);
+  grid-template-areas:
+    "num prec prec prec go"
+    "num c1   c2   c3   ok";
+}
+/* Le ▶ s'intercale AVANT le ✓ : a trois colonnes, les zones nommees de la
+   regle d'origine visaient le 6e enfant pour le ✓, qui est desormais le
+   7e. Sans ces deux lignes, le ✓ se retrouverait a la place du ▶. */
+.serie-entete.a-minuteur[data-cols="3"] > :nth-child(6),
+.serie.a-minuteur[data-cols="3"] > :nth-child(6) { grid-area: go; }
+.serie-entete.a-minuteur[data-cols="3"] > :nth-child(7),
+.serie.a-minuteur[data-cols="3"] > :nth-child(7) { grid-area: ok; }
+
+.serie-go {
+  min-height: var(--tap);
+  border-radius: var(--r-s);
+  border: 1px solid var(--bleu);
+  background: var(--bleu-doux);
+  color: var(--bleu);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.serie-go[aria-pressed="true"] { background: var(--bleu); color: #fff; }
+
 /* L'en-tete n'a rien a dire sur le rang du haut : « Précédent » suffit. */
 .serie-entete[data-cols="3"] { row-gap: 2px; }
 

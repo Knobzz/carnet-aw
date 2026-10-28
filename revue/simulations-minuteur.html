@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations — le minuteur d’un exercice en durée</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .intro { max-width: 1140px; margin: 0 auto 16px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .intro p { margin: 4px 0; color: var(--texte-2); font-size: .92rem; }
+  .barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+           margin-top: 10px; }
+  .trace { font-size: .86rem; color: var(--bleu-vif); min-height: 20px; }
+  .rangee { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+            max-width: 1140px; margin: 0 auto; }
+  .sim { width: 340px; flex: 0 0 340px; }
+  .sim > h2 { font-size: 1rem; margin: 0 0 2px; }
+  .sim > .pourquoi { font-size: .82rem; color: var(--texte-2); margin: 0 0 8px;
+                     min-height: 74px; }
+  .ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+           background: var(--fond-2); padding: 12px; width: 320px;
+           box-sizing: border-box; }
+  .cout { font-size: .8rem; color: var(--texte-2); margin-top: 8px;
+          border-top: 1px solid var(--trait); padding-top: 6px; }
+  .cout b { color: var(--texte); }
+  .exo-nom { font-weight: 650; margin-bottom: 6px; }
+  .mesure { font-size: .78rem; color: var(--laiton); margin-top: 6px; }
+  /* la sixieme colonne de la variante A, pour en MONTRER le prix */
+  .serie.avecDepart {
+    grid-template-columns: 2.3rem minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)
+                           var(--tap) var(--tap);
+  }
+  .serie-go { min-height: var(--tap); border-radius: var(--r-s);
+              border: 1px solid var(--bleu); background: var(--bleu-doux);
+              color: var(--bleu); font: inherit; font-weight: 650;
+              cursor: pointer; }
+  .serie-go[aria-pressed="true"] { background: var(--bleu); color: #fff; }
+  .bandeau-go { display: flex; align-items: center; gap: 8px;
+                margin: 6px 0 8px; }
+  .bandeau-go .bt { flex: 1; }
+  .reste { font-variant-numeric: tabular-nums; font-weight: 650;
+           color: var(--bleu-vif); min-width: 54px; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Le minuteur d’un exercice en durée — trois places, cliquables</h1>
+  <p>MB, 28/10 : « quand je rajoute un exo avec juste du temps (par exemple
+     60 sec), je n’ai pas un timer qui fait les 60 sec […] en plus du timer
+     de repos ».</p>
+  <p><strong>Tout réagit.</strong> Chaque écran fait 320 px — la largeur la
+     plus dure — avec le vrai CSS de l’app. Les minuteurs décomptent pour de
+     vrai (raccourcis à 6 s pour que tu puisses les voir finir). L’exercice
+     simulé est « Tenue en cup », <strong>2 séries de 60 s</strong>, repos
+     90 s.</p>
+  <p id="mesure"></p>
+  <div class="barre">
+    <button class="bt bt-petit" id="raz" type="button">Remettre à zéro</button>
+    <span class="trace" id="trace">Appuie sur un départ : ce qui se passe
+      s’écrit ici.</span>
+  </div>
+</div>
+
+<div class="rangee" id="rangee"></div>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var DUREE = 6;          // 60 s dans la vraie vie, 6 ici pour voir la fin
+  var REPOS = 4;          // 90 s dans la vraie vie
+  var etats = [null, null, null];
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+  function bouton(cls, txt, f) {
+    var b = el('button', cls, txt);
+    b.type = 'button';
+    if (f) b.addEventListener('click', f);
+    return b;
+  }
+  function dit(t) { document.getElementById('trace').textContent = t; }
+  function mmss(s) {
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  /* Un seul minuteur a la fois, comme le chronometre de l'app. */
+  var tic = null;
+  function lancer(i, quoi, secondes, libelle, surFin) {
+    if (tic) clearInterval(tic);
+    etats[i] = { quoi: quoi, reste: secondes, libelle: libelle };
+    dit(libelle);
+    rendre();
+    tic = setInterval(function () {
+      var e = etats[i];
+      if (!e) { clearInterval(tic); tic = null; return; }
+      e.reste--;
+      if (e.reste <= 0) {
+        clearInterval(tic); tic = null;
+        etats[i] = null;
+        dit(quoi === 'travail'
+          ? 'Les ' + secondes + ' s sont écoulées. À toi de valider la série.'
+          : 'Repos terminé.');
+        if (surFin) surFin();
+      }
+      rendre();
+    }, 1000);
+  }
+  function arreter(i) {
+    if (tic) { clearInterval(tic); tic = null; }
+    etats[i] = null;
+    dit('Arrêté.');
+    rendre();
+  }
+
+  /* --- une ligne de serie, au vrai gabarit --- */
+  function ligneSerie(i, n, opts) {
+    var l = el('div', 'serie' + (opts.avecDepart ? ' avecDepart' : ''));
+    l.setAttribute('data-cols', String(opts.cols));
+    l.appendChild(bouton('serie-num', String(n)));
+    l.appendChild(bouton('serie-prec', opts.prec || '—'));
+    for (var k = 0; k < opts.cols; k++) {
+      var c = el('input', 'champ');
+      c.placeholder = opts.phs[k] || '';
+      l.appendChild(c);
+    }
+    if (opts.avecDepart) {
+      var e = etats[i];
+      var actif = e && e.quoi === 'travail' && e.serie === n;
+      var go = bouton('serie-go', actif ? String(e.reste) : '▶', function () {
+        if (actif) { arreter(i); return; }
+        var s = etats[i] = null;
+        lancer(i, 'travail', DUREE, 'Série ' + n + ' lancée : ' + DUREE
+             + ' s de travail.');
+        etats[i].serie = n;
+        rendre();
+      });
+      go.setAttribute('aria-pressed', actif ? 'true' : 'false');
+      l.appendChild(go);
+    }
+    l.appendChild(bouton('serie-ok', '✓', function () {
+      lancer(i, 'repos', REPOS, 'Série ' + n + ' validée : repos de '
+           + REPOS + ' s.');
+    }));
+    return l;
+  }
+
+  function entete(cols, avecDepart) {
+    var h = el('div', 'serie-entete' + (avecDepart ? ' avecDepart' : ''));
+    h.setAttribute('data-cols', String(cols));
+    h.appendChild(el('span', null, ''));
+    h.appendChild(el('span', null, 'Précédent'));
+    ['Durée'].concat(cols > 1 ? ['Reps'] : []).forEach(function (t) {
+      h.appendChild(el('span', null, t));
+    });
+    if (avecDepart) h.appendChild(el('span', null, ''));
+    h.appendChild(el('span', null, ''));
+    return h;
+  }
+
+  function bandeauRepos(i) {
+    var e = etats[i];
+    if (!e || e.quoi !== 'repos') return null;
+    var d = el('div', 'bandeau-go');
+    d.appendChild(el('div', 'item-resume', 'Repos'));
+    d.appendChild(el('div', 'reste', mmss(e.reste)));
+    return d;
+  }
+
+  /* --- A : un depart en sixieme colonne --- */
+  function simA(i) {
+    var c = el('div');
+    c.appendChild(el('div', 'exo-nom', 'Tenue en cup'));
+    c.appendChild(entete(1, true));
+    c.appendChild(ligneSerie(i, 1, { cols: 1, phs: ['60'], avecDepart: true,
+                                     prec: '60 s' }));
+    c.appendChild(ligneSerie(i, 2, { cols: 1, phs: ['60'], avecDepart: true,
+                                     prec: '60 s' }));
+    var r = bandeauRepos(i);
+    if (r) c.appendChild(r);
+    c.appendChild(el('div', 'mesure', 'mesure à l’écran : voir sous l’encadré'));
+    return c;
+  }
+
+  /* --- B : le champ Duree est le depart --- */
+  function simB(i) {
+    var c = el('div');
+    c.appendChild(el('div', 'exo-nom', 'Tenue en cup'));
+    c.appendChild(entete(1, false));
+    [1, 2].forEach(function (n) {
+      var l = el('div', 'serie');
+      l.setAttribute('data-cols', '1');
+      l.appendChild(bouton('serie-num', String(n)));
+      l.appendChild(bouton('serie-prec', '60 s'));
+      var e = etats[i];
+      var actif = e && e.quoi === 'travail' && e.serie === n;
+      var champ = bouton('champ', actif ? e.reste + ' s' : '60', function () {
+        if (actif) { arreter(i); return; }
+        etats[i] = null;
+        lancer(i, 'travail', DUREE, 'Série ' + n + ' lancée en touchant la '
+             + 'durée.');
+        etats[i].serie = n;
+        rendre();
+      });
+      champ.style.textAlign = 'center';
+      if (actif) { champ.style.color = 'var(--bleu)'; champ.style.fontWeight = '650'; }
+      l.appendChild(champ);
+      l.appendChild(bouton('serie-ok', '✓', function () {
+        lancer(i, 'repos', REPOS, 'Série ' + n + ' validée : repos.');
+      }));
+      c.appendChild(l);
+    });
+    var r = bandeauRepos(i);
+    if (r) c.appendChild(r);
+    c.appendChild(el('div', 'item-resume',
+      'La durée cible se touche pour lancer. Elle ne se saisit plus au clavier.'));
+    return c;
+  }
+
+  /* --- C : un bandeau au-dessus de l'exercice --- */
+  function simC(i) {
+    var c = el('div');
+    c.appendChild(el('div', 'exo-nom', 'Tenue en cup'));
+    var e = etats[i];
+    var enTravail = e && e.quoi === 'travail';
+    var d = el('div', 'bandeau-go');
+    d.appendChild(bouton('bt', enTravail ? 'Arrêter' : '▶ Lancer 60 s',
+      function () {
+        if (enTravail) { arreter(i); return; }
+        lancer(i, 'travail', DUREE, 'Lancé pour la série 1 : ' + DUREE + ' s.');
+        etats[i].serie = 1;
+        rendre();
+      }));
+    d.appendChild(el('div', 'reste', enTravail ? mmss(e.reste) : ''));
+    c.appendChild(d);
+    c.appendChild(entete(1, false));
+    c.appendChild(ligneSerie(i, 1, { cols: 1, phs: ['60'], prec: '60 s' }));
+    c.appendChild(ligneSerie(i, 2, { cols: 1, phs: ['60'], prec: '60 s' }));
+    var r = bandeauRepos(i);
+    if (r) c.appendChild(r);
+    c.appendChild(el('div', 'item-resume',
+      'Le bandeau lance la prochaine série non validée.'));
+    return c;
+  }
+
+  var SIMS = [
+    { nom: 'A — un ▶ sur la ligne', f: simA,
+      pourquoi: 'Le départ est là où est la série : on lance et on valide au '
+              + 'même endroit, sans lever les yeux.',
+      cout: 'Ce qu’il coûte : <b>une SIXIÈME colonne</b> dans une grille '
+          + 'déjà serrée. Mesure ci-dessous — et à trois colonnes de saisie '
+          + 'la ligne passe déjà sur deux rangs.' },
+    { nom: 'B — la durée cible lance', f: simB,
+      pourquoi: 'Aucune colonne de plus : on touche le « 60 » et ça part.',
+      cout: 'Ce qu’il coûte : <b>on ne peut plus TAPER la durée</b> dans ce '
+          + 'champ — le geste de saisie et le geste de départ se disputent '
+          + 'la même case.' },
+    { nom: 'C — un bandeau au-dessus', f: simC,
+      pourquoi: 'Un départ par exercice, au-dessus des séries. Rien ne '
+              + 'bouge dans la grille.',
+      cout: 'Ce qu’il coûte : <b>une rangée de plus par exercice</b>, et le '
+          + 'bandeau doit deviner DE QUELLE série il parle.' }
+  ];
+
+  var r = document.getElementById('rangee');
+  function rendre() {
+    r.textContent = '';
+    SIMS.forEach(function (s, i) {
+      var d = el('div', 'sim');
+      d.appendChild(el('h2', null, s.nom));
+      d.appendChild(el('p', 'pourquoi', s.pourquoi));
+      var ec = el('div', 'ecran');
+      ec.appendChild(s.f(i));
+      d.appendChild(ec);
+      var c = el('div', 'cout');
+      c.innerHTML = s.cout;
+      d.appendChild(c);
+      r.appendChild(d);
+    });
+    mesurer();
+  }
+
+  /* LA MESURE QUI DECIDE : la largeur du plus petit champ de saisie dans
+     chaque variante, a 320 px. Le banc d'interface exige qu'aucun ne tombe
+     sous 40 px. */
+  /* UNE SONDE HORS ECRAN : la meme ligne a TROIS colonnes de saisie, avec
+     et sans le depart. C'est la que la sixieme colonne se paie, et c'est le
+     cas d'un exercice charge + reps + duree. */
+  function sonde() {
+    var boite = document.getElementById('sonde');
+    if (!boite) {
+      boite = el('div');
+      boite.id = 'sonde';
+      boite.style.cssText = 'position:absolute;left:-9999px;top:0;width:320px';
+      document.body.appendChild(boite);
+    }
+    boite.textContent = '';
+    var res = {};
+    [false, true].forEach(function (avec) {
+      var cadre = el('div', 'ecran');
+      cadre.style.width = '320px';
+      var l = el('div', 'serie' + (avec ? ' avecDepart' : ''));
+      l.setAttribute('data-cols', '3');
+      l.appendChild(bouton('serie-num', '1'));
+      l.appendChild(bouton('serie-prec', '20 × 10 · 30 s'));
+      ['17,5', '10', '60'].forEach(function (p) {
+        var c = el('input', 'champ');
+        c.placeholder = p;
+        l.appendChild(c);
+      });
+      if (avec) l.appendChild(bouton('serie-go', '▶'));
+      l.appendChild(bouton('serie-ok', '✓'));
+      cadre.appendChild(l);
+      boite.appendChild(cadre);
+      var min = Infinity;
+      [].forEach.call(l.querySelectorAll('.champ'), function (c) {
+        var w = c.getBoundingClientRect().width;
+        if (w > 0 && w < min) min = w;
+      });
+      res[avec ? 'avec' : 'sans'] = min === Infinity ? 0 : Math.round(min);
+    });
+    return res;
+  }
+
+  function mesurer() {
+    var out = [];
+    [].forEach.call(r.querySelectorAll('.sim'), function (sim, i) {
+      var champs = sim.querySelectorAll('.ecran .serie .champ');
+      var min = Infinity;
+      [].forEach.call(champs, function (c) {
+        var w = c.getBoundingClientRect().width;
+        if (w > 0 && w < min) min = w;
+      });
+      out.push(SIMS[i].nom.slice(0, 1) + ' : plus petit champ '
+             + (min === Infinity ? '—' : Math.round(min) + ' px'));
+    });
+    var t = sonde();
+    document.getElementById('mesure').textContent =
+      'À 320 px, une seule colonne de saisie — ' + out.join(' · ')
+      + '. ET À TROIS COLONNES (charge + reps + durée), le plus petit champ '
+      + 'passe de ' + t.sans + ' px à ' + t.avec + ' px avec un ▶ de plus. '
+      + 'Le banc exige 40 px minimum.';
+  }
+
+  document.getElementById('raz').addEventListener('click', function () {
+    if (tic) { clearInterval(tic); tic = null; }
+    etats = [null, null, null];
+    dit('Remis à zéro.');
+    rendre();
+  });
+
+  rendre();
+  document.title = '✓ 3 minuteurs — Simulations';
+}());
+</script>
+</body>
+</html>
