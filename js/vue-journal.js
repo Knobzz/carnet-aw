@@ -200,8 +200,57 @@
   /* Une journée de récupération ne se résume pas en kilos : ce qu'on veut y
      lire est ce qui a été fait, et combien. Elle n'est pas cliquable — on la
      corrige dans l'onglet Récup, tant qu'on y est. */
-  function carteRecup(se) {
-    var it = h('div', { class: 'item', style: 'cursor:default' });
+  /* LA JOURNEE DE RECUP S'OUVRE, ET SE SUPPRIME. MB, 28/10 : « je n'avais
+     pas la possibilite de le supprimer par la suite, stuck en plus dans le
+     journal ».
+
+     REPRODUIT, ET C'ETAIT DANS LE CODE : cette carte rendait un `div` avec
+     `cursor:default`, quand muscu et sparring rendaient des cartes
+     cliquables. Une journee entree au journal etait donc DEFINITIVE — et
+     aucun autre ecran ne la montre, l'onglet Recup ne presentant que le
+     jour courant. */
+  function detailRecup(se, surFin) {
+    A.panneau.ouvrir('Récupération du ' + A.m.dateCourte(se.date),
+      function (c, fermer) {
+        var cpt = A.m.compteRecup(se);
+        c.appendChild(h('div', { class: 'item-resume',
+          text: cpt.faits + ' / ' + cpt.total + ' exercice'
+              + (cpt.total > 1 ? 's' : '') + ' coché'
+              + (cpt.faits > 1 ? 's' : '') + '.' }));
+
+        var lignes = h('div', { class: 'item-lignes' });
+        (se.exercices || []).forEach(function (ex) {
+          var sr = (ex.series || [])[0];
+          lignes.appendChild(h('div', { class: 'item-ligne' },
+            h('b', { text: ex.nom }),
+            h('span', { text: sr && sr.faite ? A.m.texteSerie(ex, sr)
+                                             : 'non fait' })));
+        });
+        if ((se.exercices || []).length) c.appendChild(lignes);
+
+        var d = A.ui.jetonsDouleur(se.douleurs);
+        if (d) { d.style.marginTop = '8px'; c.appendChild(d); }
+
+        c.appendChild(A.ui.confirmer2(
+          h('button', { class: 'bt bt-large bt-danger', style: 'margin-top:12px',
+                        text: 'Supprimer cette journée' }),
+          'Appuyer encore pour supprimer',
+          function () {
+            var l = etat().seances, i = -1;
+            for (var k = 0; k < l.length; k++) if (l[k].id === se.id) i = k;
+            if (i >= 0) l.splice(i, 1);
+            A.store.sauver(true);
+            fermer();
+            A.ui.toast('Journée supprimée.');
+            surFin && surFin();
+          }));
+      },
+      [{ nom: 'Fermer', classe: 'bt-primaire',
+         action: function (fermer) { fermer(); surFin && surFin(); } }]);
+  }
+
+  function carteRecup(se, hote) {
+    var it = h('div', { class: 'item' });
     var c = A.m.compteRecup(se);
     it.appendChild(h('div', { class: 'item-titre' },
       h('h3', { text: 'Récupération' }),
@@ -219,6 +268,9 @@
         h('span', { text: s && s.faite ? A.m.texteSerie(ex, s) : 'non fait' })));
     });
     if ((se.exercices || []).length) it.appendChild(lignes);
+    it.addEventListener('click', function () {
+      detailRecup(se, function () { rendre(hote); });
+    });
     return it;
   }
 
@@ -229,9 +281,12 @@
     A.ui.vider(hote);
     var e = etat();
 
-    var btSpar = h('button', { class: 'bt bt-large', style: 'margin-bottom:10px', text: '+ Noter un sparring' });
-    btSpar.addEventListener('click', function () { A.vues.sparring.nouveau(function () { rendre(hote); }); });
-    hote.appendChild(btSpar);
+    /* LE SPARRING A QUITTE CET ECRAN le 28/10 — MB : « j'ai encore "noter
+       un sparring" dans journal ». Il vit sur l'ecran Seance depuis la
+       1.36.1, qui est l'endroit ou l'on vient s'entrainer ; Journal est
+       l'endroit ou l'on RELIT. J'avais garde les deux chemins en pensant
+       qu'un chemin de plus ne coute rien — il coute : le geste parait
+       exister a deux endroits sans qu'on sache lequel est le bon. */
 
     var barre = h('div', { class: 'filtres' });
     [['tout', 'Tout'], ['muscu', 'Muscu'], ['sparring', 'Sparring'],
@@ -267,7 +322,7 @@
           text: A.m.dateCourte(se.date).replace(/^\d+ /, '') }));
       }
       hote.appendChild(se.type === 'sparring' ? carteSparring(se, hote)
-                     : se.type === 'recup' ? carteRecup(se)
+                     : se.type === 'recup' ? carteRecup(se, hote)
                      : carteMuscu(se, hote));
     });
   }

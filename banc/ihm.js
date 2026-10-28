@@ -108,6 +108,10 @@
          undefined dans l'hote, l'appui ne faisait rien, et toute la vue
          echappait au banc. Trouve en branchant le sparring sur Seance. */
       + s('vue-sparring.js')
+      /* `vue-journal.js` MANQUAIT aussi, trouve le 28/10 en rendant la
+         journee de recup supprimable. Deux vues entieres echappaient au
+         banc ; celle-ci portait justement la carte morte. */
+      + s('vue-journal.js')
       + '</body></html>';
   }
 
@@ -3086,6 +3090,92 @@
      occupent deja 318 px sur 320. Le geste entre donc dans Seance, qui est
      l'ecran ou l'on vient pour s'entrainer, et RESTE dans Journal.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     UNE JOURNEE DE RECUP SE SUPPRIME
+
+     MB, 28/10 : « je n'avais pas la possibilite de le supprimer par la
+     suite, stuck en plus dans le journal ». Reproduit, et c'etait dans le
+     code : `carteRecup` rendait un `div` avec `cursor:default` quand muscu
+     et sparring rendaient des cartes cliquables. Aucun autre ecran ne
+     montre une journee passee — l'onglet Recup ne presente que le jour
+     courant. Elle etait donc DEFINITIVE.
+     --------------------------------------------------------------- */
+  bloc('Une journée de récup se supprime', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    var depart = e.seances.length;
+
+    var routine = fen.App.m.routineRecupVierge();
+    routine.exercices = [fen.App.m.exerciceProgramme({ nom: 'Extenseurs à élastique' })];
+    var jour = fen.App.m.seanceRecup(routine);
+    (jour.exercices[0].series || []).forEach(function (sr) { sr.faite = true; });
+    e.seances.push(jour);
+
+    fen.App.vues.journal.rendre(vue);
+
+    function ranger() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        var l = fen.App.store.etat().seances;
+        for (var k = l.length - 1; k >= 0; k--) {
+          if (l[k].id === jour.id) l.splice(k, 1);
+        }
+        fen.App.ui.vider(vue);
+      });
+    }
+
+    return attendre(200).then(function () {
+      /* LE SPARRING A QUITTE CET ECRAN le 28/10 : il vit sur Seance. */
+      v.egal(vue.textContent.indexOf('Noter un sparring'), -1,
+             'le Journal ne propose plus de noter un sparring — le geste vit '
+           + 'sur l’écran Séance, et un geste à deux endroits ne dit pas '
+           + 'lequel est le bon');
+
+      var carte = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('.item'), function (n) {
+        if (!carte && n.textContent.indexOf('Récupération') >= 0) carte = n;
+      });
+      v.vrai(!!carte, '[temoin] la journée de récup est bien au journal');
+      if (!carte) return ranger();
+
+      carte.click();
+      return attendre(220).then(function () {
+        var pan = doc.querySelector('.panneau');
+        v.vrai(!!pan,
+               'un appui l’OUVRE — avant le 28/10 la carte était un div '
+             + 'inerte, et la journée était définitive');
+        if (!pan) return ranger();
+
+        var sup = Array.prototype.filter.call(pan.querySelectorAll('button'),
+          function (b) { return b.textContent.indexOf('Supprimer cette journ') === 0; })[0];
+        v.vrai(!!sup, 'et la fiche offre de la supprimer');
+        if (!sup) return ranger();
+
+        /* DEUX APPUIS, comme partout ailleurs : un seul effacerait une
+           journee sur un faux contact. */
+        sup.click();
+        return attendre(140).then(function () {
+          v.egal(fen.App.store.etat().seances.length, depart + 1,
+                 'un PREMIER appui ne supprime rien');
+          var enc = Array.prototype.filter.call(
+            doc.querySelectorAll('.panneau button'),
+            function (b) { return b.textContent.indexOf('Appuyer encore') >= 0; })[0];
+          v.vrai(!!enc, 'il demande confirmation');
+          if (enc) enc.click();
+          return attendre(260).then(function () {
+            v.egal(fen.App.store.etat().seances.length, depart,
+                   'le second la supprime pour de bon');
+            return ranger();
+          });
+        });
+      });
+    });
+  });
+
   bloc('Noter un sparring depuis Séance', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
