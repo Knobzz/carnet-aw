@@ -3097,11 +3097,20 @@
       : textes.length + ' × ' + textes[0];
   }
 
+  /* Combien de SERIES, pas combien d'exercices.
+
+     Il comptait les exercices, et un exercice comptait pour fait des qu'UNE
+     de ses series l'etait. Tant que l'ecran n'en montrait qu'une, les deux
+     comptes se confondaient. Des qu'il les montre toutes, l'ancien compte
+     ment : quatre cases a l'ecran et « 1 / 1 fait » des la premiere cochee.
+     A une serie par exercice, le resultat est le meme qu'avant. */
   function compteRecup(se) {
     var total = 0, faits = 0;
     (se && se.exercices || []).forEach(function (ex) {
-      total += 1;
-      if ((ex.series || []).some(function (s) { return s.faite; })) faits += 1;
+      (ex.series || []).forEach(function (s) {
+        total += 1;
+        if (s.faite) faits += 1;
+      });
     });
     return { faits: faits, total: total };
   }

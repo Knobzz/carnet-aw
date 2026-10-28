@@ -3053,6 +3053,111 @@
      elle dirait qu'on l'a faite.
      ================================================================ */
 
+  /* ------------------------------------------------------------------
+     L'ÉCRAN DE RÉCUP REND TOUTES LES SÉRIES
+
+     MB, 28/10, après une première correction qui ne touchait que le journal :
+     « Toujours pas ». Mesuré : sa routine portait QUATRE séries, l'écran n'en
+     rendait qu'UNE — `(ex.series || [])[0]` — et le journal n'avait donc rien
+     à compter. L'éditeur de routine laisse en déclarer quatre ; l'écran en
+     jetait trois. Ce bloc mesure l'ÉCRAN, pas le modèle : c'est là que les
+     séries disparaissaient.
+     ------------------------------------------------------------------ */
+  bloc('La récup rend TOUTES les séries', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+
+    var routine = fen.App.m.routineRecupVierge();
+    routine.exercices = [fen.App.m.exerciceProgramme({
+      nom: 'Side pressure', typeCharge: 'elastique', colonnes: ['reps'],
+      series: [{ repsCible: '50' }, { repsCible: '50' },
+               { repsCible: '50' }, { repsCible: '50' }] })];
+    e.routineRecup = routine;
+
+    v.egal(routine.exercices[0].series.length, 4,
+           '[temoin] la routine en porte bien quatre — c’est le décor');
+
+    fen.App.vues.recup.rendre(vue);
+
+    var lignes = doc.querySelectorAll('.recup-ligne');
+    v.egal(lignes.length, 4,
+           'l’écran en rend QUATRE : trois séries ne se perdent plus entre '
+         + 'l’éditeur et la journée');
+    v.egal(doc.querySelectorAll('.recup-exo').length, 1, 'dans UNE seule carte');
+
+    /* PAS D'INDEX NU. Sur la version d'avant il n'y a qu'une ligne et aucun
+       numéro : `nums[0]` y lève une TypeError, le bloc meurt, et ONZE
+       contrôles voisins ne sont jamais joués. Mesuré : 509/512 au lieu de
+       523. Un banc qui plante se lit comme un banc qui se tait. C'est la
+       cinquième fois de ce chantier. */
+    var nums = doc.querySelectorAll('.recup-num');
+    v.egal(nums.length, 4, 'chaque ligne porte son numéro');
+    v.egal(Array.prototype.map.call(nums, function (n) { return n.textContent; }).join(''),
+           '1234', 'et ils vont de 1 à 4 : « laquelle ? » a une réponse');
+
+    v.vrai(doc.body.textContent.indexOf('0 / 4 fait') >= 0,
+           'l’en-tête compte les SÉRIES : « 0 / 4 fait », et non « 0 / 1 »');
+
+    /* --- la largeur tient à 320 px, numéro compris --- */
+    var saisies = doc.querySelectorAll('.recup-ligne .serie-saisie');
+    var mini = 9999;
+    Array.prototype.forEach.call(saisies, function (s) {
+      mini = Math.min(mini, s.getBoundingClientRect().width);
+    });
+    v.vrai(mini >= 40, 'le champ le plus étroit garde 40 px (' + Math.round(mini) + ' px)');
+    var okMini = 9999;
+    Array.prototype.forEach.call(doc.querySelectorAll('.recup-ligne .serie-ok'), function (o) {
+      var r = o.getBoundingClientRect();
+      okMini = Math.min(okMini, Math.min(r.width, r.height));
+    });
+    v.vrai(okMini >= 44, 'et le plus petit ✓ garde 44 px (' + Math.round(okMini) + ' px)');
+
+    /* --- cocher UNE série ne termine pas l'exercice --- */
+    var oks = doc.querySelectorAll('.recup-ligne .serie-ok');
+    v.egal(oks.length, 4, '[temoin] quatre ✓ à cliquer — c’est le décor du reste');
+    if (oks.length) oks[0].click();
+    v.vrai(doc.body.textContent.indexOf('1 / 4 fait') >= 0,
+           'une série cochée se lit « 1 / 4 fait »');
+    v.vrai(!!lignes.length && lignes[0].classList.contains('faite'),
+           'la ligne cochée se marque');
+    var carte = doc.querySelector('.recup-exo');
+    v.vrai(!!carte && !carte.classList.contains('faite'),
+           'mais PAS la carte : trois séries restantes ne se lisent pas comme '
+         + 'un exercice fini');
+    v.vrai(oks.length > 1 && fen.getComputedStyle(oks[0]).backgroundColor
+           !== fen.getComputedStyle(oks[1]).backgroundColor,
+           'et le ✓ coché ne se confond pas avec celui d’en dessous');
+
+    /* --- les quatre : la carte se marque, et le journal dit combien --- */
+    Array.prototype.slice.call(oks, 1).forEach(function (o) { o.click(); });
+    carte = doc.querySelector('.recup-exo');
+    v.vrai(!!carte && carte.classList.contains('faite'),
+           'les quatre faites, la carte se marque à son tour');
+    v.egal(fen.App.m.compteRecup(fen.App.store.etat().seances[0] || {}).faits, 4,
+           'et la journée enregistrée en porte quatre');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px, numéro compris');
+
+    /* --- ce que MB voulait VOIR --- */
+    fen.App.vues.journal.rendre(vue);
+    var t = doc.body.textContent;
+    v.vrai(t.indexOf('4 × 50 reps') >= 0,
+           'et le journal écrit enfin « 4 × 50 reps » — la demande de MB');
+    /* Le compteur compte des SÉRIES : son libellé doit le dire. Un exercice
+       de quatre séries affichait « 4 / 4 exercices » pour UN exercice. */
+    v.vrai(t.indexOf('4 / 4 séries') >= 0,
+           'et la carte compte « 4 / 4 séries », pas « 4 / 4 exercices »');
+    v.egal(t.indexOf('exercices'), -1,
+           'le mot « exercices » ne traîne plus sur un compte de séries');
+
+    fen.App.ui.vider(vue);
+    fen.App.store.etat().seances = [];
+    fen.App.store.etat().routineRecup = null;
+  });
+
   bloc('Récupération', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');

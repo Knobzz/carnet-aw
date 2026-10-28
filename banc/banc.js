@@ -3374,6 +3374,35 @@
     var c = A.m.compteRecup(e.seances[1]);
     v.egal(c.faits + '/' + c.total, '1/2', 'le détail dit combien sur combien');
 
+    /* ---- UN EXERCICE DE RÉCUP PORTE PLUSIEURS SÉRIES ----
+       MB, 28/10 : « je ne vois que l'exo >> 50 reps […] il faudrait un
+       affichage du style : -Side Pressure 4x50 reps ». Le compteur comptait
+       les EXERCICES, et un exercice passait pour fait dès qu'une seule de ses
+       séries l'était. Tant que l'écran n'en montrait qu'une, les deux comptes
+       se confondaient ; dès qu'il les montre toutes, l'ancien ment. */
+    var quatre = { id: 'q1', type: 'recup', date: jourIlYA(0), heure: '', note: '',
+      douleurs: [], exercices: [{ id: 'qx', ordre: 0, nom: 'Side pressure',
+        slug: 'side pressure', aw: false, typeCharge: 'elastique',
+        colonnes: ['reps'], forces: [], structures: [], outils: [],
+        consigne: '', reposSecondes: 0,
+        series: [0, 1, 2, 3].map(function (i) {
+          return { id: 'qs' + i, type: 'normale', repsCible: '50', chargeCible: '',
+                   dureeCible: '', repsReel: i < 3 ? '50' : '', chargeReel: '',
+                   dureeReel: '', rpe: null, faite: i < 3, faiteA: null };
+        }) }] };
+    var cq = A.m.compteRecup(quatre);
+    v.egal(cq.faits + '/' + cq.total, '3/4',
+           'quatre séries dans un exercice se comptent QUATRE — sinon l’écran '
+         + 'montre quatre cases et le compteur annonce « 1 / 1 fait »');
+    /* [temoin] : il tient AUSSI sur la version d'avant, et c'est l'essentiel
+       de ce qu'il dit. `resumeSeriesFaites` a été livré en 1.37.2, et MB a
+       répondu « toujours pas » : la fonction était juste, elle n'avait rien à
+       compter parce que l'écran jetait trois séries sur quatre. Ce contrôle
+       prouve que le défaut n'était PAS là — pas que la correction marche. */
+    v.egal(A.m.resumeSeriesFaites(quatre.exercices[0]), '3 × 50 reps',
+           '[temoin] le résumé savait déjà dire « 3 × 50 reps » dès 1.37.2 — '
+         + 'ce qui manquait était en amont, dans l’écran');
+
     var s = A.m.statsRecup(e, 7);
     v.egal(s.joursFaits, 2, 'deux jours faits sur les sept derniers');
     v.vrai(s.aujourdHuiFait, 'et aujourd’hui en fait partie');

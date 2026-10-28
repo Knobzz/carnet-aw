@@ -626,12 +626,15 @@ select.champ { appearance: none; background-image: none; }
 }
 .serie-ok svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .serie.faite .serie-ok,
+.recup-ligne.faite .serie-ok,
 .recup-exo.faite .serie-ok { background: var(--laiton); border-color: var(--laiton); color: #fff; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="clair"]) .serie.faite .serie-ok,
+  :root:not([data-theme="clair"]) .recup-ligne.faite .serie-ok,
   :root:not([data-theme="clair"]) .recup-exo.faite .serie-ok { color: #241a06; }
 }
 :root[data-theme="sombre"] .serie.faite .serie-ok,
+:root[data-theme="sombre"] .recup-ligne.faite .serie-ok,
 :root[data-theme="sombre"] .recup-exo.faite .serie-ok { color: #241a06; }
 
 .serie-actions {
@@ -1075,6 +1078,27 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) var(--tap);
   gap: 5px;
 }
+
+/* Plusieurs series dans la journee : un numero en tete de ligne, pour que
+   « laquelle ? » ait une reponse. A une seule serie il n'apparait pas, et la
+   ligne garde exactement la largeur qu'elle avait. */
+.recup-ligne.multi { grid-template-columns: 1.6rem minmax(0, 1fr) var(--tap); }
+.recup-ligne.multi[data-cols="2"] {
+  grid-template-columns: 1.6rem minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+}
+.recup-ligne.multi[data-cols="3"] {
+  grid-template-columns: 1.5rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+  gap: 4px;
+}
+.recup-ligne + .recup-ligne { margin-top: 5px; }
+.recup-num {
+  font-weight: 700;
+  font-size: .92rem;
+  color: var(--texte-3);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.recup-compte { font-size: .78rem; color: var(--texte-2); font-weight: 550; }
 
 /* Les sept derniers jours, un carre par jour : le trou se voit d'un coup
    d'oeil, ce qu'un pourcentage ne montre pas. */

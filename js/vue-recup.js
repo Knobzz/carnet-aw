@@ -92,13 +92,33 @@
     /* --- une ligne par exercice --- */
     var liste = h('div');
 
+    /* ----------------------------------------------------------------
+       UNE LIGNE PAR SÉRIE — pas seulement la première
+
+       MB, 28/10 : « je ne vois que l'exo >> 50 reps, et c'est tout, il
+       faudrait un affichage du style : -Side Pressure 4x50 reps ». J'ai
+       d'abord corrigé le JOURNAL ; il m'a répondu « toujours pas ».
+
+       MESURE : sa routine porte QUATRE séries, cet écran n'en rendait
+       qu'UNE — `(ex.series || [])[0]`. Le journal n'avait jamais rien à
+       compter. L'éditeur de routine laisse déclarer quatre séries, l'écran
+       en jetait trois : le piège n° 5, moitié livrée.
+
+       L'ÉCRAN RESTE CELUI DU GESTE RAPIDE. À une seule série il ne change
+       pas d'un pixel : ni numéro, ni colonne en plus. Le numéro n'apparaît
+       que là où il répond à une question — « laquelle ? ». Numéroter « 1 »
+       tout seul n'informe de rien et vole de la largeur.
+       ---------------------------------------------------------------- */
     function blocExo(ex) {
       var cols = A.m.colonnes(ex);
-      var serie = (ex.series || [])[0];
-      if (!serie) { serie = A.m.serieSeanceVierge({}); ex.series = [serie]; }
+      var series = ex.series || [];
+      if (!series.length) { series = ex.series = [A.m.serieSeanceVierge({})]; }
+      var plusieurs = series.length > 1;
 
       var bloc = h('div', { class: 'recup-exo' });
       var titre = h('div', { class: 'recup-titre' }, h('b', { text: ex.nom }));
+      if (plusieurs) titre.appendChild(h('span', { class: 'recup-compte',
+                                                   text: series.length + ' séries' }));
       (ex.outils || []).forEach(function (o) {
         titre.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
       });
@@ -106,43 +126,59 @@
 
       if (ex.consigne) bloc.appendChild(h('div', { class: 'consigne', text: ex.consigne }));
 
-      var ligne = h('div', { class: 'recup-ligne', 'data-cols': String(cols.length) });
-      var champs = {};
-      cols.forEach(function (id) {
-        var def = A.m.colonne(id);
-        var champ = h('input', { class: 'serie-saisie', type: 'text', inputmode: def.mode(A.m.typeCharge(ex.typeCharge)),
-          value: serie[def.reel] || '', placeholder: serie[def.cible] || def.label(A.m.typeCharge(ex.typeCharge)),
-          'aria-label': def.label(A.m.typeCharge(ex.typeCharge)) + ' — ' + ex.nom });
-        champ.addEventListener('input', function () {
-          serie[def.reel] = champ.value;
+      /* La carte n'est « faite » que quand TOUTES ses séries le sont ; chaque
+         ligne, elle, porte son propre état — sinon trois séries restantes se
+         liraient comme un exercice fini. */
+      function majBlocFait() {
+        bloc.classList.toggle('faite', series.every(function (s) { return !!s.faite; }));
+      }
+
+      series.forEach(function (serie, i) {
+        var ligne = h('div', { class: 'recup-ligne' + (plusieurs ? ' multi' : ''),
+                               'data-cols': String(cols.length) });
+        var quoi = plusieurs ? ex.nom + ', série ' + (i + 1) : ex.nom;
+        if (plusieurs) ligne.appendChild(h('div', { class: 'recup-num', text: String(i + 1) }));
+
+        var champs = {};
+        cols.forEach(function (id) {
+          var def = A.m.colonne(id);
+          var champ = h('input', { class: 'serie-saisie', type: 'text', inputmode: def.mode(A.m.typeCharge(ex.typeCharge)),
+            value: serie[def.reel] || '', placeholder: serie[def.cible] || def.label(A.m.typeCharge(ex.typeCharge)),
+            'aria-label': def.label(A.m.typeCharge(ex.typeCharge)) + ' — ' + quoi });
+          champ.addEventListener('input', function () {
+            serie[def.reel] = champ.value;
+            synchroniser();
+          });
+          champs[id] = champ;
+          ligne.appendChild(champ);
+        });
+
+        var ok = h('button', { type: 'button', class: 'serie-ok',
+                               'aria-pressed': serie.faite ? 'true' : 'false',
+                               'aria-label': 'Fait — ' + quoi });
+        ok.appendChild(A.ui.svg(A.ui.CHEMIN_OK));
+        ok.addEventListener('click', function () {
+          basculer(serie, champs, cols, ligne, ok);
+          majBlocFait();
+          majEntete();
+          majBtTout();
           synchroniser();
         });
-        champs[id] = champ;
-        ligne.appendChild(champ);
+        ligne.appendChild(ok);
+        if (serie.faite) ligne.classList.add('faite');
+        bloc.appendChild(ligne);
       });
 
-      var ok = h('button', { type: 'button', class: 'serie-ok',
-                             'aria-pressed': serie.faite ? 'true' : 'false',
-                             'aria-label': 'Fait — ' + ex.nom });
-      ok.appendChild(A.ui.svg(A.ui.CHEMIN_OK));
-      ok.addEventListener('click', function () {
-        basculer(serie, champs, cols, bloc, ok);
-        majEntete();
-        majBtTout();
-        synchroniser();
-      });
-      ligne.appendChild(ok);
-      bloc.appendChild(ligne);
-      if (serie.faite) bloc.classList.add('faite');
+      majBlocFait();
       return bloc;
     }
 
-    function basculer(serie, champs, cols, bloc, ok, force) {
+    function basculer(serie, champs, cols, ligne, ok, force) {
       var neuf = force == null ? !serie.faite : force;
       if (neuf === serie.faite) return false;
       serie.faite = neuf;
       ok.setAttribute('aria-pressed', neuf ? 'true' : 'false');
-      bloc.classList.toggle('faite', neuf);
+      ligne.classList.toggle('faite', neuf);
       if (neuf) {
         serie.faiteA = new Date().toISOString();
         /* Rien de saisi ? La cible fait foi : cocher veut dire « fait comme
