@@ -110,7 +110,7 @@
     var sansCote = l.filter(function (s) { return s.cote === A.m.COTE_INCONNU; });
 
     f.appendChild(section('Par structure',
-      'Quand chaque structure a été chargée, toutes origines confondues.'));
+      'Quand chaque structure a été chargée en séance.'));
 
     if (!l.length) {
       f.appendChild(h('div', { class: 'vide' },

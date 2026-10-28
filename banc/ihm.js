@@ -1804,8 +1804,16 @@
              'un outil sans réglage ne se tait PAS : le groupe reste visible');
       v.vrai(gr && gr.textContent.indexOf('Pas encore de réglage') >= 0,
              'et il dit pourquoi la rangée est vide');
-      v.vrai(gr && gr.textContent.indexOf('Réglages') >= 0,
-             'avec où aller pour en poser');
+      /* MB, 28/10 : « si un des equipements selectionnes a des
+         specificites a selectionner par la suite, je dois pouvoir le
+         rajouter dans l'exo directement, ce qui n'est pas le cas ». La
+         ligne disait « Declare-les sur l'outil, dans Reglages ->
+         Equipement » — une impasse polie. Elle porte un BOUTON. */
+      var btReg = gr && Array.prototype.filter.call(gr.querySelectorAll('button'),
+        function (b) { return b.textContent.indexOf('+ Réglage') === 0; })[0];
+      v.vrai(!!btReg,
+             'et il offre de poser un réglage SANS quitter l’exercice — '
+           + 'un renvoi vers un autre écran est une impasse polie');
       v.egal(gr ? gr.querySelectorAll('.puce').length : -1, 0,
              'sans proposer une seule puce : il n’y a rien à choisir');
 
@@ -2949,6 +2957,91 @@
         });
       });
     });
+  });
+
+  /* ------------------------------------------------------------------
+     PRENDRE UN PRODUIT L'ATTACHE — SANS FORMULAIRE
+
+     MB, 28/10 : « quand je clique sur un equipement deja rentre >> Titan
+     Grip, apres selection, il me propose de l'enregistrer... Il est deja
+     enregistre, pourquoi le refaire ?? »
+
+     CAUSE MESUREE : l'ecran testait `trouverOutil` par SLUG EXACT. Son
+     « Titan Grip » et le produit « Titan Grip Iron Wrist » sont deux
+     slugs — le carnet le croyait neuf et ouvrait la fiche de creation.
+     ------------------------------------------------------------------ */
+  bloc('Prendre un produit l’attache, sans formulaire', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    /* SON DECOR : un « Titan Grip » deja chez lui, et un produit de la
+       marque dont le nom est PLUS LONG. C'est tout le piege. */
+    fen.App.m.majCatalogueOutils(e, 'Titan Grip', 'Poignées');
+
+    var exo = { nom: '', outils: [] };
+    fen.App.panneau.editerExercice(exo, function () {});
+
+    return attendre(220).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, '[temoin] le panneau d’exercice est ouvert');
+      if (!pan) return;
+
+      var cat = Array.prototype.filter.call(pan.querySelectorAll('.equip-cat'),
+        function (b) { return /titangrip/i.test(b.textContent); })[0];
+      v.vrai(!!cat, '[temoin] la marque a sa section');
+      if (cat) cat.click();
+
+      return attendre(180).then(function () {
+        var ligne = Array.prototype.filter.call(pan.querySelectorAll('.item-ligne'),
+          function (x) { return /Iron Wrist/.test(x.textContent); })[0];
+        v.vrai(!!ligne, '[temoin] le produit est listé');
+        if (!ligne) return ranger();
+
+        var avant = doc.querySelectorAll('.panneau').length;
+        ligne.click();
+
+        return attendre(220).then(function () {
+          v.egal(doc.querySelectorAll('.panneau').length, avant,
+                 'AUCUN second panneau ne s’ouvre : le produit s’attache, '
+               + 'il ne se « ré-enregistre » pas');
+          v.vrai((exo.outils || []).join(',').indexOf('Iron Wrist') >= 0,
+                 'et il est bien attaché à l’exercice');
+          /* LE NOM EST CELUI DE LA LIGNE, pas le nom de marque complet :
+             la section porte deja « Titangrip ». J'avais ecrit
+             « Titan Grip Iron Wrist » sans verifier — le banc l'a dit. */
+          var pose = (exo.outils || [])[0] || '';
+          v.vrai(!!pose && !!fen.App.m.trouverOutil(fen.App.store.etat(),
+                   fen.App.m.slug(pose)),
+                 'il entre au catalogue EN SILENCE, sous le nom attaché — '
+               + 'c’est un effet de bord du geste, pas une décision à '
+               + 'prendre (« ' + pose + ' »)');
+
+          /* ---- ET LE REGLAGE SE POSE SANS QUITTER L'EXERCICE ---- */
+          var bt = Array.prototype.filter.call(pan.querySelectorAll('button'),
+            function (b) { return b.textContent.indexOf('+ Réglage') === 0; })[0];
+          v.vrai(!!bt,
+                 'la ligne de réglages porte un bouton plutôt qu’un renvoi '
+               + 'vers Réglages → Équipement : une impasse polie reste une '
+               + 'impasse');
+          var r = bt ? bt.getBoundingClientRect() : { height: 0 };
+          v.vrai(r.height >= 32,
+                 'et il se touche (' + Math.round(r.height) + ' px)');
+          return ranger();
+        });
+      });
+    });
+
+    function ranger() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.store.etat().outils.length = 0;
+        fen.App.ui.vider(vue);
+      });
+    }
   });
 
   bloc('Choisir dans l’équipement', function (v, h) {

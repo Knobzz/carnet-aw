@@ -483,6 +483,38 @@
          serait une case de plus à ignorer. */
       var boiteReglages = h('div');
       var grReglages = A.ui.groupe('Réglage de l’outil', boiteReglages);
+      /* ---- POSER UN REGLAGE SANS QUITTER L'EXERCICE ----
+
+         MB, 28/10 : « si un des equipements selectionnes a des
+         specificites a selectionner par la suite, je dois pouvoir le
+         rajouter dans l'exo directement, ce qui n'est pas le cas ».
+
+         C'etait exact, et la ligne le disait elle-meme : « Declare-les sur
+         l'outil, dans Reglages -> Equipement ». Une impasse polie — il
+         fallait fermer l'exercice, traverser deux ecrans, et revenir.
+
+         L'outil est CREE s'il ne l'est pas encore : on ne peut pas poser un
+         reglage sur un nom que le catalogue ignore, et le demander serait
+         le meme formulaire de trop qu'on vient de retirer. */
+      function boutonReglage(nomOutil) {
+        var bt = h('button', { type: 'button', class: 'bt bt-petit',
+                               style: 'margin-top:6px',
+                               text: '+ Réglage pour « ' + nomOutil + ' »' });
+        bt.addEventListener('click', function () {
+          var o = A.m.trouverOutil(etat(), A.m.slug(nomOutil));
+          if (!o) {
+            o = A.m.majCatalogueOutils(etat(), nomOutil, '');
+            A.store.sauver(true);
+          }
+          A.vues.reglages.editerOutil(o, function () {
+            rafraichirReglages();
+            rafraichirMuscles();
+            majEquip();
+          });
+        });
+        return bt;
+      }
+
       function rafraichirReglages() {
         A.ui.vider(boiteReglages);
         /* Le groupe se montre dès qu'il y a UN outil, même si aucun n'a de
@@ -508,8 +540,8 @@
                 ? 'Pas de réglage — mais « ' + proche.nom + ' » en a. '
                   + 'Deux outils très proches dans ton équipement : c’est celui-là '
                   + 'que tu voulais ?'
-                : 'Pas encore de réglage. Déclare-les sur l’outil, '
-                  + 'dans Réglages → Équipement.' }));
+                : 'Pas encore de réglage.' }));
+            boiteReglages.appendChild(boutonReglage(nomOutil));
             return;
           }
           var rangee = h('div', { class: 'puces' });
@@ -536,6 +568,9 @@
           });
           majPuces();
           boiteReglages.appendChild(rangee);
+          /* MEME QUAND IL EN A DEJA : on en ajoute un troisième sans
+             quitter l'exercice. */
+          boiteReglages.appendChild(boutonReglage(nomOutil));
         });
         grReglages.hidden = aucunOutil;
       }
@@ -679,12 +714,28 @@
                              : connu ? 'chez toi'
                                      : (nm ? nm + ' muscle(s)' : 'nom libre'),
                   function () {
-                    if (connu) { basculerOutil(nom); return; }
-                    A.vues.reglages.editerOutil(null, function () {
-                      if (A.m.trouverOutil(etat(), A.m.slug(nom))
-                          && !porte(nom)) basculerOutil(nom);
-                      majEquip();
-                    }, nom);
+                    /* PRENDRE UN PRODUIT L'ATTACHE, POINT.
+
+                       MB, 28/10 : « quand je clique sur un équipement déjà
+                       rentré >> Titan Grip, après sélection, il me propose
+                       de l'enregistrer… Il est déjà enregistré, pourquoi le
+                       refaire ?? »
+
+                       MESURE : `connu` compare par SLUG EXACT. Son
+                       « Titan Grip » et le produit « Titan Grip Iron
+                       Wrist » sont deux slugs — le carnet le croyait donc
+                       neuf et ouvrait la fiche de création. Un formulaire
+                       pour un nom que le carnet connaît déjà par cœur.
+
+                       L'inscription au catalogue se fait en silence : c'est
+                       un effet de bord du geste, pas une décision à prendre.
+                       La fiche reste atteignable par Réglages, et le bouton
+                       « + Réglage » ci-dessous l'ouvre sans quitter l'exo. */
+                    if (!A.m.trouverOutil(etat(), A.m.slug(nom))) {
+                      A.m.majCatalogueOutils(etat(), nom, '');
+                      A.store.sauver(true);
+                    }
+                    basculerOutil(nom);
                   }));
               });
             });

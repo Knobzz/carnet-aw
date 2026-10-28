@@ -3910,17 +3910,27 @@
      deux cotes, et ce qui n'a pas de cote reste a part plutot que d'etre
      reparti au hasard.
 
-     La recuperation est incluse ici, et c'est VOULU : cent repetitions
-     d'elastique chargent le flechisseur comme le reste, meme si elles n'ont
-     rien a faire dans le tonnage. Ce qu'on mesure ici n'est pas du travail,
-     c'est de la sollicitation. */
-  function chargeParMuscle(etat, depuisJours) {
+     LA RECUPERATION EN EST SORTIE le 2026-10-28 — MB : « les exos fait
+     dans recup se repercutent dans le Suivi >> Seances >> Regions &
+     Muscles, il ne faut pas ».
+
+     CE COMMENTAIRE DISAIT L'INVERSE, et sa raison tenait : cent repetitions
+     d'elastique chargent le flechisseur comme le reste. Mais depuis les
+     sous-onglets du 28/10, ce compte vit sous « Seances » — et un onglet
+     qui annonce « Seances de musculation » ne peut pas compter autre chose.
+     La raison n'a pas disparu, elle a change d'endroit : elle vaut pour le
+     recoupement avec les douleurs, et c'est `chargeParArticulation` qui le
+     porte. Celle-la garde la recup, et l'ecran le DIT.
+
+     `avecRecup` existe pour qui voudrait les deux : rien n'est perdu, c'est
+     le DEFAUT qui change. */
+  function chargeParMuscle(etat, depuisJours, avecRecup) {
     var parMuscle = {}, parCote = {}, parRegion = {}, total = 0, sansMuscle = 0;
     MUSCLES.forEach(function (m) { parMuscle[m.id] = 0; });
     REGIONS_MUSCLE.forEach(function (r) { parRegion[r.id] = 0; });
 
     (etat.seances || []).forEach(function (se) {
-      if (!se || (se.type !== 'muscu' && se.type !== 'recup')) return;
+      if (!se || (se.type !== 'muscu' && !(avecRecup && se.type === 'recup'))) return;
       if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
       (se.exercices || []).forEach(function (ex) {
         var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
@@ -4014,7 +4024,11 @@
      l'epicondyle lateral. C'est le lien direct entre la carte et la douleur
      qu'on suit, et il ne demande aucune saisie de plus. */
   function chargeEpicondyle(etat, depuisJours) {
-    var c = chargeParMuscle(etat, depuisJours);
+    /* AVEC LA RECUP, explicitement. Ce compte n'est pas du travail, c'est
+       ce qui a tire sur le tendon — et cent repetitions d'elastique tirent.
+       `chargeParMuscle` l'a exclue par defaut le 28/10 parce qu'elle vit
+       sous « Seances » ; ici le perimetre est la DOULEUR, pas l'onglet. */
+    var c = chargeParMuscle(etat, depuisJours, true);
     var medial = 0, lateral = 0, nomsM = [], nomsL = [];
     MUSCLES.forEach(function (m) {
       var n = c.parMuscle[m.id] || 0;
@@ -4312,9 +4326,9 @@
      Chaque axe garde EXACTEMENT les regles de la fonction qui le comptait
      deja, sinon deux ecrans du meme carnet se contrediraient :
 
-       'region'     comme chargeParMuscle — la RECUPERATION EST INCLUSE, et
-                    une serie compte une fois par muscle, donc plusieurs fois
-                    pour une region qui en porte plusieurs.
+       'region'     comme chargeParMuscle — la MUSCULATION SEULE depuis le
+                    28/10, et une serie compte une fois par muscle, donc
+                    plusieurs fois pour une region qui en porte plusieurs.
        'mouvement'  comme repartitionForces — la MUSCULATION SEULE, et une
                     serie compte une fois par mouvement coche.
 
@@ -4333,7 +4347,12 @@
 
   var AXES_SEMAINE = {
     region:    { cles: function () { return REGIONS_MUSCLE; },
-                 avecRecup: true },
+                 /* FAUX depuis le 28/10, comme `chargeParMuscle` : les
+                    deux vivent sous l'onglet « Seances », et un controle
+                    somme les semaines contre elle. Si l'un garde la recup
+                    et l'autre non, deux ecrans du meme onglet se
+                    contredisent. */
+                 avecRecup: false },
     mouvement: { cles: function () { return FORCES; },
                  avecRecup: false }
   };

@@ -1789,10 +1789,38 @@
                                dureeCible: '', repsReel: '30', chargeReel: '', dureeReel: '',
                                rpe: null, faite: true, faiteA: null }] }]
     }];
-    v.egal(A.m.chargeParMuscle(avecRecup, 28).parMuscle.ecrb, 1,
-           'la récupération sollicite les muscles, même si elle ne pèse rien');
+    /* RENVERSEMENT DU 28/10 — MB : « les exos fait dans recup se
+       repercutent dans le Suivi >> Seances >> Regions & Muscles, il ne faut
+       pas ». Ce controle gardait la decision d'avant, et sa raison tenait :
+       cent repetitions d'elastique chargent le flechisseur. Mais depuis les
+       sous-onglets, ce compte vit sous « Seances », et un onglet qui annonce
+       « Seances de musculation » ne peut pas compter autre chose.
+
+       LA RAISON N'A PAS DISPARU, ELLE A CHANGE D'ENDROIT, et les trois
+       lignes qui suivent le mesurent : hors des muscles par defaut, DANS
+       le compte quand on le demande, et toujours DANS ce qui touche a la
+       douleur. */
+    v.egal(A.m.chargeParMuscle(avecRecup, 28).parMuscle.ecrb, 0,
+           'la récupération ne compte PLUS dans Régions & Muscles : '
+         + 'l’onglet dit « séances de musculation »');
+    v.egal(A.m.chargeParMuscle(avecRecup, 28, true).parMuscle.ecrb, 1,
+           'mais rien n’est perdu — elle revient si on la demande');
+    /* J'AI ECRIT ICI QUE « Par structure » GARDAIT LA RECUP, et je l'avais
+       meme mis a l'ecran. FAUX : elle lit `derniereSollicitationStructure`,
+       qui passe par `seancesMuscuTriees` — muscu seulement, depuis
+       toujours. Le controle visait `chargeParArticulation`, qui est « Ce
+       que tu mobilises », pas « Par structure ». Deux affirmations non
+       mesurees dans le meme lot, arretees parce que l'une etait ecrite
+       comme un controle. */
+    v.egal(A.m.chargeParStructure(avecRecup, 28).total, 0,
+           '[temoin] « Par structure » ne comptait DEJA que la musculation — '
+         + 'rien n’y change aujourd’hui');
+    v.vrai(A.m.chargeEpicondyle(avecRecup, 28).lateral > 0,
+           'l’épicondyle, lui, garde la récup : son périmètre est la '
+         + 'DOULEUR, pas l’onglet — cent répétitions d’élastique tirent sur '
+         + 'le tendon');
     v.egal(A.m.volumeParSemaine(avecRecup, 8).length, 0,
-           '[temoin] et elle reste hors du volume de travail');
+           '[temoin] et elle reste hors du volume de travail, comme toujours');
 
     /* --- le croisement mouvements × muscles --- */
     var e2 = etatAvec([
