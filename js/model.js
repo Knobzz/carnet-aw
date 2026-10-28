@@ -629,7 +629,7 @@
 
   /* Les mouvements qu'un NOM d'exercice porte. Rien n'est ecrit sur
      l'exercice : c'est une LECTURE, refaite a chaque affichage. */
-  function forcesDuNom(nom) {
+  function motsDeMouvementDuTexte(nom) {
     var s = slug(nom);
     if (!s) return [];
     /* Un geste INVERSE n'est plus le geste nomme : l'extension du poignet
@@ -651,6 +651,51 @@
       });
     });
     return out;
+  }
+
+  /* ---- UNE ECRITURE HERITE DU MOUVEMENT DE SA FICHE ----
+
+     MB, 28/10 : « corrige-les ». QUATRE ecritures du dictionnaire ne se
+     lisaient pas comme le mouvement de leur fiche, donc « Ton style » ne
+     les comptait pas :
+
+       « Déviation radiale », « Inclinaison radiale », « Radial deviation »
+         — la fiche « Rising » lit `rising`, elles ne lisaient rien, parce
+           qu'aucun mot de MOTS_FORCE.rising n'y figure ;
+       « Poignée de pronation » — la fiche « Pronation » lit `pronation`,
+           elle butait sur MOTS_MATERIEL_NOM, le garde-fou qui empêche
+           « Wrist curl avec poignée de hook » de se lire comme une
+           supination. Juste en général, faux ici : ce nom-là EST l'outil.
+
+     ON NE RECOPIE PAS LE DICTIONNAIRE DANS MOTS_FORCE, ce qui aurait été le
+     chemin bête — il aurait fallu y écrire les quatre noms à la main. On lit
+     la FICHE : si le nom est une écriture d'une fiche livrée, on lit le
+     mouvement de son NOM PRINCIPAL. Dérivé, donc une écriture ajoutée demain
+     hérite sans qu'on y pense.
+
+     MESURE AVANT ÉCRITURE, sur les 156 écritures : 25 lisent déjà un
+     mouvement, 4 en gagnent un — exactement les quatre —, 127 n'ont rien à
+     gagner puisque leur fiche n'en porte pas, et ZÉRO est divergente. C'est
+     ce dernier chiffre qui autorise le correctif : la reprise ne tire que
+     sur le VIDE, et il n'y a aucune lecture à écraser.
+
+     TROIS BORNES, POSÉES EXPRÈS :
+       — LE DICTIONNAIRE LIVRÉ SEULEMENT. Une fiche personnelle porte les
+         mots de MB ; son nom principal est celui qu'il a écrit, donc il n'y
+         a rien à hériter. Et `forcesDuNom` garde son unique argument :
+         passer l'état en ferait une lecture qui dépend du carnet.
+       — UN SEUL NIVEAU, sans repasser par la reprise : sinon une fiche dont
+         le nom principal ne lit rien relancerait la recherche sur elle-même.
+       — CORRESPONDANCE EXACTE. `ficheLivree` compare des slugs entiers :
+         « Déviation radiale lourde » n'est pas une écriture et n'hérite de
+         rien. Deviner sur une correspondance partielle rendrait la lecture
+         imprévisible. */
+  function forcesDuNom(nom) {
+    var direct = motsDeMouvementDuTexte(nom);
+    if (direct.length) return direct;
+    var f = ficheLivree(nom);
+    if (!f || slug(f.nom) === slug(nom)) return direct;
+    return motsDeMouvementDuTexte(f.nom);
   }
 
   /* CE QUE L'UTILISATEUR A COCHE GAGNE. La deduction ne sert que la ou la

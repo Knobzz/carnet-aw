@@ -3779,6 +3779,45 @@
     v.egal(fdn('Riser à la poulie'), 'rising',
            'un riser porte le RISING');
 
+    /* ---- UNE ECRITURE HERITE DU MOUVEMENT DE SA FICHE ----
+
+       MB, 28/10 : « corrige-les ». Quatre ecritures du dictionnaire ne se
+       lisaient pas comme le mouvement de leur fiche, donc « Ton style » ne
+       les comptait pas.
+
+       LE BALAYAGE PORTE LE LOT, pas les quatre noms : ecrit a la main sur
+       eux, ce controle n'aurait rien dit de la cinquieme ecriture ajoutee
+       demain. */
+    var muettes = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      var duNom = fdn(d.nom);
+      (d.aussi || []).forEach(function (a) {
+        if (duNom && !fdn(a)) muettes.push(a + ' [' + d.nom + ']');
+      });
+    });
+    v.egal(muettes.join(' · '), '',
+           'AUCUNE ecriture ne reste muette quand sa fiche parle : sur '
+         + '1.49.0, quatre l’etaient — « Deviation radiale », « Inclinaison '
+         + 'radiale », « Radial deviation » et « Poignee de pronation »');
+    v.egal(fdn('Déviation radiale'), 'rising',
+           'une deviation radiale est un RISING, comme sa fiche — et aucun '
+         + 'mot de MOTS_FORCE ne le disait');
+    v.egal(fdn('Poignée de pronation'), 'pronation',
+           'et la poignee de pronation porte la PRONATION : elle butait sur '
+         + 'le garde-fou du materiel, juste en general et faux ici, '
+         + 'puisque ce nom-la EST l’outil');
+
+    /* ---- ET LES DEUX BORNES QUI EMPECHENT LA REPRISE DE DERAPER ---- */
+    v.egal(fdn('Déviation radiale lourde'), '',
+           '[temoin] la correspondance est EXACTE : un nom qui CONTIENT une '
+         + 'ecriture n’herite de rien. Il tient des deux cotes, et il garde '
+         + 'la lecture d’etre imprevisible sur une correspondance partielle');
+    v.egal(fdn('Poignée de hook'), '',
+           '[temoin] et un nom d’OUTIL ne devient pas un geste. Celui-la est '
+         + 'le plus important du lot : c’est le defaut que MOTS_MATERIEL_NOM '
+         + 'avait ferme, et la reprise par la fiche aurait pu le rouvrir si '
+         + '« Poignee de hook » avait ete une ecriture');
+
     /* ---- ce qui ne doit RIEN porter, et c'est le plus coûteux ----
 
        CES CONTROLES TIENNENT SUR LA VERSION D'AVANT, et il faut le savoir :
