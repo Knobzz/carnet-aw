@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations — choisir un équipement sans se perdre</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .intro { max-width: 1180px; margin: 0 auto 16px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .intro p { margin: 4px 0; color: var(--texte-2); font-size: .92rem; }
+  .intro b { color: var(--texte); }
+  .rangee { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+            max-width: 1180px; margin: 0 auto 26px; }
+  .sim { width: 342px; flex: 0 0 342px; }
+  .sim > h2 { font-size: 1rem; margin: 0 0 2px; }
+  .sim > .pourquoi { font-size: .82rem; color: var(--texte-2); margin: 0 0 8px;
+                     min-height: 72px; }
+  /* 320 px, et une hauteur de telephone : c'est le defilement qu'on mesure. */
+  .ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+           background: var(--fond); width: 320px; height: 430px;
+           overflow-y: auto; box-sizing: border-box; padding: 10px; }
+  .cout { font-size: .8rem; color: var(--texte-2); margin-top: 8px;
+          border-top: 1px solid var(--trait); padding-top: 6px; }
+  .cout b { color: var(--texte); }
+  .mesure { font-size: .78rem; color: var(--laiton); margin-top: 6px;
+            font-variant-numeric: tabular-nums; min-height: 34px; }
+  .faux-champ { border: 1px solid var(--trait-fort); border-radius: var(--r-s);
+                background: var(--fond-2); padding: 7px; min-height: 42px;
+                display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .faux-champ .vide { padding: 0; margin: 0; border: 0; background: none;
+                      color: var(--texte-3); font-size: .86rem; }
+  .jeton-ret { display: inline-flex; align-items: center; gap: 5px;
+               border: 1px solid var(--bleu); color: var(--bleu-vif);
+               background: var(--bleu-doux); border-radius: 999px;
+               padding: 3px 9px; font-size: .84rem; }
+  .titre-ch { font-size: .78rem; color: var(--texte-2); font-weight: 550;
+              margin: 10px 0 4px; }
+  .equip-cat { width: 100%; }
+  .collant { position: sticky; top: -10px; z-index: 5; background: var(--fond);
+             padding: 6px 0 8px; border-bottom: 1px solid var(--trait); }
+  .ruban { font-size: .78rem; color: var(--bleu-vif); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Choisir un équipement sans se perdre — trois gestes, cliquables</h1>
+  <p>MB, 28/10 : « quand je clique sur un équipement pour rajouter, si j’ai
+     beaucoup scrollé, je ne vois que les équipements et c’est pas top
+     visuellement, il faudrait revenir dans la case équipement quand j’ai
+     cliqué sur quelque chose, voir réduire la catégorie où j’ai cliqué ? »</p>
+  <p><strong>Tout réagit.</strong> 320 px de large, 430 px de haut — la
+     hauteur utile d’un téléphone sous le clavier. Le décor est ton vrai
+     catalogue : 1 équipement à toi, puis Golden Grip (24), Titangrip (16),
+     Mithril (15), ARMSPORT (1). Clique un produit dans une section dépliée
+     et regarde où tu atterris.</p>
+  <p class="mesure">La mesure qui compte est en bas de chaque colonne : de
+     combien de pixels l’écran a défilé après le choix.</p>
+</div>
+
+<div class="rangee" id="rangee"></div>
+
+<script>
+var MARQUES = [
+  { nom: 'Le mien', produits: ['Wrist Wrench'] },
+  { nom: 'Golden Grip', produits: ['Hammer', 'Pronator', 'Riser', 'Cup', 'Side pressure',
+      'Back pressure', 'Finger roller', 'Rotator', 'Wrist roller', 'Strap holder',
+      'Thumb trainer', 'Pinch block', 'Block weight', 'Handle N3', 'Handle N5',
+      'Grip ball', 'Extensor', 'Flexor bar', 'Lever bell', 'Hub', 'Cone',
+      'Egg', 'Plate pinch', 'Axle'] },
+  { nom: 'Titangrip', produits: ['Iron Wrist', 'Hammer', 'Pronator', 'Riser',
+      'Cup handle', 'Hook handle', 'Toproll handle', 'Side plate', 'Back plate',
+      'Wrist roller', 'Finger bar', 'Thumb block', 'Pinch disc', 'Cone grip',
+      'Axle bar', 'Strap ring'] },
+  { nom: 'Mithril', produits: ['AXE', 'Hammer', 'Pronator', 'Riser', 'Cup',
+      'Side', 'Back', 'Roller', 'Finger', 'Thumb', 'Pinch', 'Cone', 'Axle',
+      'Ring', 'Block'] },
+  { nom: 'ARMSPORT', produits: ['Handle'] }
+];
+
+function el(t, cls, txt) {
+  var n = document.createElement(t);
+  if (cls) n.className = cls;
+  if (txt != null) n.textContent = txt;
+  return n;
+}
+
+/* ------------------------------------------------------------------
+   Une variante = une fonction qui dit ce qui se passe APRES un choix.
+   Le reste de l'ecran est strictement identique partout, sinon on
+   comparerait deux choses.
+   ------------------------------------------------------------------ */
+function monter(cfg) {
+  var sim = el('div', 'sim');
+  sim.appendChild(el('h2', null, cfg.titre));
+  sim.appendChild(el('p', 'pourquoi', cfg.pourquoi));
+
+  var ecran = el('div', 'ecran');
+  var mesure = el('div', 'mesure');
+
+  var champ = el('div', 'faux-champ');
+  var titreChamp = el('div', 'titre-ch', 'Équipements');
+  var ruban = el('div', 'ruban');
+  var choisis = [];
+
+  function majChamp() {
+    champ.textContent = '';
+    if (!choisis.length) {
+      champ.appendChild(el('span', 'vide', 'Aucun équipement'));
+      return;
+    }
+    choisis.forEach(function (n) {
+      var j = el('span', 'jeton-ret');
+      j.appendChild(el('b', null, n));
+      j.appendChild(el('span', null, '✕'));
+      champ.appendChild(j);
+    });
+  }
+  majChamp();
+
+  var tete = el('div', cfg.collant ? 'collant' : '');
+  tete.appendChild(titreChamp);
+  tete.appendChild(champ);
+  if (cfg.ruban) tete.appendChild(ruban);
+  ecran.appendChild(tete);
+
+  var sections = [];
+  MARQUES.forEach(function (mq) {
+    var bt = el('button', 'equip-cat');
+    bt.type = 'button';
+    bt.setAttribute('aria-expanded', 'false');
+    bt.textContent = mq.nom + ' · ' + mq.produits.length;
+    var corps = el('div');
+    corps.hidden = true;
+
+    mq.produits.forEach(function (nom) {
+      var l = el('button', 'item-ligne item-bouton');
+      l.type = 'button';
+      l.appendChild(el('b', null, nom));
+      l.appendChild(el('span', null, 'ajouter'));
+      l.addEventListener('click', function () {
+        if (choisis.indexOf(nom) < 0) choisis.push(nom);
+        majChamp();
+        var avant = ecran.scrollTop;
+        cfg.apres({ ecran: ecran, bouton: bt, corps: corps, nom: nom,
+                    tete: tete, ruban: ruban, choisis: choisis });
+        setTimeout(function () {
+          mesure.textContent = '« ' + nom + ' » ajouté · défilement '
+            + Math.round(avant) + ' px → ' + Math.round(ecran.scrollTop)
+            + ' px · ' + choisis.length + ' coché'
+            + (choisis.length > 1 ? 's' : '');
+        }, 320);
+      });
+      corps.appendChild(l);
+    });
+
+    bt.addEventListener('click', function () {
+      var ouvert = bt.getAttribute('aria-expanded') === 'true';
+      bt.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+      corps.hidden = ouvert;
+    });
+
+    sections.push({ bt: bt, corps: corps });
+    ecran.appendChild(bt);
+    ecran.appendChild(corps);
+  });
+
+  sim.appendChild(ecran);
+  var cout = el('div', 'cout');
+  cout.appendChild(el('b', null, 'Ce que ça coûte : '));
+  cout.appendChild(document.createTextNode(cfg.cout));
+  sim.appendChild(cout);
+  sim.appendChild(mesure);
+  mesure.textContent = 'déplie une marque, puis clique un produit.';
+  return sim;
+}
+
+var rangee = document.getElementById('rangee');
+
+/* ---- A : ce que MB propose — replier et remonter ---- */
+rangee.appendChild(monter({
+  titre: 'A — Replie la section, remonte au champ',
+  pourquoi: 'Exactement ce que tu décris : la catégorie se referme et '
+          + 'l’écran revient sur « Équipements ». Le choix fait, on est '
+          + 'revenu au point de départ.',
+  apres: function (x) {
+    x.bouton.setAttribute('aria-expanded', 'false');
+    x.corps.hidden = true;
+    x.ecran.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  cout: 'un seul produit par ouverture. Si tu en veux trois dans la même '
+      + 'marque, il faut rouvrir trois fois — et le Titangrip en a seize.'
+}));
+
+/* ---- B : replier SEULEMENT, sans remonter ---- */
+rangee.appendChild(monter({
+  titre: 'B — Replie la section, reste sur place',
+  pourquoi: 'La catégorie se referme, mais l’écran ne bouge pas. Les autres '
+          + 'marques remontent sous tes yeux, et tu continues là où tu es.',
+  apres: function (x) {
+    x.bouton.setAttribute('aria-expanded', 'false');
+    x.corps.hidden = true;
+  },
+  cout: 'le champ « Équipements » reste hors de vue. Tu ne relis pas ce que '
+      + 'tu viens de cocher sans remonter toi-même.'
+}));
+
+/* ---- C : le champ reste collé en haut ---- */
+rangee.appendChild(monter({
+  titre: 'C — Le champ reste collé en haut',
+  pourquoi: 'Rien ne se replie, rien ne saute : la case « Équipements » '
+          + 'reste visible pendant que tu parcours. Tu vois ce que tu '
+          + 'coches, au moment où tu le coches.',
+  collant: true,
+  ruban: true,
+  apres: function (x) {
+    x.ruban.textContent = x.choisis.length + ' équipement'
+      + (x.choisis.length > 1 ? 's' : '') + ' sur cet exercice';
+  },
+  cout: 'la case mange de la hauteur en permanence — avec trois jetons elle '
+      + 'prend deux lignes, sur 430 px utiles. Et la liste reste longue : '
+      + 'elle ne résout pas le défilement, elle le rend supportable.'
+}));
+</script>
+
+</body>
+</html>
