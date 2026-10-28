@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations — séparer séances, récup et sparring dans le Suivi</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .intro { max-width: 1180px; margin: 0 auto 16px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .intro p { margin: 4px 0; color: var(--texte-2); font-size: .92rem; }
+  .intro b { color: var(--texte); }
+  .rangee { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+            max-width: 1180px; margin: 0 auto; }
+  .sim { width: 342px; flex: 0 0 342px; }
+  .sim > h2 { font-size: 1rem; margin: 0 0 2px; }
+  .sim > .pourquoi { font-size: .82rem; color: var(--texte-2); margin: 0 0 8px;
+                     min-height: 70px; }
+  /* 320 px : la largeur la plus dure, celle du banc. */
+  .ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+           background: var(--fond); padding: 12px; width: 320px;
+           box-sizing: border-box; overflow: hidden; }
+  .ecran.haut { max-height: 560px; overflow-y: auto; }
+  .cout { font-size: .8rem; color: var(--texte-2); margin-top: 8px;
+          border-top: 1px solid var(--trait); padding-top: 6px; }
+  .cout b { color: var(--texte); }
+  .mesure { font-size: .78rem; color: var(--laiton); margin-top: 6px;
+            font-variant-numeric: tabular-nums; }
+  .ecart { font-size: .84rem; color: var(--bleu-vif); margin: 8px 2px 0;
+           border-left: 2px solid var(--bleu); padding-left: 8px; }
+  .sous-onglets { display: flex; gap: 2px; margin-bottom: 10px;
+                  border-bottom: 1px solid var(--trait); }
+  /* 44 px, le plancher tactile du banc. Mesuré à 38 px au premier jet :
+     c'est le genre de prix qu'une maquette doit payer avant la livraison. */
+  .sous-onglet { appearance: none; font: inherit; font-size: .8rem;
+                 font-weight: 600; flex: 1; min-height: 44px; padding: 0 2px;
+                 border: 0; background: none; color: var(--texte-2);
+                 border-bottom: 2px solid transparent; cursor: pointer; }
+  .sous-onglet[aria-pressed="true"] { color: var(--bleu-vif);
+                                      border-bottom-color: var(--bleu); }
+  .grand-titre { font-size: 1.05rem; font-weight: 700; margin: 18px 0 2px;
+                 padding-top: 12px; border-top: 2px solid var(--trait-fort); }
+  .grand-titre:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+  .portee { font-size: .74rem; color: var(--texte-3); margin: 0 2px 8px; }
+  .jours7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+            margin: 6px 0 4px; }
+  .j { min-height: 32px; border-radius: var(--r-s); border: 1px solid var(--trait);
+       background: var(--fond-3); display: grid; place-items: center;
+       font-size: .72rem; color: var(--texte-3); }
+  .j.ok { background: var(--laiton-doux); border-color: var(--laiton);
+          color: var(--laiton); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Séparer séances, récup et sparring dans le Suivi — trois dispositions, cliquables</h1>
+  <p>MB, 28/10 : « il faudra aussi une séparation nette entre Suivi des
+     séances, suivi de la Récup et suivi des Sparring ».</p>
+  <p><strong>Tout réagit.</strong> Chaque écran fait 320 px — la largeur la plus
+     dure — avec le vrai CSS de l’app. Les contenus sont les mêmes partout :
+     seule la façon d’y accéder change.</p>
+  <p><strong>Les chiffres sont un décor</strong>, pas tes données : 14 séances,
+     9 sparrings et 5 jours de récup sur 30 jours. Le bloc « Ton style » est
+     la nouveauté — à l’entraînement il se <b>déduit des exercices</b>, en
+     sparring il vient du style que tu <b>déclares</b>. L’écart entre les deux
+     est le cœur de ce que tu demandais.</p>
+  <p class="mesure">Mesure du jour : les counters du Suivi filtrent DÉJÀ
+     <code>type === 'muscu'</code> — la récup et le sparring n’y entrent pas.
+     Ce qui manque n’est pas le filtre, c’est que l’écran le DISE.</p>
+</div>
+
+<div class="rangee">
+
+  <!-- ================= A : la bande de filtres ================= -->
+  <div class="sim">
+    <h2>A — Bande de filtres</h2>
+    <p class="pourquoi">La même bande que le Journal, en haut du Suivi. Geste
+       déjà connu, aucun onglet en plus, la barre du bas reste à six. Chaque
+       bloc dit à quoi il s’applique.</p>
+    <div class="ecran" id="ecranA">
+      <div class="filtres" id="filtresA"></div>
+      <div id="corpsA"></div>
+    </div>
+    <div class="cout">
+      <b>Ce que ça coûte :</b> un filtre est un ÉTAT qu’on oublie. Rouvrir le
+      Suivi sur « Sparring » sans se souvenir de l’avoir demandé, c’est le
+      piège que la période évite déjà en vivant dans les réglages. Il faudra
+      trancher : revient-il à « Tout » à chaque ouverture ?
+    </div>
+    <div class="mesure" id="mesA"></div>
+  </div>
+
+  <!-- ================= B : trois sections titrées ================= -->
+  <div class="sim">
+    <h2>B — Trois sections titrées</h2>
+    <p class="pourquoi">Une seule page qui descend, avec trois grands titres.
+       Rien à cliquer, rien à oublier : tout est là, dans l’ordre.</p>
+    <div class="ecran haut" id="ecranB"></div>
+    <div class="cout">
+      <b>Ce que ça coûte :</b> la longueur. Le Suivi fait déjà sept blocs pour
+      les seules séances ; y ajouter récup et sparring donne une page qu’on
+      ne parcourt plus. La hauteur réelle est mesurée ci-dessous — l’écran
+      est volontairement borné à 560 px pour que tu voies le défilement.
+    </div>
+    <div class="mesure" id="mesB"></div>
+  </div>
+
+  <!-- ================= C : sous-onglets ================= -->
+  <div class="sim">
+    <h2>C — Sous-onglets dans Suivi</h2>
+    <p class="pourquoi">Une rangée de sous-onglets à l’intérieur de Suivi.
+       La séparation la plus nette : on est dans un endroit, pas dans une vue
+       filtrée.</p>
+    <div class="ecran" id="ecranC">
+      <div class="sous-onglets" id="ongletsC"></div>
+      <div id="corpsC"></div>
+    </div>
+    <div class="cout">
+      <b>Ce que ça coûte :</b> un niveau de navigation de plus, et trois
+      sous-onglets qui ressemblent aux six onglets du bas sans se comporter
+      pareil. La largeur à 320 px est mesurée ci-dessous.
+    </div>
+    <div class="mesure" id="mesC"></div>
+  </div>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   LE DÉCOR — le même pour les trois dispositions.
+   Rien ici ne part en livraison : c'est une maquette pour choisir.
+   ------------------------------------------------------------------ */
+var STYLE_ENTRAINEMENT = [
+  { nom: 'Toproll', n: 41, forces: 'pronation · rising · back pressure' },
+  { nom: 'Hook',    n: 12, forces: 'supination · cupping · side pressure' },
+  { nom: 'Press',   n: 5,  forces: 'side pressure' }
+];
+var STYLE_SPARRING = [
+  { nom: 'Hook', n: 6 }, { nom: 'Mixte', n: 2 }, { nom: 'Toproll', n: 1 }
+];
+var MOUVEMENTS = [
+  { nom: 'Pronation', n: 41 }, { nom: 'Rising', n: 34 },
+  { nom: 'Back pressure', n: 22 }, { nom: 'Cupping', n: 18 },
+  { nom: 'Supination', n: 12 }, { nom: 'Side pressure', n: 9 }
+];
+
+function el(t, cls, txt) {
+  var n = document.createElement(t);
+  if (cls) n.className = cls;
+  if (txt != null) n.textContent = txt;
+  return n;
+}
+
+function barres(liste, unite) {
+  var max = Math.max.apply(null, liste.map(function (x) { return x.n; })) || 1;
+  var carte = el('div', 'carte'), corps = el('div', 'carte-corps');
+  var b = el('div', 'barres');
+  liste.forEach(function (x) {
+    var l = el('div', 'barre');
+    l.appendChild(el('span', null, x.nom));
+    var piste = el('div', 'barre-piste');
+    var i = document.createElement('i');
+    i.className = 'gen';
+    i.style.width = (x.n / max * 100) + '%';
+    piste.appendChild(i);
+    l.appendChild(piste);
+    l.appendChild(el('span', 'barre-val', x.n + ' ' + unite));
+    b.appendChild(l);
+  });
+  corps.appendChild(b);
+  carte.appendChild(corps);
+  return carte;
+}
+
+function section(titre, aide) {
+  var f = document.createDocumentFragment();
+  f.appendChild(el('div', 'sous-titre', titre));
+  if (aide) {
+    var a = el('div', 'item-resume', aide);
+    a.style.margin = '-3px 2px 9px';
+    f.appendChild(a);
+  }
+  return f;
+}
+
+/* --- les trois contenus, identiques dans les trois dispositions --- */
+
+function contenuSeances(portee) {
+  var f = document.createDocumentFragment();
+  if (portee) f.appendChild(el('div', 'portee', portee));
+  f.appendChild(section('Ton style à l’entraînement',
+    'Déduit des exercices que tu fais, par leurs mouvements. Le carnet ne décide rien : il compte.'));
+  f.appendChild(barres(STYLE_ENTRAINEMENT, 'sér.'));
+  var e = el('div', 'ecart',
+    'Tu t’entraînes en TOPROLL (41 séries) et tu spares en HOOK (6 sur 9). ' +
+    'Le hook demande supination et cupping : 12 et 18 séries sur 30 jours.');
+  f.appendChild(e);
+  f.appendChild(section('Mouvements — 30 jours',
+    'Séries validées, mouvement par mouvement. Un zéro est une information.'));
+  f.appendChild(barres(MOUVEMENTS, 'sér.'));
+  return f;
+}
+
+function contenuRecup(portee) {
+  var f = document.createDocumentFragment();
+  if (portee) f.appendChild(el('div', 'portee', portee));
+  f.appendChild(section('Ta récupération',
+    'Les sept derniers jours. Un trou se voit d’un coup d’œil.'));
+  var g = el('div', 'jours7');
+  ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(function (j, i) {
+    var d = el('div', 'j' + ([0, 1, 3, 4, 6].indexOf(i) >= 0 ? ' ok' : ''), j);
+    g.appendChild(d);
+  });
+  f.appendChild(g);
+  var r = el('div', 'item-resume', '5 jours sur les 7 derniers · 2 jours d’affilée');
+  r.style.margin = '2px 2px 10px';
+  f.appendChild(r);
+  f.appendChild(section('Charge par semaine',
+    'Répétitions tenues, semaine par semaine.'));
+  f.appendChild(barres([{ nom: 'S-3', n: 600 }, { nom: 'S-2', n: 800 },
+                        { nom: 'S-1', n: 750 }, { nom: 'cette sem.', n: 400 }], 'reps'));
+  return f;
+}
+
+function contenuSparring(portee) {
+  var f = document.createDocumentFragment();
+  if (portee) f.appendChild(el('div', 'portee', portee));
+  f.appendChild(section('Ton style en sparring',
+    'Le style que tu as DÉCLARÉ sur chaque sparring. Rien n’est déduit ici.'));
+  f.appendChild(barres(STYLE_SPARRING, 'sparr.'));
+  var e = el('div', 'ecart',
+    'Le carnet ne connaît que Hook, Toproll et Mixte en sparring. ' +
+    'Le PRESS n’y est pas — à ajouter si tu le pratiques.');
+  f.appendChild(e);
+  f.appendChild(section('Volume de sparring',
+    'Rounds et temps à la table, sur la période.'));
+  f.appendChild(barres([{ nom: 'Rounds', n: 47 }, { nom: 'Minutes', n: 180 },
+                        { nom: 'Séances', n: 9 }], ''));
+  var d = el('div', 'item-resume',
+    'Bras droit 7 · gauche 2. Douleurs notées sur 3 sparrings.');
+  d.style.margin = '8px 2px 0';
+  f.appendChild(d);
+  return f;
+}
+
+var VUES = {
+  seances:  { nom: 'Séances',  faire: contenuSeances,
+              portee: 'Ne compte que les séances de musculation. Récup et sparring ont leur propre suivi.' },
+  recup:    { nom: 'Récup',    faire: contenuRecup,
+              portee: 'Ne compte que les journées de récupération.' },
+  sparring: { nom: 'Sparring', faire: contenuSparring,
+              portee: 'Ne compte que les sparrings notés.' }
+};
+
+/* ================= A : bande de filtres ================= */
+(function () {
+  var barre = document.getElementById('filtresA');
+  var corps = document.getElementById('corpsA');
+  var clefs = ['tout', 'seances', 'recup', 'sparring'];
+  var noms = { tout: 'Tout', seances: 'Séances', recup: 'Récup', sparring: 'Sparring' };
+  var actif = 'tout';
+
+  function peindre() {
+    corps.textContent = '';
+    if (actif === 'tout') {
+      corps.appendChild(contenuSeances(VUES.seances.portee));
+      corps.appendChild(contenuRecup(VUES.recup.portee));
+      corps.appendChild(contenuSparring(VUES.sparring.portee));
+    } else {
+      corps.appendChild(VUES[actif].faire(VUES[actif].portee));
+    }
+    Array.prototype.forEach.call(barre.children, function (b) {
+      b.setAttribute('aria-pressed', b.dataset.k === actif ? 'true' : 'false');
+    });
+    mesurerA();
+  }
+
+  clefs.forEach(function (k) {
+    var b = el('button', 'puce', noms[k]);
+    b.type = 'button';
+    b.dataset.k = k;
+    b.addEventListener('click', function () { actif = k; peindre(); });
+    barre.appendChild(b);
+  });
+
+  function mesurerA() {
+    var m = document.getElementById('mesA');
+    var mini = 9999;
+    Array.prototype.forEach.call(barre.children, function (b) {
+      mini = Math.min(mini, b.getBoundingClientRect().width);
+    });
+    var h = document.getElementById('ecranA').scrollHeight;
+    m.textContent = 'filtre « ' + noms[actif] +' » · puce la plus étroite : '
+                  + Math.round(mini) + ' px · hauteur de la page : ' + h + ' px';
+  }
+  peindre();
+})();
+
+/* ================= B : trois sections titrées ================= */
+(function () {
+  var e = document.getElementById('ecranB');
+  [['Tes séances', contenuSeances, VUES.seances.portee],
+   ['Ta récup', contenuRecup, VUES.recup.portee],
+   ['Tes sparrings', contenuSparring, VUES.sparring.portee]
+  ].forEach(function (t) {
+    e.appendChild(el('div', 'grand-titre', t[0]));
+    e.appendChild(t[1](t[2]));
+  });
+  document.getElementById('mesB').textContent =
+    'hauteur réelle de la page : ' + e.scrollHeight + ' px — soit '
+    + (e.scrollHeight / 640).toFixed(1) + ' écrans de téléphone à faire défiler';
+})();
+
+/* ================= C : sous-onglets ================= */
+(function () {
+  var barre = document.getElementById('ongletsC');
+  var corps = document.getElementById('corpsC');
+  var clefs = ['seances', 'recup', 'sparring'];
+  var actif = 'seances';
+
+  function peindre() {
+    corps.textContent = '';
+    corps.appendChild(VUES[actif].faire(null));
+    Array.prototype.forEach.call(barre.children, function (b) {
+      b.setAttribute('aria-pressed', b.dataset.k === actif ? 'true' : 'false');
+    });
+    mesurerC();
+  }
+
+  clefs.forEach(function (k) {
+    var b = el('button', 'sous-onglet', VUES[k].nom);
+    b.type = 'button';
+    b.dataset.k = k;
+    b.addEventListener('click', function () { actif = k; peindre(); });
+    barre.appendChild(b);
+  });
+
+  function mesurerC() {
+    var mini = 9999, bas = 0;
+    Array.prototype.forEach.call(barre.children, function (b) {
+      var r = b.getBoundingClientRect();
+      mini = Math.min(mini, r.width);
+      bas = Math.max(bas, r.height);
+    });
+    document.getElementById('mesC').textContent =
+      'onglet le plus étroit : ' + Math.round(mini) + ' px · hauteur : '
+      + Math.round(bas) + ' px (plancher tactile 44) · page : '
+      + document.getElementById('ecranC').scrollHeight + ' px';
+  }
+  peindre();
+})();
+</script>
+
+</body>
+</html>
