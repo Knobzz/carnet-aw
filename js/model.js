@@ -3097,20 +3097,22 @@
       : textes.length + ' × ' + textes[0];
   }
 
-  /* Combien de SERIES, pas combien d'exercices.
+  /* Combien d'EXERCICES — le compte suit le GESTE, pas la donnee.
 
-     Il comptait les exercices, et un exercice comptait pour fait des qu'UNE
-     de ses series l'etait. Tant que l'ecran n'en montrait qu'une, les deux
-     comptes se confondaient. Des qu'il les montre toutes, l'ancien compte
-     ment : quatre cases a l'ecran et « 1 / 1 fait » des la premiere cochee.
-     A une serie par exercice, le resultat est le meme qu'avant. */
+     1.38.0 comptait les series, parce que l'ecran en donnait une a cocher
+     par serie. MB, 28/10 : « je n'avais qu'une fois a valider […] ne peut on
+     pas valider UNE fois les 4 series ? » Un ✓ par exercice : le compte en
+     dit donc autant, sinon deux exercices affichaient « 2 / 5 faits » pour
+     deux appuis.
+
+     `some` et non `every` : les quatre series basculent ensemble aujourd'hui,
+     mais une journee ecrite par 1.38.0 a pu rester a deux sur quatre, et elle
+     a bien ete faite. C'est aussi ce que lit `recupFaite`. */
   function compteRecup(se) {
     var total = 0, faits = 0;
     (se && se.exercices || []).forEach(function (ex) {
-      (ex.series || []).forEach(function (s) {
-        total += 1;
-        if (s.faite) faits += 1;
-      });
+      total += 1;
+      if ((ex.series || []).some(function (s) { return s.faite; })) faits += 1;
     });
     return { faits: faits, total: total };
   }

@@ -3391,9 +3391,9 @@
                    dureeReel: '', rpe: null, faite: i < 3, faiteA: null };
         }) }] };
     var cq = A.m.compteRecup(quatre);
-    v.egal(cq.faits + '/' + cq.total, '3/4',
-           'quatre séries dans un exercice se comptent QUATRE — sinon l’écran '
-         + 'montre quatre cases et le compteur annonce « 1 / 1 fait »');
+    v.egal(cq.faits + '/' + cq.total, '1/1',
+           'le compte suit le GESTE : un exercice, un appui — MB, 28/10 : '
+         + '« je n’avais qu’une fois à valider »');
     /* [temoin] : il tient AUSSI sur la version d'avant, et c'est l'essentiel
        de ce qu'il dit. `resumeSeriesFaites` a été livré en 1.37.2, et MB a
        répondu « toujours pas » : la fonction était juste, elle n'avait rien à

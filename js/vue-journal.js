@@ -212,13 +212,12 @@
   function detailRecup(se, surFin) {
     A.panneau.ouvrir('Récupération du ' + A.m.dateCourte(se.date),
       function (c, fermer) {
-        /* « series », et non « exercices » : le compte porte sur les series
-           depuis que l'ecran de recup les rend toutes. Deux exercices de
-           quatre et une serie donnaient « 5 / 5 exercices ». */
+        /* « exercices » : un ✓ par exercice, donc un compte par exercice.
+           Le nombre de series se lit sur la ligne — « 4 × 50 reps ». */
         var cpt = A.m.compteRecup(se);
         c.appendChild(h('div', { class: 'item-resume',
-          text: cpt.faits + ' / ' + cpt.total + ' série'
-              + (cpt.total > 1 ? 's' : '') + ' cochée'
+          text: cpt.faits + ' / ' + cpt.total + ' exercice'
+              + (cpt.total > 1 ? 's' : '') + ' coché'
               + (cpt.faits > 1 ? 's' : '') + '.' }));
 
         var lignes = h('div', { class: 'item-lignes' });
@@ -259,7 +258,7 @@
       h('h3', { text: 'Récupération' }),
       h('span', { class: 'item-date', text: A.m.dateCourte(se.date) })));
     it.appendChild(h('div', { class: 'item-resume',
-      text: c.faits + ' / ' + c.total + ' série' + (c.total > 1 ? 's' : '') }));
+      text: c.faits + ' / ' + c.total + ' exercice' + (c.total > 1 ? 's' : '') }));
 
     var lignes = h('div', { class: 'item-lignes' });
     (se.exercices || []).forEach(function (ex) {

@@ -93,32 +93,63 @@
     var liste = h('div');
 
     /* ----------------------------------------------------------------
-       UNE LIGNE PAR SÉRIE — pas seulement la première
+       UN ✓ PAR EXERCICE, QUI VAUT POUR TOUTES SES SÉRIES
 
-       MB, 28/10 : « je ne vois que l'exo >> 50 reps, et c'est tout, il
-       faudrait un affichage du style : -Side Pressure 4x50 reps ». J'ai
-       d'abord corrigé le JOURNAL ; il m'a répondu « toujours pas ».
+       Deux demandes de MB, et la seconde corrige ma réponse à la première.
 
-       MESURE : sa routine porte QUATRE séries, cet écran n'en rendait
-       qu'UNE — `(ex.series || [])[0]`. Le journal n'avait jamais rien à
-       compter. L'éditeur de routine laisse déclarer quatre séries, l'écran
-       en jetait trois : le piège n° 5, moitié livrée.
+       1) « je ne vois que l'exo >> 50 reps […] il faudrait : Side Pressure
+          4x50 reps ». Cause mesurée : l'écran ne rendait que la PREMIÈRE
+          série — `(ex.series || [])[0]` — alors que sa routine en porte
+          quatre. Le journal n'avait jamais rien à compter.
 
-       L'ÉCRAN RESTE CELUI DU GESTE RAPIDE. À une seule série il ne change
-       pas d'un pixel : ni numéro, ni colonne en plus. Le numéro n'apparaît
-       que là où il répond à une question — « laquelle ? ». Numéroter « 1 »
-       tout seul n'informe de rien et vole de la largeur.
+       2) « l'affichage initial était meilleur, je n'avais qu'une fois à
+          valider […] ne peut on pas valider UNE fois les 4 séries ? »
+          1.38.0 avait résolu le bon problème par le mauvais moyen : quatre
+          lignes à cocher. Récup est un écran de GESTE — « il ne reste qu'à
+          cocher » — et quatre appuis au lieu d'un, c'est la lourdeur que
+          cet écran existe pour éviter.
+
+       CE QUE ÇA COÛTE, ET C'EST ASSUMÉ : on ne peut plus noter une valeur
+       DIFFÉRENTE par série depuis cet écran. Ce qu'on tape vaut pour toutes.
+       Les cibles par série, elles, restent dans la routine, et cocher sans
+       rien taper donne à chaque série LA SIENNE — c'est pourquoi le
+       placeholder liste les cibles distinctes quand elles diffèrent plutôt
+       que de n'en montrer qu'une.
        ---------------------------------------------------------------- */
+
+    /* La valeur commune aux séries, ou '' si elles ne s'accordent pas : un
+       champ unique ne peut pas afficher deux réponses. */
+    function valeurCommune(series, cle) {
+      var vals = [];
+      series.forEach(function (s) {
+        var x = (s[cle] || '').trim();
+        if (vals.indexOf(x) < 0) vals.push(x);
+      });
+      return vals.length === 1 ? vals[0] : '';
+    }
+
+    function ciblesDistinctes(series, cle) {
+      var vals = [];
+      series.forEach(function (s) {
+        var x = (s[cle] || '').trim();
+        if (x && vals.indexOf(x) < 0) vals.push(x);
+      });
+      return vals;
+    }
+
     function blocExo(ex) {
       var cols = A.m.colonnes(ex);
       var series = ex.series || [];
       if (!series.length) { series = ex.series = [A.m.serieSeanceVierge({})]; }
-      var plusieurs = series.length > 1;
 
       var bloc = h('div', { class: 'recup-exo' });
       var titre = h('div', { class: 'recup-titre' }, h('b', { text: ex.nom }));
-      if (plusieurs) titre.appendChild(h('span', { class: 'recup-compte',
-                                                   text: series.length + ' séries' }));
+      /* Le nombre de séries se DIT, sinon un seul ✓ laisse croire qu'une
+         seule série est en jeu. */
+      if (series.length > 1) {
+        titre.appendChild(h('span', { class: 'recup-compte',
+                                      text: series.length + ' séries' }));
+      }
       (ex.outils || []).forEach(function (o) {
         titre.appendChild(h('span', { class: 'jeton jeton-outil', text: o }));
       });
@@ -126,73 +157,70 @@
 
       if (ex.consigne) bloc.appendChild(h('div', { class: 'consigne', text: ex.consigne }));
 
-      /* La carte n'est « faite » que quand TOUTES ses séries le sont ; chaque
-         ligne, elle, porte son propre état — sinon trois séries restantes se
-         liraient comme un exercice fini. */
-      function majBlocFait() {
-        bloc.classList.toggle('faite', series.every(function (s) { return !!s.faite; }));
-      }
-
-      series.forEach(function (serie, i) {
-        var ligne = h('div', { class: 'recup-ligne' + (plusieurs ? ' multi' : ''),
-                               'data-cols': String(cols.length) });
-        var quoi = plusieurs ? ex.nom + ', série ' + (i + 1) : ex.nom;
-        if (plusieurs) ligne.appendChild(h('div', { class: 'recup-num', text: String(i + 1) }));
-
-        var champs = {};
-        cols.forEach(function (id) {
-          var def = A.m.colonne(id);
-          var champ = h('input', { class: 'serie-saisie', type: 'text', inputmode: def.mode(A.m.typeCharge(ex.typeCharge)),
-            value: serie[def.reel] || '', placeholder: serie[def.cible] || def.label(A.m.typeCharge(ex.typeCharge)),
-            'aria-label': def.label(A.m.typeCharge(ex.typeCharge)) + ' — ' + quoi });
-          champ.addEventListener('input', function () {
-            serie[def.reel] = champ.value;
-            synchroniser();
-          });
-          champs[id] = champ;
-          ligne.appendChild(champ);
-        });
-
-        var ok = h('button', { type: 'button', class: 'serie-ok',
-                               'aria-pressed': serie.faite ? 'true' : 'false',
-                               'aria-label': 'Fait — ' + quoi });
-        ok.appendChild(A.ui.svg(A.ui.CHEMIN_OK));
-        ok.addEventListener('click', function () {
-          basculer(serie, champs, cols, ligne, ok);
-          majBlocFait();
-          majEntete();
-          majBtTout();
+      var ligne = h('div', { class: 'recup-ligne', 'data-cols': String(cols.length) });
+      var champs = {};
+      cols.forEach(function (id) {
+        var def = A.m.colonne(id);
+        var cibles = ciblesDistinctes(series, def.cible);
+        var champ = h('input', { class: 'serie-saisie', type: 'text',
+          inputmode: def.mode(A.m.typeCharge(ex.typeCharge)),
+          value: valeurCommune(series, def.reel),
+          placeholder: cibles.join(' · ') || def.label(A.m.typeCharge(ex.typeCharge)),
+          'aria-label': def.label(A.m.typeCharge(ex.typeCharge)) + ' — ' + ex.nom
+                      + (series.length > 1 ? ', les ' + series.length + ' séries' : '') });
+        champ.addEventListener('input', function () {
+          series.forEach(function (s) { s[def.reel] = champ.value; });
           synchroniser();
         });
-        ligne.appendChild(ok);
-        if (serie.faite) ligne.classList.add('faite');
-        bloc.appendChild(ligne);
+        champs[id] = champ;
+        ligne.appendChild(champ);
       });
 
-      majBlocFait();
+      var ok = h('button', { type: 'button', class: 'serie-ok',
+                             'aria-pressed': series.some(function (s) { return s.faite; })
+                                             ? 'true' : 'false',
+                             'aria-label': 'Fait — ' + ex.nom
+                                         + (series.length > 1
+                                            ? ', les ' + series.length + ' séries' : '') });
+      ok.appendChild(A.ui.svg(A.ui.CHEMIN_OK));
+      ok.addEventListener('click', function () {
+        basculer(series, champs, cols, bloc, ok);
+        majEntete();
+        majBtTout();
+        synchroniser();
+      });
+      ligne.appendChild(ok);
+      bloc.appendChild(ligne);
+      if (series.some(function (s) { return s.faite; })) bloc.classList.add('faite');
       return bloc;
     }
 
-    function basculer(serie, champs, cols, ligne, ok, force) {
-      var neuf = force == null ? !serie.faite : force;
-      if (neuf === serie.faite) return false;
-      serie.faite = neuf;
-      ok.setAttribute('aria-pressed', neuf ? 'true' : 'false');
-      ligne.classList.toggle('faite', neuf);
-      if (neuf) {
-        serie.faiteA = new Date().toISOString();
-        /* Rien de saisi ? La cible fait foi : cocher veut dire « fait comme
-           prévu », pas « fait, valeur inconnue ». */
-        cols.forEach(function (id) {
-          var def = A.m.colonne(id);
-          if (!serie[def.reel] && serie[def.cible]) {
-            serie[def.reel] = serie[def.cible];
-            if (champs[id]) champs[id].value = serie[def.cible];
-          }
-        });
-      } else {
-        serie.faiteA = null;
+    /* Toutes les séries de l'exercice basculent ensemble : c'est UN geste.
+       Celles qui n'ont rien de saisi prennent CHACUNE leur propre cible —
+       « fait comme prévu », et non « fait, valeur inconnue ». */
+    function basculer(series, champs, cols, bloc, ok, force) {
+      var dejaFait = series.some(function (s) { return s.faite; });
+      var neuf = force == null ? !dejaFait : force;
+      if (neuf === dejaFait && series.every(function (s) { return s.faite === neuf; })) {
+        return false;
       }
+      series.forEach(function (s) {
+        s.faite = neuf;
+        if (neuf) {
+          s.faiteA = new Date().toISOString();
+          cols.forEach(function (id) {
+            var def = A.m.colonne(id);
+            if (!s[def.reel] && s[def.cible]) s[def.reel] = s[def.cible];
+          });
+        } else s.faiteA = null;
+      });
+      ok.setAttribute('aria-pressed', neuf ? 'true' : 'false');
+      bloc.classList.toggle('faite', neuf);
+      /* Le champ ne reflète la cible que si les séries s'accordent dessus. */
+      cols.forEach(function (id) {
+        var def = A.m.colonne(id);
+        if (champs[id]) champs[id].value = valeurCommune(series, def.reel);
+      });
       return true;
     }
 

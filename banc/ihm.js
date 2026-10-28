@@ -3054,16 +3054,21 @@
      ================================================================ */
 
   /* ------------------------------------------------------------------
-     L'ÉCRAN DE RÉCUP REND TOUTES LES SÉRIES
+     UN SEUL ✓ VALIDE LES QUATRE SÉRIES
 
-     MB, 28/10, après une première correction qui ne touchait que le journal :
-     « Toujours pas ». Mesuré : sa routine portait QUATRE séries, l'écran n'en
-     rendait qu'UNE — `(ex.series || [])[0]` — et le journal n'avait donc rien
-     à compter. L'éditeur de routine laisse en déclarer quatre ; l'écran en
-     jetait trois. Ce bloc mesure l'ÉCRAN, pas le modèle : c'est là que les
-     séries disparaissaient.
+     Deux demandes de MB, le même jour, et la seconde corrige ma réponse à
+     la première :
+
+       1) « il faudrait : Side Pressure 4x50 reps ». L'écran ne lisait que la
+          PREMIÈRE série ; le journal n'avait rien à compter.
+       2) « l'affichage initial était meilleur, je n'avais qu'une fois à
+          valider […] ne peut on pas valider UNE fois les 4 séries ? »
+
+     Ce bloc mesure les DEUX à la fois, et c'est pour ça qu'il tombe sur deux
+     racines : sur 1.37.2 le journal dit « 50 reps », sur 1.38.0 il faut
+     quatre appuis.
      ------------------------------------------------------------------ */
-  bloc('La récup rend TOUTES les séries', function (v, h) {
+  bloc('Un seul ✓ valide les quatre séries', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
     var e = fen.App.store.etat();
@@ -3077,81 +3082,94 @@
     e.routineRecup = routine;
 
     v.egal(routine.exercices[0].series.length, 4,
-           '[temoin] la routine en porte bien quatre — c’est le décor');
+           '[temoin] la routine en porte bien quatre — c’est le décor, et il '
+         + 'tient des deux côtés');
 
     fen.App.vues.recup.rendre(vue);
 
-    var lignes = doc.querySelectorAll('.recup-ligne');
-    v.egal(lignes.length, 4,
-           'l’écran en rend QUATRE : trois séries ne se perdent plus entre '
-         + 'l’éditeur et la journée');
-    v.egal(doc.querySelectorAll('.recup-exo').length, 1, 'dans UNE seule carte');
+    /* --- l'écran rapide : une ligne, un ✓ --- */
+    v.egal(doc.querySelectorAll('.recup-ligne').length, 1,
+           'UNE seule ligne à cocher, pas quatre : Récup est un écran de geste');
+    v.egal(doc.querySelectorAll('.recup-ligne .serie-ok').length, 1,
+           'et UN seul ✓ — « je n’avais qu’une fois à valider »');
+    v.egal(doc.querySelectorAll('.recup-num').length, 0,
+           'plus aucun numéro de série : il n’y a plus de série à désigner');
 
-    /* PAS D'INDEX NU. Sur la version d'avant il n'y a qu'une ligne et aucun
-       numéro : `nums[0]` y lève une TypeError, le bloc meurt, et ONZE
-       contrôles voisins ne sont jamais joués. Mesuré : 509/512 au lieu de
-       523. Un banc qui plante se lit comme un banc qui se tait. C'est la
-       cinquième fois de ce chantier. */
-    var nums = doc.querySelectorAll('.recup-num');
-    v.egal(nums.length, 4, 'chaque ligne porte son numéro');
-    v.egal(Array.prototype.map.call(nums, function (n) { return n.textContent; }).join(''),
-           '1234', 'et ils vont de 1 à 4 : « laquelle ? » a une réponse');
+    /* --- mais il DIT ce qu'il valide --- */
+    v.vrai(doc.body.textContent.indexOf('4 séries') >= 0,
+           'la carte dit « 4 séries » : sans ce mot, un seul ✓ laisserait '
+         + 'croire qu’une seule série est en jeu');
+    v.vrai(doc.body.textContent.indexOf('0 / 1 fait') >= 0,
+           'et l’en-tête compte les EXERCICES : « 0 / 1 », pas « 0 / 4 »');
 
-    v.vrai(doc.body.textContent.indexOf('0 / 4 fait') >= 0,
-           'l’en-tête compte les SÉRIES : « 0 / 4 fait », et non « 0 / 1 »');
+    var champ = doc.querySelector('.recup-ligne .serie-saisie');
+    v.vrai(!!champ && champ.placeholder === '50',
+           'le champ porte la cible commune aux quatre séries');
 
-    /* --- la largeur tient à 320 px, numéro compris --- */
-    var saisies = doc.querySelectorAll('.recup-ligne .serie-saisie');
-    var mini = 9999;
-    Array.prototype.forEach.call(saisies, function (s) {
-      mini = Math.min(mini, s.getBoundingClientRect().width);
-    });
-    v.vrai(mini >= 40, 'le champ le plus étroit garde 40 px (' + Math.round(mini) + ' px)');
-    var okMini = 9999;
-    Array.prototype.forEach.call(doc.querySelectorAll('.recup-ligne .serie-ok'), function (o) {
-      var r = o.getBoundingClientRect();
-      okMini = Math.min(okMini, Math.min(r.width, r.height));
-    });
-    v.vrai(okMini >= 44, 'et le plus petit ✓ garde 44 px (' + Math.round(okMini) + ' px)');
+    /* --- UN appui, et les quatre sont faites --- */
+    var ok = doc.querySelector('.recup-ligne .serie-ok');
+    v.vrai(!!ok, '[temoin] il y a bien un ✓ à cliquer');
+    if (ok) ok.click();
 
-    /* --- cocher UNE série ne termine pas l'exercice --- */
-    var oks = doc.querySelectorAll('.recup-ligne .serie-ok');
-    v.egal(oks.length, 4, '[temoin] quatre ✓ à cliquer — c’est le décor du reste');
-    if (oks.length) oks[0].click();
-    v.vrai(doc.body.textContent.indexOf('1 / 4 fait') >= 0,
-           'une série cochée se lit « 1 / 4 fait »');
-    v.vrai(!!lignes.length && lignes[0].classList.contains('faite'),
-           'la ligne cochée se marque');
-    var carte = doc.querySelector('.recup-exo');
-    v.vrai(!!carte && !carte.classList.contains('faite'),
-           'mais PAS la carte : trois séries restantes ne se lisent pas comme '
-         + 'un exercice fini');
-    v.vrai(oks.length > 1 && fen.getComputedStyle(oks[0]).backgroundColor
-           !== fen.getComputedStyle(oks[1]).backgroundColor,
-           'et le ✓ coché ne se confond pas avec celui d’en dessous');
+    var jour = fen.App.store.etat().seances[0];
+    v.vrai(!!jour, 'le ✓ fait entrer la journée dans le journal');
+    var faites = ((jour || {}).exercices || [{}])[0].series || [];
+    v.egal(faites.filter(function (s) { return s.faite; }).length, 4,
+           'et les QUATRE séries sont cochées d’un seul appui');
+    v.egal(faites.filter(function (s) { return s.repsReel === '50'; }).length, 4,
+           'chacune prend sa cible : « fait comme prévu », pas « valeur inconnue »');
+    v.vrai(doc.body.textContent.indexOf('1 / 1 fait') >= 0,
+           'l’en-tête passe à « 1 / 1 fait », et non « 4 / 4 »');
+    v.vrai(!!doc.querySelector('.recup-exo')
+           && doc.querySelector('.recup-exo').classList.contains('faite'),
+           'la carte se marque');
 
-    /* --- les quatre : la carte se marque, et le journal dit combien --- */
-    Array.prototype.slice.call(oks, 1).forEach(function (o) { o.click(); });
-    carte = doc.querySelector('.recup-exo');
-    v.vrai(!!carte && carte.classList.contains('faite'),
-           'les quatre faites, la carte se marque à son tour');
-    v.egal(fen.App.m.compteRecup(fen.App.store.etat().seances[0] || {}).faits, 4,
-           'et la journée enregistrée en porte quatre');
-
-    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
-           'rien ne déborde de 320 px, numéro compris');
-
-    /* --- ce que MB voulait VOIR --- */
+    /* --- ce que MB voulait VOIR dans le journal --- */
     fen.App.vues.journal.rendre(vue);
     var t = doc.body.textContent;
     v.vrai(t.indexOf('4 × 50 reps') >= 0,
-           'et le journal écrit enfin « 4 × 50 reps » — la demande de MB');
-    /* Le compteur compte des SÉRIES : son libellé doit le dire. Un exercice
-       de quatre séries affichait « 4 / 4 exercices » pour UN exercice. */
-    v.vrai(t.indexOf('4 / 4 séries') >= 0,
-           'et la carte compte « 4 / 4 séries », pas « 4 / 4 exercices »');
-    v.egal(t.indexOf('exercices'), -1,
-           'le mot « exercices » ne traîne plus sur un compte de séries');
+           'et le journal écrit « 4 × 50 reps » — la demande d’origine');
+    v.vrai(t.indexOf('1 / 1 exercice') >= 0,
+           'la carte compte « 1 / 1 exercice » : un appui, un exercice');
+
+    /* --- ce qu'on tape vaut pour les quatre --- */
+    fen.App.vues.recup.rendre(vue);
+    var c2 = doc.querySelector('.recup-ligne .serie-saisie');
+    v.vrai(!!c2, '[temoin] le champ est là après re-rendu');
+    if (c2) {
+      c2.value = '45';
+      c2.dispatchEvent(new fen.Event('input', { bubbles: true }));
+    }
+    var s2 = fen.App.store.etat().seances[0].exercices[0].series;
+    v.egal(s2.filter(function (s) { return s.repsReel === '45'; }).length, 4,
+           'ce qu’on tape vaut pour les quatre séries — le prix assumé de '
+         + 'l’appui unique');
+
+    /* --- décocher défait les quatre --- */
+    doc.querySelector('.recup-ligne .serie-ok').click();
+    var s3 = (fen.App.store.etat().seances[0] || { exercices: [{ series: [] }] })
+             .exercices[0].series;
+    v.egal(s3.filter(function (s) { return s.faite; }).length, 0,
+           'et décocher les défait toutes les quatre');
+
+    /* --- des cibles DIFFÉRENTES ne se perdent pas --- */
+    fen.App.store.etat().seances = [];
+    routine.exercices = [fen.App.m.exerciceProgramme({
+      nom: 'Pronation', typeCharge: 'elastique', colonnes: ['reps'],
+      series: [{ repsCible: '50' }, { repsCible: '50' },
+               { repsCible: '40' }, { repsCible: '40' }] })];
+    fen.App.vues.recup.rendre(vue);
+    var c3 = doc.querySelector('.recup-ligne .serie-saisie');
+    v.egal(c3 ? c3.placeholder : '', '50 · 40',
+           'des cibles différentes se LISTENT dans le placeholder — en montrer '
+         + 'une seule mentirait sur les trois autres');
+    doc.querySelector('.recup-ligne .serie-ok').click();
+    var s4 = fen.App.store.etat().seances[0].exercices[0].series;
+    v.egal(s4.map(function (s) { return s.repsReel; }).join(' '), '50 50 40 40',
+           'et cocher sans rien taper donne à CHAQUE série la sienne');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
 
     fen.App.ui.vider(vue);
     fen.App.store.etat().seances = [];
