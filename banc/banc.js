@@ -2929,6 +2929,53 @@
     v.egal(A.m.reglagesPortes(vieux).length, 0, 'et il n’en porte aucun');
   });
 
+  /* ---------------------------------------------------------------
+     UN SPARRING OU RIEN N'A ETE ECRIT
+
+     MB, 27/10 : « un sparring neuf ferme sans rien ecrire ne doit rien
+     laisser ». Le predicat vit au modele : il ne depend d'aucun ecran.
+     --------------------------------------------------------------- */
+  bloc('Sparring vierge', function (v) {
+    var sp = A.m.seanceSparring();
+    v.vrai(A.m.sparringVierge(sp),
+           'un sparring qui sort du modèle est VIERGE — rien n’y est écrit');
+
+    /* LA DATE NE COMPTE PAS : elle est pre-remplie, personne ne l'a
+       ecrite. La compter rendrait le predicat toujours faux. */
+    v.vrai(!!sp.date, '[temoin] il porte pourtant une date');
+    sp.date = '2026-01-15';
+    v.vrai(A.m.sparringVierge(sp),
+           'et CHANGER la date ne suffit pas à le remplir : elle est '
+         + 'pré-remplie, pas saisie');
+
+    /* CHAQUE CHAMP LE REMPLIT, et un seul suffit. Le controle les parcourt
+       TOUS : ecrit a la main, il en aurait oublie un — et le champ oublie
+       est celui qu'on perd. */
+    var remplissent = [['club', 'Le club'], ['style', 'toproll'],
+                       ['partenaires', 'Jo'], ['technique', 'hook'],
+                       ['ressenti', 'dur'], ['note', 'rien'],
+                       ['dureeMin', 90], ['rounds', 12], ['cote', 'droit']];
+    var ratés = remplissent.filter(function (p) {
+      var x = A.m.seanceSparring();
+      x[p[0]] = p[1];
+      return A.m.sparringVierge(x);
+    }).map(function (p) { return p[0]; });
+    v.egal(ratés.join(' · '), '',
+           'CHACUN des neuf champs suffit à le remplir — un champ oublié '
+         + 'est une saisie perdue');
+
+    var d = A.m.seanceSparring();
+    d.douleurs = [{ structure: 'coude_medial', niveau: 'moyen' }];
+    v.egal(A.m.sparringVierge(d), false,
+           'et une douleur notée le remplit aussi');
+
+    /* CE N'EST PAS UN SPARRING : on ne touche pas aux seances de muscu. */
+    v.egal(A.m.sparringVierge(A.m.seanceMuscu(null)), false,
+           'une séance de MUSCU n’est jamais « vierge » à ce sens — ce '
+         + 'prédicat ne doit en effacer aucune');
+    v.egal(A.m.sparringVierge(null), false, 'et rien du tout non plus');
+  });
+
   bloc('Règle des 24 h', function (v) {
     function etatDouleur(jours, zone, cote, intensite) {
       var se = seance(jourIlYA(jours), [], { id: 'd' + jours });

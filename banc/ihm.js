@@ -3134,18 +3134,41 @@
            d'un existant). Un appui par erreur laisse donc une ligne au
            journal. Le bouton pose sur Seance le 27/10 rend cet appui plus
            facile — raison de plus pour que ce controle le DISE. */
+        /* LA CROIX, SUR UN SPARRING OU RIEN N'EST ECRIT. MB, 27/10 :
+           « ne doit rien laisser ». Jusque-la elle laissait une ligne vide
+           au journal, et la fiche d'un sparring NEUF n'offre aucun
+           « Supprimer » — il fallait aller le retirer depuis Journal. */
+        v.egal(dedans.indexOf('Supprimer'), -1,
+               '[temoin] un sparring NEUF n’offre pas de le retirer d’ici — '
+             + 'c’est pourquoi la croix doit le faire');
         var x = pan && pan.querySelector('.panneau-entete .bt-icone');
         if (x) x.click();
-        return attendre(160).then(function () {
-          v.egal(fen.App.store.etat().seances.length, avant + 1,
-                 'fermer GARDE le sparring : il s’enregistre à mesure, comme '
-               + 'le reste de l’app');
-          v.egal(dedans.indexOf('Supprimer'), -1,
-                 'et un sparring NEUF n’offre PAS de le retirer — l’appui par '
-               + 'erreur se répare depuis le Journal, pas d’ici');
-          var l = fen.App.store.etat().seances;
-          l.splice(l.length - 1, 1);
-          fen.App.ui.vider(vue);
+        return attendre(200).then(function () {
+          v.egal(fen.App.store.etat().seances.length, avant,
+                 'fermer sans RIEN écrire ne laisse aucune ligne au journal');
+
+          /* MAIS CE QU'ON A ECRIT RESTE. Sans ce second cas, la correction
+             pourrait tout effacer et le controle d'au-dessus serait vert. */
+          bt.click();
+          return attendre(220).then(function () {
+            var p2 = doc.querySelector('.panneau');
+            var club = p2 && p2.querySelector('input.champ[placeholder]');
+            v.vrai(!!club, '[temoin] la fiche se rouvre avec son champ Club');
+            if (club) {
+              club.value = 'Club du banc';
+              club.dispatchEvent(new fen.Event('input', { bubbles: true }));
+            }
+            var x2 = p2 && p2.querySelector('.panneau-entete .bt-icone');
+            if (x2) x2.click();
+            return attendre(200).then(function () {
+              var l = fen.App.store.etat().seances;
+              v.egal(l.length, avant + 1,
+                     'alors qu’un sparring où l’on a écrit UN mot est GARDÉ : '
+                   + 'il s’enregistre à mesure');
+              l.splice(l.length - 1, 1);
+              fen.App.ui.vider(vue);
+            });
+          });
         });
       });
     });

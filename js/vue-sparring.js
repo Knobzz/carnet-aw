@@ -100,7 +100,21 @@
           A.store.sauver(true);
           fermer();
           surFin && surFin(false);
-        } }]);
+        } }],
+      /* RIEN D'ECRIT, RIEN DE GARDE — MB, 27/10. C'est le QUATRIEME
+         argument de `panneau.ouvrir`, celui qui s'execute au DEMONTAGE :
+         le seul chemin que la croix, le Retour d'Android et le bouton
+         « Enregistrer » traversent tous les trois. Ecrit dans l'action du
+         bouton seul, la croix serait passee a cote — et la croix est
+         justement le geste de celui qui a appuye par erreur. */
+      function () {
+        if (!estNeuf || !A.m.sparringVierge(sp)) return;
+        var l = etat().seances;
+        for (var k = 0; k < l.length; k++) {
+          if (l[k].id === sp.id) { l.splice(k, 1); break; }
+        }
+        A.store.sauver(true);
+      });
   }
 
   function nouveau(surFin) {
@@ -108,7 +122,12 @@
     etat().seances.push(sp);
     A.store.sauver(true);
     editer(sp, true, function (supprime) {
-      if (!supprime) A.ui.toast('Sparring enregistré.');
+      /* Le nettoyage a deja eu lieu au demontage : on regarde si le
+         sparring a SURVECU, plutot que de refaire le test. Annoncer
+         « enregistre » pour une ligne qu'on vient de retirer serait un
+         mensonge poli. */
+      var garde = etat().seances.some(function (x) { return x.id === sp.id; });
+      if (!supprime && garde) A.ui.toast('Sparring enregistré.');
       surFin && surFin();
     });
   }

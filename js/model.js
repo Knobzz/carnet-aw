@@ -3140,6 +3140,28 @@
              technique: '', ressenti: '', note: '', douleurs: [] };
   }
 
+  /* UN SPARRING OU RIEN N'A ETE ECRIT. MB, 27/10 : « un sparring neuf
+     ferme sans rien ecrire ne doit rien laisser ».
+
+     `nouveau` le pousse dans la liste AVANT d'ouvrir la fiche — il le faut,
+     puisque chaque champ s'enregistre a la frappe. Un appui par erreur
+     laissait donc une ligne vide au journal, et la fiche d'un sparring NEUF
+     n'offre aucun « Supprimer ». L'aspérité existait avant le 27/10 ; le
+     bouton pose sur Seance ce jour-la l'a rendue plus facile a declencher.
+
+     LA DATE NE COMPTE PAS : elle est pre-remplie par `seanceSparring`, et
+     personne ne l'a ecrite. Compter la date rendrait ce predicat toujours
+     faux — un controle sans effet, le piege de la journee. */
+  function sparringVierge(sp) {
+    if (!sp || sp.type !== 'sparring') return false;
+    var textes = ['club', 'style', 'partenaires', 'technique', 'ressenti', 'note'];
+    for (var i = 0; i < textes.length; i++) {
+      if (String(sp[textes[i]] == null ? '' : sp[textes[i]]).trim()) return false;
+    }
+    return sp.dureeMin == null && sp.rounds == null && sp.cote == null
+        && !(sp.douleurs || []).length;
+  }
+
   /* Séance passée -> programme. Les valeurs RÉELLES deviennent les cibles ;
      à défaut (série jamais faite), on reprend la cible d'origine. */
   function programmeDepuisSeance(seance, nom) {
@@ -4220,6 +4242,7 @@
     serieProgramme: serieProgramme, exerciceProgramme: exerciceProgramme, programme: programme,
     renumeroter: renumeroter,
     seanceMuscu: seanceMuscu, seanceSparring: seanceSparring,
+    sparringVierge: sparringVierge,
     routineRecupVierge: routineRecupVierge, seanceRecup: seanceRecup,
     seancesRecupTriees: seancesRecupTriees, recupDuJour: recupDuJour,
     recupFaite: recupFaite, compteRecup: compteRecup, statsRecup: statsRecup,
