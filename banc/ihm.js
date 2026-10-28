@@ -832,8 +832,14 @@
     return attendre(80).then(function () {
       var titres = Array.prototype.map.call(doc.querySelectorAll('.sous-titre'),
         function (t) { return t.textContent; });
-      v.vrai(titres.some(function (t) { return t.indexOf('Mouvements — ') === 0; }),
-             'Suivi titre la section « Mouvements » avec sa période');
+      /* « MOUVEMENTS » A ETE FONDU DANS « TON STYLE » le 28/10 — MB : « tu
+         peux egalement enlever Mouvements je pense ? ». Ses six chiffres
+         vivent sous leur style ; le titre qui porte la periode est
+         desormais celui-la. */
+      v.vrai(titres.some(function (t) { return t.indexOf('Ton style — ') === 0; }),
+             'Suivi titre la section « Ton style » avec sa période');
+      v.egal(titres.filter(function (t) { return t.indexOf('Mouvements — ') === 0; }).length, 0,
+             'et le bloc « Mouvements » a disparu, pas ete neutralise');
       v.egal(titres.filter(function (t) { return /28 derniers jours/.test(t); }).length, 0,
              'et plus aucun titre n’annonce une fenêtre de 28 jours en dur');
 
@@ -876,7 +882,8 @@
       fen.App.vues.suivi.rendre(vue);
 
       var barres = doc.querySelectorAll('.barre');
-      v.vrai(barres.length >= 6, '[temoin] les six mouvements font six lignes');
+      v.vrai(barres.length >= 3,
+             '[temoin] il reste des barres à mesurer — styles, muscles, régions');
 
       var hauteurs = [], coupes = [], noms = [];
       Array.prototype.forEach.call(barres, function (b) {
@@ -888,7 +895,10 @@
            s'est coupe en deux. */
         if (r.height > 26) coupes.push(lab.textContent);
       });
-      v.vrai(noms.indexOf('Back pressure') >= 0, '« Back pressure » est bien affiché');
+      /* « Side pressure » est le libelle le plus long des barres de style :
+         c'est lui qui dit si un libelle se coupe a 320 px. */
+      v.vrai(noms.indexOf('Side pressure') >= 0,
+             '« Side pressure » est bien affiché — c’est la mesure partagée');
       v.egal(coupes.length, 0,
              'aucun libellé ne se coupe en deux lignes (fautifs : '
            + (coupes.join(', ') || 'aucun') + ')');
@@ -1208,7 +1218,7 @@
            + 'il compte TES EXERCICES, pas le mouvement — lu par textContent, '
            + 'parce que innerText rend le titre en MAJUSCULES');
       v.vrai(titresCroise.some(function (t) {
-        return t.indexOf('Tes exercices de chaque mouvement') === 0;
+        return t.indexOf('Par mouvement, muscle par muscle') === 0;
       }), 'et il dit ce qu’il compte vraiment');
       var titreBras = svg.querySelector('.zone-region[data-region="bras_av"] title');
       v.vrai(!!titreBras && /Brachial/i.test(titreBras.textContent),
@@ -1388,8 +1398,12 @@
       }
       v.vrai(rang('Dernière sollicitation') >= 0 && rang('Par structure') >= 0,
              '[temoin] les deux sections repères sont là');
-      v.vrai(rang('Dernière sollicitation') < rang('Volume'),
-             '« Dernière sollicitation » vient avant le volume');
+      /* L'ORDRE A CHANGE le 28/10 — MB : « Dans Suivi >> Seances >>
+         Derniere sollicitation, je veux qu'il soit apres Muscles ». Elle
+         repond a « qu'est-ce que je peux refaire aujourd'hui », qui se pose
+         APRES avoir vu ce qu'on travaille. */
+      v.vrai(rang('Muscles') < rang('Dernière sollicitation'),
+             '« Dernière sollicitation » vient APRÈS les muscles');
       v.vrai(rang('Volume') < rang('Muscles'), 'le volume avant les muscles');
       v.vrai(rang('Muscles') < rang('Par structure'),
              'et les muscles avant « Par structure »');
@@ -3288,7 +3302,7 @@
     v.egal(onglets.length ? onglets[0].getAttribute('aria-pressed') : '(aucun onglet)',
            'true', 'Séances est l’onglet d’ouverture');
     var t = vue.innerText;
-    v.vrai(t.indexOf('Ne compte que les séances de musculation') >= 0,
+    v.vrai(t.indexOf('Séances de musculation') >= 0,
            'l’écran DIT sa portée — c’est ce qui manquait, pas le filtre');
     v.vrai(t.indexOf('Toproll') >= 0 && t.indexOf('Hook') >= 0,
            'les deux styles lisibles sont nommés');
@@ -3300,7 +3314,7 @@
 
     /* L'ÉCART, qui est le fond de la demande. */
     v.vrai(t.indexOf('TOPROLL') >= 0 && t.indexOf('HOOK') >= 0
-           && t.indexOf('tu spares surtout en') >= 0,
+           && t.indexOf('tu spares en') >= 0,
            'et l’écart se dit : entraîné en toproll, sparring en hook');
 
     /* UN NOM QUI NE S'OUVRE PAS NE PORTE PAS LA MARQUE D'UN NOM CLIQUABLE.
@@ -3334,8 +3348,8 @@
     /* ---- SPARRING : le déclaré, et ce qui manque au vocabulaire ---- */
     if (onglets.length > 2) onglets[2].click();
     var ts = vue.innerText;
-    v.vrai(ts.indexOf('Ne compte que les sparrings') >= 0, 'le sparring dit sa portée');
-    v.vrai(ts.indexOf('DÉCLARÉ') >= 0,
+    v.vrai(ts.indexOf('Sparrings notés') >= 0, 'le sparring dit sa portée');
+    v.vrai(ts.indexOf('Rien n’est deviné') >= 0,
            'et qu’il ne déduit RIEN : le style y est coché à la main');
     v.vrai(ts.indexOf('2 sparr.') >= 0, 'les deux sparrings en hook sont comptés');
     v.vrai(ts.indexOf('10') >= 0 && ts.indexOf('35') >= 0,

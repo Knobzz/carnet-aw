@@ -1423,6 +1423,10 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 /* Une suggestion qui ne vient pas du carnet se voit : c'est ce qui distingue
    « ce que j'ai déjà écrit » de « ce que le dictionnaire me propose ». */
 .jeton-dico { border-color: var(--laiton); color: var(--laiton); background: var(--laiton-doux); font-weight: 550; }
+/* Ce qui vient du carnet et NON du dictionnaire se dit aussi : sans jeton
+   de provenance, les deux se lisaient pareil. Teinte differente du laiton,
+   pour que la difference se voie sans avoir a lire. */
+.jeton-connu { border-color: var(--bleu); color: var(--bleu-vif); background: var(--bleu-doux); font-weight: 550; }
 
 /* ---------- échelle d'intensité de douleur ---------- */
 

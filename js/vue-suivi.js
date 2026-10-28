@@ -50,7 +50,7 @@
   function blocSollicitation(e) {
     var f = document.createDocumentFragment();
     f.appendChild(section('Dernière sollicitation',
-      'Depuis combien de jours chaque exercice n’a pas été fait. Rouge : moins de 48 h. Laiton : 48 à 72 h. À toi de juger ce qui se recoupe.'));
+      'Rouge : moins de 48 h. Laiton : 48 à 72 h.'));
 
     var liste = A.m.derniereSollicitation(e);
     if (!liste.length) {
@@ -110,8 +110,7 @@
     var sansCote = l.filter(function (s) { return s.cote === A.m.COTE_INCONNU; });
 
     f.appendChild(section('Par structure',
-      'Un exercice charge plusieurs structures, et une structure est chargée par plusieurs exercices. '
-      + 'C’est ici que se lit « quand ai-je chargé lourd le médial », toutes origines confondues.'));
+      'Quand chaque structure a été chargée, toutes origines confondues.'));
 
     if (!l.length) {
       f.appendChild(h('div', { class: 'vide' },
@@ -173,7 +172,7 @@
   function blocDouleurs(e) {
     var f = document.createDocumentFragment();
     f.appendChild(section('Douleurs',
-      'Chaque épisode, avec ce que tu as fait dans les 72 h qui l’ont précédé.'));
+      'Chaque épisode, et les 72 h qui l’ont précédé.'));
 
     var eps = A.m.episodesDouleur(e);
     if (!eps.length) {
@@ -254,8 +253,7 @@
     if (!zones.length) return f;
 
     f.appendChild(section('Évolution par zone',
-      'Chaque barre est un relevé, du plus ancien au plus récent. Une zone qui descend '
-      + 'et une zone qui monte ne demandent pas la même chose.'));
+      'Un relevé par barre, du plus ancien au plus récent.'));
 
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
@@ -303,7 +301,8 @@
      ------------------------------------------------------------------ */
   function blocVolume(e) {
     var f = document.createDocumentFragment();
-    f.appendChild(section('Volume par semaine', 'Tonnage des exercices chiffrés, AW à part de la muscu générale.'));
+    f.appendChild(section('Volume par semaine',
+      'Tonnage des exercices chiffrés. AW à part.'));
 
     var sem = A.m.volumeParSemaine(e, 8);
     if (!sem.length) {
@@ -363,36 +362,14 @@
   /* ------------------------------------------------------------------
      4. mouvements — ce qu'un programme néglige
      ------------------------------------------------------------------ */
-  function blocForces(e, periode) {
-    var r = A.m.repartitionForces(e, A.m.joursDeLaFenetre(periode.semaines));
-    var f = document.createDocumentFragment();
-    f.appendChild(section('Mouvements — ' + periode.nom,
-      'Séries validées sur les exercices que tu as associés à chaque mouvement. Un zéro est une information.'));
+  /* `blocForces` A ETE SUPPRIME le 2026-10-28 — pas neutralise, pas laisse
+     en place « au cas ou ». MB : « tu peux egalement enlever Mouvements je
+     pense ? Ce dernier est proche de Ton Style nan ? »
 
-    if (!r.total) {
-      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun mouvement associé' }),
-        'Facultatif : associe un ou plusieurs mouvements à un exercice depuis sa fiche, et ce compte se remplira.'));
-      return f;
-    }
-
-    var max = Math.max.apply(null, A.m.FORCES.map(function (x) { return r.parForce[x.id]; })) || 1;
-    var carte = h('div', { class: 'carte' });
-    var corps = h('div', { class: 'carte-corps' });
-    var barres = h('div', { class: 'barres' });
-
-    A.m.FORCES.forEach(function (x) {
-      var n = r.parForce[x.id];
-      barres.appendChild(h('div', { class: 'barre' },
-        h('span', { text: x.nom }),
-        h('div', { class: 'barre-piste' }, h('i', { class: 'gen', style: 'width:' + (n / max * 100) + '%' })),
-        h('span', { class: 'barre-val', text: n + ' sér.' })));
-    });
-
-    corps.appendChild(barres);
-    carte.appendChild(corps);
-    f.appendChild(carte);
-    return f;
-  }
+     IL L'ETAIT, ET SES SIX CHIFFRES N'ONT PAS DISPARU : ils sont passes
+     sous leur style dans `blocStyleEntrainement`, ou ils disent en plus a
+     QUEL style ils appartiennent. Un bloc de moins, aucun chiffre de
+     moins — c'est la seule facon d'alleger qui ne coute rien. */
 
   /* ------------------------------------------------------------------
      la carte des muscles : les planches de Gray, cliquables
@@ -434,10 +411,8 @@
       : null;
     f.appendChild(section('Muscles — ' + (region ? region.nom : periode.nom),
       region
-        ? 'Filtré sur la région que tu as touchée, sur ' + periode.nom
-        + '. Touche-la de nouveau pour revoir tous les muscles.'
-        : 'Ce qui tire, et combien. Les structures disent ce qui encaisse ; '
-        + 'les muscles disent ce qui travaille.'));
+        ? 'Filtré. Touche la région de nouveau pour tout revoir.'
+        : 'Ce qui travaille, et combien.'));
 
     if (region) {
       var retirer = h('button', { type: 'button', class: 'bt bt-petit',
@@ -634,10 +609,8 @@
        le mouvement lui-meme ne produit PAS, au lieu de les fondre. */
     var croise = A.m.musclesParMouvement(e, jours).filter(function (x) { return x.series > 0; });
     if (croise.length) {
-      f.appendChild(section('Tes exercices de chaque mouvement, muscle par muscle',
-        'Un exercice qui porte plusieurs gestes compte ses muscles pour chacun. '
-      + 'Une étoile marque ceux que le mouvement lui-même ne produit pas : ils '
-      + 'viennent d’un autre geste du même exercice.'));
+      f.appendChild(section('Par mouvement, muscle par muscle',
+        'Une étoile : muscle venu d’un autre geste du même exercice.'));
       var c2 = h('div', { class: 'carte' });
       var corps2 = h('div', { class: 'carte-corps', style: 'padding:8px 12px 10px' });
       var aUneEtoile = false;
@@ -693,8 +666,7 @@
     if (!q.length && !repondus.length) return f;
 
     f.appendChild(section('Et aujourd’hui ?',
-      'Une douleur fait presque toujours mal pendant l’effort. Ce qui renseigne, '
-    + 'c’est si elle est revenue à son niveau de la veille le lendemain.'));
+      'Ce qui renseigne : où elle en est le lendemain.'));
 
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
@@ -779,7 +751,7 @@
     }
 
     f.appendChild(section('Récupération — régularité',
-      'L’élastique quotidien ne se mesure pas en kilos : ce qui compte est de l’avoir fait.'));
+      'Ce qui compte est de l’avoir fait.'));
 
     /* Sept jours, et rien d'autre. La colonne des 28 jours a ete retiree
        le 2026-10-23 : depuis que la periode se choisit, elle disait une
@@ -1038,9 +1010,8 @@
     parSem.cles.forEach(function (c) { maxi = Math.max(maxi, totaux[c.id]); });
 
     f.appendChild(section('Régions — ' + periode.nom,
-      'Du jaune au rouge foncé : le rouge foncé est le plus travaillé, le jaune '
-    + 'le moins. Le gris n’a jamais servi — ce n’est pas un palier, c’est une '
-    + 'troisième chose. Touche une région pour ne garder qu’elle dans les muscles.'));
+      'Jaune : le moins. Rouge foncé : le plus. Gris : jamais servi. '
+    + 'Touche une région pour filtrer les muscles.'));
 
     if (!maxi) {
       /* DEUX causes, deux messages. Dire « renseigne tes muscles » a
@@ -1256,9 +1227,7 @@
     var f = document.createDocumentFragment();
 
     f.appendChild(section('Ton style — ' + periode.nom,
-      'Déduit des exercices que tu fais, par leurs mouvements. Un exercice '
-    + 'dont tu as coché les mouvements à la main garde les tiens : le carnet '
-    + 'ne lit le nom que si la case est vide.'));
+      'Déduit de tes exercices. Tes mouvements cochés à la main gagnent.'));
 
     if (!r.total) {
       f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun style lisible' }),
@@ -1303,19 +1272,23 @@
     carte.appendChild(corps);
     f.appendChild(carte);
 
+    /* LE DETAIL PAR MOUVEMENT, SOUS SON STYLE. Il remplace le bloc
+       « Mouvements », retire le 28/10 : les six chiffres sont tous la, mais
+       chacun sous le style auquel il appartient. On lit d'un coup l'ecart
+       ENTRE les styles et l'ecart DANS un style. */
     lis.lisibles.forEach(function (x) {
+      var dits = x.propres.map(function (fid) {
+        return A.m.nomForce(fid).toLowerCase() + ' ' + (r.parForce[fid] || 0);
+      });
       f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
-        h('b', { text: x.style.nom + ' : ' }),
-        x.propres.map(A.m.nomForce).join(' · ').toLowerCase()));
+        h('b', { text: x.style.nom + ' : ' }), dits.join(' · ')));
     });
 
     lis.aveugles.forEach(function (x) {
       f.appendChild(h('div', { class: 'dit-a-part' },
         h('b', { text: x.style.nom + ' — non lisible. ' }),
-        'Son seul mouvement, ' + x.style.forces.map(A.m.nomForce).join(' et ').toLowerCase()
-      + ', est partagé avec un autre style : le carnet ne peut pas dire '
-      + 'lequel des deux tu travaillais. Ce n’est pas un zéro, c’est une '
-      + 'ignorance — et elle se dit.'));
+        x.style.forces.map(A.m.nomForce).join(' et ').toLowerCase()
+      + ' est partagée avec un autre style. Ce n’est pas un zéro.'));
     });
 
     /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce
@@ -1335,16 +1308,14 @@
       if (fort && spFort && A.m.slug(fort.nom) !== A.m.slug(spFort.nom)
           && dec.parStyle[spFort.id]) {
         f.appendChild(h('div', { class: 'dit-ecart' },
-          'Tu t’entraînes surtout en ', h('b', { text: fort.nom.toUpperCase() }),
-          ' (' + r.parStyle[fort.id] + ' séries) et tu spares surtout en ',
+          'Tu t’entraînes en ', h('b', { text: fort.nom.toUpperCase() }),
+          ' (' + r.parStyle[fort.id] + ' séries), tu spares en ',
           h('b', { text: spFort.nom.toUpperCase() }),
-          ' (' + dec.parStyle[spFort.id] + ' sur ' + dec.total + '). '
-        + 'Le carnet montre l’écart ; il ne dit pas lequel a raison.'));
+          ' (' + dec.parStyle[spFort.id] + ' sur ' + dec.total + ').'));
       } else if (fort) {
         f.appendChild(h('div', { class: 'dit-ecart' },
           'Entraînement et sparring vont dans le même sens : ',
-          h('b', { text: fort.nom.toUpperCase() }), '. Le style le moins '
-        + 'travaillé est ' + (faible ? faible.nom.toLowerCase() : '—') + '.'));
+          h('b', { text: fort.nom.toUpperCase() }), '.'));
       }
     }
     return f;
@@ -1359,8 +1330,7 @@
     var f = document.createDocumentFragment();
 
     f.appendChild(section('Ton style en sparring — ' + periode.nom,
-      'Le style que tu as DÉCLARÉ sur chaque sparring. Rien n’est deviné : '
-    + 'c’est une case que tu coches.'));
+      'Le style que tu as déclaré. Rien n’est deviné ici.'));
 
     if (!r.total) {
       f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun style déclaré' }),
@@ -1400,9 +1370,7 @@
        oubli : l’ajouter changerait la fiche de sparring. */
     f.appendChild(h('div', { class: 'dit-a-part' },
       h('b', { text: 'Le press n’est pas proposé ici. ' }),
-      'Les styles déclarables sont ' + A.m.STYLES.map(function (s) { return s.nom; })
-        .join(', ').toLowerCase() + '. Si tu presses, c’est une entrée à '
-    + 'ajouter — dis-le, elle n’apparaîtra pas toute seule.'));
+      'Si tu presses, c’est une entrée à ajouter.'));
     return f;
   }
 
@@ -1418,8 +1386,8 @@
     var f = document.createDocumentFragment();
 
     f.appendChild(section('À la table — ' + periode.nom,
-      'Ce que tes sparrings portent de chiffré. Un zéro peut vouloir dire '
-    + '« non noté » : les rounds et la durée sont facultatifs.'));
+      'Un zéro peut vouloir dire « non noté » : rounds et durée sont '
+    + 'facultatifs.'));
 
     if (!r.seances) {
       f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun sparring' }),
@@ -1530,15 +1498,13 @@
 
     if (sousOngletChoisi === 'recup') {
       hote.appendChild(h('div', { class: 'portee',
-        text: 'Ne compte que les journées de récupération. Les séances et les '
-            + 'sparrings ont leur propre suivi.' }));
+        text: 'Journées de récupération seulement.' }));
       hote.appendChild(blocRecup(e));
       return;
     }
 
     if (sousOngletChoisi === 'sparring') {
-      hote.appendChild(h('div', { class: 'portee',
-        text: 'Ne compte que les sparrings notés.' }));
+      hote.appendChild(h('div', { class: 'portee', text: 'Sparrings notés seulement.' }));
       hote.appendChild(blocStyleSparring(e, periode));
       hote.appendChild(blocVolumeSparring(e, periode));
       return;
@@ -1551,17 +1517,16 @@
        et les douleurs ferment la marche : ce sont des recoupements, qu'on va
        chercher quand quelque chose fait mal, pas tous les jours. */
     hote.appendChild(h('div', { class: 'portee',
-      text: 'Ne compte que les séances de musculation. La récup et les '
-          + 'sparrings ont leur propre onglet — sauf les douleurs, qui se '
-          + 'lisent de partout, parce qu’une douleur ne choisit pas sa '
-          + 'provenance.' }));
+      text: 'Séances de musculation. Les douleurs, elles, se lisent de partout.' }));
     hote.appendChild(blocVingtQuatre(e, function () { rendre(hote); }));
     hote.appendChild(blocStyleEntrainement(e, periode));
-    hote.appendChild(blocSollicitation(e));
     hote.appendChild(blocVolume(e));
-    hote.appendChild(blocForces(e, periode));
     hote.appendChild(blocRegions(e, periode, refaire));
     hote.appendChild(blocMuscles(e, periode, refaire));
+    /* DERNIERE SOLLICITATION PASSE APRES MUSCLES, a la demande de MB du
+       28/10. Elle repond a « qu'est-ce que je peux refaire aujourd'hui »,
+       qui se pose APRES avoir vu ce qu'on travaille — pas avant. */
+    hote.appendChild(blocSollicitation(e));
     hote.appendChild(blocPentes(e));
     hote.appendChild(blocStructures(e));
     hote.appendChild(blocDouleurs(e));

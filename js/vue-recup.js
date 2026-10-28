@@ -152,9 +152,12 @@
     hote.appendChild(refTitre);
     hote.appendChild(refStats);
 
-    /* UNE SEULE SÉANCE RESTE DÉPLIÉE. L'écran d'avant n'avait pas de carte à
-       ouvrir ; lui en ajouter une coûterait un appui pour rien. C'est à
-       partir de deux que replier sert à quelque chose. */
+    /* UNE SEULE SÉANCE S'OUVRE PAR DÉFAUT — l'écran d'avant n'avait pas de
+       carte à ouvrir, et lui en ajouter une coûterait un appui pour rien.
+       MAIS ELLE SE REPLIE : MB, 28/10, « il faut que la routine puisse être
+       réduite par souci de lisibilité ». J'avais verrouillé le dépliage à
+       une seule séance ; c'était une décision de trop. Le défaut change,
+       pas la possibilité. */
     var seule = routines.length === 1;
     routines.forEach(function (routine) {
       hote.appendChild(carteSeance(e, routine, hote, majEntete, seule));
@@ -204,7 +207,10 @@
 
     var carte = h('div', { class: 'recup-seance' });
     var exos = jour.exercices || [];
-    var ouvert = seule || !!deplie[routine.id];
+    /* `undefined` veut dire « pas encore touché » : le défaut s'applique.
+       Une fois que MB a cliqué, c'est SON choix qui vaut, dans les deux
+       sens. */
+    var ouvert = deplie[routine.id] === undefined ? seule : !!deplie[routine.id];
 
     /* --- l'en-tête : le nom, ce qu'il contient, et le ✓ --- */
     var tete = h('div', { class: 'recup-seance-tete' });
@@ -257,8 +263,7 @@
     }
 
     bloc.addEventListener('click', function () {
-      if (seule) return;
-      deplie[routine.id] = !deplie[routine.id];
+      deplie[routine.id] = !ouvert;
       rendre(hote);
     });
 

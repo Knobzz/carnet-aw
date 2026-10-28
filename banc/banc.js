@@ -453,8 +453,18 @@
     var sug = A.m.suggestions(e, 'curl', 8);
     v.egal(sug[0].nom, 'CURL MARTEAU',
            'ce que j’ai écrit moi-même passe EN PREMIER');
-    v.egal(!!sug[0].duDictionnaire, false,
-           'et la première ligne ne vient pas du dictionnaire');
+    /* J'AI ECRIT CE LIBELLE SANS VERIFIER, et le banc l'a dit du premier
+       coup : « Curl marteau » EST au dictionnaire — c'est une ecriture de
+       « Hammer curl ». Il devient donc une entree de dictionnaire depuis
+       le renversement du 28/10, tout en gardant l'ECRITURE que MB a tapee.
+
+       L'ORDRE DU 23/10 TIENT QUAND MEME, et c'est ce qui se mesure ici :
+       ce qu'il a ecrit passe devant, avec SON orthographe. */
+    v.egal(!!sug[0].duDictionnaire, true,
+           'et comme « Curl marteau » est une écriture de « Hammer curl », '
+         + 'il porte le jeton du dictionnaire');
+    v.egal(sug[0].entree, 'Hammer curl',
+           'la fiche d’origine est nommée, pour qu’on sache d’où ça vient');
     v.vrai(sug.length > 1 && sug.slice(1).every(function (x) {
              return x.duDictionnaire;
            }),
@@ -520,15 +530,38 @@
            'ni des outils, ni des forces, ni des structures');
     v.vrai(dico.muscles.length > 0, '[temoin] elle apporte bien des muscles');
 
-    /* Un nom DÉJÀ au catalogue ne revient pas en double. C'est le cas le
-       plus fréquent : MB écrit « Wrist curl » une fois, et ensuite c'est SON
-       entrée qu'il doit retrouver. */
+    /* UN NOM DU DICTIONNAIRE Y RESTE, MEME EMPLOYE — renversement demande
+       par MB le 28/10 : « quand je selectionne un exo dans le dico, ce
+       dernier a l'air de disparaitre du dico et prend les specificites que
+       j'avais selectionne, je veux que l'affichage soit dictionnaire, et
+       ensuite je m'occupe de faire les specificites ».
+
+       CE CONTROLE DISAIT L'INVERSE, et il avait raison jusqu'a ce jour : le
+       23/10, le catalogue devait reprendre la main des qu'un nom avait
+       servi. L'usage a montre le prix — le jeton jaune disparaissait, et
+       l'entree re-remplissait le type de charge et les outils de la
+       derniere fois. Elle ne remplit plus que les muscles, comme son
+       contrat le dit depuis le premier jour. */
     var e3 = A.store.vide();
     A.m.majCatalogue(e3, { nom: 'Wrist curl', typeCharge: 'kg' });
     var sw = A.m.suggestions(e3, 'wrist curl', 8);
     v.egal(sw.filter(function (x) { return x.slug === 'wrist curl'; }).length, 1,
            'un nom déjà écrit n’apparaît qu’UNE fois');
-    v.egal(!!sw[0].duDictionnaire, false, 'et c’est le sien, pas celui du dictionnaire');
+    v.egal(!!sw[0].duDictionnaire, true,
+           'et il reste une entrée de DICTIONNAIRE : le jeton jaune ne '
+         + 'disparaît pas parce qu’on s’en est servi');
+    v.egal(sw[0].typeCharge, 'kg',
+           '[temoin] elle ne porte pas le type de charge de la dernière '
+         + 'fois : une entrée du dictionnaire ne remplit que les muscles');
+
+    /* ET CE QUI N'EST PAS AU DICTIONNAIRE RESTE A MB. */
+    var e4 = A.store.vide();
+    A.m.majCatalogue(e4, { nom: 'Mon exo maison', typeCharge: 'elastique' });
+    var sm = A.m.suggestions(e4, 'mon exo', 8);
+    v.egal(!!sm[0].duDictionnaire, false,
+           'un nom que MB a inventé reste le sien, avec ses attributs');
+    v.egal(sm[0].typeCharge, 'elastique',
+           'et il les reprend — c’est tout l’intérêt de son catalogue');
 
     /* --- LE DICTIONNAIRE ET LA LECTURE DU NOM DISENT LA MÊME CHOSE ---
        Le carnet s'est contredit quatre fois en une journée parce que deux

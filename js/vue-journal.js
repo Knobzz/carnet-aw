@@ -295,11 +295,26 @@
        qu'un chemin de plus ne coute rien — il coute : le geste parait
        exister a deux endroits sans qu'on sache lequel est le bon. */
 
-    var barre = h('div', { class: 'filtres' });
-    [['tout', 'Tout'], ['muscu', 'Muscu'], ['sparring', 'Sparring'],
-     ['recup', 'Récup']].forEach(function (f) {
-      var b = h('button', { type: 'button', class: 'puce', text: f[1],
-                            'aria-pressed': filtre === f[0] ? 'true' : 'false' });
+    /* LES MÊMES SOUS-ONGLETS QUE LE SUIVI. MB, 28/10 : « tu me fais le
+       journal comme le suivi, avec les trois sous onglets, par souci
+       d'homogénéité ».
+
+       « TOUT » RESTE, ET C'EST UNE QUATRIÈME ENTRÉE ASSUMÉE : c'est la
+       SEULE vue chronologique qui mélange les trois, et un journal sans
+       elle ne répond plus à « qu'est-ce que j'ai fait cette semaine ».
+       Le Suivi, lui, n'en a pas besoin : il compare des comptes, il ne
+       déroule pas une chronologie.
+
+       « Muscu » devient « Séances », le mot du Suivi : deux noms pour la
+       même chose coûtent plus que la lettre qu'ils économisent. */
+    var barre = h('div', { class: 'sous-onglets', role: 'tablist',
+                           'aria-label': 'Ce que le journal montre' });
+    [['tout', 'Tout'], ['muscu', 'Séances'], ['recup', 'Récup'],
+     ['sparring', 'Sparring']].forEach(function (f) {
+      var b = h('button', { type: 'button', class: 'sous-onglet', text: f[1],
+                            role: 'tab',
+                            'aria-pressed': filtre === f[0] ? 'true' : 'false',
+                            'aria-selected': filtre === f[0] ? 'true' : 'false' });
       b.addEventListener('click', function () { filtre = f[0]; rendre(hote); });
       barre.appendChild(b);
     });

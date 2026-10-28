@@ -839,22 +839,45 @@
       hote.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun outil' }),
         'Ajoute-le ici, ou saisis-le directement dans la fiche d’un exercice : il entrera tout seul.'));
     } else {
+      /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre doit
+         s'atteindre au clavier, s'annoncer aux lecteurs d'écran et faire
+         44 px de haut comme tout ce qui se touche ici. */
+      function ligneOutil(o) {
+        var combien = compterUsages(e, o);
+        var ligne = h('button', { type: 'button', class: 'item-ligne item-bouton' },
+          h('b', { text: o.nom }),
+          h('span', { text: combien ? combien + ' exo' + (combien > 1 ? 's' : '') : 'non employé' }));
+        ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
+        return ligne;
+      }
+
       A.m.outilsParCategorie(e).forEach(function (g) {
         var bloc3 = blocRepliable(g.categorie, g.outils.length);
-        var corps3 = bloc3.corps;
-        g.outils.forEach(function (o) {
-          var combien = compterUsages(e, o);
-          /* Un BOUTON, pas un div avec un curseur : une ligne qui s'ouvre
-             doit s'atteindre au clavier, s'annoncer aux lecteurs d'écran et
-             faire 44 px de haut comme tout ce qui se touche ici. */
-          var ligne = h('button', { type: 'button', class: 'item-ligne item-bouton' },
-            h('b', { text: o.nom }),
-            h('span', { text: combien ? combien + ' exo' + (combien > 1 ? 's' : '') : 'non employé' }));
-          ligne.addEventListener('click', function () { editerOutil(o, function () { rendre(hote); }); });
-          corps3.appendChild(ligne);
-        });
+        g.outils.forEach(function (o) { bloc3.corps.appendChild(ligneOutil(o)); });
         hote.appendChild(bloc3.carte);
       });
+
+      /* ---- CE QUE LE CARNET RECONNAIT DEJA, REPLIE ----
+         MB, 28/10 : « il est deja dans le dico, il n'a pas besoin d'etre en
+         doublon dans mes equipements ET dans le dico ». Il sort donc de la
+         liste du haut — mais il reste ATTEIGNABLE, parce que c'est ici, et
+         nulle part ailleurs, qu'on pose les positions de mousqueton d'un
+         Wrist Wrench. Les masquer tout a fait aurait ferme cette porte. */
+      var reconnus = A.m.outilsParCategorie(e, 'reconnus');
+      var combienR = 0;
+      reconnus.forEach(function (g) { combienR += g.outils.length; });
+      if (combienR) {
+        var blocR = blocRepliable('Reconnus par le carnet', combienR);
+        blocR.corps.appendChild(h('div', { class: 'item-resume', style: 'margin:2px 2px 8px',
+          text: 'Le carnet sait déjà ce que ces équipements sollicitent : '
+              + 'ils ne sont pas listés plus haut. Ouvre-en un pour lui '
+              + 'donner des réglages — des positions de mousqueton, par '
+              + 'exemple. Il remontera alors dans ta liste.' }));
+        reconnus.forEach(function (g) {
+          g.outils.forEach(function (o) { blocR.corps.appendChild(ligneOutil(o)); });
+        });
+        hote.appendChild(blocR.carte);
+      }
     }
 
 

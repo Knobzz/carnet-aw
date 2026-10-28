@@ -681,6 +681,7 @@
                           'reverse barbell curl', 'reverse ez curl',
                           'reverse cable curl', 'curl rising', 'rising curl', 'rising cable curl',
                           'curl pronation a la poulie', 'pronation cable curl',
+                          'pronation curl', 'pronation curl a la poulie',
                           'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'traction', 'tractions', 'pull up', 'pull ups',
                           'chin up', 'traction pronation',
@@ -734,6 +735,7 @@
                           'reverse barbell curl', 'reverse ez curl',
                           'reverse cable curl', 'curl rising', 'rising curl', 'rising cable curl',
                           'curl pronation a la poulie', 'pronation cable curl',
+                          'pronation curl', 'pronation curl a la poulie',
                           /* « brachio radial » ne le contient pas */
                           'hook a la poulie', 'cable hook', 'hook a la sangle',
                           'traction', 'tractions', 'pull up', 'pull ups',
@@ -778,7 +780,8 @@
                           'traction prise neutre',
                           'neutral grip pull up',
                           'curl rising', 'rising curl', 'rising cable curl',
-                          'curl pronation a la poulie', 'pronation cable curl'],
+                          'curl pronation a la poulie', 'pronation cable curl',
+                          'pronation curl', 'pronation curl a la poulie'],
     rond_pronateur:      ['pronation', 'pronateur', 'pronator', 'pronat',
                           'curl zottman', 'zottman curl',
                           'extension poignet',
@@ -1254,7 +1257,14 @@
       aussi: ['Rising cable curl'],
       muscles: ['biceps', 'brachial', 'fcr', 'brachio_radial', 'ecrl', 'ecrb'] },
     { nom: 'Curl pronation à la poulie',
-      aussi: ['Pronation cable curl'],
+      /* « PRONATION CURL » NE TROUVAIT RIEN, et MB a cru l'entree absente :
+         « Pronation Curl a la poulie n'existe pas j'ai l'impression ». Elle
+         existe — mais la recherche cherche la saisie comme SOUS-CHAINE, et
+         « pronation curl » n'est ni dans « curl pronation a la poulie » ni
+         dans « pronation cable curl », ou « cable » s'intercale. Mesure :
+         « Curl pronation » trouvait, « Pronation curl » non. */
+      aussi: ['Pronation cable curl', 'Pronation curl',
+              'Pronation curl à la poulie'],
       muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
                 'brachio_radial'] },
     /* LES QUATRE TRACTIONS DE MB, et c'est lui qui a refuse l'entree unique :
@@ -2050,6 +2060,21 @@
       for (var j = 0; j < a.length; j++) if (slug(a[j]) === s) return true;
     }
     return false;
+  }
+
+  /* Par SLUG, et sur les ECRITURES aussi : « Traction » doit ramener
+     l'entree « Pull up ». La comparaison par `===` sur le nom exact
+     manquait les deux. */
+  function ficheDictionnaire(nom) {
+    var s = slug(nom);
+    if (!s) return null;
+    for (var i = 0; i < DICTIONNAIRE.length; i++) {
+      var d = DICTIONNAIRE[i];
+      if (slug(d.nom) === s) return d;
+      var a = d.aussi || [];
+      for (var j = 0; j < a.length; j++) if (slug(a[j]) === s) return d;
+    }
+    return null;
   }
 
   function entreeDuDictionnaire(nom) {
@@ -2891,9 +2916,42 @@
     return l.sort(function (a, b) { return a.localeCompare(b); });
   }
 
-  function outilsParCategorie(etat) {
+  /* UN ÉQUIPEMENT RECONNU N'A PAS À FIGURER DEUX FOIS.
+
+     MB, 28/10 : « il est deja dans le dico, il n'a pas besoin d'etre en
+     doublon dans mes equipements ET dans le dico, qu'il reste dans le
+     dico ».
+
+     MAIS PAS CELUI QUI PORTE UN RÉGLAGE À LUI, et c'est la mesure qui l'a
+     imposé : la fiche d'un équipement n'est atteignable QUE par cette liste
+     (la ligne cliquable de `vue-reglages.js`). Masquer un Wrist Wrench
+     reconnu rendrait ses trois positions de mousqueton INACCESSIBLES —
+     elles ont été ajoutées pour ça le 28/10 au matin. Dès qu'il porte un
+     réglage, ce n'est plus un nom du dictionnaire : c'est le sien.
+
+     IL RESTE MÉMORISÉ dans tous les cas — c'est l'AFFICHAGE qui change, pas
+     la mémoire. Même choix que pour le catalogue d'exercices. */
+  function outilAMoi(o) {
+    if (!o) return false;
+    if ((o.reglages || []).length) return true;
+    return !typesDeLOutil(o.nom).length;
+  }
+
+  /* LE RECONNU N'EST PAS JETE, IL EST RANGE. Premiere version : la liste
+     le FILTRAIT. Le banc a montre le piege aussitot — la fiche d'un
+     equipement n'etant atteignable que par cette liste, un Wrist Wrench
+     reconnu devenait invisible AVANT d'avoir un reglage, donc on ne pouvait
+     plus jamais lui en poser un. Le poulet et l'oeuf.
+
+     Il part donc dans un bloc REPLIE, et non dans le neant : la liste est
+     propre, et les trois positions de mousqueton restent a deux appuis. */
+  function outilsParCategorie(etat, lesquels) {
     var groupes = {}, ordre = [];
-    etat.outils.slice().sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (o) {
+    var garde = lesquels === 'reconnus' ? function (o) { return !outilAMoi(o); }
+              : lesquels === 'tous' ? function () { return true; }
+              : outilAMoi;
+    etat.outils.slice().filter(garde)
+      .sort(function (a, b) { return a.nom.localeCompare(b.nom); }).forEach(function (o) {
       var c = (o.categorie || '').trim() || SANS_CATEGORIE;
       if (!groupes[c]) { groupes[c] = []; ordre.push(c); }
       groupes[c].push(o);
@@ -3017,7 +3075,23 @@
       if (p === 0) debut.push(l[i]);
       else if (p > 0) dedans.push(l[i]);
     }
-    var miens = debut.concat(dedans);
+    /* UN NOM QUI EST AU DICTIONNAIRE Y RESTE.
+
+       MB, 28/10 : « quand je selectionne un exo dans le dico, ce dernier a
+       l'air de disparaitre du dico et prend les specificites que j'avais
+       selectionne ». C'etait exact : employer une entree la recopiait au
+       catalogue, et le catalogue passant devant, la fois suivante elle
+       revenait comme SON exercice — sans jeton jaune, et en re-remplissant
+       le type de charge, la prise et les outils de la derniere fois.
+
+       Elle est donc rendue comme ce qu'elle est : une entree de
+       dictionnaire. Le jeton reste, et elle ne remplit QUE les muscles —
+       le contrat ecrit le 23/10. Ses specificites, MB les repose a chaque
+       fois, et c'est ce qu'il demande. */
+    var miens = debut.concat(dedans).map(function (x) {
+      var d = ficheDictionnaire(x.nom);
+      return d ? entreeDictionnaire(d, x.nom) : x;
+    });
     if (miens.length >= n) return miens.slice(0, n);
     var vus = miens.map(function (x) { return x.slug; });
     return miens.concat(suggestionsDictionnaire(q, vus)).slice(0, n);
@@ -4407,8 +4481,10 @@
      C'est la difference entre « le carnet ne sait pas » et « le carnet
      devine » : la premiere se dit, la seconde se paie. */
   function repartitionStyles(etat, depuisJours) {
-    var parStyle = {}, partage = {}, total = 0, exclusives = stylesParForce();
+    var parStyle = {}, parForce = {}, partage = {}, total = 0;
+    var exclusives = stylesParForce();
     STYLES_AW.forEach(function (st) { parStyle[st.id] = 0; });
+    FORCES.forEach(function (f) { parForce[f.id] = 0; });
 
     seancesMuscuTriees(etat).forEach(function (se) {
       if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
@@ -4417,6 +4493,17 @@
         if (!n) return;
         forcesDeLExercice(ex).forEach(function (f) {
           if (!exclusives[f]) return;
+          /* LE DETAIL PAR MOUVEMENT REMONTE ICI le 2026-10-28. Le bloc
+             « Mouvements » a ete retire — MB : « tu peux egalement enlever
+             Mouvements je pense ? Ce dernier est proche de Ton Style
+             nan ? ». Il l'etait, mais il portait SIX chiffres la ou
+             « Ton style » n'en porte que trois : les retirer aurait fait
+             disparaitre l'ecart A L'INTERIEUR d'un style — « je pousse
+             beaucoup en pronation et presque jamais en rising » est
+             exactement ce qu'il cherche. Les six chiffres vivent donc sous
+             leur style, et c'est un bloc de moins sans un chiffre de
+             moins. */
+          parForce[f] = (parForce[f] || 0) + n;
           total += n;
           if (exclusives[f] > 1) { partage[f] = (partage[f] || 0) + n; return; }
           STYLES_AW.forEach(function (st) {
@@ -4425,7 +4512,8 @@
         });
       });
     });
-    return { parStyle: parStyle, partage: partage, total: total };
+    return { parStyle: parStyle, parForce: parForce, partage: partage,
+             total: total };
   }
 
   /* Le style DECLARE sur les sparrings. Rien n'est deduit ici : c'est une
@@ -4600,7 +4688,8 @@
     joursDepuis: joursDepuis, joursEntre: joursEntre, semaineDe: semaineDe,
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,
-    categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie, SANS_CATEGORIE: SANS_CATEGORIE,
+    categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie,
+    outilAMoi: outilAMoi, SANS_CATEGORIE: SANS_CATEGORIE,
     ZONES_RESSENTIES: ZONES_RESSENTIES, zoneRessentie: zoneRessentie,
     musclesDesZones: musclesDesZones,
     outilProche: outilProche,
@@ -4642,7 +4731,7 @@
     PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
     joursDeLaFenetre: joursDeLaFenetre,
     DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
-    auDictionnaire: auDictionnaire,
+    auDictionnaire: auDictionnaire, ficheDictionnaire: ficheDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,

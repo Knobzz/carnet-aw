@@ -123,7 +123,14 @@
     var choisis = {};
     deja.forEach(function (n) { choisis[A.m.slug(n)] = n; });
 
-    var groupes = A.m.outilsParCategorie(etat);
+    /* TOUS LES EQUIPEMENTS, reconnus compris. Le filtre pose le 28/10 sur
+       la LISTE DE REGLAGES ne vaut pas ici : ce panneau sert a ATTACHER un
+       equipement a un exercice, et masquer les reconnus empecherait d'y
+       mettre un Fat Gripz. Le banc l'a attrape — « Choisir dans
+       l'equipement » est tombe a 22/23 des que le defaut de la fonction a
+       change. Une porte de reglage qu'on range n'est pas une porte d'usage
+       qu'on ferme. */
+    var groupes = A.m.outilsParCategorie(etat, 'tous');
     var connus = {};
     groupes.forEach(function (g) { g.outils.forEach(function (o) { connus[o.slug] = true; }); });
     var horsCatalogue = deja.filter(function (n) { return !connus[A.m.slug(n)]; });
@@ -270,6 +277,20 @@
       });
 
       A.ui.autocomplete(champNom, function (saisie) {
+        /* RIEN TANT QUE RIEN N'EST TAPÉ. MB, 28/10 : « quand je clique sur
+           Nom de l'exercice, il me propose des historiques que j'ai déjà
+           fait, je n'en veux pas, ça va faire une surcharge d'info ».
+
+           Mesuré : `autocomplete` ouvre la liste au FOCUS autant qu'à la
+           saisie, et `suggestions(etat, '')` rend les huit exercices les
+           plus récents. Un simple appui dans le champ posait donc huit
+           lignes sur l'écran avant la première lettre.
+
+           LA GARDE EST ICI, dans CE fournisseur, et non dans `autocomplete`
+           ni dans `suggestions` : le champ des outils emploie le premier, et
+           sa liste au focus, elle, sert — c'est là qu'on retrouve son
+           matériel. Un seul écran change. */
+        if (!String(saisie || '').trim()) return [];
         return A.m.suggestions(etat(), saisie, 8).map(function (x) {
           var j = [];
           /* Une entrée du DICTIONNAIRE se montre pour ce qu'elle est : elle
@@ -281,6 +302,11 @@
             if (x.entree && x.entree !== x.nom) j.push({ texte: '= ' + x.entree });
             j.push({ texte: x.muscles.length + ' muscles' });
           } else {
+            /* « EXERCICE CONNU » : MB, 28/10, « ou alors "exercice connu"
+               car pas dans le dictionnaire a la base ». Une suggestion sans
+               jeton de provenance laissait croire que tout venait du meme
+               endroit. */
+            j.push({ texte: 'exercice connu', classe: 'jeton-connu' });
             if (x.aw) j.push({ texte: 'AW', classe: '' });
             j.push({ texte: A.m.typeCharge(x.typeCharge).nom });
             if ((x.outils || []).length) j.push({ texte: x.outils.join(' + '), classe: 'jeton-outil' });
