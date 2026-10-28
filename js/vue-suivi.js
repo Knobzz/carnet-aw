@@ -1235,17 +1235,34 @@
       + (l.length ? ' (' + l.length + ')' : ''),
       'Touche une remarque pour voir qui le dit. Le carnet ne prescrit rien.'));
 
-    /* LE SILENCE SE DIT. Un fragment vide au milieu de dix blocs ne se voit
-       pas, et MB a cherché les recommandations alors qu'elles étaient là.
-       L'état vide NOMME ce qui est surveillé : sans ça, on ne peut pas
-       distinguer « rien à signaler » de « le carnet ne regarde pas ça ». */
+    /* CE QUI EST SURVEILLÉ ET TROUVÉ PROPRE, DIT DANS LES DEUX CAS.
+
+       MB, 28/10 : « Je n'ai pas également les lacunes et ce que je pourrai
+       combler. » La phrase existait — mais sous `if (!l.length)`, donc
+       seulement quand la liste était ENTIÈREMENT vide. MB a « Ton
+       accent » : il ne l'a jamais lue. Mesure dans le bac à sable, avant
+       correction : 4 remarques affichées, zéro mention des faits regardés.
+
+       ET LE NOMBRE SE COMPTE. Elle écrivait « Cinq faits » en dur — la
+       faute des « DIX-SEPT », payée deux fois. Il vient maintenant de
+       `REMARQUES_SURVEILLEES`, qui est aussi ce que `remarques()` suit. */
+    function listeSurveillee(ids) {
+      return A.m.REMARQUES_SURVEILLEES
+        .filter(function (x) { return ids.indexOf(x.id) < 0; })
+        .map(function (x) { return x.quoi; });
+    }
+    function motNombre(n) {
+      return ['aucun', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six',
+              'sept', 'huit', 'neuf', 'dix'][n] || String(n);
+    }
+
     if (!l.length) {
+      var tous = listeSurveillee([]);
       f.appendChild(h('div', { class: 'vide' },
         h('strong', { text: 'Rien à signaler sur cette période' }),
-        'Cinq faits sont surveillés : des fléchisseurs chargés sans AUCUN '
-      + 'extenseur, du hook avec une douleur au coude médial, du bras de fer '
-      + 'sans AUCUN torse antérieur, ton style dominant, et un seul style '
-      + 'déclaré en sparring.'));
+        motNombre(tous.length).charAt(0).toUpperCase() + motNombre(tous.length).slice(1)
+      + ' fait' + (tous.length > 1 ? 's sont' : ' est') + ' surveillé'
+      + (tous.length > 1 ? 's' : '') + ' : ' + tous.join(', ') + '.'));
       return f;
     }
 
@@ -1267,7 +1284,26 @@
         h('span', { class: 'remarque-tete-texte' },
           h('span', { class: 'remarque-genre', text: GENRES[r.genre] || GENRES.lacune }),
           h('span', { class: 'remarque-titre', text: r.titre }),
-          h('span', { class: 'remarque-fait', text: r.texte })));
+          h('span', { class: 'remarque-fait', text: r.texte }),
+          /* ---- LA RÉPONSE NE SE REPLIE PAS, LA SCIENCE SI ----
+
+             MB, 28/10 : « je vois que ça m'indique "Ton accent" c'est le
+             toproll, mais je n'ai pas d'exo en lien avec le toproll de
+             conseillés ». Les exercices existaient — mesure :
+             `exercicesPourStyle('toproll', 4)` rend Rising, Pronation,
+             Toproll à la poulie, Curl Zottman. Ils étaient dans le corps
+             REPLIÉ, pendant que l'en-tête promettait « Voici ce que ton
+             dictionnaire propose ». La promesse visible, la réponse
+             cachée.
+
+             Ils montent donc ici. Ce qui reste replié est la citation et
+             sa source : c'est ça qu'on consulte parfois, pas la liste
+             qu'on est venu chercher. */
+          (r.exercices || []).length
+            ? h('span', { class: 'remarque-exos-tete' },
+                h('b', { text: 'Dans ton dictionnaire : ' }),
+                r.exercices.join(' · '))
+            : null));
 
       var corps = h('div', { class: 'carte-corps remarque-corps', hidden: true });
 
@@ -1293,11 +1329,8 @@
                    text: r.contre.source.qui })));
       }
 
-      if ((r.exercices || []).length) {
-        corps.appendChild(h('div', { class: 'remarque-exos' },
-          h('b', { text: 'Dans ton dictionnaire : ' }),
-          r.exercices.join(' · ')));
-      }
+      /* Les exercices ne sont plus ici : ils sont dans l'en-tête, visibles
+         sans ouvrir. Les répéter ferait lire deux fois la même liste. */
 
       tete.addEventListener('click', function () {
         var ouvert = tete.getAttribute('aria-expanded') === 'true';
@@ -1309,6 +1342,23 @@
       carte.appendChild(corps);
       f.appendChild(carte);
     });
+
+    /* ET CE QUI A ÉTÉ REGARDÉ SANS RIEN TROUVER.
+
+       C'est la moitié qui manquait à MB : il avait des remarques, donc
+       l'état vide ne s'affichait pas, donc rien ne lui disait que les
+       trois lacunes avaient été regardées. « Aucune lacune » est une
+       information ; un silence n'en est pas une.
+
+       DÉRIVÉ DES ids QUI ONT PARLÉ : le jour où une remarque s'ajoute,
+       elle apparaît ici sans qu'on touche à cette ligne. */
+    var dits = l.map(function (r) { return r.id; });
+    var propres = listeSurveillee(dits);
+    if (propres.length) {
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 0' },
+        h('b', { text: 'Regardé, rien à dire : ' }),
+        propres.join(', ') + '.'));
+    }
     return f;
   }
 
@@ -1444,12 +1494,38 @@
         h('span', { class: 'barre-val', text: n + ' sér.' })));
     });
 
-    /* Le partagé se montre, mais À PART et nommé : il appartient à deux
-       styles, et le ranger dans l’un des deux gonflerait celui-là au prix
-       de l’autre. */
-    Object.keys(r.partage).forEach(function (fid) {
+    /* ---- UNE BARRE PARTAGÉE N’EST PAS UN STYLE, ET ELLE LE DIT ----
+
+       MB, 28/10 : « Dans le suivi, je vois en technique le Side Pressure,
+       il me semble que ce n’est pas une technique. » Il a raison, et c’est
+       CET ÉCRAN qui le lui a appris. Mesure du texte rendu, avant
+       correction : « Toproll 3 sér. / Hook 8 sér. / Side pressure 5 sér. »
+       — trois barres de même forme dans le même groupe, dont une seule
+       n’est pas un style. Une nuance de gris ne porte pas ça.
+
+       Le partagé reste À PART, comme avant : le ranger sous l’un des deux
+       styles gonflerait celui-là au prix de l’autre. Ce qui change, c’est
+       qu’une ligne dit ce que c’est, et DE QUELS styles — dérivé de
+       STYLES_AW, jamais écrit en dur. Le jour où le press gagne un
+       mouvement à lui, cette ligne disparaît d’elle-même. */
+    var partagees = Object.keys(r.partage);
+    if (partagees.length) {
+      var dits = partagees.map(function (fid) {
+        var porteurs = A.m.STYLES_AW.filter(function (st) {
+          return st.forces.indexOf(fid) >= 0;
+        }).map(function (st) { return st.nom; });
+        return A.m.nomForce(fid).toLowerCase() + ' appartient au '
+             + porteurs.join(' ET au ');
+      });
+      barres.appendChild(h('div', { class: 'barre-note' },
+        h('b', { text: (partagees.length > 1 ? 'Mouvements partagés'
+                                             : 'Mouvement partagé')
+                       + ', pas un style : ' }),
+        dits.join(' ; ') + '.'));
+    }
+    partagees.forEach(function (fid) {
       var n = r.partage[fid];
-      barres.appendChild(h('div', { class: 'barre' },
+      barres.appendChild(h('div', { class: 'barre barre-partagee' },
         h('span', { text: A.m.nomForce(fid) }),
         h('div', { class: 'barre-piste' },
           h('i', { class: 'gen gen-partage', style: 'width:' + (n / max * 100) + '%' })),
@@ -1483,6 +1559,77 @@
       + ' est partagée avec un autre style. Déclare-le sur tes sparrings : '
       + 'il s’y compte.'));
     });
+
+    /* ---- SUR QUOI CHAQUE STYLE S’APPUIE ----
+
+       MB, 28/10 : « Vérifie sur quoi s’active la press, le hook et le
+       toproll. » La réponse vit ICI et pas dans un message, parce que
+       c’est ici qu’on lit les styles.
+
+       ELLE N’EST PAS SYMÉTRIQUE, et c’est tout l’intérêt : la fédération
+       nomme des muscles pour le hook et pour le press, et AUCUN pour le
+       toproll. `appuie: null` le dit, `faute` porte ce qu’elle écrit à la
+       place, et l’écran ne comble pas le trou. */
+    var appui = h('div', { class: 'dit-a-part' },
+      h('b', { text: 'Sur quoi chaque style s’appuie. ' }),
+      'Ce que la fédération écrit — rien de plus.');
+    A.m.STYLES_AW.forEach(function (st) {
+      appui.appendChild(h('div', { class: 'appui-ligne' },
+        h('b', { text: st.nom + ' : ' }),
+        st.appuie
+          ? '« ' + st.appuie + ' »'
+          : 'aucun muscle nommé. « ' + st.faute + ' »'));
+    });
+    appui.appendChild(h('div', { class: 'remarque-qui' },
+      h('a', { href: A.m.STYLES_AW[0].lien, target: '_blank', rel: 'noopener',
+               text: 'Toronto Armwrestling Federation — Arm wrestling techniques' })));
+    /* ET CE QUE L’OFFICIEL N’EN DIT PAS. MB demandait « à vérifier dans les
+       sources officielles » : le règlement de la WAF n’en dit rien, et un
+       écran qui s’appuierait dessus en silence tromperait. Les trois
+       chiffres sont comptés, pas estimés. */
+    appui.appendChild(h('div', { class: 'appui-ligne appui-officiel' },
+      h('b', { text: 'Le règlement officiel, lui, n’en dit rien. ' }),
+      'Sur les 19 pages du règlement WAF 2023, « toproll » et « hook » '
+    + 'n’apparaissent pas une seule fois, et « press » seulement dans '
+    + '« back pressure », qu’il traite en faute. Les trois styles viennent '
+    + 'des pages d’enseignement des fédérations — Toronto et la '
+    + 'Nouvelle-Zélande nomment les mêmes trois. Devon Larratt les nomme '
+    + 'aussi, de lui-même : « there’s like a few base moves in arm '
+    + 'wrestling, probably top rolling, hooking, and pressing ».'));
+    f.appendChild(appui);
+
+    /* ---- ET UN ARMWRESTLER SUR LE STYLE QUE TU TRAVAILLES ----
+
+       MB, 28/10 : « Avoir également une phrase d’un armwrestler sur un
+       style spécifique qu’on travaille peut être un chouette clin d’œil et
+       donner une impression de tendre vers tel ou tel style. »
+
+       UN SEUL STYLE, LE DOMINANT. Les trois phrases à la suite seraient
+       une page de citations ; une seule, celle du style qu’il porte le
+       plus, est le clin d’œil qu’il demande.
+
+       LE DOMINANT SE RECALCULE ICI et n’attend pas le bloc d’écart juste
+       en dessous : celui-là ne s’exécute que si des sparrings sont
+       déclarés, et la phrase n’a rien à voir avec les sparrings.
+
+       TROIS ATHLÈTES DIFFÉRENTS, TROIS PHRASES VÉRIFIÉES mot pour mot dans
+       des transcripts et des entretiens ouverts — voir `citation` dans
+       STYLES_AW. Un style sans citation n’affiche rien : on ne comble pas. */
+    var porte = null, combien = 0;
+    lis.lisibles.forEach(function (x) {
+      var n = r.parStyle[x.style.id] || 0;
+      if (n > combien) { combien = n; porte = x.style; }
+    });
+    if (porte && combien > 0 && porte.citation) {
+      f.appendChild(h('div', { class: 'dit-a-part clin-oeil' },
+        h('div', { class: 'clin-oeil-quoi',
+                   text: 'Tu tends vers le ' + porte.nom.toLowerCase() + '.' }),
+        h('blockquote', { class: 'remarque-dit',
+                          text: '« ' + porte.citation.dit + ' »' }),
+        h('div', { class: 'remarque-qui' },
+          h('a', { href: porte.citation.lien, target: '_blank', rel: 'noopener',
+                   text: porte.citation.qui }))));
+    }
 
     /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce
        qu’on travaille contre ce qu’on déclare à la table. */

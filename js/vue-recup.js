@@ -209,6 +209,21 @@
           enregistre = false;
         }
       } else if (!enregistre) {
+        /* ---- ELLE PREND SA DATE MAINTENANT, PAS AU RENDU ----
+
+           La récup est le SEUL écran qui fabrique sa séance au RENDU :
+           `seanceRecup` l'estampille `aujourdHui()` au moment où la carte
+           est dessinée. La muscu et le sparring, eux, se datent sur le
+           geste de MB.
+
+           Conséquence mesurable : valider à 00 h 05 une carte dessinée à
+           23 h 55 écrivait sur LA VEILLE. Le redessin au retour au premier
+           plan n'y change rien — l'app n'est jamais passée derrière.
+
+           ON NE RE-DATE QUE CE QUI N'EST PAS ENCORE ENREGISTRE. Une journée
+           déjà au journal garde sa date : la déplacer réécrirait le passé. */
+        jour.date = A.m.aujourdHui();
+        jour.heure = new Date().toISOString();
         e.seances.push(jour);
         enregistre = true;
       }

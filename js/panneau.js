@@ -706,6 +706,76 @@
           });
           majPuces();
           boiteReglages.appendChild(rangee);
+
+          /* ---- ET LE TROU DU CADRE, SUR LE MEME REGLAGE ----
+
+             MB, 28/10 : « Les deux ensemble ». Le cadre Golden Grip porte
+             SIX accessoires et CINQ trous, et `poserReglage` n'a qu'une
+             case par outil. On demande donc les deux dimensions l'une
+             APRES l'autre et on compose le nom : six puces, puis cinq.
+             Jamais trente.
+
+             CETTE RANGEE N'EXISTE QUE SI LE REGLAGE POSE A DES TROUS : un
+             mousqueton d'Iron Wrist n'en a pas, et rien ne s'affiche. Elle
+             ne remplace pas la rangee du dessus — `positionsProposees` lit
+             la BASE, donc on change de trou sans défaire l'accessoire. */
+          var poseActuel = A.m.reglageDe(exo, nomOutil);
+          var trous = (poseActuel && A.m.positionsProposees)
+                    ? A.m.positionsProposees(nomOutil, poseActuel) : [];
+          if (trous.length) {
+            var base = A.m.baseDuReglage(poseActuel);
+            var trouPose = A.m.positionDuReglage(poseActuel);
+            var rgPose = A.m.trouverReglage(etat(), nomOutil, poseActuel);
+
+            /* LE FABRICANT DIT POURQUOI, JAMAIS LEQUEL. « 5 holes in the
+               frame to allow you to focus on different fingers » — et
+               aucune source ne dit quel trou charge quel doigt. Le trou ne
+               coche donc aucun muscle, et l'écran le dit au lieu de le
+               laisser deviner. */
+            boiteReglages.appendChild(h('div', { class: 'item-resume',
+              style: 'margin:6px 0 0;opacity:.8',
+              text: 'Dans quel trou du cadre « ' + base + ' » est vissé. '
+                  + 'Le fabricant dit que les cinq trous servent à viser '
+                  + 'd’autres doigts, jamais lequel : le trou ne coche '
+                  + 'aucun muscle, il distingue deux séances.' }));
+
+            var rangeeT = h('div', { class: 'puces' });
+            function poserTrou(trou) {
+              var neuf = A.m.composerReglage(base, trou);
+              if (!neuf || A.m.slug(neuf) === A.m.slug(poseActuel || '')) return;
+              /* LA TRACE DEMENAGE AVEC LE NOM. Sans ces lignes, renommer le
+                 réglage orphelinait `poseParReglage` : « Aucun » n'aurait
+                 plus rien décoché — un geste sans inverse, exactement le
+                 défaut que MB a signalé le 28/10 par l'autre porte. */
+              var cAvant = clefPose(nomOutil, poseActuel);
+              var cApres = clefPose(nomOutil, neuf);
+              if (poseParReglage[cAvant] && cAvant !== cApres) {
+                poseParReglage[cApres] = poseParReglage[cAvant];
+                delete poseParReglage[cAvant];
+              }
+              /* `null` EN MUSCLES : le renommage ne touche pas à ce que
+                 l'accessoire avait posé. Passer [] les effacerait. */
+              A.m.majReglageOutil(etat(), nomOutil, neuf, null,
+                                  rgPose ? rgPose.id : null);
+              A.m.poserReglage(exo, nomOutil, neuf);
+              A.store.sauver(true);
+              A.ui.toast('« ' + neuf + ' »');
+              rafraichirReglages();
+              rafraichirMuscles();
+              majAideMuscles();
+            }
+            [{ t: null, texte: 'Aucun trou' }].concat(trous.map(function (t) {
+              return { t: t, texte: t };
+            })).forEach(function (o) {
+              var bt = h('button', { type: 'button', class: 'puce',
+                text: o.texte,
+                'aria-pressed': ((o.t || null) === (trouPose || null))
+                                ? 'true' : 'false' });
+              bt.addEventListener('click', function () { poserTrou(o.t); });
+              rangeeT.appendChild(bt);
+            });
+            boiteReglages.appendChild(rangeeT);
+          }
           /* PLUS DE BOUTON QUAND IL Y A DEJA DES PUCES — MB, 28/10 :
              « enleve presque le "+ Reglage pour ..." ». Les reglages
              declares et les suggestions restantes sont tous dans la rangee

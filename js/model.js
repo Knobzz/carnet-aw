@@ -1077,8 +1077,15 @@
      suivants (la main et le grip, les gestes de table, les epaules et le
      dos) s'ajouteront ici une fois valides. */
   var DICTIONNAIRE = [
+    /* « TENUE EN CUP » EST PARTIE A `Cup hold`, ET ELLE Y EST SEULE.
+       Elle était ici ET là-bas, et `ficheDictionnaire` prend la première
+       de la table : choisir ce nom donnait donc le wrist curl, en REPS,
+       là où `Cup hold` porte `colonnes: ['charge', 'duree']`. Un exercice
+       TENU revenait dynamique, et le bloc Régime le comptait comme tel.
+       Mesuré en vérifiant le correctif du doublon : 152 doublons tombent,
+       et les 2 qui restent sont celui-là. */
     { nom: 'Wrist curl',
-      aussi: ['Flexion du poignet', 'Cupping', 'Tenue en cup'],
+      aussi: ['Flexion du poignet', 'Cupping'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl côté pouce',
@@ -1856,7 +1863,7 @@
        quatre des six etaient deja la et bien lus ; ces deux-la, non. */
     { m: 'Golden Grip', c: 'armwrestling buddies', n: 'Armwrestling Buddies (cadre)' },
     { m: 'Golden Grip', c: 'fat grip', n: 'Offset Cylinder Handle' },
-    { m: 'Golden Grip', c: 'toproll', n: 'Anti-Toproll Handle with Strap' },
+    { m: 'Golden Grip', c: 'anti toproll', n: 'Anti-Toproll Handle with Strap' },
     { m: 'Golden Grip', c: 'fat grip', n: 'Thick grips' },
     { m: 'Golden Grip', c: 'fat grip', n: 'Axle Bar' },
     /* LE CADRE DU MULTI-TOOL — https://titangrip.de/multi-tool, 29,99 €.
@@ -1877,10 +1884,10 @@
     { m: 'Golden Grip', c: 'cup', n: 'King’s Cup' },
     { m: 'Mithril', c: 'cup', n: 'Independent Handle for Cupping' },
     { m: 'Mithril', c: 'cup', n: 'Double Cupping Handle' },
-    { m: 'Golden Grip', c: 'toproll', n: 'Anti-Toproll Handle' },
-    { m: 'Mithril', c: 'toproll', n: 'Anti-Toproll V3' },
+    { m: 'Golden Grip', c: 'anti toproll', n: 'Anti-Toproll Handle' },
+    { m: 'Mithril', c: 'anti toproll', n: 'Anti-Toproll V3' },
     { m: 'Titangrip', c: 'toproll', n: 'Toproll Buddy' },
-    { m: 'Titangrip', c: 'toproll', n: 'Toproll Counter' },
+    { m: 'Titangrip', c: 'anti toproll', n: 'Toproll Counter' },
     { m: 'Mithril', c: 'hook', n: 'Heavy Hook' },
     { m: 'Golden Grip', c: 'pinch', n: 'Pinch Grip Block' },
     { m: 'Golden Grip', c: 'pinch', n: 'Plate Pinch' },
@@ -1953,6 +1960,54 @@
                               'Mousqueton à l’extérieur',
                               'Mousqueton à l’intérieur'];
 
+  /* ---------- LES CINQ TROUS DU CADRE, ET LE NOM COMPOSE ----------
+
+     MB, 28/10 : « Les deux ensemble » — l'accessoire ET le trou sur un
+     seul réglage, puisqu'il n'y a qu'une case par outil.
+
+     LE FABRICANT, MOT POUR MOT : « Full set includes a metal frame, 6
+     attachments, and A SCREW TO ATTACH THEM. 5 HOLES IN THE FRAME to allow
+     you to focus on different fingers. »
+
+     DONC CINQ, ET C'EST UNE VIS. MB avait proposé « comme pour l'autre,
+     mousqueton extérieur, centre et intérieur » : son vocabulaire tient —
+     il tient l'outil, c'est son argument du 27/10 — mais le mot
+     « mousqueton » et le compte de trois ne tiennent pas. Les deux
+     intermédiaires sont donc nommés PAR CE QU'ILS SÉPARENT, et non
+     numérotés : le fabricant ne numérote rien, et un numéro serait une
+     convention de moi.
+
+     AUCUN MUSCLE, ET C'EST MESURÉ : la fiche dit POURQUOI les trous
+     existent — « different fingers » — et JAMAIS lequel charge quel doigt.
+     Les poser serait les deviner. Même raison que sur l'Iron Wrist. */
+  var TROUS_BUDDIES = ['Vis à l’extérieur', 'Vis extérieur-centre',
+                       'Vis au centre', 'Vis centre-intérieur',
+                       'Vis à l’intérieur'];
+
+  /* Le même séparateur que `outilDit` emploie pour « outil · réglage » :
+     « Armwrestling Buddies · King’s Cup · Vis au centre » se découpe à
+     l'œil sans qu'on ait à l'apprendre. */
+  var SEPARATEUR_REGLAGE = ' · ';
+
+  function baseDuReglage(nom) {
+    var t = String(nom == null ? '' : nom);
+    var i = t.indexOf(SEPARATEUR_REGLAGE);
+    return (i < 0 ? t : t.slice(0, i)).trim();
+  }
+
+  function positionDuReglage(nom) {
+    var t = String(nom == null ? '' : nom);
+    var i = t.indexOf(SEPARATEUR_REGLAGE);
+    if (i < 0) return null;
+    return t.slice(i + SEPARATEUR_REGLAGE.length).trim() || null;
+  }
+
+  function composerReglage(base, position) {
+    var b = baseDuReglage(base);
+    if (!b) return '';
+    return position ? b + SEPARATEUR_REGLAGE + position : b;
+  }
+
   /* ---------- LES ACCESSOIRES DU MULTI-TOOL ----------
 
      Un reglage de type etait jusqu'ici une CHAINE — un nom, rien de plus.
@@ -1975,19 +2030,26 @@
      ecriture : Offset Cylinder 5 muscles, Anti-Toproll avec sangle 6,
      Eccentric Grip 4, King's Cup 5, Anti-Toproll 6, Cone 1.
 
-     LES CINQ TROUS NE SONT PAS ICI, et c'est un choix. Le fabricant dit
-     « 5 holes in the frame to allow you to focus on different fingers » —
-     mais JAMAIS quel trou charge quel doigt. Six accessoires font six
-     puces ; six accessoires fois cinq trous en feraient trente, pour une
-     precision que personne ne peut remplir. Le trou se note dans le nom du
-     reglage, qui est libre. */
+     LES CINQ TROUS Y SONT DEPUIS LE 28/10 — MB : « Les deux ensemble ».
+     Ils ne font PAS trente puces : l'ecran demande l'accessoire, PUIS le
+     trou, et compose un seul nom. Six puces, puis cinq.
+
+     ILS SONT LES MEMES POUR LES SIX, parce que ce sont les trous DU CADRE
+     et non de l'accessoire. Un seul accessoire en a de propres, et il
+     reste DEHORS : l'Offset Cylinder, dont la fiche dit « The handle
+     includes two holes: one in the middle, and another one more to the
+     side. Both will give you a different type of resistance ». Ce serait
+     une TROISIEME dimension — 6 x 5 x 2 = 60 — et une case ne porte pas
+     trois dimensions. Son trou propre se note a la main : le nom du
+     reglage reste libre. Dit ici pour qu'on ne le cherche pas deux fois. */
   var ACCESSOIRES_BUDDIES = [
-    { nom: 'Offset Cylinder Handle', comme: 'fat grip' },
-    { nom: 'Anti-Toproll Handle with Strap', comme: 'toproll' },
-    { nom: 'Eccentric Grip Handle', comme: 'eccentric' },
-    { nom: 'King’s Cup', comme: 'cup' },
-    { nom: 'Anti-Toproll Handle', comme: 'toproll' },
-    { nom: 'Cone Handle', comme: 'cone' }
+    { nom: 'Offset Cylinder Handle', comme: 'fat grip', positions: TROUS_BUDDIES },
+    { nom: 'Anti-Toproll Handle with Strap', comme: 'anti toproll',
+      positions: TROUS_BUDDIES },
+    { nom: 'Eccentric Grip Handle', comme: 'eccentric', positions: TROUS_BUDDIES },
+    { nom: 'King’s Cup', comme: 'cup', positions: TROUS_BUDDIES },
+    { nom: 'Anti-Toproll Handle', comme: 'anti toproll', positions: TROUS_BUDDIES },
+    { nom: 'Cone Handle', comme: 'cone', positions: TROUS_BUDDIES }
   ];
 
   var AUFSATZ_MULTITOOL = [
@@ -2021,8 +2083,54 @@
     { mots: ['riser', 'rising', 'rising buddy'], entrees: ['Rising'] },
     { mots: ['cup', 'cupping', 'opticup', 'kings cup'],
       entrees: ['Cup hold'] },
-    { mots: ['toproll', 'anti toproll', 'ergopuller'],
+    { mots: ['toproll', 'ergopuller'],
       entrees: ['Toproll à la poulie'] },
+
+    /* ---- RESISTER A UN TOPROLL N'EST PAS EN FAIRE UN ----
+
+       MB, 28/10 : « l'anti-toproll, me semble t'il, tiens sur de la
+       technique toproll, à confirmer ». CONFIRMÉ, et par la seule source
+       qui range ses produits PAR BUT : Mithril trie son catalogue en
+       « Shop by Training Goal », et ses CINQ poignées anti-toproll sont
+       toutes sous « Toproll Training », AUCUNE sous « Hook Training ».
+       Sa fiche V1 écrit « maintain connection while applying pronation
+       and back pressure » — deux des trois forces que STYLES_AW donne au
+       toproll.
+
+       CE TYPE NE REMPLACE DONC RIEN. `typesDeLOutil` rend TOUS les types
+       qui touchent : une poignée anti-toproll reste un toproll, et gagne
+       en plus ce que les trois fabricants nomment et que le toproll seul
+       ne donnait pas.
+
+       LES DOIGTS ET LA FLEXION, dits trois fois :
+         Golden Grip (avec sangle) — « elite finger strength, which can be
+           used to contain your opponent's hand during an armwrestling
+           match » ;
+         Titangrip, Toproll Counter — « gezielte Belastungsübertragung auf
+           die Finger und das Handgelenk » ;
+         Mithril V1 — « Wrist flexion, pronation, finger containment, grip
+           stability, and defensive hand control ».
+       D'où l'entrée « Wrist curl », DÉRIVÉE du dictionnaire et non
+       recopiée : le jour où la flexion du poignet gagne un muscle,
+       l'anti-toproll le gagne aussi.
+
+       LES DEUX EXTENSEURS RESTENT PROPOSÉS, et aucun fabricant ne les
+       nomme ici : ils viennent du toproll, par l'appartenance que MB
+       demandait de confirmer. C'est dit plutôt que masqué — l'utilisateur
+       décoche ce qu'il ne veut pas, comme partout.
+
+       MESURE AVANT ÉCRITURE : « anti toproll » était déjà dans la famille
+       toproll, et il y était REDONDANT — motifDuMot('toproll') touche
+       « anti toproll handle » par le mot « toproll » seul. Le laisser
+       casserait l'affichage : `motsReconnus` garde UN mot par type, le
+       plus long, et les deux types auraient choisi le même. On lit donc
+       « Reconnu : toproll, anti toproll ».
+
+       GOLDEN GRIP SANS SANGLE NE DIT RIEN : sa fiche produit ne porte que
+       « Use with metal frame (NOT INCLUDED) ». C'est celle AVEC sangle qui
+       parle, et c'est elle qu'on cite. */
+    { mots: ['anti toproll', 'toproll counter'],
+      entrees: ['Wrist curl'] },
     { mots: ['hook', 'heavy hook'], entrees: ['Hook à la poulie'] },
     { mots: ['pinch', 'pince', 'blob', 'globe', 'cannonball', 'coinlift',
              'saxon bar'],
@@ -2423,7 +2531,18 @@
       monte: 'La poulie.',
       pasSur: 'Pas de prise épaisse par-dessus : il n’y a pas de poignée à '
             + 'épaissir.' },
-    'thumb': { nom: 'Travail du pouce', monte: 'Sangle au pouce, ou outil tenu à deux.', pasSur: null }
+    'thumb': { nom: 'Travail du pouce', monte: 'Sangle au pouce, ou outil tenu à deux.', pasSur: null },
+    /* DEUX MONTAGES, parce que les deux fabricants ne vendent pas la même
+       chose. Golden Grip : « Use with metal frame (NOT INCLUDED) ».
+       Titangrip : « Sowohl einzeln mit Gurt als auch in Kombination mit
+       unserem Multi-Tool verwendbar […] am Kabelzug oder freien Gewichten
+       über einen Loading Pin ». `pasSur` reste null : aucun des trois ne
+       dit sur quoi elle NE se monte pas. */
+    'anti toproll': { nom: 'Poignée anti-toproll',
+      monte: 'Câble ou loading pin — par une sangle pour celles qui en ont '
+           + 'une, vissée dans un cadre pour les autres (Golden Grip vend '
+           + 'le cadre à part).',
+      pasSur: null }
   };
 
   /* Ce qu'on sait du montage d'un nom d'outil — un enregistrement par type
@@ -2608,22 +2727,84 @@
      herite, et l'ecran le dit. */
   var LIEN_TAWF = 'https://www.tawf.ca/league/learn/arm-wrestling-techniques';
 
+  /* ---- SUR QUOI CHAQUE STYLE S'APPUIE ----
+
+     MB, 28/10 : « Vérifie sur quoi s'active la press, le hook et le
+     toproll. » Vérifié, et le résultat N'EST PAS SYMÉTRIQUE — c'est
+     pourquoi `appuie` porte la phrase telle quelle au lieu de la résumer.
+
+     LE RÈGLEMENT OFFICIEL NE DÉFINIT AUCUNE TECHNIQUE, et c'est la mesure
+     qui compte le plus ici. Sur les 19 pages du règlement WAF 2023
+     (44 005 caractères) : « toproll » 0, « hook » 0, « technique » 0 ;
+     « press » 2 fois, les deux à l'intérieur de « back pressure », qu'il
+     traite en FAUTE. Les trois « style » y désignent le format de
+     compétition (« Stand-up Style ») et la largeur d'une sangle.
+
+     LES STYLES VIENNENT DONC DES PAGES D'ENSEIGNEMENT, et deux fédérations
+     s'accordent sur EXACTEMENT ces trois : Toronto (déjà citée) et la
+     Nouvelle-Zélande, qui nomme « The Hook », « The Toproll », « The
+     Press » et rien d'autre.
+
+     `appuie: null` POUR LE TOPROLL, ET C'EST LA MESURE : Toronto ne lui
+     nomme aucun muscle. Elle écrit « Hand and finger length, wrist
+     strength, and timing matter more than sheer mass » — ce que `faute`
+     porte. On ne comble pas : l'écran dit qu'aucun muscle n'est nommé. */
   var STYLES_AW = [
     { id: 'toproll', nom: 'Toproll',
       forces: ['pronation', 'rising', 'back_pressure'],
       dit: 'you pronate and slide your grip up toward your opponent’s '
          + 'fingertips […] then you open their hand and wrist and « roll » '
          + 'the pressure back toward yourself and down',
+      appuie: null,
+      faute: 'Hand and finger length, wrist strength, and timing matter '
+           + 'more than sheer mass',
+      /* LE TOPROLLEUR LE PLUS CONNU DU SPORT, disant que c'est devenu SA
+         meilleure technique après en avoir changé plusieurs fois. */
+      citation: {
+        dit: 'I, over the course of my career, changed techniques, changed '
+           + 'techniques, and probably my best technique is an open top roll '
+           + 'or a King’s Move now',
+        qui: 'Devon Larratt — The Joe Rogan Experience #2510',
+        lien: 'https://podcasts.happyscribe.com/the-joe-rogan-experience/'
+            + '2510-devon-larratt' },
       lien: LIEN_TAWF },
     { id: 'hook', nom: 'Hook',
       forces: ['supination', 'cupping', 'side_pressure'],
       dit: 'You supinate — turning your hand inward toward yourself — and '
          + 'curl your wrist […] drive it down on the inside',
+      appuie: 'It plays to raw wrist, hand, and bicep strength […] it also '
+            + 'loads the biceps and elbow the hardest',
+      faute: null,
+      /* LA PLUS JUSTE DES TROIS POUR CET ÉCRAN : un pro qui nomme son style
+         FAIBLE et qui le travaille. L'écran dit exactement ça — ce que MB
+         travaille le plus, et le moins. */
+      citation: {
+        dit: 'I’m paying special attention to training the hook. World '
+           + 'Championship, that is, the fight with Krasimir, showed me that '
+           + 'my hook is weak and needs more attention',
+        qui: 'Terence Opperman, entretien d’Artur Grigorjan pour Armpower.NET',
+        lien: 'https://www.xsportnews.com/armwrestling/'
+            + 'interview-terence-opperman-by-armpower-net/' },
       lien: LIEN_TAWF },
     { id: 'press', nom: 'Press',
       forces: ['side_pressure'],
       dit: 'you drive your weight and shoulder forward and over the top to '
          + 'push their hand down toward the pad',
+      appuie: 'It leans heavily on shoulder and triceps strength and good '
+            + 'bodyweight transfer',
+      faute: null,
+      /* ELLE PARLE D'UN MATCH, PAS D'UNE MÉTHODE, et c'est dit tel quel :
+         je n'ai trouvé AUCUNE phrase de pro expliquant la mécanique du
+         press en première personne. Les recherches rendaient des analyses
+         de journalistes, pas ses mots. Celle-ci est de lui, et elle nomme
+         la transition en press dans le round qui lui a donné le titre. */
+      citation: {
+        dit: 'I hated to see Oleg lose on fouls, especially after the round '
+           + 'three transition to a press',
+        qui: 'Michael Todd, après son titre à East vs West 24',
+        lien: 'https://www.sporf.com/devon-larratt-is-a-jedi-michael-todd-'
+            + 'explains-how-no-limits-helped-him-become-world-champion-at-'
+            + 'east-vs-west-armwrestling-24/' },
       lien: LIEN_TAWF }
   ];
 
@@ -2804,6 +2985,25 @@
     var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; };
     return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
   }
+  /* LE JOUR A-T-IL CHANGE DEPUIS QUE L'ECRAN A ETE DESSINE ?
+
+     MB, 28/10 : « j'ai l'impression de l'avoir fait hier, et pourtant
+     aujourd'hui je n'ai pas la possibilité de la faire, elle semble déjà
+     validée ». Une PWA n'est pas rechargée, elle est REPRISE : l'écran du
+     lendemain est celui de la veille.
+
+     ELLE VIT ICI ET NON DANS L'ECOUTEUR parce que l'écouteur n'est pas
+     mesurable : le banc d'interface monte store, model, ui, panneau et les
+     vues — pas `app.js`. Une décision enfermée dans la coque échappait aux
+     deux bancs.
+
+     SANS JOUR RENDU, ON NE REDESSINE PAS : rien n'a encore été dessiné, et
+     rendre `true` ferait redessiner au tout premier retour au premier
+     plan, pour rien. */
+  function jourAChange(jourRendu) {
+    return !!jourRendu && jourRendu !== aujourdHui();
+  }
+
   function dateObjet(iso) {
     var p = String(iso || '').split('-');
     return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1);
@@ -3132,7 +3332,39 @@
       });
     });
     if (!etat) return noms;
-    return noms.filter(function (n) { return !trouverReglage(etat, nomOutil, n); });
+    /* ON COMPARE SUR LA BASE, pas sur le nom entier. Depuis que l'accessoire
+       et le trou se composent, « King's Cup » déclaré se lit « King's Cup ·
+       Vis au centre » : un filtre sur le nom entier ne l'aurait pas reconnu
+       et aurait re-suggéré l'accessoire à côté du réglage qui le porte. */
+    return noms.filter(function (n) { return !reglageParBase(etat, nomOutil, n); });
+  }
+
+  /* Le réglage de cet outil dont la BASE est ce nom, trou compris. */
+  function reglageParBase(etat, nomOutil, nomBase) {
+    var cible = slug(baseDuReglage(nomBase));
+    if (!cible) return null;
+    var l = reglagesOutil(etat, nomOutil);
+    for (var i = 0; i < l.length; i++) {
+      if (slug(baseDuReglage(l[i].nom)) === cible) return l[i];
+    }
+    return null;
+  }
+
+  /* LES TROUS QU'UN REGLAGE PEUT ENCORE PRENDRE. Lus sur la BASE : « King's
+     Cup · Vis au centre » propose les mêmes cinq que « King's Cup », pour
+     qu'on puisse changer de trou sans défaire l'accessoire. Un réglage dont
+     le type n'en déclare pas rend [] — et l'écran ne montre alors aucune
+     seconde rangée. */
+  function positionsProposees(nomOutil, nomReglage) {
+    var cible = slug(baseDuReglage(nomReglage)), trouve = null;
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      (k.reglages || []).forEach(function (r) {
+        if (trouve) return;
+        if (slug(nomDuReglageType(r)) === cible) trouve = r;
+      });
+    });
+    return (trouve && Array.isArray(trouve.positions))
+      ? trouve.positions.slice() : [];
   }
 
   /* Les muscles qu'un reglage SUGGERE emporte, quand sa famille est connue.
@@ -3140,8 +3372,24 @@
      DERIVES, jamais recopies : on relit la famille nommee par `comme`. Un
      accessoire sans famille rend [] — et c'est la reponse juste pour
      « Wrist Pro » et « Multi Hand Grip », que le fabricant ne decrit pas. */
+  /* DEUX CORRECTIONS ICI, ET LA SECONDE A ETE TROUVEE EN ECRIVANT LA
+     PREMIERE.
+
+     1. ON LIT LA BASE du nom, depuis qu'il se compose : « King's Cup · Vis
+        au centre » doit rendre les muscles de la coupe. Lu sur le nom
+        entier, il ne trouvait plus rien — l'accessoire perdait ses muscles
+        au moment même où on précise le trou.
+
+     2. LA FAMILLE SE RESOUT PAR `musclesDeLOutil`, PLUS A LA MAIN. La
+        version d'avant prenait LA PREMIERE famille dont `mots` contient
+        `comme`, et une seule. Depuis que l'anti-toproll est un type à lui
+        qui S'AJOUTE au toproll, un accessoire anti-toproll a DEUX familles
+        — et la boucle à la main n'en aurait rendu qu'une : 5 muscles ou 6,
+        là où l'outil réel en propose 9. `musclesDeLOutil` fait l'union,
+        exactement comme pour l'outil qu'on tient. Même code, même
+        résultat : c'était la vraie raison de ne pas le réécrire. */
   function musclesDuReglagePropose(nomOutil, nomReglage) {
-    var cible = slug(nomReglage), trouve = null;
+    var cible = slug(baseDuReglage(nomReglage)), trouve = null;
     typesDeLOutil(nomOutil).forEach(function (k) {
       (k.reglages || []).forEach(function (r) {
         if (trouve) return;
@@ -3149,18 +3397,7 @@
       });
     });
     if (!trouve || !trouve.comme) return [];
-    var fam = null;
-    OUTILS_CONNUS.forEach(function (k) {
-      if (!fam && k.mots.indexOf(trouve.comme) >= 0) fam = k;
-    });
-    if (!fam) return [];
-    var ids = [];
-    (fam.muscles || []).forEach(function (id) { ids.push(id); });
-    (fam.entrees || []).forEach(function (nom) {
-      var d = entreeDuDictionnaire(nom);
-      if (d) (d.muscles || []).forEach(function (id) { ids.push(id); });
-    });
-    return muscles({ muscles: ids });
+    return musclesDeLOutil([trouve.comme]);
   }
 
   /* Pose ou met à jour un réglage. `id` sert au renommage : sans lui, changer
@@ -3465,7 +3702,34 @@
       return d ? entreeDictionnaire(d, x.nom) : x;
     });
     if (miens.length >= n) return miens.slice(0, n);
-    var vus = miens.map(function (x) { return x.slug; });
+    /* ---- LA CLE D'EXCLUSION EST LA FICHE, PAS L'ECRITURE ----
+
+       MB, 28/10 : « j'ai sélectionné Triceps poulie, et maintenant quand je
+       cherche un exo et que je note Triceps, je vois deux fois triceps
+       poulie, pourquoi ?? »
+
+       Parce que cette liste portait `x.slug` — le slug de l'ÉCRITURE
+       retenue, « triceps poulie » — alors que `suggestionsDictionnaire`
+       compare au slug du NOM PRINCIPAL, « extension triceps ». Deux clés
+       pour un seul objet : l'exclusion ne mordait pas, la fiche repassait,
+       et comme elle retient l'écriture la mieux placée elle repassait SOUS
+       LE MÊME NOM.
+
+       MESURE : ce n'était pas le triceps. Sur les 157 écritures du
+       dictionnaire, 152 produisaient le doublon — autrement dit presque
+       chaque fois que MB garde le nom que le carnet lui a proposé.
+
+       CE QUE ÇA COÛTE, compté avant d'écrire : une requête qui touche à la
+       fois l'écriture possédée et la fiche ne proposera plus le nom
+       principal. Les lettres du nom principal le retrouvent — posséder
+       « Triceps poulie » n'empêche pas « extension » de rendre « Extension
+       triceps ». On échange un nom atteignable autrement contre 152
+       doublons. */
+    var vus = [];
+    miens.forEach(function (x) {
+      vus.push(x.slug);
+      if (x.entree) vus.push(slug(x.entree));
+    });
     return miens.concat(suggestionsDictionnaire(q, vus, etat)).slice(0, n);
   }
 
@@ -5090,6 +5354,30 @@
     return notes.slice(0, combien || 4).map(function (x) { return x.nom; });
   }
 
+  /* CE QUE LE CARNET SURVEILLE, EN UN SEUL ENDROIT.
+
+     L'écran écrivait « Cinq faits sont surveillés » en dur, et il ne
+     l'écrivait QUE si la liste était vide — MB, qui a « Ton accent », ne
+     l'a donc jamais lu : « Je n'ai pas également les lacunes et ce que je
+     pourrai combler. »
+
+     Deux défauts fermés par cette table : le nombre se COMPTE (la leçon
+     des « DIX-SEPT », payée deux fois), et l'écran peut dire, même quand
+     d'autres remarques existent, lequel de ces faits a été regardé et
+     trouvé propre. Chaque `id` poussé par `remarques()` figure ici. */
+  var REMARQUES_SURVEILLEES = [
+    { id: 'extenseurs', genre: 'lacune',
+      quoi: 'des fléchisseurs chargés sans AUCUN extenseur du poignet' },
+    { id: 'hook-medial', genre: 'lacune',
+      quoi: 'du hook déclaré avec une douleur au coude médial' },
+    { id: 'pectoral', genre: 'lacune',
+      quoi: 'du bras de fer sans AUCUN torse antérieur' },
+    { id: 'dominant', genre: 'positive',
+      quoi: 'ton style dominant, et ce qui le nourrit' },
+    { id: 'un-seul-style', genre: 'choix',
+      quoi: 'un seul style déclaré en sparring' }
+  ];
+
   function remarques(etat, depuisJours) {
     var out = [];
     if (!etat) return out;
@@ -5435,6 +5723,12 @@
     suggestionsDictionnaire: suggestionsDictionnaire,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
+    REMARQUES_SURVEILLEES: REMARQUES_SURVEILLEES,
+    jourAChange: jourAChange,
+    TROUS_BUDDIES: TROUS_BUDDIES, SEPARATEUR_REGLAGE: SEPARATEUR_REGLAGE,
+    baseDuReglage: baseDuReglage, positionDuReglage: positionDuReglage,
+    composerReglage: composerReglage, positionsProposees: positionsProposees,
+    reglageParBase: reglageParBase,
     contexteTechnique: contexteTechnique, texteRetour: texteRetour,
     lienTicket: lienTicket
   };

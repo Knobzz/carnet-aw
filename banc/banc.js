@@ -2715,8 +2715,65 @@
            'wrist wrench',
            'deux mots du MÊME type ne font qu’une mention, la plus précise');
     v.egal(A.m.motsReconnus('Eccentric Round Anti-Toproll').join(' · '),
-           'anti toproll · eccentric',
+           'toproll · anti toproll · eccentric',
            'mais deux types DIFFÉRENTS se disent tous les deux');
+
+    /* ---- RESISTER A UN TOPROLL SE DIT AUTREMENT QU'EN FAIRE UN ----
+
+       MB, 28/10 : « l'anti-toproll, me semble t'il, tiens sur de la
+       technique toproll, à confirmer ». Confirmé par Mithril, qui range
+       ses CINQ poignées anti-toproll sous « Toproll Training » et aucune
+       sous « Hook Training ».
+
+       LE CARNET DIT DONC LES DEUX MOTS. Sur 1.47.1 il n'en disait qu'un —
+       « anti toproll » était un mot de la famille toproll, et
+       `motsReconnus` ne garde que le plus long par type. */
+    v.egal(A.m.motsReconnus('Anti-Toproll Handle').join(' · '),
+           'toproll · anti toproll',
+           'une poignée anti-toproll est reconnue DEUX fois : elle reste un '
+         + 'toproll, et elle est aussi autre chose');
+    v.egal(A.m.motsReconnus('Toproll Buddy').join(' · '), 'toproll',
+           '[temoin] un toproll d’ATTAQUE n’est reconnu qu’une fois — sans '
+         + 'quoi la ligne du dessus ne distinguerait rien');
+    v.egal(A.m.motsReconnus('Toproll Counter').join(' · '),
+           'toproll · toproll counter',
+           'et le « Toproll Counter » de Titangrip aussi : son nom dit qu’il '
+         + 'contre, pas qu’il attaque');
+
+    /* ---- ET IL PROPOSE CE QUE LE TOPROLL SEUL NE DONNAIT PAS ----
+
+       C'EST LA MESURE DU LOT, pas une declaration. Sur 1.47.1,
+       « Anti-Toproll Handle » et « Toproll Buddy » rendaient exactement les
+       MEMES six muscles — un outil pour resister et un outil pour attaquer,
+       indiscernables.
+
+       Les trois fabricants nomment tous les DOIGTS et le POIGNET :
+       « elite finger strength […] contain your opponent's hand » (Golden
+       Grip), « Belastungsübertragung auf die Finger und das Handgelenk »
+       (Titangrip), « Wrist flexion, pronation, finger containment »
+       (Mithril). D'où les trois que voici. */
+    var attaque = A.m.musclesDeLOutil(['Toproll Buddy']);
+    var defense = A.m.musclesDeLOutil(['Anti-Toproll Handle']);
+    v.vrai(attaque.length > 0,
+           '[temoin] le toproll d’attaque propose quelque chose — sans quoi '
+         + 'la différence ci-dessous serait vraie pour rien');
+    v.egal(defense.filter(function (id) { return attaque.indexOf(id) < 0; })
+           .join(' · '),
+           'long_palmaire · fcu · long_flechisseur_pouce',
+           'l’anti-toproll AJOUTE la flexion du poignet et le pouce — ce que '
+         + 'les trois fabricants nomment et que le toproll seul ne donnait '
+         + 'pas');
+    /* [TEMOIN] ASSUME, et lu a la chute : celui-ci TIENT sur 1.47.1, pour
+       une raison qui n'a rien a voir avec ce lot — les deux listes y sont
+       IDENTIQUES, donc la difference y est vide aussi. Il ne mesure donc
+       pas le lot ; il garde l'avenir. Le jour ou quelqu'un voudra RETIRER
+       les deux extenseurs a l'anti-toproll (aucun fabricant ne les nomme),
+       c'est lui qui dira que l'appartenance au toproll vient de sauter. */
+    v.egal(attaque.filter(function (id) { return defense.indexOf(id) < 0; })
+           .join(' · '), '',
+           '[temoin] et il ne RETIRE rien : il reste un toproll, comme MB le '
+         + 'pensait — vrai des deux côtés, puisque avant ce lot les deux '
+         + 'listes étaient la même');
 
     /* DIRE et RECONNAITRE ne peuvent pas diverger : une ligne qui se tait
        sur un outil reconnu est exactement le defaut que MB a nomme. */
@@ -2775,6 +2832,20 @@
            2, '[temoin] deux références sont dans ce cas — les deux lignes '
          + 'de l’AXE, qui est à la fois pronation et rising');
 
+    /* LE CATALOGUE RANGE AUSSI LES DEUX A PART. Celui qui ouvre Golden Grip
+       voit « Poignée anti-toproll » comme une famille, et non trois
+       produits de toproll dont deux ne font pas ce que le mot dit. */
+    var ggFam = A.m.produitsDeLaMarque('Golden Grip')
+                  .map(function (g) { return g.cle; });
+    v.vrai(ggFam.indexOf('anti toproll') >= 0 && ggFam.indexOf('toproll') < 0,
+           'chez Golden Grip, l’anti-toproll est sa propre famille — et il '
+         + 'ne lui reste aucun toproll d’attaque au catalogue');
+    v.egal(A.m.CATALOGUE_MARQUES.filter(function (p) {
+      return p.c === 'anti toproll';
+    }).length, 4,
+           'quatre références y sont rangées : les deux Golden Grip, la '
+         + 'Mithril V3 et le Toproll Counter de Titangrip');
+
     /* LES FAMILLES ONT UN NOM LISIBLE : sans lui l'ecran affichait
        « fat grip » et « pronator » a qui ouvre son equipement. */
     v.egal(A.m.nomDuType('wrist wrench'), 'Clé de poignet',
@@ -2782,7 +2853,7 @@
     v.egal(A.m.OUTILS_CONNUS.filter(function (k) {
       return A.m.nomDuType(k.mots[0]) === k.mots[0];
     }).map(function (k) { return k.mots[0]; }).join(' · '), '',
-           'et les DIX-SEPT en ont un — une clé qui s’affiche telle quelle '
+           'et TOUTES en ont un — une clé qui s’affiche telle quelle '
          + 'est un oubli, pas un choix');
 
     /* ---- OU CA SE MONTE (MB, 26/10, livre le 27/10) ---- */
@@ -2802,8 +2873,21 @@
          + 'au lieu d’inventer');
     v.egal(A.m.montageDeLOutil('Poignée sans nom connu').length, 0,
            'et un nom non reconnu n’a aucun montage à dire');
-    v.egal(A.m.montageDeLOutil('Eccentric Round Anti-Toproll').length, 2,
-           'un outil qui porte DEUX mots connus dit les DEUX montages');
+    v.egal(A.m.montageDeLOutil('Eccentric Round Anti-Toproll').length, 3,
+           'un outil qui porte TROIS mots connus dit les TROIS montages');
+    /* CE QU'ELLE DIT VIENT DES FICHES, pas de moi : Golden Grip « Use with
+       metal frame (NOT INCLUDED) », Titangrip « einzeln mit Gurt als auch
+       in Kombination mit unserem Multi-Tool […] am Kabelzug ». */
+    /* LA GARDE N'EST PAS DU LUXE, et je viens de le repayer : ecrit sans
+       `|| ''`, ce controle a plante sous la chute et emporte TRENTE-SEPT
+       controles de son bloc — le total est tombe de 1099 a 1062 et les
+       echecs ne se lisaient plus. Meme defaut, meme page, que celui note
+       le 27/10 douze lignes plus haut. */
+    v.vrai(((A.m.montageDeLOutil('Anti-Toproll Handle').filter(function (x) {
+      return x.type === 'anti toproll';
+    })[0] || {}).monte || '').indexOf('cadre') >= 0,
+           'et l’anti-toproll dit qu’il lui faut un cadre — Golden Grip le '
+         + 'vend à part, et l’apprendre après l’achat coûte cher');
 
     /* LES DEUX LISTES SE CORRESPONDENT. Une table a cote qui derive en
        silence est le piege n 5 : l'app se tairait sur « se monte sur » sans
@@ -3021,6 +3105,129 @@
     v.egal(A.m.reglagesPortes(vieux).length, 0, 'et il n’en porte aucun');
   });
 
+  /* ==================================================================
+     LES CINQ TROUS DU CADRE, COMPOSES AVEC L'ACCESSOIRE
+
+     MB, 28/10 : « Les deux ensemble ». Le fabricant : « Full set includes
+     a metal frame, 6 attachments, and A SCREW TO ATTACH THEM. 5 HOLES IN
+     THE FRAME to allow you to focus on different fingers. »
+
+     ENVELOPPES PARTOUT : aucune de ces fonctions n'existe sur la version
+     d'avant, et le `try` du banc est autour du BLOC. Sans elles, le
+     premier appel tue les quinze autres et la chute devient illisible —
+     paye deux fois dans la journee.
+     ================================================================== */
+  bloc('Les cinq trous du cadre', function (v) {
+    function pos(outil, reglage) {
+      return A.m.positionsProposees ? A.m.positionsProposees(outil, reglage) : [];
+    }
+    function comp(b, p) {
+      return A.m.composerReglage ? A.m.composerReglage(b, p) : '';
+    }
+    function base(n) { return A.m.baseDuReglage ? A.m.baseDuReglage(n) : ''; }
+    function trou(n) { return A.m.positionDuReglage ? A.m.positionDuReglage(n) : ''; }
+    function mus(reglage) {
+      return (A.m.musclesDuReglagePropose
+        ? A.m.musclesDuReglagePropose('Armwrestling Buddies', reglage) : []);
+    }
+    var CUP = 'King’s Cup';
+    var COMPOSE = CUP + ' · Vis au centre';
+
+    /* ---- CINQ, PARCE QUE LA FICHE DIT CINQ ---- */
+    v.egal(pos('Armwrestling Buddies', CUP).length, 5,
+           'le cadre Golden Grip propose CINQ trous — le fabricant en écrit '
+         + 'cinq, et MB en avait proposé trois de mémoire');
+    v.egal(pos('Armwrestling Buddies', CUP).join(' · '),
+           'Vis à l’extérieur · Vis extérieur-centre · Vis au centre · '
+         + 'Vis centre-intérieur · Vis à l’intérieur',
+           'et ils gardent le vocabulaire de MB — extérieur, centre, '
+         + 'intérieur — en nommant les deux intermédiaires par ce qu’ils '
+         + 'séparent, plutôt qu’en les numérotant');
+
+    /* ---- LE NOM SE COMPOSE, ET SE REDECOUPE ---- */
+    v.egal(comp(CUP, 'Vis au centre'), COMPOSE,
+           'l’accessoire et le trou tiennent dans UN nom — il n’y a qu’une '
+         + 'case par outil');
+    v.egal(base(COMPOSE), CUP, 'qui se redécoupe en son accessoire');
+    v.egal(trou(COMPOSE), 'Vis au centre', 'et en son trou');
+    v.egal(comp(CUP, null), CUP,
+           'sans trou, le nom reste celui de l’accessoire seul : « Aucun '
+         + 'trou » n’écrit pas un séparateur orphelin');
+    v.egal(trou(CUP), null, 'et un accessoire nu n’a pas de trou');
+
+    /* ---- ON CHANGE DE TROU SANS DEFAIRE L'ACCESSOIRE ---- */
+    v.egal(pos('Armwrestling Buddies', COMPOSE).length, 5,
+           'un réglage DÉJÀ vissé propose encore les cinq : les positions se '
+         + 'lisent sur la BASE, donc on change de trou sans repartir de '
+         + 'l’accessoire');
+
+    /* ---- ET IL NE PERD PAS SES MUSCLES EN GAGNANT UN TROU ----
+       C'EST LE DEFAUT QUE LA COMPOSITION AURAIT CREE : lu sur le nom
+       entier, `musclesDuReglagePropose` ne trouvait plus rien, et
+       l'accessoire perdait ses muscles au moment de preciser le trou. */
+    v.vrai(mus(CUP).length > 0,
+           '[temoin] l’accessoire seul propose des muscles — sans quoi '
+         + 'l’égalité ci-dessous serait vraie pour rien');
+    v.egal(mus(COMPOSE).join(' · '), mus(CUP).join(' · '),
+           'et vissé dans un trou il propose EXACTEMENT les mêmes : le trou '
+         + 'n’ajoute ni ne retire un muscle');
+
+    /* ---- LE TROU NE COCHE RIEN, ET C'EST MESURE ----
+       La fiche dit POURQUOI les trous existent — « to allow you to focus on
+       different fingers » — et JAMAIS lequel charge quel doigt. Aucune
+       autre source ne le dit. Les poser serait les deviner. */
+    var parTrou = {};
+    pos('Armwrestling Buddies', CUP).forEach(function (t) {
+      parTrou[t] = mus(comp(CUP, t)).join(' · ');
+    });
+    var differents = Object.keys(parTrou).filter(function (t) {
+      return parTrou[t] !== mus(CUP).join(' · ');
+    });
+    /* LA NON-VACUITE EST DANS LE CONTROLE, pas a cote. Sans `=== 5`, la
+       version d'avant rend zero trou, la boucle ne tourne pas, `differents`
+       est vide et le controle passe au VERT sans rien avoir mesure —
+       troisieme fois de la journee que cette forme se presente. */
+    v.vrai(Object.keys(parTrou).length === 5 && differents.length === 0,
+           'les CINQ trous sont parcourus, et AUCUN ne change les muscles : '
+         + 'le fabricant dit qu’ils visent d’autres doigts, jamais lequel '
+         + '(fautifs : ' + (differents.join(', ') || 'aucun') + ')');
+
+    /* ---- SIX PUCES, PAS TRENTE ---- */
+    v.egal((A.m.reglagesProposes(null, 'Armwrestling Buddies') || []).length, 6,
+           '[temoin] le cadre suggère SIX accessoires, avant comme après : '
+         + 'c’est exactement ce que la composition ne devait pas changer. '
+         + 'Six fois cinq réglages auraient fait trente puces, et il tient '
+         + 'des deux côtés parce qu’il garde ce choix, pas parce qu’il le '
+         + 'prouve');
+
+    /* ---- ET LA OU AUCUN FABRICANT NE DECRIT DE TROUS, RIEN ---- */
+    v.egal(pos('Iron Wrist', 'Mousqueton au centre').length, 0,
+           '[temoin] un mousqueton d’Iron Wrist n’a pas de trou de cadre, '
+         + 'donc pas de seconde rangée. Il tient des deux côtés — avant, la '
+         + 'notion n’existe pas — et il garde l’écran de proposer des trous '
+         + 'là où personne n’en décrit');
+
+    /* ---- L'ACCESSOIRE PROPOSE CE QUE L'OUTIL REEL PROPOSE ----
+
+       TROUVE EN ECRIVANT LE RESTE : `musclesDuReglagePropose` resolvait
+       `comme` A LA MAIN et prenait LA PREMIERE famille trouvee. Depuis que
+       l'anti-toproll est un type qui S'AJOUTE au toproll, un accessoire
+       anti-toproll a DEUX familles — et la boucle n'en rendait qu'une. */
+    v.egal(mus('Anti-Toproll Handle').join(' · '),
+           A.m.musclesDeLOutil(['Anti-Toproll Handle']).join(' · '),
+           '[temoin] un accessoire propose EXACTEMENT ce que l’outil de sa '
+         + 'famille propose. Il tient des deux côtés POUR DEUX RAISONS '
+         + 'DIFFÉRENTES — avant les deux rendaient six, maintenant les deux '
+         + 'rendent neuf — donc il ne prouve pas ce lot ; le contrôle '
+         + 'ci-dessous, lui, le prouve');
+    v.egal(mus('Anti-Toproll Handle').filter(function (id) {
+      return ['long_palmaire', 'fcu', 'long_flechisseur_pouce'].indexOf(id) >= 0;
+    }).join(' · '), 'long_palmaire · fcu · long_flechisseur_pouce',
+           'et l’accessoire anti-toproll emporte la flexion du poignet et le '
+         + 'pouce : résolu à la main, il n’aurait eu qu’UNE de ses deux '
+         + 'familles');
+  });
+
   /* ---------------------------------------------------------------
      UN SPARRING OU RIEN N'A ETE ECRIT
 
@@ -3125,7 +3332,90 @@
            '[temoin] le dictionnaire n’est pas vide — sans quoi la boucle '
          + 'ci-dessous serait vraie pour rien');
     v.egal(ratés.join(' · '), '',
-           'les 42 entrées ET toutes leurs écritures se reconnaissent');
+           'CHAQUE entrée ET chacune de ses écritures se reconnaissent');
+  });
+
+  /* ==================================================================
+     UNE FICHE NE SE PROPOSE QU'UNE FOIS
+
+     MB, 28/10 : « j'ai sélectionné Triceps poulie, et maintenant quand je
+     cherche un exo et que je note Triceps, je vois deux fois triceps
+     poulie, pourquoi ?? »
+
+     Parce que `suggestions` excluait sur le slug de L'ECRITURE et
+     `suggestionsDictionnaire` comparait au slug du NOM PRINCIPAL. Mesure
+     avant correction : 152 des 157 écritures doublaient.
+     ================================================================== */
+  bloc('Une fiche ne se propose qu’une fois', function (v) {
+    function etatAvec(nom) {
+      return { exercices: [{ id: 'e1', nom: nom, slug: A.m.slug(nom),
+                             muscles: [], vuLe: '2026-10-28', outils: [],
+                             reglages: {}, series: [] }],
+               dictionnaire: [], seances: [], sparrings: [] };
+    }
+
+    var r = A.m.suggestions(etatAvec('Triceps poulie'), 'Triceps', 8);
+    v.vrai(r.length > 1,
+           '[temoin] la recherche propose bien PLUSIEURS noms sur « Triceps » '
+         + '— sans quoi « une seule fois » serait vrai pour rien');
+    v.egal(r.filter(function (x) {
+      return A.m.slug(x.nom) === 'triceps poulie';
+    }).length, 1,
+           'le nom que MB a gardé ne se propose qu’UNE fois');
+
+    /* LE BALAYAGE, ET C'EST LUI QUI A TROUVE LE SECOND DEFAUT. Après le
+       correctif, 152 doublons tombaient à DEUX — et les deux portaient le
+       même nom : « Tenue en cup » appartenait à deux fiches. Un contrôle
+       écrit à la main sur le triceps ne l'aurait jamais vu. */
+    var doubles = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      (d.aussi || []).forEach(function (a) {
+        var l = A.m.suggestions(etatAvec(a), a, 8);
+        if (l.filter(function (x) {
+          return A.m.slug(x.nom) === A.m.slug(a);
+        }).length > 1) doubles.push(a);
+      });
+    });
+    v.vrai(A.m.DICTIONNAIRE.some(function (d) { return (d.aussi || []).length > 0; }),
+           '[temoin] des écritures existent — sans quoi la boucle ci-dessous '
+         + 'serait vide, donc verte, donc muette');
+    v.egal(doubles.join(' · '), '',
+           'et AUCUNE écriture du dictionnaire ne se propose deux fois');
+
+    /* UNE ECRITURE N'APPARTIENT QU'A UNE FICHE. C'est l'autre moitié : le
+       correctif du code ne pouvait rien contre deux fiches qui réclament
+       le même nom, et `ficheDictionnaire` prend la PREMIERE de la table. */
+    var par = {};
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      [d.nom].concat(d.aussi || []).forEach(function (ec) {
+        var k = A.m.slug(ec);
+        (par[k] = par[k] || []).push(d.nom);
+      });
+    });
+    var reclamees = Object.keys(par).filter(function (k) {
+      return par[k].length > 1;
+    }).map(function (k) { return k + ' → ' + par[k].join(' / '); });
+    v.egal(reclamees.join(' · '), '',
+           'aucune écriture n’appartient à DEUX fiches — « Tenue en cup » '
+         + 'était à « Wrist curl » ET à « Cup hold »');
+
+    /* ET CE QUE LE CHOIX CHANGE, qui est le prix réel du défaut : les deux
+       fiches ne différaient que par leurs COLONNES. */
+    var f = A.m.ficheDictionnaire('Tenue en cup', { exercices: [], dictionnaire: [] });
+    v.egal((f || {}).nom, 'Cup hold',
+           '« Tenue en cup » est une TENUE, donc elle mène à « Cup hold »');
+    v.egal(((f || {}).colonnes || []).join(','), 'charge,duree',
+           'et elle arrive en SECONDES — menée à « Wrist curl » elle arrivait '
+         + 'en reps, et le bloc Régime la comptait dynamique');
+
+    /* LE PRIX DU CORRECTIF, BORNE ET MESURE. Posséder une écriture rend son
+       nom principal injoignable PAR CETTE REQUETE — mais pas par les
+       lettres du nom principal. */
+    v.vrai(A.m.suggestions(etatAvec('Triceps poulie'), 'extension', 8)
+            .some(function (x) { return x.nom === 'Extension triceps'; }),
+           '[temoin] posséder « Triceps poulie » n’enterre pas « Extension '
+         + 'triceps » : ses propres lettres le retrouvent. Il tient des deux '
+         + 'côtés, et il garde le seul prix que le correctif accepte');
   });
 
   bloc('Sparring vierge', function (v) {
@@ -3614,6 +3904,111 @@
     v.egal((court.parStyle.toproll || 0), 10, '[temoin] la séance de J-2 reste dedans à 3 jours');
     v.egal((court.parStyle.hook || 0), 0,
            'mais celle de J-5 en sort : la fenêtre n’est pas décorative');
+
+    /* ---- SUR QUOI CHAQUE STYLE S'APPUIE ----
+
+       MB, 28/10 : « Vérifie sur quoi s'active la press, le hook et le
+       toproll. » Vérifié aux sources, et le résultat n'est PAS
+       symétrique — c'est ce que ces contrôles tiennent.
+
+       `v.egal(x, null)` NE POUVAIT PAS TOMBER ICI : le banc traite
+       `undefined` et `null` comme égaux, et sur la version d'avant le
+       champ n'existe pas. D'où `'appuie' in st`, qui distingue
+       « explicitement aucun muscle » de « champ absent ». */
+    var sty = A.m.STYLES_AW || [];
+    v.egal(sty.length, 3,
+           '[temoin] le carnet connaît TROIS styles, et deux fédérations '
+         + 'n’en nomment pas un quatrième — le règlement WAF, lui, n’en '
+         + 'définit aucun');
+    var muets = sty.filter(function (st) {
+      return !('appuie' in st) || (!st.appuie && !st.faute);
+    }).map(function (st) { return st.nom; });
+    v.egal(muets.join(' · '), '',
+           'chaque style dit sur quoi il s’appuie — ou dit ce que la '
+         + 'fédération écrit à la place');
+
+    var tp = sty.filter(function (st) { return st.id === 'toproll'; })[0] || {};
+    v.vrai(('appuie' in tp) && tp.appuie === null,
+           'le TOPROLL n’en nomme AUCUN, explicitement : la fédération ne lui '
+         + 'nomme aucun muscle, et le carnet ne comble pas le trou');
+    v.vrai((tp.faute || '').indexOf('Hand and finger length') === 0,
+           'il porte à la place ce qu’elle écrit, mot pour mot');
+    v.vrai((((sty.filter(function (st) { return st.id === 'press'; })[0]
+             || {}).appuie) || '').indexOf('shoulder and triceps') > 0,
+           'le PRESS s’appuie sur l’épaule et le triceps — la réponse à ce '
+         + 'que MB demandait de vérifier');
+    v.vrai((((sty.filter(function (st) { return st.id === 'hook'; })[0]
+             || {}).appuie) || '').indexOf('bicep') > 0,
+           'et le HOOK sur le poignet, la main et le biceps');
+
+    /* ---- UNE PHRASE D'ARMWRESTLER SUR LE STYLE QU'ON TRAVAILLE ----
+
+       MB, 28/10 : « Avoir également une phrase d'un armwrestler sur un
+       style spécifique qu'on travaille peut être un chouette clin d'œil et
+       donner une impression de tendre vers tel ou tel style. »
+
+       ON MESURE LE CONTENU, PAS LA PRESENCE : un champ `citation` vide
+       passerait un contrôle d'existence. Le début exact de chaque phrase
+       est exigé, parce que c'est ce qui change si quelqu'un la réécrit —
+       et une phrase d'athlète réécrite n'est plus une citation. */
+    var sansCitation = sty.filter(function (st) {
+      var c = st.citation || {};
+      return !c.dit || !c.qui || !c.lien;
+    }).map(function (st) { return st.nom; });
+    v.egal(sansCitation.join(' · '), '',
+           'les TROIS styles portent une phrase d’armwrestler, avec qui la '
+         + 'dit et où elle se vérifie');
+    var par = {};
+    sty.forEach(function (st) { par[st.id] = st.citation || {}; });
+    v.vrai((par.toproll.dit || '').indexOf('I, over the course of my career') === 0,
+           'le TOPROLL porte les mots de Devon Larratt, mot pour mot');
+    v.vrai((par.hook.dit || '').indexOf('I’m paying special attention') === 0,
+           'le HOOK ceux de Terence Opperman — un pro qui nomme son style '
+         + 'FAIBLE et qui le travaille, ce que cet écran dit justement');
+    v.vrai((par.press.dit || '').indexOf('I hated to see Oleg lose') === 0,
+           'et le PRESS ceux de Michael Todd');
+    var memeAuteur = {};
+    var doublons = [];
+    sty.forEach(function (st) {
+      var q = (st.citation || {}).qui || '';
+      if (memeAuteur[q]) doublons.push(q);
+      memeAuteur[q] = 1;
+    });
+    v.egal(doublons.join(' · '), '',
+           'et TROIS athlètes différents : trois fois le même nom se '
+         + 'lirait comme une seule opinion');
+
+    /* ---- LE JOUR QUI CHANGE PENDANT QUE L'APP DORT ----
+
+       MB, 28/10 : « on est d'accord que tous les jours, elle se
+       réinitialise et je peux la refaire ? […] aujourd'hui je n'ai pas la
+       possibilité de la faire, elle semble déjà validée ».
+
+       CE CONTROLE MESURE LA DECISION, PAS L'EFFET, et il faut le savoir :
+       « l'écran s'est redessiné » vit dans `app.js`, que le banc
+       d'interface ne charge pas. L'effet a été mesuré à la main dans le
+       bac à sable — même jour, l'écran ne bouge pas ; jour changé,
+       l'en-tête passe de MERCREDI 28 OCT. à JEUDI 29 OCT. */
+    /* L'EXISTENCE ENTRE DANS LES CONTROLES QUI ATTENDENT `false`.
+
+       Sans elle, la garde `A.m.jourAChange ? ... : false` rendait `false`
+       sur la version d'avant, ou la fonction n'existe pas — donc les trois
+       passaient au VERT sans rien mesurer. Quatrieme vert vacueux de la
+       journee, et toujours la meme forme : une garde qui rend justement la
+       valeur attendue. */
+    var jcLa = typeof A.m.jourAChange === 'function';
+    function jc(x) { return jcLa ? A.m.jourAChange(x) : null; }
+    v.vrai(jcLa && jc(A.m.aujourdHui()) === false,
+           'un écran dessiné AUJOURD’HUI n’a rien à redessiner');
+    v.egal(jc('2026-10-27'), true,
+           'un écran dessiné HIER, oui — c’est le cas de MB : il range son '
+         + 'téléphone le soir et retrouve l’écran de la veille');
+    v.vrai(jcLa && jc(null) === false,
+           'et sans écran dessiné, on ne redessine pas : rendre vrai ici '
+         + 'ferait redessiner au tout premier retour au premier plan, pour '
+         + 'rien');
+    v.vrai(jcLa && jc('') === false,
+           'une chaîne vide se lit comme « rien de dessiné »');
   });
 
   /* ------------------------------------------------------------------
@@ -3965,6 +4360,7 @@
 
   bloc('Ce que le carnet remarque', function (v) {
     function rem(e, j) { return A.m.remarques ? A.m.remarques(e, j) : []; }
+    var surv = A.m.REMARQUES_SURVEILLEES || [];
     function jourIl(n) {
       var d = new Date(); d.setDate(d.getDate() - n);
       var z = function (x) { return (x < 10 ? '0' : '') + x; };
@@ -4023,6 +4419,49 @@
     v.vrai(((pec.source || {}).lien || '').indexOf('19091596') >= 0,
            'et elle porte enfin le PMID de cette étude, invoquée trois fois '
          + 'dans le carnet sans jamais être nommée');
+    /* ---- LA TABLE DES FAITS SURVEILLES COUVRE EXACTEMENT CE QUI PARLE ----
+
+       MB, 28/10 : « Je n'ai pas également les lacunes et ce que je pourrai
+       combler. » L'écran écrivait « Cinq faits sont surveillés » EN DUR, et
+       seulement quand la liste était vide — donc MB, qui avait « Ton
+       accent », ne l'a jamais lu.
+
+       CE CONTROLE MESURE L'EFFET, pas la table : il monte un décor qui fait
+       parler LES CINQ, et exige que l'ensemble des `id` rendus soit
+       exactement celui de la table. Une remarque ajoutée sans être
+       déclarée le fait tomber, et une entrée déclarée qui ne parle jamais
+       aussi. */
+    var cinq = A.store.vide();
+    cinq.seances = [
+      { id: 'm5', type: 'muscu', date: jourIl(3), heure: '', note: '',
+        douleurs: [{ zone: 'coude_medial', cote: 'droite', intensite: 3 }],
+        exercices: [exo('Wrist curl', ['fcr', 'fcu', 'long_palmaire'], 5)] },
+      { id: 'sp1', type: 'sparring', date: jourIl(2), club: '', dureeMin: 20,
+        rounds: 5, style: 'hook', cote: 'droite', partenaires: '',
+        technique: '', ressenti: '', note: '', douleurs: [] },
+      { id: 'sp2', type: 'sparring', date: jourIl(1), club: '', dureeMin: 20,
+        rounds: 5, style: 'hook', cote: 'droite', partenaires: '',
+        technique: '', ressenti: '', note: '', douleurs: [] }
+    ];
+    var r5 = rem(cinq, 30).map(function (x) { return x.id; }).sort();
+    v.egal(r5.length, 5,
+           '[temoin] ce décor fait parler CINQ remarques — sans quoi la '
+         + 'comparaison ci-dessous ne mesurerait qu’une partie de la table');
+    v.egal(r5.join(' · '),
+           surv.map(function (x) { return x.id; }).sort().join(' · '),
+           'et la table des faits surveillés les couvre EXACTEMENT : c’est '
+         + 'elle que l’écran compte, au lieu d’écrire « cinq » en dur');
+    /* IL TENAIT DES DEUX COTES, et sans etiquette. Trouve par la chute :
+       sur la version d'avant la table n'existe pas, `|| []` rend une liste
+       vide, et un filtre sur du vide rend du vide — vacuement vrai. La
+       non-vacuite entre donc DANS le controle, qui tombe. */
+    var sansQuoi = surv.filter(function (x) { return !x.quoi || !x.genre; })
+                       .map(function (x) { return x.id; });
+    v.vrai(surv.length > 0 && sansQuoi.length === 0,
+           'la table est peuplée, et chaque fait surveillé porte sa phrase '
+         + 'et son genre — c’est ce que l’écran lit pour dire « Regardé, '
+         + 'rien à dire » (muets : ' + (sansQuoi.join(', ') || 'aucun') + ')');
+
     v.vrai((pec.exercices || []).length > 0,
            'elle propose des exercices du dictionnaire qui chargent le torse');
 

@@ -1174,8 +1174,13 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   line-height: 1.45;
 }
 .remarque-qui a { font-size: .76rem; color: var(--bleu-vif); }
-.remarque-exos { font-size: .82rem; margin-top: 7px; color: var(--texte-2); }
-.remarque-exos b { color: var(--texte); }
+/* LA LISTE DES EXOS EST DANS L'EN-TETE, donc toujours visible : c'est ce
+   que MB est venu chercher, et le corps replie le cachait. Elle porte la
+   couleur pleine, pas celle du fait au-dessus — elle est la reponse. */
+.remarque-exos-tete {
+  display: block; font-size: .82rem; margin-top: 6px; color: var(--texte-2);
+}
+.remarque-exos-tete b { color: var(--texte); }
 
 /* Les sept derniers jours, un carre par jour : le trou se voit d'un coup
    d'oeil, ce qu'un pourcentage ne montre pas. */
@@ -1669,6 +1674,18 @@ tr.vedette td { background: var(--fond-2); }
    deux : elle se montre a part, et d'une autre teinte. */
 .barre-piste i.gen-partage { background: var(--texte-3); }
 
+/* ET LA TEINTE NE SUFFISAIT PAS. MB a lu « Side pressure » comme une
+   technique parce qu'elle avait la meme FORME que Toproll et Hook, juste
+   au-dessous. Cette ligne porte le mot qui manquait, et le libelle de la
+   barre prend la couleur du partage pour qu'on voie du premier coup
+   qu'elle n'est pas du meme ordre. */
+.barre-note {
+  font-size: .76rem; line-height: 1.4; color: var(--texte-3);
+  margin: 4px 0 -1px;
+}
+.barre-note b { color: var(--texte-2); }
+.barre.barre-partagee > span:first-child { color: var(--texte-3); }
+
 /* Ce que le carnet ne sait PAS voir, et l'ecart entre deux lectures : deux
    choses qui ne sont pas des chiffres et ne doivent pas s'y confondre. */
 .dit-a-part, .dit-ecart {
@@ -1680,6 +1697,25 @@ tr.vedette td { background: var(--fond-2); }
   color: var(--texte-2);
 }
 .dit-ecart { border-left-color: var(--bleu); color: var(--bleu-vif); }
+
+/* CE QUE LA FEDERATION DIT DE CHAQUE STYLE, une ligne par style. La
+   derniere, elle, dit ce que le REGLEMENT officiel n'en dit pas : elle se
+   detache, parce qu'elle ne parle pas du meme objet que les trois
+   au-dessus. */
+.appui-ligne { margin-top: 6px; }
+.appui-ligne b { color: var(--texte); }
+.appui-officiel {
+  margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--trait);
+  color: var(--texte-3);
+}
+.appui-officiel b { color: var(--texte-2); }
+
+/* LE CLIN D'OEIL — MB : « une phrase d'un armwrestler sur un style
+   specifique qu'on travaille ». Il ne se lit pas comme une mesure : le
+   trait est laiton, et la ligne du dessus dit vers quoi on tend. */
+.clin-oeil { border-left-color: var(--laiton); }
+.clin-oeil-quoi { font-weight: 650; color: var(--texte); }
+.clin-oeil .remarque-dit { border-left: 0; padding-left: 0; margin: 4px 0 2px; }
 
 .periodes { display: flex; gap: 4px; margin-bottom: 12px; }
 .periode-bt { flex: 1; min-height: 40px; padding: 0 2px; font-size: 12px;

@@ -3,7 +3,7 @@
   'use strict';
   var h = A.ui.h;
 
-  window.APP_VERSION = '1.47.1';
+  window.APP_VERSION = '1.48.0';
 
   var ONGLETS = [
     { id: 'seance',     nom: 'Séance',    icone: 'M7 7v10M17 7v10M7 12h10M3 9.5v5M21 9.5v5' },
@@ -16,6 +16,28 @@
 
   var courant = 'seance';
   var hote = null, titreN = null, sousTitreN = null, barre = null, alerteN = null;
+
+  /* LE JOUR OU L'ECRAN A ETE DESSINE.
+
+     MB, 28/10 : « j'ai l'impression de l'avoir fait hier, et pourtant
+     aujourd'hui je n'ai pas la possibilité de la faire, elle semble déjà
+     validée ».
+
+     Une PWA n'est pas rechargée, elle est REPRISE : MB fait sa récup le
+     soir, range son téléphone, et le lendemain il retrouve L'ÉCRAN DE LA
+     VEILLE — en-tête à la date d'hier, carte d'hier encore cochée.
+
+     MESURE AVANT CORRECTION : écran rendu, on ajoute une séance de récup
+     faite dans l'état, on émet `visibilitychange` puis `focus`. L'état dit
+     « 1 / 2 », l'écran dit encore « 0 / 2 », et il n'a pas bougé d'un
+     caractère. Les deux `visibilitychange` de l'app ne redessinent rien :
+     `store.js` SAUVE quand l'onglet part, `ui.js` reprend le verrou
+     d'écran quand il revient.
+
+     ET LE PIRE N'EST PAS D'ETRE BLOQUE : un appui sur la coche de cet écran
+     périmé DÉVALIDE la séance d'hier. Le geste ne fait pas rien, il fait
+     l'inverse. */
+  var jourRendu = null;
 
   function appliquerTheme() {
     var t = A.store.etat().reglages.theme;
@@ -60,6 +82,7 @@
   function rafraichir() {
     var v = A.vues[courant];
     if (!v) return;
+    jourRendu = A.m.aujourdHui();
     titreN.textContent = v.titre ? v.titre() : '';
     sousTitreN.textContent = courant === 'seance' && A.store.etat().seanceEnCoursId
       ? 'Valide chaque série ; le repos part tout seul.'
@@ -104,6 +127,32 @@
     courant = A.store.etat().seanceEnCoursId ? 'seance'
             : (A.store.etat().programmes.length ? 'programmes' : 'seance');
     rafraichir();
+
+    /* ---- L'ECRAN SUIT LE CALENDRIER, AU RETOUR AU PREMIER PLAN ----
+
+       SEULEMENT SI LE JOUR A CHANGE : redessiner à chaque retour jetterait
+       une valeur à demi saisie pour rien, et l'app repasse au premier plan
+       vingt fois par séance.
+
+       ET PAS SI UNE FICHE EST OUVERTE : MB est en train d'y saisir quelque
+       chose, et le lui arracher serait pire que l'écran périmé. Le jour
+       revient dès qu'il ferme la fiche ou change d'onglet, puisque
+       `jourRendu` n'est pas mis à jour tant qu'on n'a pas redessiné.
+
+       DEUX ECOUTEURS, parce que les téléphones ne s'accordent pas : iOS
+       émet surtout `visibilitychange`, et un retour depuis une autre
+       fenêtre ne donne parfois que `focus`. Le test est le même, donc
+       l'émettre deux fois ne coûte qu'un `===`. */
+    function suivreLeJour() {
+      if (!hote || document.visibilityState === 'hidden') return;
+      /* LA DECISION EST DANS LE MODELE, et c'est pour qu'elle soit
+         mesurable : le banc d'interface ne charge pas cette coque. */
+      if (!A.m.jourAChange(jourRendu)) return;
+      if (document.querySelector('.panneau')) return;
+      rafraichir();
+    }
+    document.addEventListener('visibilitychange', suivreLeJour);
+    window.addEventListener('focus', suivreLeJour);
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {

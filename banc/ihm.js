@@ -925,6 +925,118 @@
              'la barre garde au moins 100 px de large (mesuré : '
            + Math.round(piste.getBoundingClientRect().width) + ')');
 
+      /* ---- UNE BARRE PARTAGEE N'EST PAS UN STYLE, ET L'ECRAN LE DIT ----
+
+         MB, 28/10 : « Dans le suivi, je vois en technique le Side Pressure,
+         il me semble que ce n'est pas une technique. » Mesure du texte
+         rendu, avant correction : « Toproll 3 sér. / Hook 8 sér. / Side
+         pressure 5 sér. » — trois barres de même forme, dont une seule
+         n'est pas un style.
+
+         L'ORDRE DU DOCUMENT COMPTE : une explication posée APRÈS la barre
+         se lit trop tard. C'est pour ça que le contrôle compare les
+         positions au lieu de se contenter d'exister. */
+      var note = doc.querySelector('.barre-note');
+      var partagee = doc.querySelector('.barre.barre-partagee');
+      /* PAS UN [temoin] : la classe `barre-partagee` est NEUVE, donc ce
+         controle TOMBE sur la version d'avant. Il portait l'etiquette, et
+         la chute l'a demasque — « un [temoin] doit TENIR sur la version
+         d'avant » (piege n.1, dans son autre sens). */
+      v.vrai(!!partagee,
+             'la barre partagée porte sa propre classe : elle n’a plus la '
+           + 'forme exacte d’une barre de style');
+      v.vrai(!!note, 'et une ligne dit ce qu’elle est');
+      v.vrai(!!note && /pas un style/i.test(note.textContent),
+             'elle dit en clair que ce n’est PAS un style');
+      v.vrai(!!note && /hook/i.test(note.textContent)
+                    && /press/i.test(note.textContent),
+             'et elle nomme LES DEUX styles qui la portent — dérivés de '
+           + 'STYLES_AW, donc justes le jour où la table change');
+      v.vrai(!!note && !!partagee
+             && (note.compareDocumentPosition(partagee)
+                 & window.Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+             'la ligne vient AVANT la barre : posée après, elle se lirait '
+           + 'quand le mal est fait');
+
+      /* ---- CE QUE LA FEDERATION DIT DE CHAQUE STYLE, A L'ECRAN ----
+         MB : « Vérifie sur quoi s'active la press, le hook et le toproll. »
+         La réponse est dans l'app, pas seulement dans un message. */
+      var appuis = doc.querySelectorAll('.appui-ligne');
+      v.vrai(appuis.length >= 4,
+             'l’écran dit sur quoi chaque style s’appuie, et ce que le '
+           + 'règlement officiel n’en dit pas (lignes : ' + appuis.length + ')');
+      var texteAppui = Array.prototype.map.call(appuis, function (x) {
+        return x.textContent;
+      }).join(' ~ ');
+      v.vrai(/Toproll\s*:\s*aucun muscle nommé/i.test(texteAppui),
+             'et pour le toproll il DIT qu’aucun muscle n’est nommé, au lieu '
+           + 'de combler');
+      v.vrai(/shoulder and triceps/.test(texteAppui),
+             'le press porte « shoulder and triceps », mot pour mot');
+
+      /* ---- LA REPONSE NE SE REPLIE PAS ----
+
+         MB : « je vois que ça m'indique "Ton accent" c'est le toproll, mais
+         je n'ai pas d'exo en lien avec le toproll de conseillés ». Ils
+         existaient, dans le corps REPLIÉ, sous une promesse visible.
+
+         ON MESURE L'EFFET, pas la classe : la liste est dans l'en-tête, sa
+         hauteur n'est pas nulle, et la carte est bien repliée à cet
+         instant. Les trois ensemble disent « visible sans ouvrir ». */
+      var tetes = doc.querySelectorAll('.remarque-tete');
+      v.vrai(tetes.length > 0,
+             '[temoin] des remarques sont rendues dans ce décor');
+      var avecExos = [];
+      Array.prototype.forEach.call(tetes, function (t) {
+        if (t.querySelector('.remarque-exos-tete')) avecExos.push(t);
+      });
+      v.vrai(avecExos.length > 0,
+             'au moins une remarque porte ses exercices DANS l’en-tête');
+      var liste = avecExos[0] && avecExos[0].querySelector('.remarque-exos-tete');
+      v.vrai(!!liste && liste.getBoundingClientRect().height > 0,
+             'et cette liste a une hauteur : elle est peinte, pas seulement '
+           + 'présente dans le DOM');
+      v.egal(avecExos[0] ? avecExos[0].getAttribute('aria-expanded') : 'absent',
+             'false',
+             'alors que la carte est encore REPLIÉE — c’est tout l’objet du '
+           + 'correctif');
+      v.egal(doc.querySelectorAll('.remarque-corps .remarque-exos').length, 0,
+             'et la liste ne vit plus dans le corps replié : la règle CSS a '
+           + 'été supprimée avec elle, pas neutralisée');
+
+      /* ---- UNE PHRASE D'ARMWRESTLER SOUS LE STYLE DOMINANT ----
+
+         MB, 28/10 : « Avoir également une phrase d'un armwrestler sur un
+         style spécifique qu'on travaille peut être un chouette clin d'œil
+         et donner une impression de tendre vers tel ou tel style. »
+
+         ON NE FIGE PAS QUEL STYLE DOMINE dans ce décor : ce serait mesurer
+         mon décor et non le produit. On calcule le dominant comme l'écran
+         le calcule, et on exige que la ligne le NOMME. */
+      var clin = doc.querySelector('.clin-oeil');
+      v.vrai(!!clin, 'une phrase d’armwrestler paraît sous les styles');
+      var repart = fen.App.m.repartitionStyles(e, fen.App.m.joursDeLaFenetre(12));
+      var dom = null, max = 0;
+      fen.App.m.stylesLisibles().lisibles.forEach(function (x) {
+        var n = (repart.parStyle || {})[x.style.id] || 0;
+        if (n > max) { max = n; dom = x.style; }
+      });
+      v.vrai(!!dom && max > 0,
+             '[temoin] ce décor a bien un style dominant — sans lui, la '
+           + 'phrase ne doit PAS paraître, et son absence serait juste');
+      v.vrai(!!clin && !!dom
+             && clin.textContent.indexOf('Tu tends vers le ' + dom.nom.toLowerCase()) >= 0,
+             'et elle nomme le style dominant CALCULÉ, pas un style écrit '
+           + 'en dur (dominant mesuré : ' + (dom ? dom.nom : 'aucun') + ')');
+      v.vrai(!!clin && !!clin.querySelector('blockquote')
+             && clin.querySelector('blockquote').textContent.length > 40,
+             'la phrase est une CITATION et non un résumé : elle est rendue '
+           + 'en bloc de citation, et elle a la longueur d’une phrase');
+      var qui = clin && clin.querySelector('.remarque-qui a');
+      v.vrai(!!qui && /Larratt|Opperman|Todd/.test(qui.textContent),
+             'et elle porte QUI la dit, avec le lien où on la vérifie — une '
+           + 'citation sans auteur n’est pas une citation');
+
       var sortis = debordements(doc, fen, LARGEUR);
       v.egal(sortis.join(' · '), '',
              'et rien ne sort de l’écran à 320 px — mesuré au BORD DROIT des '
@@ -2041,6 +2153,262 @@
              'et le réglage s’en va avec l’outil — « Mousqueton dehors » '
            + 'sur un outil absent ne veut rien dire');
       v.egal((exo.outils || []).length, 0, '[temoin] l’outil est bien parti');
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.store.etat().outils.length = 0;
+      });
+    });
+  });
+
+  /* ================================================================
+     LA RECUP SE DATE SUR LE GESTE, PAS SUR LE RENDU
+
+     MB, 28/10 : « on est d'accord que tous les jours, elle se réinitialise
+     et je peux la refaire ? J'ai l'impression de l'avoir fait hier, et
+     pourtant aujourd'hui je n'ai pas la possibilité de la faire, elle
+     semble déjà validée. »
+
+     La récup est le SEUL écran qui fabrique sa séance au RENDU :
+     `carteSeance` appelle `seanceRecup`, qui l'estampille au moment où la
+     carte est dessinée. Valider à 00 h 05 une carte dessinée à 23 h 55
+     écrivait donc sur LA VEILLE.
+
+     MESURABLE ICI, et c'est une chance : `synchroniser` appelle
+     `A.m.aujourdHui()` — la référence EXPORTÉE — là où `seanceRecup`
+     emploie la clôture interne. On rend avec l'horloge vraie, on avance
+     l'horloge exportée, on APPUIE.
+     ================================================================ */
+  bloc('La récup se date sur le geste', function (v, h) {
+    var fen = h.fen, doc = h.doc, m = fen.App.m;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+    e.routineRecup = null;
+    e.routinesRecup = [];
+
+    var routine = m.ajouterRoutineRecup(e, 'Avant-bras du soir');
+    routine.exercices = [m.exerciceProgramme({
+      nom: 'Side pressure', typeCharge: 'elastique', colonnes: ['reps'],
+      series: [{ repsCible: '50' }] })];
+
+    var vraiJour = m.aujourdHui();
+    var demain = (function () {
+      var x = new Date(); x.setDate(x.getDate() + 1);
+      var z = function (n) { return (n < 10 ? '0' : '') + n; };
+      return x.getFullYear() + '-' + z(x.getMonth() + 1) + '-' + z(x.getDate());
+    })();
+
+    fen.App.vues.recup.rendre(vue);
+    v.vrai(ouvrirRecup(doc),
+           '[temoin] la séance s’ouvre — sans elle, il n’y a pas de ✓ à '
+         + 'toucher et tout ce qui suit serait vrai pour rien');
+    v.egal(fen.App.store.etat().seances.length, 0,
+           '[temoin] rien n’est au journal avant l’appui : une séance n’y '
+         + 'entre qu’une fois cochée');
+
+    var reel = m.aujourdHui;
+    try {
+      /* ON AVANCE L'HORLOGE QUE LE GESTE CONSULTE, pas celle du rendu :
+         c'est exactement minuit qui passe entre les deux. */
+      m.aujourdHui = function () { return demain; };
+      var ok = doc.querySelector('.recup-ligne .serie-ok');
+      v.vrai(!!ok, '[temoin] le ✓ est là');
+      if (ok) ok.click();
+      var jour = fen.App.store.etat().seances[0] || {};
+      v.egal(jour.date, demain,
+             'la journée porte la date du GESTE et non celle du rendu — '
+           + 'valider après minuit une carte dessinée la veille écrivait '
+           + 'sur la veille');
+      v.vrai(String(jour.heure || '').length > 0 && jour.date !== vraiJour,
+             'et son heure est reprise avec : les deux venaient du rendu, '
+           + 'les deux viennent du geste');
+    } finally {
+      /* SANS CE `finally`, les 36 autres blocs tourneraient avec une
+         horloge de demain — une panne silencieuse dans le banc lui-même. */
+      m.aujourdHui = reel;
+    }
+
+    /* ET CE QUI EST DEJA AU JOURNAL NE BOUGE PAS : déplacer une journée
+       déjà enregistrée réécrirait le passé. */
+    var deja = fen.App.store.etat().seances[0];
+    var dateAvant = deja.date;
+    var ok2 = doc.querySelector('.recup-ligne .serie-ok');
+    if (ok2) ok2.click();
+    if (ok2) ok2.click();
+    var apres = fen.App.store.etat().seances[0];
+    v.egal(apres ? apres.date : '(partie)', dateAvant,
+           '[temoin] une journée DÉJÀ enregistrée garde sa date quand on la '
+         + 'recoche. Il tient des deux côtés, et c’est l’acquis que le '
+         + 're-datage ne devait pas casser : déplacer une journée déjà au '
+         + 'journal réécrirait le passé');
+
+    fen.App.store.etat().seances = [];
+    fen.App.store.etat().routinesRecup = [];
+    fen.App.store.etat().routineRecup = null;
+  });
+
+  /* ================================================================
+     L'ACCESSOIRE, PUIS LE TROU — le parcours des deux dimensions
+
+     MB, 28/10 : « Les deux ensemble ». Six accessoires et cinq trous dans
+     UNE case : l'ecran demande l'un, puis l'autre. Ce bloc suit le chemin
+     reel — on appuie sur les puces, on ne pose rien par le modele.
+     ================================================================ */
+  bloc('L’accessoire, puis le trou', function (v, h) {
+    var fen = h.fen, doc = h.doc, m = fen.App.m;
+    var e = fen.App.store.etat();
+    e.outils.length = 0;
+    m.majCatalogueOutils(e, 'Armwrestling Buddies', 'Poignées AW');
+
+    var exo = m.exerciceProgramme({ nom: 'Essai cadre',
+                                    outils: ['Armwrestling Buddies'] });
+
+    function groupeDe(pan, libelle) {
+      var l = pan.querySelectorAll('.groupe > label');
+      for (var i = 0; i < l.length; i++) {
+        if (l[i].textContent === libelle) return l[i].parentNode;
+      }
+      return null;
+    }
+    function puces() {
+      var pan = doc.querySelector('.panneau');
+      var gr = pan && groupeDe(pan, 'Réglage de l’outil');
+      return gr ? Array.prototype.slice.call(gr.querySelectorAll('.puce')) : [];
+    }
+    function textes() {
+      return puces().map(function (p) { return p.textContent; });
+    }
+    function parTexte(t) {
+      return puces().filter(function (p) { return p.textContent === t; })[0];
+    }
+
+    /* DECLARE ICI parce qu'il traverse deux `then` : le controle du retour
+       a l'accessoire nu doit savoir D'OU on revient, sans quoi il est vrai
+       sur une version qui n'a jamais visse. */
+    var deuxiemeTrou = null;
+
+    fen.App.panneau.editerExercice(exo, { titre: 'Essai' }, function () {});
+
+    return attendre(160).then(function () {
+      /* ---- 1. SIX ACCESSOIRES, ET PAS UN TROU EN VUE ---- */
+      var t = textes();
+      v.egal(t.length, 6,
+             '[temoin] le cadre propose ses SIX accessoires, et rien de '
+           + 'plus. Il tient des deux côtés, et c’est tout son objet : six '
+           + 'fois cinq auraient fait trente puces, et ce contrôle garde le '
+           + 'choix de MB plutôt qu’il ne le prouve');
+      v.vrai(t.indexOf('King’s Cup') >= 0,
+             '[temoin] la King’s Cup est bien du lot — sans elle, la suite '
+           + 'n’a rien sur quoi appuyer');
+      v.egal(t.filter(function (x) { return /trou|vis/i.test(x); }).length, 0,
+             '[temoin] AUCUN trou ne se propose avant qu’un accessoire soit '
+           + 'monté — un trou sans accessoire ne veut rien dire. Il tient '
+           + 'des deux côtés (avant, la notion n’existe pas) et il garde '
+           + 'l’ORDRE des deux dimensions');
+
+      /* ---- 2. ON MONTE L'ACCESSOIRE, PAR LA PUCE ---- */
+      var bt = parTexte('King’s Cup');
+      if (bt) bt.click();
+      return attendre(140);
+    }).then(function () {
+      v.egal(m.reglageDe(exo, 'Armwrestling Buddies'), 'King’s Cup',
+             '[temoin] un appui monte l’accessoire — acquis du 28/10, qui '
+           + 'tient des deux côtés. Sans lui, tout ce qui suit mesurerait '
+           + 'un écran où rien n’a été monté');
+      var musApres = m.muscles(exo).length;
+      v.vrai(musApres > 0,
+             '[temoin] et il a coché ses muscles — c’est ce que le trou ne '
+           + 'doit pas défaire');
+
+      /* ---- 3. LES CINQ TROUS PARAISSENT, ET « AUCUN TROU » D'ABORD ---- */
+      var t = textes();
+      var trous = t.filter(function (x) { return /^(Aucun trou|Vis )/.test(x); });
+      v.egal(trous.join(' | '),
+             'Aucun trou | Vis à l’extérieur | Vis extérieur-centre | '
+           + 'Vis au centre | Vis centre-intérieur | Vis à l’intérieur',
+             'la seconde rangée paraît, « Aucun trou » en tête : ne pas '
+           + 'préciser le trou reste un choix, pas un oubli');
+      var pan = doc.querySelector('.panneau');
+      var gr = pan && groupeDe(pan, 'Réglage de l’outil');
+      v.vrai(!!gr && /jamais lequel/.test(gr.textContent),
+             'et l’écran dit que le fabricant ne dit JAMAIS quel trou charge '
+           + 'quel doigt — au lieu de laisser deviner');
+
+      /* ---- 4. ON VISSE, ET LE NOM SE COMPOSE ---- */
+      /* PAS UN [temoin] : cette puce est NEUVE, donc ce controle tombe sur
+         la version d'avant. Il portait l'etiquette, et la chute l'a dit. */
+      var bt = parTexte('Vis au centre');
+      v.vrai(!!bt, 'la puce du centre existe, et c’est par elle qu’on visse');
+      if (bt) bt.click();
+      return attendre(140).then(function () {
+        var compose = m.reglageDe(exo, 'Armwrestling Buddies');
+        v.egal(compose, 'King’s Cup · Vis au centre',
+               'l’accessoire ET le trou tiennent dans le réglage — « Les deux '
+             + 'ensemble », dans une case qui n’en porte qu’un');
+        /* LA COMPOSITION ENTRE DANS LES DEUX CONTROLES QUI SUIVENT.
+
+           Sans elle, ils etaient VACUEUX : la version d'avant n'a pas de
+           puce de trou, le clic ne part pas, l'etat ne bouge pas — et
+           « rien n'a bouge » est alors vrai sans rien mesurer. Trouve en
+           lisant la chute PAR BLOC : dix verts sur seize, dans un bloc qui
+           ne mesure que du neuf. */
+        v.vrai(compose === 'King’s Cup · Vis au centre'
+               && m.muscles(exo).length === musApres,
+               'et préciser le trou n’a RIEN décoché : c’est le défaut que la '
+             + 'composition aurait créé, puisque les muscles se lisaient sur '
+             + 'le nom entier');
+        v.vrai(compose === 'King’s Cup · Vis au centre'
+               && m.reglagesOutil(fen.App.store.etat(),
+                                  'Armwrestling Buddies').length === 1,
+               'un SEUL réglage au catalogue, RENOMMÉ — pas un second à côté '
+             + 'du premier');
+
+        /* ---- 5. ON CHANGE DE TROU SANS REMONTER L'ACCESSOIRE ---- */
+        var choisi = puces().filter(function (p) {
+          return p.getAttribute('aria-pressed') === 'true';
+        }).map(function (p) { return p.textContent; });
+        v.vrai(choisi.indexOf('Vis au centre') >= 0,
+               'la puce du trou posé est bien marquée');
+        var autre = parTexte('Vis à l’intérieur');
+        if (autre) autre.click();
+        return attendre(140);
+      });
+    }).then(function () {
+      deuxiemeTrou = m.reglageDe(exo, 'Armwrestling Buddies');
+      v.egal(deuxiemeTrou, 'King’s Cup · Vis à l’intérieur',
+             'changer de trou garde l’accessoire : les positions se lisent '
+           + 'sur la BASE du nom');
+      var revenu = parTexte('Aucun trou');
+      if (revenu) revenu.click();
+      return attendre(140);
+    }).then(function () {
+      /* D'OU ON REVIENT entre dans le controle : sinon « c'est King's Cup »
+         est vrai sur une version qui n'a jamais visse. */
+      v.vrai(deuxiemeTrou === 'King’s Cup · Vis à l’intérieur'
+             && m.reglageDe(exo, 'Armwrestling Buddies') === 'King’s Cup',
+             'et « Aucun trou » revient à l’accessoire nu, sans séparateur '
+           + 'orphelin');
+
+      /* ---- 6. ET TOUT CA TIENT A 320 px ---- */
+      var sort = 0, minH = 999;
+      puces().forEach(function (p) {
+        var r = p.getBoundingClientRect();
+        minH = Math.min(minH, r.height);
+        if (r.right > LARGEUR + 1) sort += 1;
+      });
+      /* LE PLUS LONG LIBELLE DOIT ETRE LA : mesurer le debordement sur six
+         puces courtes ne dit rien du jour ou onze s'affichent. */
+      v.vrai(textes().indexOf('Vis extérieur-centre') >= 0 && sort === 0,
+             'les onze puces sont à l’écran et AUCUNE n’en sort à 320 px — '
+           + '« Vis extérieur-centre » est le plus long des libellés');
+      v.vrai(minH >= 44,
+             '[temoin] et chacune se touche (mesuré : ' + Math.round(minH)
+           + ' px) — la règle des 44 px vaut pour toutes les puces de l’app, '
+           + 'avant comme après');
+
       Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
         var x = p.querySelector('.panneau-entete .bt-icone');
         if (x) x.click();

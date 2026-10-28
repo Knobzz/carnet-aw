@@ -298,9 +298,14 @@
 
          LE CARNET NE REFUSE RIEN, il DIT : celui qui a trouvé un montage
          que je ne connais pas a raison contre moi. Et quand rien n’est
-         connu sur ce qu’on ne peut PAS faire, la ligne se tait — treize
-         types sur dix-sept sont dans ce cas, et « rien de connu » affiché
-         treize fois serait du bruit. */
+         connu sur ce qu’on ne peut PAS faire, la ligne se tait — la
+         plupart des types sont dans ce cas, et « rien de connu » affiché
+         autant de fois serait du bruit.
+
+         LE COMPTE EXACT A ÉTÉ RETIRÉ le 28/10 : il disait « treize sur
+         dix-sept » alors que la table en portait déjà dix-neuf avant ce
+         lot, et vingt après. Un nombre figé dans une phrase ne garde
+         rien et vieillit tout seul. */
       var ou = h('div', { class: 'item-resume dit-monte' });
       function majOu() {
         var l = A.m.montageDeLOutil(champNom.value.trim());
