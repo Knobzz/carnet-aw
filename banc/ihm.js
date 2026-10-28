@@ -186,6 +186,22 @@
      Un bloc qui le laisse ailleurs que sur « Seances » le laisse ainsi pour
      tous les suivants. Mesure du 28/10 : 448 controles joues au lieu de
      551, une centaine emportes par un onglet reste sur « Recup ». */
+  /* OUVRIR LA CARTE DE RÉCUP, comme MB le ferait du doigt.
+
+     Depuis 1.46.3 l'écran arrive REPLIÉ, même avec une seule séance. Les
+     blocs qui mesurent le corps de la carte doivent donc l'ouvrir d'abord —
+     sans quoi ils mesurent un écran que personne ne regarde.
+
+     Il rend `true` s'il a ouvert quelque chose : un bloc qui attend une
+     carte et n'en trouve pas doit tomber sur SON contrôle, pas sur un
+     `null.dataset` qui emporterait tous ses voisins. */
+  function ouvrirRecup(doc) {
+    var nom = doc.querySelector('.recup-seance-nom[aria-expanded="false"]');
+    if (!nom) return false;
+    nom.click();
+    return true;
+  }
+
   function rangerSousOnglet(doc) {
     var bt = null;
     Array.prototype.forEach.call(doc.querySelectorAll('.sous-onglet'), function (b) {
@@ -1937,6 +1953,105 @@
      Les noms latins ne parlent pas à tout le monde, et une case qu'on ne
      sait pas cocher reste vide.
      ================================================================ */
+  /* ================================================================
+     RETIRER UN OUTIL LUI REPREND SES MUSCLES — PAR LES DEUX CHEMINS
+
+     MB, 28/10 : « je constate que si je deselectionne un outil, les
+     muscles impactes restent coches ».
+
+     DEUX PORTES MENENT A LA MEME SORTIE, et j'en avais d'abord ferme une
+     seule : la puce de « Mon equipement » passe par `basculerOutil`, la
+     croix du jeton pose `exo.outils` DIRECTEMENT. Le chemin que j'avais
+     mesure marchait ; l'autre laissait les muscles coches. Piege n 5.
+
+     ET CE QUI NE DOIT PAS BOUGER SE MESURE AUSSI : un muscle coche a la
+     main ne part pas avec l'outil. C'est toute la raison d'etre de
+     `poseParOutil` — on reprend ce que CET outil a pose, rien d'autre.
+     ================================================================ */
+  bloc('L’outil reprend ses muscles', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+
+    m.majCatalogueOutils(e, 'Titan Grip', 'Poignées AW');
+    m.majReglageOutil(e, 'Titan Grip', 'Mousqueton dehors', ['ecrl', 'ecrb', 'ecu']);
+
+    /* Un nom NEUTRE : « Pronation » porte un mot-muscle, et on mesurerait
+       alors la déduction du nom au lieu de l'outil. */
+    var exo = m.exerciceProgramme({ nom: 'Essai R', outils: ['Titan Grip'] });
+    exo.muscles = ['biceps'];          /* coché À LA MAIN, il doit survivre */
+    fen.App.panneau.editerExercice(exo, { titre: 'Essai' }, function () {});
+
+    function groupeDe(pan, libelle) {
+      var l = pan.querySelectorAll('.groupe > label');
+      for (var i = 0; i < l.length; i++) {
+        if (l[i].textContent === libelle) return l[i].parentNode;
+      }
+      return null;
+    }
+
+    return attendre(140).then(function () {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+
+      /* ---- on POSE, par la puce du réglage ---- */
+      var gr = groupeDe(pan, 'Réglage de l’outil');
+      var puce = null;
+      if (gr) {
+        Array.prototype.forEach.call(gr.querySelectorAll('.puce'), function (b) {
+          if (/Mousqueton dehors/.test(b.textContent)) puce = b;
+        });
+      }
+      v.vrai(!!puce, '[temoin] la position déclarée est proposée en puce — '
+                   + 'c’est le décor, pas la mesure');
+      if (puce) puce.click();
+
+      var apres = m.muscles(exo);
+      v.egal(apres.filter(function (id) {
+               return ['ecrl', 'ecrb', 'ecu'].indexOf(id) >= 0; }).length, 3,
+             'le réglage pose les TROIS extenseurs sur l’exercice');
+      v.vrai(apres.indexOf('biceps') >= 0,
+             '[temoin] et le biceps coché à la main est toujours là');
+      v.egal(m.reglageDe(exo, 'Titan Grip'), 'Mousqueton dehors',
+             '[temoin] le réglage est posé');
+
+      /* ---- on RETIRE, par la croix du jeton ----
+         C'EST LE CHEMIN QUI ETAIT CASSE. La puce de « Mon équipement »
+         passait par `basculerOutil` et reprenait bien ; la croix posait
+         `exo.outils` directement, sans rien reprendre. */
+      var croix = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('.multi-jeton button'),
+        function (b) {
+          if (/Titan Grip/.test(b.getAttribute('aria-label') || '')) croix = b;
+        });
+      v.vrai(!!croix, '[temoin] le jeton de l’outil porte sa croix');
+      if (!croix) return;
+      croix.click();
+
+      var fin = m.muscles(exo);
+      v.egal(fin.filter(function (id) {
+               return ['ecrl', 'ecrb', 'ecu'].indexOf(id) >= 0; }).length, 0,
+             'retirer l’outil par la CROIX reprend ses trois muscles — '
+           + 'c’est le chemin que MB a emprunté, et il ne reprenait rien');
+      v.vrai(fin.indexOf('biceps') >= 0,
+             'mais le biceps coché à la main RESTE : on reprend ce que CET '
+           + 'outil a posé, jamais un choix de MB');
+      v.egal(m.reglageDe(exo, 'Titan Grip'), null,
+             'et le réglage s’en va avec l’outil — « Mousqueton dehors » '
+           + 'sur un outil absent ne veut rien dire');
+      v.egal((exo.outils || []).length, 0, '[temoin] l’outil est bien parti');
+
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+      return attendre(80).then(function () {
+        fen.App.store.etat().outils.length = 0;
+      });
+    });
+  });
+
   bloc('Où ça tire, à l’écran', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var brouillon = fen.App.m.exerciceProgramme({ nom: 'Essai B' });
@@ -3122,16 +3237,21 @@
                  + 'retaper');
           }
 
-          /* ---- ET LE REGLAGE SE POSE SANS QUITTER L'EXERCICE ---- */
+          /* ---- ET PLUS DE BOUTON « + RÉGLAGE » ----
+             Ce contrôle EXIGEAIT ce bouton jusqu'au 28/10. MB : « enlève
+             presque le "+ Réglage pour ......", au final maintenant ils
+             sont visibles et sélectionnables non ? ». Il avait raison : les
+             trois positions sont déjà là, en puces, et un appui suffit —
+             les contrôles d'au-dessus viennent de le mesurer. Un second
+             vocabulaire pour le même geste se paie en hésitation. */
           var bt = Array.prototype.filter.call(pan.querySelectorAll('button'),
             function (b) { return b.textContent.indexOf('+ Réglage') === 0; })[0];
-          v.vrai(!!bt,
-                 'la ligne de réglages porte un bouton plutôt qu’un renvoi '
-               + 'vers Réglages → Équipement : une impasse polie reste une '
-               + 'impasse');
-          var r = bt ? bt.getBoundingClientRect() : { height: 0 };
-          v.vrai(r.height >= 32,
-                 'et il se touche (' + Math.round(r.height) + ' px)');
+          v.egal(!!bt, false,
+                 'AUCUN bouton « + Réglage » quand le carnet connaît déjà '
+               + 'les réglages : ils sont en puces, à un appui');
+          v.vrai(sug.length >= 1,
+                 '[temoin] et c’est bien parce qu’il y a des puces — sans '
+               + 'elles, retirer le bouton serait une impasse');
           return ranger();
         });
       });
@@ -3334,6 +3454,11 @@
          + 'tient des deux côtés');
 
     fen.App.vues.recup.rendre(vue);
+    /* L'ÉCRAN ARRIVE REPLIÉ depuis 1.46.3 : on l'ouvre comme MB l'ouvrirait.
+       Ce qui est mesuré ci-dessous n'a pas changé — seul le chemin pour y
+       arriver en a gagné un appui, et MB l'a demandé. */
+    v.vrai(ouvrirRecup(doc),
+           'la séance arrive repliée, et son nom l’ouvre');
 
     /* --- l'écran rapide : une ligne, un ✓ --- */
     v.egal(doc.querySelectorAll('.recup-ligne').length, 1,
@@ -3391,6 +3516,7 @@
 
     /* --- ce qu'on tape vaut pour les quatre --- */
     fen.App.vues.recup.rendre(vue);
+    ouvrirRecup(doc);
     var c2 = doc.querySelector('.recup-ligne .serie-saisie');
     v.vrai(!!c2, '[temoin] le champ est là après re-rendu');
     if (c2) {
@@ -3416,6 +3542,7 @@
       series: [{ repsCible: '50' }, { repsCible: '50' },
                { repsCible: '40' }, { repsCible: '40' }] })];
     fen.App.vues.recup.rendre(vue);
+    ouvrirRecup(doc);
     var c3 = doc.querySelector('.recup-ligne .serie-saisie');
     v.egal(c3 ? c3.placeholder : '', '50 · 40',
            'des cibles différentes se LISTENT dans le placeholder — en montrer '
@@ -3715,6 +3842,188 @@
     fin.routineRecup = null;
   });
 
+  /* ------------------------------------------------------------------
+     ARRIVER SUR RÉCUP REPLIE TOUT
+
+     MB, 28/10 : « le soucis c’est que la routine quand on va sur l’onglet,
+     c’est déplié, que ce soit réduit quand on arrive sur l’onglet ».
+
+     UNE SEULE SÉANCE : c’est le décor où le changement se voit. À deux,
+     elles étaient déjà repliées (le bloc d’au-dessus le mesure) ; à une,
+     `seule` l’ouvrait. La règle est retirée, pas neutralisée.
+     ------------------------------------------------------------------ */
+  bloc('Récup arrive repliée', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var m = fen.App.m;
+    var e = fen.App.store.etat();
+    e.seances = [];
+    e.routineRecup = null;
+    e.routinesRecup = [];
+
+    /* ENVELOPPE : sur une version sans ces fonctions, chaque contrôle tombe
+       avec SA valeur au lieu d’emporter le bloc entier. */
+    function ajout(nom) {
+      return m.ajouterRoutineRecup ? m.ajouterRoutineRecup(e, nom)
+                                   : { id: 'absent', nom: nom, exercices: [] };
+    }
+    var r = ajout('Avant-bras du soir');
+    r.exercices = [
+      m.exerciceProgramme({ nom: 'Wrist curl', typeCharge: 'elastique',
+        colonnes: ['reps'], series: [{ repsCible: '20' }, { repsCible: '20' }] }),
+      m.exerciceProgramme({ nom: 'Extension poignet', typeCharge: 'elastique',
+        colonnes: ['reps'], series: [{ repsCible: '15' }] })
+    ];
+
+    /* --- 1. L’ARRIVÉE --- */
+    fen.App.vues.recup.rendre(vue);
+    v.egal(doc.querySelectorAll('.recup-seance').length, 1,
+           'une seule séance fait une seule carte');
+    v.egal(doc.querySelectorAll('.recup-corps').length, 0,
+           'et elle arrive REPLIÉE, même seule — c’est ce qui change');
+    v.egal(Array.prototype.map.call(doc.querySelectorAll('.recup-seance-nom'),
+             function (b) { return b.getAttribute('aria-expanded'); }).join(','),
+           'false', 'le bouton le dit aussi aux lecteurs d’écran');
+
+    /* --- 2. CE QUI REND LE REPLI SUPPORTABLE --- */
+    v.vrai(doc.body.textContent.indexOf('0 / 2 exercices') >= 0,
+           'l’avancement se lit SANS ouvrir : « 0 / 2 exercices »');
+    var chev = doc.querySelectorAll('.recup-seance-nom .equip-chevron');
+    v.egal(chev.length, 1,
+           'et un chevron dit que le nom se touche — le repli existait '
+         + 'depuis 1.38.1, MB ne l’avait jamais vu');
+    v.egal(chev.length ? chev[0].getAttribute('aria-hidden') : '(absent)',
+           'true', 'le chevron est décoratif : le nom porte déjà le sens');
+
+    /* --- 3. LE NOM OUVRE TOUJOURS --- */
+    var nom = doc.querySelectorAll('.recup-seance-nom')[0];
+    if (nom) nom.click();
+    v.egal(doc.querySelectorAll('.recup-corps').length, 1,
+           'le nom ouvre la carte');
+    v.vrai(doc.body.textContent.indexOf('Extension poignet') >= 0,
+           'et on y voit ses exercices');
+
+    /* --- 4. COCHER NE REFERME PAS ---
+       LE PIÈGE DE MON PROPRE DÉCOUPAGE : `rendre` est aussi appelé par le
+       ✓, par la suppression et par la sortie de l’éditeur. Vider le pliage
+       dedans aurait refermé la carte sous les doigts de MB. D’où `peindre`.
+
+       [temoin] — il TIENT sur 1.46.2 aussi, où `rendre` ne repliait rien.
+       Il ne garde pas la version d’avant : il garde ce découpage-ci. */
+    var ok = doc.querySelector('.recup-corps .serie-ok');
+    if (ok) ok.click();
+    /* IL EST TOMBE A LA CHUTE, et je l'avais etiquete `[temoin]`. Il
+       tombe par ricochet : sur 1.46.0 la carte arrive OUVERTE, donc le
+       clic du point 3 la FERME, et il n'y a plus de corps a cocher. Ce
+       n'est pas ce qu'il prétend garder — l'etiquette s'en va. */
+    v.egal(doc.querySelectorAll('.recup-corps').length, 1,
+           'cocher une série ne referme PAS la carte — le repeint passe par '
+         + '`peindre`, qui ne touche pas au pliage ; c’est l’erreur que le '
+         + 'découpage `rendre` / `peindre` existe pour éviter');
+    v.vrai(doc.body.textContent.indexOf('1 / 2 exercices') >= 0,
+           'et la sous-ligne suit : « 1 / 2 exercices »');
+
+    /* --- 5. REVENIR SUR L’ONGLET REPLIE À NOUVEAU --- */
+    fen.App.vues.recup.rendre(vue);
+    v.egal(doc.querySelectorAll('.recup-corps').length, 0,
+           'revenir sur l’onglet replie de nouveau — c’est la demande, '
+         + 'mot pour mot : « quand on arrive sur l’onglet »');
+    v.vrai(doc.body.textContent.indexOf('1 / 2 exercices') >= 0,
+           'et ce qui a été coché reste coché : replier est un geste de '
+         + 'lecture, il ne défait rien');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
+
+    fen.App.ui.vider(vue);
+    var fin = fen.App.store.etat();
+    fin.seances = [];
+    fin.routinesRecup = [];
+    fin.routineRecup = null;
+  });
+
+  /* ------------------------------------------------------------------
+     LE CARNET DIT SON SILENCE
+
+     MB, 28/10 : « Et où sont les recommandations ? » — elles étaient
+     livrées depuis 1.46.0 et elles marchaient. Mais `blocRemarques`
+     rendait un fragment VIDE quand aucun fait ne les déclenche, et un
+     fragment vide au milieu de dix blocs ne se voit pas.
+
+     C’est le même défaut que `blocRecup` sans état vide, relevé la
+     semaine passée. Deuxième fois : un état vide n’est pas une finition.
+     ------------------------------------------------------------------ */
+  bloc('Le carnet dit son silence', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+
+    function jourIl(n) {
+      var d = new fen.Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function exo(nom, mus, nb) {
+      var l = [];
+      for (var k = 0; k < nb; k++) {
+        l.push({ id: 'x' + nom + k, type: 'normale', faite: true, faiteA: null,
+                 chargeCible: '', repsCible: '', dureeCible: '',
+                 chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null });
+      }
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: fen.App.m.slug(nom),
+               aw: true, typeCharge: 'kg', colonnes: ['charge', 'reps'],
+               forces: [], muscles: mus, structures: [], outils: [],
+               consigne: '', reposSecondes: 90, series: l };
+    }
+
+    /* --- LE DÉCOR DE MB : un carnet qui TRAVAILLE et ne déclenche rien ---
+       Des fléchisseurs ET des extenseurs, aucun sparring. C’est le cas
+       ordinaire, et c’est exactement là que l’écran se taisait. */
+    e.seances = [{ id: 'm1', type: 'muscu', date: jourIl(3), heure: '',
+                   note: '', douleurs: [],
+                   exercices: [exo('Wrist curl', ['fcr', 'fcu'], 4),
+                               exo('Wrist curl inversé', ['ecrl', 'ecrb'], 3)] }];
+
+    fen.App.vues.suivi.rendre(vue);
+    var txt = doc.body.textContent;
+
+    v.vrai(txt.indexOf('CE QUE LE CARNET REMARQUE') >= 0
+           || txt.toLowerCase().indexOf('ce que le carnet remarque') >= 0,
+           'le titre est là MÊME quand il n’y a rien à dire — sinon la '
+         + 'fonctionnalité paraît absente, et MB l’a cherchée');
+    v.vrai(txt.indexOf('Rien à signaler sur cette période') >= 0,
+           'et le silence se dit');
+    v.vrai(txt.indexOf('sans AUCUN extenseur') >= 0
+           && txt.indexOf('coude médial') >= 0,
+           'l’état vide NOMME les deux faits surveillés : sans ça, on ne '
+         + 'distingue pas « rien à signaler » de « le carnet ne regarde '
+         + 'pas ça »');
+    v.egal(doc.querySelectorAll('.remarque').length, 0,
+           '[temoin] et aucune carte n’est peinte : rien ne se déclenche');
+
+    /* --- LA CHUTE : on retire les extenseurs, la carte doit paraître --- */
+    e.seances[0].exercices = [exo('Wrist curl', ['fcr', 'fcu'], 4)];
+    rangerSousOnglet(doc);
+    fen.App.vues.suivi.rendre(vue);
+    var cartes = doc.querySelectorAll('.remarque');
+    v.egal(cartes.length, 1,
+           'des fléchisseurs SEULS font paraître une carte');
+    v.vrai(doc.body.textContent.indexOf('Rien à signaler sur cette période') < 0,
+           'et l’état vide disparaît — les deux ne coexistent jamais');
+    var lien = doc.querySelector('.remarque-qui a');
+    v.vrai(!!lien && lien.getAttribute('href').indexOf('tawf.ca') >= 0,
+           'la carte porte le lien de sa source, pour qu’on puisse la '
+         + 'contredire');
+
+    v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+           'rien ne déborde de 320 px');
+
+    rangerSousOnglet(doc);
+    fen.App.ui.vider(vue);
+    fen.App.store.etat().seances = [];
+  });
+
   bloc('Récupération', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
@@ -3752,10 +4061,24 @@
            'l’ancienne clé `routineRecup` devient UNE carte : la migration '
          + 'ne jette rien');
     v.egal(fen.App.m.routinesRecup(e).length, 1, 'et elle entre dans la liste');
-    v.vrai(doc.body.textContent.indexOf('Modifier') >= 0,
-           '[temoin] une seule séance reste DÉPLIÉE — l’écran d’avant ne '
-         + 'gagne pas un appui ; le bouton « Modifier » n’est visible '
-         + 'qu’ouverte');
+
+    /* CE CONTRÔLE DISAIT L'INVERSE jusqu'au 28/10 : « une seule séance
+       reste DÉPLIÉE — l'écran d'avant ne gagne pas un appui ». MB a tranché
+       dans l'autre sens, et la règle est retirée, pas neutralisée. */
+    /* ON COMPTE LE BOUTON, PAS LE MOT. « Modifier » figure aussi dans la
+       phrase de bas d'écran (« Modifier une séance ne touche pas aux
+       journées déjà faites ») : chercher le mot rendait 244 des deux côtés.
+       Un contrôle qui mesure mon vocabulaire ne mesure pas le produit. */
+    function btModifier(d) {
+      return Array.prototype.filter.call(d.querySelectorAll('button'),
+        function (b) { return b.textContent.trim() === 'Modifier'; }).length;
+    }
+    v.egal(btModifier(doc), 0,
+           'repliée, elle ne montre PAS le bouton « Modifier » — l’appui '
+         + 'gagné en 1.40 est rendu, MB : « que ce soit réduit quand on '
+         + 'arrive sur l’onglet »');
+    v.vrai(ouvrirRecup(doc), 'et son nom l’ouvre');
+    v.egal(btModifier(doc), 1, 'ouverte, le bouton « Modifier » revient');
 
     var exos = doc.querySelectorAll('.recup-exo');
     v.egal(exos.length, 2, 'la séance se présente déjà prête : une ligne par exercice');

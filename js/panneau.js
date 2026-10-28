@@ -450,7 +450,14 @@
             return o;
           });
         }, function (v) {
+          /* LA CROIX D'UN JETON RETIRE UN OUTIL, elle aussi. Sans ces deux
+             lignes, ses muscles restaient cochés : la moitié livrée. */
+          var repris = reprendreLesRetires(exo.outils, v);
           exo.outils = v;
+          if (repris.length) {
+            A.ui.toast('Décoché : '
+                     + repris.map(A.m.nomCourtMuscle).join(', ') + '.');
+          }
           /* LA LISTE SUIT. Sans cet appel, taper un outil ne le faisait pas
              apparaitre sous « Le mien » : on venait de remplir son
              equipement et rien ne le montrait. Trouve par le controle du
@@ -548,13 +555,15 @@
             A.m.majReglageOutil(etat(), nomOutil, nom, mus);
             A.m.poserReglage(exo, nomOutil, nom);
             if (mus.length) {
-              var fusion = A.m.muscles(exo).slice(), neufs = 0;
+              var fusion = A.m.muscles(exo).slice(), neufs = [];
               mus.forEach(function (id) {
-                if (fusion.indexOf(id) < 0) { fusion.push(id); neufs += 1; }
+                if (fusion.indexOf(id) < 0) { fusion.push(id); neufs.push(id); }
               });
               exo.muscles = A.m.muscles({ muscles: fusion });
-              if (neufs) A.ui.toast(neufs + ' muscle' + (neufs > 1 ? 's' : '')
-                                  + ' coché' + (neufs > 1 ? 's' : '')
+              noterPose(nomOutil, neufs);
+              if (neufs.length) A.ui.toast(neufs.length + ' muscle'
+                                  + (neufs.length > 1 ? 's' : '')
+                                  + ' coché' + (neufs.length > 1 ? 's' : '')
                                   + ' — « ' + nom + ' »');
             }
             A.store.sauver(true);
@@ -580,7 +589,7 @@
               rangeeS.appendChild(b);
             });
             boiteReglages.appendChild(rangeeS);
-            boiteReglages.appendChild(boutonReglage(nomOutil));
+            /* PAS DE BOUTON ICI : les positions sont sous les doigts. */
             return;
           }
 
@@ -597,6 +606,9 @@
                   + 'Deux outils très proches dans ton équipement : c’est celui-là '
                   + 'que tu voulais ?'
                 : 'Pas encore de réglage.' }));
+            /* LE SEUL CAS OU LE BOUTON RESTE : le carnet ne connait rien a
+               cet outil, et il n'a aucun reglage. Sans lui, il n'y aurait
+               aucun chemin. */
             boiteReglages.appendChild(boutonReglage(nomOutil));
             return;
           }
@@ -623,20 +635,21 @@
                proposition, c'est sa declaration. */
             var choisi = null;
             l.forEach(function (r) { if (r.nom === nom) choisi = r; });
-            var ajoutes = 0;
+            var ajoutes = [];
             if (choisi && (choisi.muscles || []).length) {
               var fusion = A.m.muscles(exo).slice();
               choisi.muscles.forEach(function (id) {
-                if (fusion.indexOf(id) < 0) { fusion.push(id); ajoutes += 1; }
+                if (fusion.indexOf(id) < 0) { fusion.push(id); ajoutes.push(id); }
               });
               exo.muscles = A.m.muscles({ muscles: fusion });
+              noterPose(nomOutil, ajoutes);
               rafraichirMuscles();
             }
             majPuces();
             majAideMuscles();
-            if (ajoutes) {
-              A.ui.toast(ajoutes + ' muscle' + (ajoutes > 1 ? 's' : '')
-                       + ' coché' + (ajoutes > 1 ? 's' : '') + ' — « ' + nom + ' »');
+            if (ajoutes.length) {
+              A.ui.toast(ajoutes.length + ' muscle' + (ajoutes.length > 1 ? 's' : '')
+                       + ' coché' + (ajoutes.length > 1 ? 's' : '') + ' — « ' + nom + ' »');
             }
           }
           [{ nom: null, texte: 'Aucun' }].concat(l.map(function (r) {
@@ -660,9 +673,12 @@
           });
           majPuces();
           boiteReglages.appendChild(rangee);
-          /* MEME QUAND IL EN A DEJA : on en ajoute un troisième sans
-             quitter l'exercice. */
-          boiteReglages.appendChild(boutonReglage(nomOutil));
+          /* PLUS DE BOUTON QUAND IL Y A DEJA DES PUCES — MB, 28/10 :
+             « enleve presque le "+ Reglage pour ..." ». Les reglages
+             declares et les suggestions restantes sont tous dans la rangee
+             ci-dessus ; un bouton de plus ne menait qu'a retaper ce qui est
+             deja la. Pour un reglage VRAIMENT nouveau, la fiche de l'outil
+             dans Reglages reste le chemin. */
         });
         grReglages.hidden = aucunOutil;
       }
@@ -693,14 +709,76 @@
       var aideOutils = h('div', { class: 'item-resume', style: 'margin-top:7px' });
       var boiteC = h('div', { style: 'margin-top:7px' });
 
+      /* CE QUE CHAQUE OUTIL A POSE, ET LUI SEUL.
+
+         MB, 28/10 : « si je deselectionne un outil, les muscles impactes
+         restent coches ». Exact, et c'est devenu un defaut le jour ou poser
+         un reglage s'est mis a COCHER ses muscles : un geste sans inverse.
+
+         LES MOUVEMENTS ONT CETTE TRACE DEPUIS LE 26/10 et s'en servent
+         pour retirer ce qu'ils avaient pose. Les outils ne l'avaient pas.
+         Meme regle ici : on ne retire que ce que CET outil a ajoute —
+         jamais un muscle coche a la main, jamais un muscle qu'un mouvement
+         ou un autre outil avait deja pose, puisqu'il n'etait pas dans
+         `neufs`. */
+      var poseParOutil = {};
+
+      function noterPose(nomOutil, ajoutes) {
+        var c = A.m.slug(nomOutil);
+        poseParOutil[c] = (poseParOutil[c] || []).concat(ajoutes);
+      }
+
+      /* RETIRER UN OUTIL LUI REPREND CE QU'IL AVAIT POSE, et rien d'autre.
+
+         DEUX CHEMINS MENENT ICI, et c'est pour ca que c'est une fonction :
+         la puce de « Mon equipement » (`basculerOutil`) et la croix du
+         jeton dans le champ (`champMulti`). J'avais d'abord traite le
+         premier seulement ; le second laissait les muscles coches — le
+         defaut meme que MB signalait, par l'autre porte.
+
+         Rend la liste reprise, pour que l'appelant le DISE. */
+      function reprendreOutil(nom) {
+        var cle = A.m.slug(nom);
+        var aRetirer = poseParOutil[cle] || [];
+        delete poseParOutil[cle];
+        /* Le reglage pose sur cet outil s'en va avec lui : garder
+           « Mousqueton a l'exterieur » sur un outil qu'on vient d'enlever
+           n'a aucun sens. */
+        A.m.poserReglage(exo, nom, null);
+        if (!aRetirer.length) return [];
+        exo.muscles = A.m.muscles(exo).filter(function (id) {
+          return aRetirer.indexOf(id) < 0;
+        });
+        return aRetirer;
+      }
+
+      /* Ce que le champ a jetons vient de retirer, compare a l'etat d'avant. */
+      function reprendreLesRetires(avant, apres) {
+        var vus = {}, repris = [];
+        (apres || []).forEach(function (n) { vus[A.m.slug(n)] = 1; });
+        (avant || []).forEach(function (n) {
+          if (!vus[A.m.slug(n)]) repris = repris.concat(reprendreOutil(n));
+        });
+        return repris;
+      }
+
       function basculerOutil(nom) {
         var l = (exo.outils || []).slice();
         var i = -1, k;
         for (k = 0; k < l.length; k++) {
           if (A.m.slug(l[k]) === A.m.slug(nom)) i = k;
         }
-        if (i >= 0) l.splice(i, 1); else l.push(nom);
+        var retire = i >= 0;
+        if (retire) l.splice(i, 1); else l.push(nom);
         exo.outils = l;
+
+        if (retire) {
+          var aRetirer = reprendreOutil(nom);
+          if (aRetirer.length) {
+            A.ui.toast('Décoché : '
+                     + aRetirer.map(A.m.nomCourtMuscle).join(', ') + '.');
+          }
+        }
         rafraichirOutils();
         rafraichirReglages();
         rafraichirMuscles();
@@ -923,9 +1001,15 @@
         selForces = A.ui.selecteurForces(exo.forces || [], function (v, quoi, coche) {
           exo.forces = v;
           /* Cocher un mouvement COCHE ses muscles, directement — c'est le
-             geste, et il n'y en a pas besoin d'un second. Le décocher ne les
-             retire pas : plusieurs mouvements partagent des muscles, et un
-             retrait effacerait ce qu'un autre avait posé.
+             geste, et il n'y en a pas besoin d'un second. Le décocher
+             retire CE QUE CE MOUVEMENT AVAIT POSÉ, et rien d'autre : ce
+             qu'un autre avait déjà posé n'était pas dans `neufs`.
+
+             CE COMMENTAIRE DISAIT L'INVERSE jusqu'au 28/10 — « le décocher
+             ne les retire pas » — alors que la branche d'en dessous les
+             retire depuis le 26/10, et que l'aide du groupe dit « le
+             décocher les retire ». Un commentaire faux coûte plus cher
+             qu'aucun commentaire.
 
              La source est dite dans le message, parce qu'elle n'est pas la
              même pour tous : cupping, pronation et supination sont des

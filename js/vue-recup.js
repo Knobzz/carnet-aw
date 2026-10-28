@@ -110,7 +110,18 @@
     return (ex.series || []).some(function (s) { return s.faite; });
   }
 
+  /* L'ARRIVEE SUR L'ONGLET — et elle seule replie tout.
+
+     MB, 28/10 : « que ce soit reduit quand on arrive sur l'onglet ». Le
+     routeur appelle ceci une fois par navigation (js/app.js) ; les repeints
+     internes passent par `peindre`, sinon le chevron se refermerait sur
+     lui-meme a chaque appui. */
   function rendre(hote) {
+    deplie = {};
+    peindre(hote);
+  }
+
+  function peindre(hote) {
     A.ui.vider(hote);
     var e = etat();
     var routines = A.m.routinesRecup(e);
@@ -152,15 +163,14 @@
     hote.appendChild(refTitre);
     hote.appendChild(refStats);
 
-    /* UNE SEULE SÉANCE S'OUVRE PAR DÉFAUT — l'écran d'avant n'avait pas de
-       carte à ouvrir, et lui en ajouter une coûterait un appui pour rien.
-       MAIS ELLE SE REPLIE : MB, 28/10, « il faut que la routine puisse être
-       réduite par souci de lisibilité ». J'avais verrouillé le dépliage à
-       une seule séance ; c'était une décision de trop. Le défaut change,
-       pas la possibilité. */
-    var seule = routines.length === 1;
+    /* TOUT ARRIVE REPLIÉ. Une séance s'ouvrait seule quand elle était la
+       seule ; MB, 28/10 : « que ce soit réduit quand on arrive sur l'onglet ».
+       La règle est retirée, pas neutralisée.
+
+       CE QUI REND LE REPLI LISIBLE, c'est la sous-ligne : « 1 / 2 exercices »
+       se lit sans ouvrir. Sans elle, replier aurait caché l'avancement. */
     routines.forEach(function (routine) {
-      hote.appendChild(carteSeance(e, routine, hote, majEntete, seule));
+      hote.appendChild(carteSeance(e, routine, hote, majEntete));
     });
 
     var btAjout = h('button', { class: 'bt bt-large', style: 'margin-top:10px',
@@ -183,7 +193,7 @@
      Le ✓ de l'en-tête est donc le geste principal ; ouvrir la carte sert à
      corriger une valeur, pas à faire le travail.
      ------------------------------------------------------------------ */
-  function carteSeance(e, routine, hote, majEntete, seule) {
+  function carteSeance(e, routine, hote, majEntete) {
     var jour = A.m.recupDuJour(e, null, routine.id);
     var enregistre = !!jour;
     if (!jour) jour = A.m.seanceRecup(routine);
@@ -207,16 +217,23 @@
 
     var carte = h('div', { class: 'recup-seance' });
     var exos = jour.exercices || [];
-    /* `undefined` veut dire « pas encore touché » : le défaut s'applique.
-       Une fois que MB a cliqué, c'est SON choix qui vaut, dans les deux
-       sens. */
-    var ouvert = deplie[routine.id] === undefined ? seule : !!deplie[routine.id];
+    /* Replié tant que MB n'a pas ouvert. `deplie` est vidé à chaque arrivée
+       sur l'onglet, jamais pendant qu'il y travaille. */
+    var ouvert = !!deplie[routine.id];
 
     /* --- l'en-tête : le nom, ce qu'il contient, et le ✓ --- */
     var tete = h('div', { class: 'recup-seance-tete' });
     var bloc = h('button', { type: 'button', class: 'recup-seance-nom',
                              'aria-expanded': ouvert ? 'true' : 'false' });
-    bloc.appendChild(h('b', { text: routine.nom }));
+    /* LE CHEVRON, celui des sections d'equipement. Le repli existait depuis
+       1.38.1 et marchait ; RIEN ne disait que le nom se touche, et MB a cru
+       la fonction absente. Un bouton qui n'a pas l'air d'un bouton n'existe
+       pas. Meme signe que partout ailleurs : un second vocabulaire pour le
+       meme geste se paie en hesitation. */
+    var tete2 = h('span', { class: 'recup-seance-ligne' },
+      h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '▾' }),
+      h('b', { text: routine.nom }));
+    bloc.appendChild(tete2);
     var sous = h('span', { class: 'recup-seance-sous' });
     bloc.appendChild(sous);
 
@@ -252,7 +269,7 @@
       exos.forEach(function (ex) { basculerSeries(ex, versFait); });
       synchroniser();
       majEntete();
-      rendre(hote);
+      peindre(hote);
     });
 
     /* UNE SÉANCE SANS EXERCICE N'A RIEN À VALIDER, et le bouton le dit en
@@ -264,7 +281,7 @@
 
     bloc.addEventListener('click', function () {
       deplie[routine.id] = !ouvert;
-      rendre(hote);
+      peindre(hote);
     });
 
     tete.appendChild(bloc);
@@ -356,7 +373,7 @@
       A.vues.programmes.editer(routine, function () {
         A.m.tenirRoutineRecup(etat());
         A.store.sauver(true);
-        rendre(hote);
+        peindre(hote);
       });
     });
 
@@ -371,7 +388,7 @@
         delete deplie[routine.id];
         A.store.sauver(true);
         A.ui.toast('Séance supprimée. Les journées déjà faites restent au journal.');
-        rendre(hote);
+        peindre(hote);
       });
 
     var actions = h('div', { class: 'recup-actions' }, btMod, btSup);
@@ -389,7 +406,7 @@
     A.vues.programmes.editer(r, function () {
       A.m.tenirRoutineRecup(etat());
       A.store.sauver(true);
-      rendre(hote);
+      peindre(hote);
     });
   }
 

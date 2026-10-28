@@ -1088,7 +1088,11 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   cursor: pointer;
   touch-action: manipulation;
 }
-.recup-seance-nom b { display: block; font-weight: 650; }
+/* Le chevron et le nom sur une ligne ; le sous-titre en dessous. */
+.recup-seance-ligne { display: flex; align-items: center; gap: 7px; }
+.recup-seance-nom b { font-weight: 650; }
+/* Il tourne comme celui des sections d'equipement — meme signe, meme sens. */
+.recup-seance-nom[aria-expanded="false"] .equip-chevron { transform: rotate(-90deg); }
 .recup-seance-sous { display: block; font-size: .78rem; color: var(--texte-2); }
 .recup-corps { margin-top: 8px; }
 .recup-actions { display: flex; gap: 6px; }

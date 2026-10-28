@@ -1230,10 +1230,22 @@
   function blocRemarques(e, periode) {
     var l = A.m.remarques(e, A.m.joursDeLaFenetre(periode.semaines));
     var f = document.createDocumentFragment();
-    if (!l.length) return f;
 
     f.appendChild(section('Ce que le carnet remarque',
       'Chaque constat cite qui le dit. Le carnet ne prescrit rien.'));
+
+    /* LE SILENCE SE DIT. Un fragment vide au milieu de dix blocs ne se voit
+       pas, et MB a cherché les recommandations alors qu'elles étaient là.
+       L'état vide NOMME ce qui est surveillé : sans ça, on ne peut pas
+       distinguer « rien à signaler » de « le carnet ne regarde pas ça ». */
+    if (!l.length) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Rien à signaler sur cette période' }),
+        'Deux faits sont surveillés — deux, parce que deux sources seulement '
+      + 'le permettent : des fléchisseurs chargés sans AUCUN extenseur, et '
+      + 'des sparrings en hook avec une douleur au coude médial.'));
+      return f;
+    }
 
     l.forEach(function (r) {
       var carte = h('div', { class: 'carte remarque' });
