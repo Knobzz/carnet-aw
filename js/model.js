@@ -2775,46 +2775,70 @@
      verifier » dans MUSCLES_PAR_MOUVEMENT. Toute lecture de style en
      herite, et l'ecran le dit.
 
-     ---- LES PRESSIONS RELUES LE 28/10, SUR CE QUE LA SOURCE NOMME ----
+     ---- LES TROIS STYLES, SOURCES MOUVEMENT PAR MOUVEMENT ----
 
-     MB : « Relis selon la source ». La premiere table, validee le matin,
-     donnait la SIDE pressure au hook ; Toronto lui nomme la BACK pressure.
+     MB, 28/10 : « il me faut des infos claires, sourcées et vérifiées pour
+     les trois style, il faut que le suivi sur l'application soit d'une
+     exactitude effrayante ». Et, le même jour : « il me semblait que la
+     back pressure jouait dans le toproll ».
 
-     LA REGLE QUI TRANCHE : on retient ce que la source NOMME, pas ce
-     qu'elle decrit. Sans elle les trois styles se partageraient tout — le
-     toproll « roll the pressure BACK toward yourself » decrit une traction
-     arriere sans employer l'etiquette, et on retomberait sur des mouvements
-     partages qui ne designent personne.
+     IL A RAISON, ET J'AI EU TORT. J'avais retiré la back pressure du
+     toproll en appliquant une règle de mon cru — « on retient ce que la
+     source NOMME » — alors que je n'avais consulté QU'UNE source. Voice of
+     Armwrestling, que ce fichier cite déjà pour les muscles de ces trois
+     mouvements, l'attribue explicitement au toproll :
 
-     CE QU'ELLE NOMME, MOT POUR MOT :
-       hook    « From there you apply BACK PRESSURE and bodyweight, rolling
-                 your opponent's hand into a position where you can drive it
-                 down on the inside. »      -> back pressure, nommee
-       toproll « then you open their hand and wrist and "roll" the pressure
-                 back toward yourself and down. »   -> AUCUNE pression nommee
-       press   « a forward power move […] you drive your weight and shoulder
-                 forward and over the top […] to push their hand down toward
-                 the pad. »                 -> AUCUNE pression nommee
+       « Back pressure — Pulling your opponent's hand towards your body.
+         IT MAKES THE TOPROLL WORK and is your best defence. »
 
-     LA SIDE PRESSURE AU PRESS EST UNE DEDUCTION, PAS UNE CITATION, et il
-     faut le lire comme tel. Toronto ne nomme aucune pression pour le press.
-     Deux choses la soutiennent : c'est la SEULE pression qui reste une fois
-     la back pressure nommee pour le hook, et sa definition — « driving
-     across toward the pin pad » — est celle qui ressemble le plus a « push
-     their hand down toward the pad ».
+     Une règle inventée pour rendre un style lisible n'est pas une source.
 
-     CE QUE CA CHANGE, MESURE : chaque mouvement devient attribuable a UN
-     seul style (`stylesParForce` rend 1 partout). Donc les TROIS styles
-     deviennent lisibles, `r.partage` se vide et `lis.aveugles` aussi —
-     sans qu'on touche a une ligne de l'ecran, puisque tout en derive. Sur
-     le decor du bac a sable : toproll 7 -> 3, hook 8 -> 12, press 0 et
-     aveugle -> 3 et lisible.
+     ET LA SOURCE DIT PLUS FORT QUE MES TROIS VERSIONS. Coach Ray, Voice of
+     Armwrestling, « Press and Side Pressure » :
 
-     ET LE PRESS PEUT DESORMAIS S'AFFICHER A ZERO, ce qui n'est plus le
-     defaut qu'on evitait : « 0 » voulait dire « le carnet ne sait pas le
-     voir », il veut maintenant dire « tu n'as aucune serie de side
-     pressure », qui est vrai. La barre se grise comme les autres zeros. */
+       « TOPROLL AND HOOK DECIDE WHO CONTROLS THE HAND. THE PRESS AND SIDE
+         PRESSURE DECIDE WHO FINISHES. Both move your opponent's hand toward
+         the pin pad, but they use your body differently. »
+       « Side pressure […] IT FINISHES MOST HOOK MATCHES AND MANY TOPROLL
+         MATCHES. »
+       « In a press you bring your shoulder over your hand and push down
+         with your triceps and body weight. »
+
+     DONC : aucun des six mouvements ne désigne le press, et ce n'est PAS un
+     trou dans la table — c'est que le press n'est pas sur le même axe. Mes
+     trois versions du jour essayaient toutes de le lire sur l'axe du
+     contrôle de la main ; c'était l'erreur commune aux trois.
+
+     ET LA SIDE PRESSURE N'EST PAS UN MOUVEMENT DE HOOK : elle termine les
+     matchs de hook ET « many toproll matches ». Elle n'appartient donc à
+     aucun style — c'est une FINITION, et le carnet la compte à part.
+
+     LA TABLE, LIGNE PAR LIGNE, AVEC SA SOURCE :
+       pronation     -> toproll  VOA « Keeping pronation stops your hand
+                                 from being opened » ; TAWF « central to
+                                 the toproll »
+       rising        -> toproll  VOA « THE BASE OF THE TOPROLL »
+       back pressure -> toproll  VOA « IT MAKES THE TOPROLL WORK »
+       supination    -> hook     VOA « USED TO HOLD A DEEP HOOK »
+       cupping       -> hook     TAWF « the heart of the hook » ; VOA
+                                 « curling your wrist in towards you »
+       side pressure -> AUCUN    VOA « finishes most hook matches and many
+                                 toproll matches » — une finition
+       press         -> AUCUN mouvement, et la source dit POURQUOI
+
+     TORONTO NOMME AUSSI LA BACK PRESSURE POUR LE HOOK (« From there you
+     apply back pressure and bodyweight »). On ne la lui donne PAS : la
+     back pressure serait alors partagée, donc plus attribuable, et le hook
+     garde ses deux mouvements propres. C'est un choix, il est dit ici, et
+     c'est le seul endroit de cette table où deux sources ne se recouvrent
+     pas. */
   var LIEN_TAWF = 'https://www.tawf.ca/league/learn/arm-wrestling-techniques';
+  /* LA SECONDE SOURCE, et celle qui a corrige la premiere. Voice of
+     Armwrestling est deja citee dans MUSCLES_PAR_MOUVEMENT pour les muscles
+     du rising et des deux pressions ; c'est sa page « Press and Side
+     Pressure » qui dit l'axe du press, et le carnet la lie a l'ecran. */
+  var LIEN_VOA_PRESS = 'https://voaarmwrestling.com/blogs/training/'
+                     + 'press-and-side-pressure-exercises';
 
   /* CE QUI A ÉTÉ RETIRÉ ICI LE 28/10, pour qu'on ne le rajoute pas.
 
@@ -2829,34 +2853,37 @@
      le bloc pesait 1 650 caractères, il en pèse 289 — 82 % de moins, et
      aucun CHIFFRE n'a disparu. Il était à 399 après ce retrait seul ; la
      relecture des pressions a enlevé les 110 restants SANS qu'on touche
-     à l'écran, puisque les deux lignes qui partent dérivent de la table. Les quatre ajouts sont entrés le MÊME JOUR, chacun défendable
-     seul, et je n'ai jamais compté ce que le bloc pesait en entier.
+     à l'écran, puisque les deux lignes qui partent dérivent de la table.
+
+     LES QUATRE AJOUTS SONT ENTRÉS LE MÊME JOUR, chacun défendable seul, et
+     je n'ai jamais compté ce que le bloc pesait en entier.
 
      `dit` RESTE, parce que la remarque « Ton accent » le cite. */
   var STYLES_AW = [
-    /* PAS DE PRESSION : Toronto n'en nomme aucune pour le toproll. Elle
-       DECRIT bien une traction arriere — « roll the pressure back toward
-       yourself » — mais la regle ci-dessus retient le mot, pas la
-       description, sans quoi la back pressure redeviendrait partagee et ne
-       designerait plus personne. */
+    /* LA BACK PRESSURE REVIENT ICI le 28/10, et c'est MB qui l'a vu :
+       « il me semblait que la back pressure jouait dans le toproll ». VOA
+       l'ecrit — « IT MAKES THE TOPROLL WORK ». */
     { id: 'toproll', nom: 'Toproll',
-      forces: ['pronation', 'rising'],
+      forces: ['pronation', 'rising', 'back_pressure'],
       dit: 'you pronate and slide your grip up toward your opponent’s '
          + 'fingertips […] then you open their hand and wrist and « roll » '
          + 'the pressure back toward yourself and down',
       lien: LIEN_TAWF },
-    /* LA BACK PRESSURE EST NOMMEE ICI, et nulle part ailleurs : « From
-       there you apply back pressure and bodyweight ». */
+    /* DEUX MOUVEMENTS, ET ILS LUI SONT PROPRES. La side pressure n'y est
+       plus : VOA la dit finition de « most hook matches AND MANY TOPROLL
+       MATCHES », donc elle ne designe pas le hook. */
     { id: 'hook', nom: 'Hook',
-      forces: ['supination', 'cupping', 'back_pressure'],
+      forces: ['supination', 'cupping'],
       dit: 'You supinate — turning your hand inward toward yourself — and '
          + 'curl your wrist […] drive it down on the inside',
       lien: LIEN_TAWF },
-    /* SA SIDE PRESSURE EST DEDUITE, pas citee — voir le commentaire de la
-       table. C'est elle qui rend le press LISIBLE : plus aucun mouvement
-       n'est partage. */
+    /* AUCUN MOUVEMENT, ET CE N'EST PAS UN TROU. VOA : « Toproll and hook
+       decide who CONTROLS THE HAND. The press and side pressure decide who
+       FINISHES. » Le press n'est pas sur l'axe des six mouvements ; lui en
+       attribuer un serait inventer, et c'est ce que j'ai fait trois fois
+       aujourd'hui. L'ecran le dit NON LISIBLE avec cette raison. */
     { id: 'press', nom: 'Press',
-      forces: ['side_pressure'],
+      forces: [],
       dit: 'you drive your weight and shoulder forward and over the top to '
          + 'push their hand down toward the pad',
       lien: LIEN_TAWF }
@@ -2888,21 +2915,17 @@
      Un style n'est lisible que s'il porte au moins un mouvement QUE LUI
      porte.
 
-     LES TROIS LE SONT DEPUIS LE 28/10, et personne n'a eu a coder ca : la
-     relecture des pressions sur ce que la source NOMME a rendu chaque
-     mouvement attribuable a un seul style, donc `aveugles` est vide. Le
-     commentaire d'avant disait « le press n'en a qu'un, la side pressure,
-     et le hook la porte aussi » — c'etait vrai de la premiere table, et
-     c'est ce que MB a fait relire.
+     LE TOPROLL ET LE HOOK LE SONT ; LE PRESS NE L'EST PAS, et depuis le
+     28/10 on sait POURQUOI, source a l'appui. VOA : « Toproll and hook
+     decide who CONTROLS THE HAND. The press and side pressure decide who
+     FINISHES. » Le press n'est pas sur l'axe des six mouvements — il ne
+     porte donc aucun mouvement propre, et aucun partage : il ne porte rien.
 
-     LA BRANCHE DES AVEUGLES RESTE, et elle ne tire plus. Elle garde le jour
-     ou la table changerait ; un controle du banc dit qu'elle est vide
-     AUJOURD'HUI, et il tombera si un mouvement redevient partage.
-
-     ET « Press 0 serie » N'EST PLUS UN MENSONGE : avant, zero voulait dire
-     « le carnet ne sait pas le voir » ; maintenant il veut dire « tu n'as
-     aucune serie de side pressure », qui est vrai. La barre se grise comme
-     les autres zeros. */
+     J'AI ESSAYE TROIS FOIS DE LE RENDRE LISIBLE DANS LA MEME JOURNEE, et
+     les trois fois en lui attribuant un mouvement de l'axe du controle de
+     la main. C'etait l'erreur commune aux trois. L'ecran le dit non
+     lisible, avec la raison, et ne l'affiche pas a zero : « 0 serie » se
+     lirait « tu ne presses jamais », ce qui ne se deduit pas de la table. */
   function stylesLisibles() {
     var par = stylesParForce(), lisibles = [], aveugles = [];
     STYLES_AW.forEach(function (st) {
@@ -5251,13 +5274,19 @@
 
   /* Quel STYLE les exercices revelent, sur une fenetre.
 
-     ON NE COMPTE QUE CE QUI DESIGNE. La side pressure appartient au hook ET
-     au press : l'attribuer au hook gonflerait un style au prix de l'autre,
-     et la repartir de moitie serait une invention. Elle est donc rendue a
-     part, dans `partage`, et l'ecran DIT pourquoi.
+     ON NE RANGE QUE CE QUI DESIGNE. Un mouvement que plusieurs styles
+     portent n'en designe aucun ; un mouvement qu'AUCUN style ne porte non
+     plus. Les deux vont dans `partage`, qui est le seau du NON
+     ATTRIBUABLE — et l'ecran dit lequel des deux cas c'est.
 
-     C'est la difference entre « le carnet ne sait pas » et « le carnet
-     devine » : la premiere se dit, la seconde se paie. */
+     MAIS ON LES COMPTE. La version d'avant faisait `if (!exclusives[f])
+     return;` : un mouvement porte par ZERO style etait droppe EN SILENCE —
+     ni dans `parForce`, ni dans `total`, ni dans `partage`. Depuis que la
+     side pressure n'appartient plus a aucun style (VOA : elle termine « most
+     hook matches and many toproll matches »), cette ligne aurait fait
+     DISPARAITRE les series de MB sans un mot. C'est la difference entre
+     « le carnet ne sait pas » et « le carnet perd » : la premiere se dit,
+     la seconde ne se voit jamais. */
   function repartitionStyles(etat, depuisJours) {
     var parStyle = {}, parForce = {}, partage = {}, total = 0;
     var exclusives = stylesParForce();
@@ -5270,7 +5299,11 @@
         var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
         if (!n) return;
         forcesDeLExercice(ex).forEach(function (f) {
-          if (!exclusives[f]) return;
+          /* L'UN DES SIX, et c'est la seule garde : `parForce` est
+             pre-rempli depuis FORCES, donc `!= null` veut dire « c'est un
+             mouvement du carnet ». La garde d'avant, `!exclusives[f]`,
+             jetait aussi ceux que personne ne porte. */
+          if (parForce[f] == null) return;
           /* LE DETAIL PAR MOUVEMENT REMONTE ICI le 2026-10-28. Le bloc
              « Mouvements » a ete retire — MB : « tu peux egalement enlever
              Mouvements je pense ? Ce dernier est proche de Ton Style
@@ -5283,7 +5316,12 @@
              moins. */
           parForce[f] = (parForce[f] || 0) + n;
           total += n;
-          if (exclusives[f] > 1) { partage[f] = (partage[f] || 0) + n; return; }
+          /* PAS EXACTEMENT UN PROPRIETAIRE = NON ATTRIBUABLE : zero comme
+             deux. La side pressure est dans le premier cas depuis le 28/10. */
+          if ((exclusives[f] || 0) !== 1) {
+            partage[f] = (partage[f] || 0) + n;
+            return;
+          }
           STYLES_AW.forEach(function (st) {
             if (st.forces.indexOf(f) >= 0) parStyle[st.id] += n;
           });
@@ -5772,6 +5810,7 @@
     volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
     MOTS_FORCE: MOTS_FORCE, forcesDuNom: forcesDuNom,
     forcesDeLExercice: forcesDeLExercice,
+    LIEN_VOA_PRESS: LIEN_VOA_PRESS,
     STYLES_AW: STYLES_AW, styleAW: styleAW, stylesParForce: stylesParForce,
     repartitionStyles: repartitionStyles, stylesDeclares: stylesDeclares,
     estTenue: estTenue, repartitionRegime: repartitionRegime,

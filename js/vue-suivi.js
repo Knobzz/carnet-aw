@@ -1523,14 +1523,22 @@
        de side pressure n'apparaîtraient nulle part dans le Suivi. Les
        porteurs sont dérivés de STYLES_AW, donc le jour où le press gagne
        un mouvement à lui, cette ligne disparaît d'elle-même. */
+    /* DEUX CAS DE NON ATTRIBUABLE, et la ligne dit lequel : porté par
+       PLUSIEURS styles, ou par AUCUN. La side pressure est dans le second
+       depuis le 28/10 — VOA : « it finishes most hook matches and many
+       toproll matches ». Sans ce test, la ligne rendait « partagé par
+       le . » avec une liste de porteurs vide. */
     Object.keys(r.partage).forEach(function (fid) {
       var porteurs = A.m.STYLES_AW.filter(function (st) {
         return st.forces.indexOf(fid) >= 0;
       }).map(function (st) { return st.nom.toLowerCase(); });
       f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
         h('b', { text: A.m.nomForce(fid) + ' : ' }),
-        r.partage[fid] + ' — mouvement partagé par le '
-        + porteurs.join(' et le ') + '.'));
+        porteurs.length
+          ? r.partage[fid] + ' — mouvement partagé par le '
+            + porteurs.join(' et le ') + '.'
+          : r.partage[fid] + ' — une finition, pas un style : elle termine '
+            + 'les matchs de hook comme de toproll.'));
     });
 
     /* LE DETAIL PAR MOUVEMENT, SOUS SON STYLE. Il remplace le bloc
@@ -1545,15 +1553,22 @@
         h('b', { text: x.style.nom + ' : ' }), dits.join(' · ')));
     });
 
-    /* ELLE RESTE, ET ELLE RACCOURCIT. MB a demandé moins de texte, pas
-       moins de chiffres — mais celle-ci n'est ni l'un ni l'autre : sans
-       elle, l'absence du press se lirait « tu ne presses jamais », ce qui
-       est faux. Elle passe de trois lignes à une. */
+    /* ELLE RESTE, ET ELLE PORTE SA SOURCE. MB, 28/10 : « il me faut des
+       infos claires, sourcées et vérifiées pour les trois style ». La
+       raison n'est plus « sa seule mesure est partagée » — c'était vrai
+       d'une table que j'ai eu tort d'écrire. VOA dit l'axe :
+       « Toproll and hook decide who controls the hand. The press and side
+       pressure decide who finishes. »
+
+       SANS ELLE, l'absence du press se lirait « tu ne presses jamais », ce
+       qui ne se déduit pas de la table. Une ligne, et son lien. */
     lis.aveugles.forEach(function (x) {
       f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
         h('b', { text: x.style.nom + ' : ' }),
-        'non lisible ici, sa seule mesure est partagée. Déclare-le sur tes '
-      + 'sparrings.'));
+        'non lisible ici — il décide qui FINIT, pas qui contrôle la main. '
+      + 'Déclare-le sur tes sparrings. ',
+        h('a', { href: A.m.LIEN_VOA_PRESS, target: '_blank', rel: 'noopener',
+                 text: 'Voice of Armwrestling' })));
     });
 
 

@@ -984,14 +984,19 @@
          pressions : elle n'appartient plus qu'au press, donc son chiffre
          est DANS la carte, sous la barre du press. La ligne n'a plus
          d'objet, et ces contrôles non plus. */
-      var noms3 = libelles.slice().sort().join(' · ');
-      v.egal(noms3, 'Hook · Press · Toproll',
-             'la carte porte les TROIS styles, le press compris : sa side '
-           + 'pressure n’appartient plus qu’à lui');
-      v.egal(Array.prototype.filter.call(doc.querySelectorAll('.item-resume'),
-        function (x) { return /mouvement partagé/i.test(x.textContent); }).length, 0,
-             'et aucune ligne ne parle plus de mouvement partagé : il n’y en '
-           + 'a plus un seul');
+      v.egal(libelles.slice().sort().join(' · '), 'Hook · Toproll',
+             'la carte porte les DEUX styles lisibles, et pas le press : VOA '
+           + 'dit qu’il décide qui FINIT, pas qui contrôle la main');
+      var finition = Array.prototype.filter.call(
+        doc.querySelectorAll('.item-resume'), function (x) {
+          return /une finition, pas un style/i.test(x.textContent);
+        });
+      v.egal(finition.length, 1,
+             'et la side pressure se compte HORS de la carte, nommée pour ce '
+           + 'qu’elle est — une finition');
+      v.vrai(finition.length === 1 && /\d/.test(finition[0].textContent),
+             'avec son nombre de séries : les perdre serait pire que ne pas '
+           + 'savoir les ranger');
 
       /* ---- LES TROIS BLOCS RETIRES NE SONT PLUS LA ---- */
       v.egal(doc.querySelectorAll('.appui-ligne').length, 0,
@@ -4369,20 +4374,28 @@
 
        ET IL NE DOIT PLUS SE DIRE NON LISIBLE : si la phrase revenait, c'est
        que la table a reglisse. */
-    /* PAS « LE MOT EST LA » : sur la version d'avant, la phrase « Press —
-       non lisible » contient le mot, et ce controle tenait pour cette
-       raison-la. Il exige que le press soit une BARRE. */
+    /* ---- LE PRESS EST DIT NON LISIBLE, AVEC SA RAISON ET SON LIEN ----
+
+       Ces trois controles exigeaient l'inverse : le press en barre, et plus
+       un mot de « non lisible ». Ils gardaient une table que j'ai eu tort
+       d'ecrire — MB : « il me semblait que la back pressure jouait dans le
+       toproll », et VOA lui donne raison.
+
+       MB DEMANDAIT DES INFOS SOURCEES : une phrase sans lien n'est sourcee
+       que dans le code. Le controle exige donc le LIEN a l'ecran. */
     var libStyles = Array.prototype.map.call(vue.querySelectorAll('.barre'),
       function (b) { return b.firstElementChild.textContent; });
-    v.vrai(libStyles.indexOf('Press') >= 0,
-           'le PRESS est une BARRE parmi les styles, comme les deux autres '
-         + '(libellés : ' + libStyles.slice(0, 4).join(', ') + ')');
-    v.egal(/non lisible/i.test(t), false,
-           'et plus rien ne le dit « non lisible » : sa side pressure '
-         + 'n’appartient plus qu’à lui');
-    v.egal(/mouvement partagé/i.test(t), false,
-           'il n’y a plus de mouvement partagé à mettre à part — l’écran '
-         + 's’est simplifié tout seul, par la table');
+    v.egal(libStyles.indexOf('Press'), -1,
+           'le PRESS n’est PAS une barre de style : il n’est pas sur l’axe '
+         + 'des six mouvements (libellés : ' + libStyles.slice(0, 4).join(', ') + ')');
+    v.vrai(/décide qui FINIT, pas qui contrôle la main/.test(t),
+           'et l’écran DIT pourquoi, dans les mots de la source, au lieu de '
+         + 'laisser croire à un trou dans la table');
+    var lienVoa = Array.prototype.filter.call(vue.querySelectorAll('a'),
+      function (a) { return /voaarmwrestling/.test(a.getAttribute('href') || ''); });
+    v.vrai(lienVoa.length >= 1,
+           'avec le LIEN où on le vérifie — MB demandait des infos sourcées, '
+         + 'et une phrase sans lien ne l’est que dans le code');
 
     /* L'ÉCART, qui est le fond de la demande. */
     v.vrai(t.indexOf('TOPROLL') >= 0 && t.indexOf('HOOK') >= 0

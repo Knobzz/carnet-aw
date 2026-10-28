@@ -3863,23 +3863,30 @@
 
        CE CONTROLE PORTE LE LOT : plus aucun mouvement n'est porte par deux
        styles. Sur la version d'avant, `par.side_pressure` valait 2. */
-    var partages = Object.keys(par).filter(function (f) { return par[f] > 1; });
-    v.egal(partages.join(' · '), '',
-           'AUCUN mouvement n’appartient à deux styles : chacun des six '
-         + 'désigne un style et un seul');
-    v.egal(Object.keys(par).length, 6,
-           '[temoin] les six mouvements sont bien tous portés — sans eux, '
-         + '« aucun partagé » serait vrai pour rien');
-    v.egal(par.back_pressure + '' + par.side_pressure, '11',
-           'la back pressure est au HOOK, que la source nomme, et la side '
-         + 'pressure au PRESS, qui est la déduction assumée');
+    v.egal(Object.keys(par).filter(function (f) { return par[f] > 1; }).join(' · '),
+           '', 'aucun mouvement n’appartient à DEUX styles');
+    v.vrai(!('side_pressure' in par),
+           'et la side pressure n’appartient a AUCUN : VOA la dit finition de '
+         + '« most hook matches and many toproll matches », donc elle ne '
+         + 'désigne ni l’un ni l’autre');
+    v.egal(Object.keys(par).length, 5,
+           'les CINQ autres sont portés, chacun par un seul style');
+    v.vrai((A.m.styleAW('toproll') || { forces: [] }).forces.indexOf('back_pressure') >= 0,
+           'la BACK PRESSURE est au TOPROLL — MB : « il me semblait que la '
+         + 'back pressure jouait dans le toproll », et VOA l’écrit : « it '
+         + 'makes the toproll work »');
+    v.egal((A.m.styleAW('press') || { forces: ['?'] }).forces.length, 0,
+           'et le PRESS ne porte AUCUN mouvement : VOA dit l’axe — « toproll '
+         + 'and hook decide who controls the hand, the press and side '
+         + 'pressure decide who finishes »');
 
     v.egal(lis.lisibles.map(function (x) { return x.style.id; }).join(','),
-           'toproll,hook,press', 'les TROIS styles sont lisibles');
-    v.egal(lis.aveugles.length, 0,
-           'et aucun n’est aveugle : la branche de l’écran qui disait « non '
-         + 'lisible ici » ne tire plus, et ce contrôle tombera le jour où '
-         + 'un mouvement redeviendra partagé');
+           'toproll,hook', 'deux styles sont lisibles, sur des mouvements '
+         + 'qui n’appartiennent qu’à eux');
+    v.egal(lis.aveugles.map(function (x) { return x.style.id; }).join(','),
+           'press',
+           'et le PRESS ne l’est pas — non parce qu’il manque une source, '
+         + 'mais parce qu’il n’est pas sur le même axe');
 
     /* ---- le comptage, sur un décor ---- */
     var e = A.store.vide();
@@ -3919,14 +3926,20 @@
     v.egal((r.parStyle.toproll || 0), 10,
            'le toproll compte ses séries — 6 de pronation et 4 de rising');
     v.egal((r.parStyle.hook || 0), 3, 'le hook les siennes — 3 de cupping');
-    /* LES 5 SERIES DE SIDE PRESSURE VONT AU PRESS, et plus « a part » : la
-       relecture du 28/10 leur a donne un seul proprietaire. */
-    v.egal((r.parStyle.press || 0), 5,
-           'et les 5 séries de side pressure vont au PRESS, qui les porte '
-         + 'seul depuis que la source a été relue');
-    v.egal(Object.keys(r.partage).length, 0,
-           'plus rien n’est mis à part : il n’y a plus de mouvement partagé '
-         + 'à ranger quelque part');
+    /* ---- LE CONTROLE QUI PORTE LE LOT ----
+
+       Les 5 series de side pressure sont COMPTEES tout en n'etant
+       attribuees a personne. La version d'avant faisait
+       `if (!exclusives[f]) return;` : un mouvement porte par zero style
+       etait jete EN SILENCE, ni dans `parForce`, ni dans `total`, ni dans
+       `partage`. Ce correctif aurait donc fait DISPARAITRE ces series. */
+    v.egal((r.parStyle.press || 0), 0,
+           'le PRESS ne compte aucune serie : il ne porte aucun mouvement');
+    v.egal((r.parForce.side_pressure || 0) + '/' + (r.partage.side_pressure || 0),
+           '5/5',
+           'et les 5 séries de side pressure sont COMPTÉES et mises à part : '
+         + 'comptees, parce que les perdre serait pire que ne pas savoir les '
+         + 'ranger ; a part, parce qu’elles ne désignent aucun style');
     v.egal(r.total, 18,
            '[temoin] le total NE BOUGE PAS — 10 + 3 + 5 des deux côtés. Il '
          + 'tient avant comme après, et c’est tout son intérêt : la '
