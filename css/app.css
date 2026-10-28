@@ -1125,6 +1125,25 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    series se lit comme un exercice d'une. */
 .recup-compte { font-size: .78rem; color: var(--texte-2); font-weight: 550; }
 
+/* ---------- les remarques du Suivi ----------
+   Une remarque n'est pas un chiffre : elle se lit, et sa source doit se
+   voir sans qu'on la cherche. */
+.carte.remarque { border-left: 3px solid var(--bleu); }
+.remarque-titre { font-weight: 650; margin-bottom: 3px; }
+.remarque-fait { font-size: .88rem; color: var(--texte-2); }
+.remarque-dit {
+  margin: 8px 0 6px;
+  padding-left: 9px;
+  border-left: 2px solid var(--trait-fort);
+  font-size: .82rem;
+  font-style: italic;
+  color: var(--texte-2);
+  line-height: 1.45;
+}
+.remarque-qui a { font-size: .76rem; color: var(--bleu-vif); }
+.remarque-exos { font-size: .82rem; margin-top: 7px; color: var(--texte-2); }
+.remarque-exos b { color: var(--texte); }
+
 /* Les sept derniers jours, un carre par jour : le trou se voit d'un coup
    d'oeil, ce qu'un pourcentage ne montre pas. */
 .recup-semaine { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }

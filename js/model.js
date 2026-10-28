@@ -513,7 +513,14 @@
                     articulaire. Ce qui suit vient d'une seule etude EMG sur
                     le bras de fer.
        'terrain'    ce que disent les competiteurs, les entraineurs et les
-                    federations. Il n'existe qu'UNE etude EMG sur ce sport :
+                    federations. Il n'existe qu'UNE etude EMG sur ce sport,
+                    NOMMEE depuis le 28/10 : de Oliveira Silva et al.,
+                    J Electromyogr Kinesiol 2009;19(6):e448-57, dix sujets,
+                    40 % et 80 % de la charge volontaire maximale. Elle
+                    conclut que « PM and FCU muscles participate as agonists
+                    whereas BB and PT seem to perform secondary functions ».
+                    Le carnet l'invoquait trois fois sans la nommer, et le
+                    lien pointait vers l'AUTRE source :
                     refuser cette parole reviendrait a refuser presque tout
                     ce qui s'en sait. Elle ne vaut pas de l'anatomie de
                     manuel, et c'est pour ca qu'elle a son niveau a elle.
@@ -556,8 +563,10 @@
        Le subscapulaire vient de l'etude, qui le nomme parmi les rotateurs
        internes agissant sur l'humerus pendant le sport. */
     back_pressure: { source: 'terrain',
-                     dit: 'Voice of Armwrestling, et une étude EMG sur bras de fer simulé',
-                     lien: 'https://voaarmwrestling.com/blogs/training/toproll-technique-and-exercises',
+                     dit: 'Voice of Armwrestling, et de Oliveira Silva et al., '
+                        + 'J Electromyogr Kinesiol 2009 — EMG sur bras de fer '
+                        + 'simulé, 10 sujets',
+                     lien: 'https://doi.org/10.1016/j.jelekin.2008.09.014',
                      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
                                'subscapulaire', 'deltoide', 'biceps',
                                'brachio_radial'] },
@@ -567,8 +576,10 @@
        sport. Le grand dorsal, l'autre gros rotateur interne, reste dehors :
        aucune source ne le rattache a la pression laterale. */
     side_pressure: { source: 'terrain',
-                     dit: 'Voice of Armwrestling, et une étude EMG sur bras de fer simulé',
-                     lien: 'https://voaarmwrestling.com/blogs/training/toproll-technique-and-exercises',
+                     dit: 'Voice of Armwrestling, et de Oliveira Silva et al., '
+                        + 'J Electromyogr Kinesiol 2009 — EMG sur bras de fer '
+                        + 'simulé, 10 sujets',
+                     lien: 'https://doi.org/10.1016/j.jelekin.2008.09.014',
                      muscles: ['grand_pectoral', 'subscapulaire', 'deltoide', 'fcu'] }
   };
 
@@ -4284,6 +4295,20 @@
     return { surLeCote: surLeCote, sansCote: sansCote };
   }
 
+  /* 48 ET 72 H — ENFIN SOURCES, le 2026-10-28.
+
+     Ces deux nombres gouvernaient la couleur de « Derniere sollicitation »
+     depuis des semaines SANS SOURCE. Ils en ont une, et c'est une
+     federation : Toronto Armwrestling Federation, « How to train for arm
+     wrestling » — « Most pullers do two to four short weight sessions a
+     week plus one or two table-time sessions, KEPT 48-72 HOURS APART. »
+     https://www.tawf.ca/league/learn/how-to-train-for-arm-wrestling
+
+     La meme page donne la RAISON : « tendons and ligaments adapt more
+     slowly than muscles » et « adaptation happens between sessions, not
+     during them ».
+
+     Le seuil etait juste ; le carnet ne le savait pas. */
   function zoneDelai(jours) {
     if (jours < 2) return 'chaud';   // < 48 h
     if (jours < 3) return 'tiede';   // 48–72 h
@@ -4798,6 +4823,110 @@
     return r;
   }
 
+  /* ---------- LES REMARQUES DU SUIVI ----------
+
+     Elles NOMMENT un ecart et CITENT qui le dit. Elles ne prescrivent
+     jamais : ni serie, ni repetition, ni pourcentage — parce qu'AUCUNE
+     source n'en donne pour l'avant-bras, et qu'en inventer un serait pire
+     que se taire.
+
+     LE DECLENCHEUR SUIT LE MOT DE LA SOURCE. La federation ecrit
+     « training ONLY the flexing side » : le declencheur est donc ZERO
+     extenseur, pas un ratio que personne n'a mesure. */
+  var SOURCES_REMARQUE = {
+    tawf: { qui: 'Toronto Armwrestling Federation — How to train for arm wrestling',
+            lien: 'https://www.tawf.ca/league/learn/how-to-train-for-arm-wrestling' },
+    hook2026: { qui: 'Marotta, Lopresti, Zangari et al. (Université de Catanzaro), '
+                   + 'Applied Sciences 2026 — 11 athlètes spécialistes du hook',
+                lien: 'https://doi.org/10.3390/app16020713' }
+  };
+
+  /* LES EXTENSEURS DU POIGNET, ET EUX SEULS.
+
+     La federation ecrit « Don't skip the WRIST EXTENSORS ». Le groupe
+     `avant_bras_ar` est plus large : il contient aussi le SUPINATEUR, qui
+     n'etend pas le poignet. Premiere version : je filtrais sur le groupe,
+     et « Supination » apparaissait dans une liste censee combler un manque
+     d'extenseurs. Mesure a l'ecran, corrigee avant livraison. */
+  var EXTENSEURS_POIGNET = ['ecrl', 'ecrb', 'ecu', 'extenseurs_doigts'];
+
+  /* Les exercices du DICTIONNAIRE qui chargent CES muscles. Rien n'est
+     invente : ce sont ses propres fiches, filtrees — et classees par le
+     nombre de muscles vises, pour que la meilleure reponse vienne en
+     premier. */
+  function exercicesPourMuscles(ids, combien) {
+    var notes = [];
+    DICTIONNAIRE.forEach(function (d) {
+      var n = (d.muscles || []).filter(function (id) {
+        return ids.indexOf(id) >= 0;
+      }).length;
+      if (n) notes.push({ nom: d.nom, n: n });
+    });
+    notes.sort(function (a, b) { return b.n - a.n; });
+    return notes.slice(0, combien || 4).map(function (x) { return x.nom; });
+  }
+
+  function remarques(etat, depuisJours) {
+    var out = [];
+    if (!etat) return out;
+
+    /* ---- 1. LES EXTENSEURS DU POIGNET, OUBLIES ----
+       « Don't skip the wrist extensors. Training ONLY the flexing side
+       creates an imbalance that leads to elbow pain. » — TAWF.
+       Le mot est « only » : on ne se declenche que sur un ZERO. */
+    var c = chargeParMuscle(etat, depuisJours);
+    var flech = c.parRegion.avant_bras_av || 0;
+    var ext = c.parRegion.avant_bras_ar || 0;
+    if (flech > 0 && ext === 0) {
+      out.push({
+        id: 'extenseurs',
+        titre: 'Aucun extenseur du poignet',
+        texte: flech + ' série' + (flech > 1 ? 's' : '') + ' sur l’avant-bras '
+             + 'antérieur, et ZÉRO sur le postérieur.',
+        dit: 'Don’t skip the wrist extensors. Training only the flexing side '
+           + 'creates an imbalance that leads to elbow pain.',
+        source: SOURCES_REMARQUE.tawf,
+        exercices: exercicesPourMuscles(EXTENSEURS_POIGNET, 4)
+      });
+    }
+
+    /* ---- 2. LE HOOK ET L'EPICONDYLE MEDIAL ----
+       Deux FAITS du carnet qui se rencontrent : des sparrings declares en
+       hook, et une douleur au coude medial. L'etude nomme l'association,
+       elle ne dit pas d'arreter — et le carnet non plus. */
+    var dec = stylesDeclares(etat, depuisJours);
+    var hooks = (dec.parStyle || {}).hook || 0;
+    /* `episodesDouleur` rend des SEANCES, pas des douleurs : j'avais lu
+       `e.zone` sur une seance, qui n'en a pas. La zone vit dans
+       `seance.douleurs`, et `zonesVives` ecarte « aucune ». */
+    var douleursMediales = 0;
+    (episodesDouleur(etat) || []).forEach(function (se) {
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      var touche = zonesVives(se.douleurs).some(function (d) {
+        return d.zone === 'coude_medial';
+      });
+      if (touche) douleursMediales += 1;
+    });
+    if (hooks > 0 && douleursMediales > 0) {
+      out.push({
+        id: 'hook-medial',
+        titre: 'Hook et coude médial',
+        texte: hooks + ' sparring' + (hooks > 1 ? 's' : '') + ' déclaré'
+             + (hooks > 1 ? 's' : '') + ' en hook, et ' + douleursMediales
+             + ' épisode' + (douleursMediales > 1 ? 's' : '')
+             + ' de douleur au coude médial.',
+        dit: 'In the Hook technique, the athlete executes forceful wrist '
+           + 'flexion in combination with forearm pronation, and sustained '
+           + 'elbow flexion […] making the Hook technique particularly '
+           + 'associated with the development of medial epicondylitis.',
+        source: SOURCES_REMARQUE.hook2026,
+        exercices: []
+      });
+    }
+
+    return out;
+  }
+
   /* ---------- le retour d'un testeur ----------
 
      Un rapport utile tient en deux morceaux : ce que la personne a vu, et le
@@ -4972,6 +5101,9 @@
     forcesDeLExercice: forcesDeLExercice,
     STYLES_AW: STYLES_AW, styleAW: styleAW, stylesParForce: stylesParForce,
     repartitionStyles: repartitionStyles, stylesDeclares: stylesDeclares,
+    remarques: remarques, exercicesPourMuscles: exercicesPourMuscles,
+    EXTENSEURS_POIGNET: EXTENSEURS_POIGNET,
+    SOURCES_REMARQUE: SOURCES_REMARQUE,
     stylesLisibles: stylesLisibles,
     statsSparring: statsSparring,
     chargeParSemaine: chargeParSemaine, comparerDeuxPeriodes: comparerDeuxPeriodes,

@@ -1206,6 +1206,59 @@
   }
 
   /* ------------------------------------------------------------------
+     CE QUE LE CARNET REMARQUE
+
+     MB, 28/10 : « faire des recommandations d’exercices ou bien des axes
+     d’améliorations », puis « je veux de la donnée scientifique et des
+     sources précises, soit d’entités ou d’armwrestler pro ».
+
+     CHAQUE REMARQUE PORTE SA SOURCE, ou elle n’existe pas. Et il n’y en a
+     que DEUX, parce que deux sources seulement le permettent :
+
+       — la fédération de Toronto sur les extenseurs du poignet, avec une
+         conséquence nommée : « an imbalance that leads to elbow pain » ;
+       — l’étude de Catanzaro sur le hook et l’épicondyle médial.
+
+     CE QUI N’Y EST PAS, ET POURQUOI. Aucun seuil de volume : la règle des
+     10 % par semaine est « widely used as guidance, but its evidence is
+     controversial », et RIEN ne porte sur l’avant-bras. Aucune injonction
+     à équilibrer les styles : personne de vérifiable ne la recommande, et
+     Larratt la combat — « peak performance demands abandoning equilibrium
+     entirely ». Le carnet montre l’écart des styles ailleurs ; il ne dit
+     jamais de le combler.
+     ------------------------------------------------------------------ */
+  function blocRemarques(e, periode) {
+    var l = A.m.remarques(e, A.m.joursDeLaFenetre(periode.semaines));
+    var f = document.createDocumentFragment();
+    if (!l.length) return f;
+
+    f.appendChild(section('Ce que le carnet remarque',
+      'Chaque constat cite qui le dit. Le carnet ne prescrit rien.'));
+
+    l.forEach(function (r) {
+      var carte = h('div', { class: 'carte remarque' });
+      var corps = h('div', { class: 'carte-corps' });
+      corps.appendChild(h('div', { class: 'remarque-titre', text: r.titre }));
+      corps.appendChild(h('div', { class: 'remarque-fait', text: r.texte }));
+      corps.appendChild(h('blockquote', { class: 'remarque-dit', text: '« ' + r.dit + ' »' }));
+      var qui = h('div', { class: 'remarque-qui' });
+      var a = h('a', { href: r.source.lien, target: '_blank', rel: 'noopener',
+                       text: r.source.qui });
+      qui.appendChild(a);
+      corps.appendChild(qui);
+
+      if ((r.exercices || []).length) {
+        corps.appendChild(h('div', { class: 'remarque-exos' },
+          h('b', { text: 'Dans ton dictionnaire : ' }),
+          r.exercices.join(' · ')));
+      }
+      carte.appendChild(corps);
+      f.appendChild(carte);
+    });
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
      LE STYLE QUE LES EXERCICES RÉVÈLENT
 
      MB, 28/10 : « j’aimerai que le suivi montre quelle technique il
@@ -1523,6 +1576,7 @@
     hote.appendChild(h('div', { class: 'portee',
       text: 'Séances de musculation. Les douleurs, elles, se lisent de partout.' }));
     hote.appendChild(blocVingtQuatre(e, function () { rendre(hote); }));
+    hote.appendChild(blocRemarques(e, periode));
     hote.appendChild(blocStyleEntrainement(e, periode));
     hote.appendChild(blocVolume(e));
     hote.appendChild(blocRegions(e, periode, refaire));

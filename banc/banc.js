@@ -3729,6 +3729,116 @@
          + 'ajoutée');
   });
 
+  /* ------------------------------------------------------------------
+     CE QUE LE CARNET REMARQUE — et ce qu'il refuse de dire
+
+     MB, 28/10 : « je veux de la donnee scientifique et des sources
+     precises, soit d'entites ou d'armwrestler pro ».
+
+     DEUX REMARQUES, DEUX SOURCES. Et le plus important se mesure en
+     NEGATIF : aucun seuil de volume, aucune injonction a equilibrer les
+     styles. La recherche n'a rien donne pour le premier, et Larratt
+     combat la seconde.
+     ------------------------------------------------------------------ */
+  bloc('Ce que le carnet remarque', function (v) {
+    function rem(e, j) { return A.m.remarques ? A.m.remarques(e, j) : []; }
+    function jourIl(n) {
+      var d = new Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function exo(nom, mus, nb) {
+      var l = [];
+      for (var i = 0; i < nb; i++) {
+        l.push({ id: 's' + nom + i, type: 'normale', faite: true, faiteA: null,
+                 chargeCible: '', repsCible: '', dureeCible: '',
+                 chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null });
+      }
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: A.m.slug(nom), aw: true,
+               typeCharge: 'kg', colonnes: ['charge', 'reps'], muscles: mus,
+               forces: [], structures: [], outils: [], consigne: '',
+               reposSecondes: 90, series: l };
+    }
+
+    /* ---- RIEN A DIRE SUR UN CARNET VIDE ---- */
+    v.egal(rem(A.store.vide(), 30).length, 0,
+           '[temoin] un carnet vide ne remarque RIEN : une remarque sans '
+         + 'donnée serait un reproche gratuit');
+
+    /* ---- 1. LES EXTENSEURS, ET LE MOT « ONLY » ---- */
+    var e = A.store.vide();
+    e.seances = [{ id: 'm1', type: 'muscu', date: jourIl(3), heure: '', note: '',
+                   douleurs: [],
+                   exercices: [exo('Wrist curl', ['fcr', 'fcu', 'long_palmaire'], 5)] }];
+    var r1 = rem(e, 30);
+    v.egal(r1.length, 1, 'des fléchisseurs sans aucun extenseur font UNE remarque');
+    v.egal((r1[0] || {}).id, 'extenseurs', 'et c’est celle des extenseurs');
+    v.vrai(((r1[0] || {}).dit || '').indexOf('Don’t skip the wrist extensors') === 0,
+           'elle CITE la fédération, mot pour mot');
+    v.vrai(((r1[0] || {}).source || {}).lien
+           && (r1[0].source.lien).indexOf('tawf.ca') >= 0,
+           'et elle porte le lien, pour qu’on puisse la contredire');
+
+    /* LE DECLENCHEUR SUIT LE MOT DE LA SOURCE. « training ONLY the flexing
+       side » : UNE seule série d'extenseurs suffit à éteindre la remarque.
+       C'est voulu — un ratio aurait été inventé. */
+    e.seances[0].exercices.push(exo('Wrist curl inversé', ['ecrl'], 1));
+    v.egal(rem(e, 30).filter(function (x) { return x.id === 'extenseurs'; }).length, 0,
+           'UNE seule série d’extenseur l’éteint : la source dit « only », '
+         + 'pas « assez » — et aucun ratio n’a été inventé');
+
+    /* ---- LES EXERCICES PROPOSES SONT DES EXTENSEURS DU POIGNET ---- */
+    var exos = A.m.exercicesPourMuscles
+             ? A.m.exercicesPourMuscles(A.m.EXTENSEURS_POIGNET || [], 4) : [];
+    v.egal(exos.length, 4, 'quatre exercices du dictionnaire sont proposés');
+    v.vrai(exos.indexOf('Wrist curl inversé') === 0,
+           'le plus couvrant vient en PREMIER — il vise quatre des quatre');
+    v.egal(exos.indexOf('Supination'), -1,
+           'et « Supination » n’y est PAS : le supinateur est du même groupe, '
+         + 'mais il n’étend pas le poignet — la source dit « wrist '
+         + 'extensors »');
+
+    /* ---- 2. LE HOOK ET L'EPICONDYLE MEDIAL ---- */
+    var e2 = A.store.vide();
+    var sp = { id: 'sp1', type: 'sparring', date: jourIl(1), style: 'hook',
+               rounds: 5, dureeMin: 15, cote: 'droite', partenaires: '',
+               douleurs: [] };
+    var se = { id: 'm2', type: 'muscu', date: jourIl(2), heure: '', note: '',
+               douleurs: [{ zone: 'coude_medial', cote: 'droite', intensite: 4 }],
+               exercices: [exo('Wrist curl', ['fcr'], 2), exo('Wrist curl inversé', ['ecrl'], 2)] };
+    e2.seances = [sp, se];
+    var r2 = rem(e2, 30).filter(function (x) { return x.id === 'hook-medial'; });
+    v.egal(r2.length, 1,
+           'un sparring en hook ET une douleur médiale font la remarque');
+    v.vrai(((r2[0] || {}).source || {}).lien
+           && r2[0].source.lien.indexOf('10.3390/app16020713') >= 0,
+           'elle cite l’étude de Catanzaro, par son DOI');
+
+    /* IL EN FAUT DEUX. Un seul des deux faits ne dit rien : associer une
+       douleur a un style sans que les deux soient la serait un reproche
+       fabrique. */
+    var e3 = A.store.vide();
+    e3.seances = [sp];
+    v.egal(rem(e3, 30).filter(function (x) { return x.id === 'hook-medial'; }).length, 0,
+           'le hook SEUL ne dit rien — sans douleur, il n’y a rien à '
+         + 'rapprocher');
+
+    /* ---- CE QUE LE CARNET NE DIT JAMAIS ---- */
+    var tous = rem(e2, 30).concat(r1);
+    var interdits = ['%', 'augmente', 'réduis', 'tu devrais', 'il faut'];
+    var fautifs = [];
+    tous.forEach(function (x) {
+      var t = (x.titre + ' ' + x.texte).toLowerCase();
+      interdits.forEach(function (mot) {
+        if (t.indexOf(mot) >= 0) fautifs.push(x.id + ' : ' + mot);
+      });
+    });
+    v.egal(fautifs.join(' · '), '',
+           'AUCUNE remarque ne prescrit — ni pourcentage, ni « tu devrais » : '
+         + 'la règle des 10 %/semaine n’est pas fondée, et rien ne porte sur '
+         + 'l’avant-bras');
+  });
+
   bloc('Récupération', function (v) {
     function jour(d, faits) {
       return { id: 're' + d, type: 'recup', date: d, heure: d + 'T20:00:00.000Z',

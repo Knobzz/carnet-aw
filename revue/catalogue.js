@@ -282,7 +282,12 @@
       lien: 'https://www.kenhub.com/en/library/anatomy/brachialis-muscle'
     },
     hook2026: {
-      qui: 'Giordano et al., « The Role of Kinematic and Electromyographic '
+      /* NOM CORRIGE le 2026-10-28 : le carnet disait « Giordano et al. ».
+         Les auteurs sont MAROTTA et al. — verifie sur la page de l'editeur.
+         Une source mal attribuee est une source qu'on ne peut pas
+         retrouver. */
+      qui: 'Marotta, Lopresti, Zangari et al. (Université de Catanzaro), '
+         + '« The Role of Kinematic and Electromyographic '
          + 'Analysis of the Elbow in Arm Wrestlers », Applied Sciences 2026 '
          + '— étude de rééducation, 11 athlètes avec épicondylite médiale',
       revu: null,

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revue — 1.45 les cadres, 1.46 les remarques</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 16px 14px 60px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .page { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  .sous { color: var(--texte-2); font-size: .92rem; margin: 0 0 20px; }
+  h2 { font-size: 1.05rem; margin: 26px 0 4px; padding-top: 14px;
+       border-top: 2px solid var(--trait-fort); }
+  h3.sstitre { font-size: .95rem; margin: 16px 0 6px; color: var(--texte); }
+  .dit { color: var(--texte-2); font-size: .88rem; margin: 0 0 10px; }
+  .dit b { color: var(--texte); }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem;
+          margin-bottom: 12px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--trait); }
+  th { color: var(--texte-2); font-weight: 550; font-size: .78rem; }
+  .nul { color: var(--texte-3); font-style: italic; }
+  .deux { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  /* 320 px : la largeur reelle du telephone, pas celle du bureau. */
+  .tel { width: 320px; flex: 0 0 320px; border: 1px solid var(--trait-fort);
+         border-radius: 10px; background: var(--fond); padding: 10px;
+         box-sizing: border-box; }
+  .manettes { flex: 1; min-width: 280px; }
+  .manette { display: flex; align-items: center; gap: 9px; margin-bottom: 9px;
+             font-size: .88rem; }
+  .manette input { width: 20px; height: 20px; }
+  .mesure { font-size: .8rem; color: var(--laiton); margin-top: 10px;
+            font-variant-numeric: tabular-nums; }
+  .vide-sim { color: var(--texte-3); font-style: italic; font-size: .88rem;
+              padding: 14px 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>1.45 et 1.46, avant validation</h1>
+  <p class="sous">Tout est lu dans <b>le vrai modèle</b> (<code>js/model.js</code>).
+     Le simulateur du bas appelle <code>A.m.remarques()</code> — la fonction
+     même qui tournera sur ton téléphone.</p>
+  <div id="corps"></div>
+</div>
+
+<script src="js/model.js"></script>
+<script>
+var m = window.App.m;
+var corps = document.getElementById('corps');
+
+/* CETTE PLANCHE LIT LE MODELE DU SITE. Ouverte contre une version
+   anterieure a celle qu'elle decrit, les fonctions qu'elle appelle
+   n'existent pas — et elle planterait sans rien dire. Elle le DIT. */
+var MANQUE = ['remarques', 'exercicesPourMuscles', 'musclesDuReglagePropose',
+              'reglagesProposes', 'ficheDictionnaire']
+  .filter(function (f) { return typeof m[f] !== 'function'; });
+if (MANQUE.length) {
+  var av = document.createElement('div');
+  av.className = 'dit';
+  av.style.cssText = 'border-left:3px solid var(--tendon);padding-left:10px;'
+                   + 'color:var(--tendon)';
+  av.innerHTML = '<b>Le modèle servi ici est plus ancien que ce lot.</b> '
+    + MANQUE.length + ' fonction' + (MANQUE.length > 1 ? 's' : '')
+    + ' manque' + (MANQUE.length > 1 ? 'nt' : '') + ' — ' + MANQUE.join(', ')
+    + '. La planche ne peut pas montrer ce qui n’est pas livré : c’est voulu, '
+    + 'elle interroge le modèle au lieu de réciter.';
+  corps.appendChild(av);
+}
+
+function el(t, c, x) {
+  var n = document.createElement(t);
+  if (c) n.className = c;
+  if (x != null) n.textContent = x;
+  return n;
+}
+function h2(t) { corps.appendChild(el('h2', null, t)); }
+function dit(html) { var d = el('div', 'dit'); d.innerHTML = html; corps.appendChild(d); return d; }
+function nomMuscle(id) { var mu = m.muscle(id); return mu ? mu.nom : id; }
+
+/* ===================== 1.45 — LES DEUX CADRES ===================== */
+h2('1.45 — Les deux cadres à accessoires');
+dit('Un cadre ne travaille <b>aucun muscle</b> : c’est l’accessoire monté '
+  + 'qui décide. Le tableau ci-dessous est lu dans le modèle, et les muscles '
+  + 'sont <b>dérivés</b> de la famille de chaque accessoire — le jour où le '
+  + 'cône gagne un muscle, le Kegel et le Cone Handle le gagnent aussi.');
+
+[['Multi-Tool', 'Titangrip — https://titangrip.de/multi-tool',
+  '« Hast du schon einen Rahmen? » puis « Wähle deine Aufsätze! »'],
+ ['Armwrestling Buddies', 'Golden Grip — armwrestling-buddies-pick-and-choose',
+  '« Full set includes a metal frame, 6 attachments, and a screw to attach '
+  + 'them. 5 holes in the frame to allow you to focus on different fingers. »']
+].forEach(function (cadre) {
+  corps.appendChild(el('h3', 'sstitre', cadre[0]));
+  var d = el('div', 'dit');
+  d.innerHTML = '<b>' + cadre[1] + '</b><br>« ' + cadre[2].replace(/«|»/g, '').trim() + ' »';
+  corps.appendChild(d);
+
+  var nu = m.musclesDeLOutil([cadre[0]]).length;
+  var dn = el('div', 'dit');
+  dn.innerHTML = 'Le cadre nu : <b>' + nu + ' muscle' + (nu > 1 ? 's' : '')
+               + '</b> — et c’est juste, il ne fait que recevoir.';
+  corps.appendChild(dn);
+
+  var t = el('table');
+  t.innerHTML = '<tr><th>accessoire</th><th>muscles qu’il emporte</th></tr>';
+  m.reglagesProposes(null, cadre[0]).forEach(function (a) {
+    var mus = m.musclesDuReglagePropose(cadre[0], a);
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><b>' + a + '</b></td><td' + (mus.length ? '' : ' class="nul"') + '>'
+      + (mus.length ? mus.map(nomMuscle).join(', ')
+                    : 'aucun — le fabricant ne le décrit pas') + '</td>';
+    t.appendChild(tr);
+  });
+  corps.appendChild(t);
+});
+
+dit('<b>Les deux sans muscles sont mesurés, pas oubliés</b> : j’ai ouvert '
+  + 'les fiches de « Wrist Pro » et « Multi Hand Grip » sur titangrip.de — '
+  + 'nom, prix, référence, stock, aucune description. Les ranger dans une '
+  + 'famille aurait été les deviner.');
+dit('<b>Les cinq trous du cadre Golden Grip ne sont pas montés</b> : le '
+  + 'fabricant ne dit jamais quel trou charge quel doigt, et six accessoires '
+  + 'fois cinq trous feraient trente puces. Le nom d’un réglage est libre — '
+  + '« Cône · trou 3 » marche déjà.');
+
+/* ===================== 1.46 — LES REMARQUES ===================== */
+h2('1.46 — Ce que le carnet remarque');
+dit('<b>Deux remarques, deux sources</b>, et chacune porte sa citation et '
+  + 'son lien. Le simulateur ci-dessous construit un carnet de toutes pièces '
+  + 'et appelle la vraie fonction. Coche et décoche : regarde les cartes '
+  + 'apparaître et disparaître.');
+
+var sim = el('div', 'deux');
+var tel = el('div', 'tel');
+var man = el('div', 'manettes');
+
+var etatSim = {
+  flechisseurs: true,
+  extenseurs: false,
+  hook: true,
+  douleur: true
+};
+
+function bascule(cle, libelle, aide) {
+  var l = el('label', 'manette');
+  var i = document.createElement('input');
+  i.type = 'checkbox';
+  i.checked = etatSim[cle];
+  i.addEventListener('change', function () { etatSim[cle] = i.checked; peindre(); });
+  l.appendChild(i);
+  var t = el('span');
+  t.innerHTML = '<b>' + libelle + '</b><br><span style="color:var(--texte-2);'
+              + 'font-size:.82rem">' + aide + '</span>';
+  l.appendChild(t);
+  man.appendChild(l);
+}
+
+bascule('flechisseurs', '5 séries de wrist curl',
+        'fléchisseur radial, ulnaire, long palmaire');
+bascule('extenseurs', '1 série de wrist curl inversé',
+        'UNE suffit à éteindre la remarque — la source dit « only »');
+bascule('hook', '1 sparring déclaré en hook', 'le style que tu coches');
+bascule('douleur', '1 douleur au coude médial', 'notée sur une séance');
+
+function jourIl(n) {
+  var d = new Date(); d.setDate(d.getDate() - n);
+  var z = function (x) { return (x < 10 ? '0' : '') + x; };
+  return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+}
+function exoSim(nom, mus, nb) {
+  var l = [];
+  for (var i = 0; i < nb; i++) {
+    l.push({ id: 's' + nom + i, type: 'normale', faite: true, faiteA: null,
+             chargeCible: '', repsCible: '', dureeCible: '',
+             chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null });
+  }
+  return { id: 'e' + nom, ordre: 0, nom: nom, slug: m.slug(nom), aw: true,
+           typeCharge: 'kg', colonnes: ['charge', 'reps'], muscles: mus,
+           forces: [], structures: [], outils: [], consigne: '',
+           reposSecondes: 90, series: l };
+}
+
+function construire() {
+  var e = { seances: [], exercices: [], outils: [], programmes: [],
+            routinesRecup: [], routineRecup: null, releves: [],
+            reglages: {} };
+  var exos = [];
+  if (etatSim.flechisseurs) exos.push(exoSim('Wrist curl', ['fcr', 'fcu', 'long_palmaire'], 5));
+  if (etatSim.extenseurs) exos.push(exoSim('Wrist curl inversé', ['ecrl'], 1));
+  if (exos.length) {
+    e.seances.push({ id: 'm1', type: 'muscu', date: jourIl(3), heure: '',
+                     note: '', exercices: exos,
+                     douleurs: etatSim.douleur
+                       ? [{ zone: 'coude_medial', cote: 'droite', intensite: 4 }]
+                       : [] });
+  }
+  if (etatSim.hook) {
+    e.seances.push({ id: 'sp1', type: 'sparring', date: jourIl(1), style: 'hook',
+                     rounds: 5, dureeMin: 15, cote: 'droite', partenaires: '',
+                     douleurs: [] });
+  }
+  return e;
+}
+
+var mesure = el('div', 'mesure');
+
+function peindre() {
+  tel.textContent = '';
+  var e = construire();
+  var l = (typeof m.remarques === 'function') ? m.remarques(e, 30) : [];
+
+  var ent = el('div', 'sous-titre', 'Ce que le carnet remarque');
+  tel.appendChild(ent);
+
+  if (!l.length) {
+    tel.appendChild(el('div', 'vide-sim',
+      'Rien à remarquer. Le carnet se tait plutôt que de meubler.'));
+  }
+
+  l.forEach(function (r) {
+    var carte = el('div', 'carte remarque');
+    var c = el('div', 'carte-corps');
+    c.appendChild(el('div', 'remarque-titre', r.titre));
+    c.appendChild(el('div', 'remarque-fait', r.texte));
+    c.appendChild(el('blockquote', 'remarque-dit', '« ' + r.dit + ' »'));
+    var q = el('div', 'remarque-qui');
+    var a = el('a', null, r.source.qui);
+    a.href = r.source.lien; a.target = '_blank'; a.rel = 'noopener';
+    q.appendChild(a);
+    c.appendChild(q);
+    if ((r.exercices || []).length) {
+      var ex = el('div', 'remarque-exos');
+      ex.innerHTML = '<b>Dans ton dictionnaire : </b>' + r.exercices.join(' · ');
+      c.appendChild(ex);
+    }
+    carte.appendChild(c);
+    tel.appendChild(carte);
+  });
+
+  mesure.textContent = l.length + ' remarque' + (l.length > 1 ? 's' : '')
+    + ' · hauteur de l’écran : ' + tel.scrollHeight + ' px à 320 px de large';
+}
+
+man.appendChild(mesure);
+sim.appendChild(tel);
+sim.appendChild(man);
+corps.appendChild(sim);
+peindre();
+
+dit('<b>Ce que le carnet ne dit JAMAIS</b>, et qu’un contrôle du banc '
+  + 'vérifie en balayant chaque remarque : pas de « % », pas d’« augmente », '
+  + 'pas de « tu devrais », pas d’« il faut ». La règle des 10 % par semaine '
+  + 'est « <i>widely used as guidance, but its evidence is controversial</i> » '
+  + '(revue systématique), et <b>rien</b> ne porte sur l’avant-bras. Aucune '
+  + 'injonction à équilibrer les styles non plus : Larratt la combat — '
+  + '« <i>peak performance demands abandoning equilibrium entirely</i> ».');
+
+/* ---- les exercices proposes, et celui qui a ete ecarte ---- */
+corps.appendChild(el('h3', 'sstitre', 'Les exercices proposés — et celui que j’ai dû retirer'));
+var te = el('table');
+te.innerHTML = '<tr><th>exercice</th><th>extenseurs du poignet qu’il vise</th></tr>';
+m.exercicesPourMuscles(m.EXTENSEURS_POIGNET, 4).concat(['Supination']).forEach(function (n) {
+  var d = m.ficheDictionnaire(n);
+  var vise = ((d || {}).muscles || []).filter(function (id) {
+    return m.EXTENSEURS_POIGNET.indexOf(id) >= 0;
+  });
+  var tr = document.createElement('tr');
+  var ecarte = n === 'Supination';
+  tr.innerHTML = '<td' + (ecarte ? ' class="nul"' : '') + '><b>' + n + '</b>'
+    + (ecarte ? ' — ÉCARTÉ' : '') + '</td><td' + (vise.length ? '' : ' class="nul"') + '>'
+    + (vise.length ? vise.map(nomMuscle).join(', ')
+                   : 'aucun — le supinateur est du même groupe, mais il '
+                     + 'n’étend pas le poignet') + '</td>';
+  te.appendChild(tr);
+});
+corps.appendChild(te);
+dit('Je proposais « Supination » pour combler un manque d’extenseurs. '
+  + 'Le supinateur appartient bien à l’avant-bras postérieur, mais il '
+  + '<b>n’étend pas le poignet</b> — et la fédération écrit « wrist '
+  + 'extensors ». Vu à l’écran, corrigé avant livraison.');
+</script>
+</body>
+</html>
