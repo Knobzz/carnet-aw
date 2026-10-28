@@ -572,6 +572,81 @@
                      muscles: ['grand_pectoral', 'subscapulaire', 'deltoide', 'fcu'] }
   };
 
+  /* ---------- LES MOTS D'UN MOUVEMENT ----------
+
+     Choix de MB le 2026-10-28 : les mouvements se DEDUISENT du nom, comme
+     les muscles. Sans ca, le suivi de technique reste vide — la case
+     Mouvements est facultative, et personne ne reprend 200 fiches.
+
+     POURQUOI UNE TABLE A PART, et non une deduction depuis les muscles :
+     les muscles du RISING contiennent biceps, brachial et deltoide. Un curl
+     ordinaire les propose tous les trois — il se lirait comme un rising,
+     ce qu'il n'est pas. L'inference muscles -> mouvement est fausse dans ce
+     sens ; seuls les mots du geste le disent.
+
+     « PRESS » N'Y EST PAS, ET C'EST MESURE : le mot est pris par « bench
+     press », « overhead press » et « close grip bench press », trois
+     entrees livrees. Un mot qui designe trois exercices de musculation ne
+     peut pas designer un style de bras de fer. Le press se suit donc
+     autrement — voir STYLES_AW.
+
+     MESURE AVANT ECRITURE, sur les 42 entrees du dictionnaire : 14 portent
+     un mouvement, et les 28 autres n'en portent aucun a tort. */
+  var MOTS_FORCE = {
+    pronation:     ['pronation', 'pronateur', 'pronator', 'pronat',
+                    'toproll', 'top roll', 'curl zottman', 'zottman'],
+    supination:    ['supination', 'supinateur', 'supinator', 'supinat',
+                    'hook'],
+    cupping:       ['cupping', 'cup', 'wrist curl', 'flexion poignet',
+                    'flechisseur poignet', 'tenue en cup',
+                    'tenue de poignet ferme'],
+    rising:        ['rising', 'riser', 'posting'],
+    back_pressure: ['back pressure', 'pression arriere', 'tirage arriere'],
+    side_pressure: ['side pressure', 'presse de cote', 'pression laterale']
+  };
+
+  /* « Poignee de hook » est un OUTIL, pas un geste. Ce qui suit un mot de
+     materiel ne se lit pas comme un mouvement — meme raison que le « PAS
+     grip tout court » des muscles : un mot present dans un nom de materiel
+     ne designe pas le geste. Mesure : sans cette garde, « Wrist curl avec
+     poignee de hook » proposait SUPINATION. */
+  var MOTS_MATERIEL_NOM = /(^| )(poignee|handle|manchon|prise)( de| du)? [a-z0-9]+/g;
+
+  /* Les mouvements qu'un NOM d'exercice porte. Rien n'est ecrit sur
+     l'exercice : c'est une LECTURE, refaite a chaque affichage. */
+  function forcesDuNom(nom) {
+    var s = slug(nom);
+    if (!s) return [];
+    /* Un geste INVERSE n'est plus le geste nomme : l'extension du poignet
+       n'est pas du cupping, et aucun mouvement du carnet ne la porte. Le
+       dictionnaire en contient un, « Wrist curl inverse », et sans cette
+       ligne il comptait comme du cupping. */
+    var inverse = MARQUEURS_INVERSION.some(function (k) {
+      return new RegExp(motifDuMot(k)).test(s);
+    });
+    if (inverse) return [];
+    s = s.replace(MOTS_MATERIEL_NOM, ' ');
+
+    var out = [];
+    Object.keys(MOTS_FORCE).forEach(function (id) {
+      var trouve = false;
+      MOTS_FORCE[id].forEach(function (mot) {
+        if (trouve) return;
+        if (new RegExp(motifDuMot(mot)).test(s)) { out.push(id); trouve = true; }
+      });
+    });
+    return out;
+  }
+
+  /* CE QUE L'UTILISATEUR A COCHE GAGNE. La deduction ne sert que la ou la
+     case est vide : une liste cochee a la main est une decision, pas une
+     lecture, et on ne la complete pas en douce. */
+  function forcesDeLExercice(ex) {
+    if (!ex) return [];
+    if ((ex.forces || []).length) return ex.forces.slice();
+    return forcesDuNom(ex.nom);
+  }
+
   /* Ce qu'un NOM d'exercice dit deja. « Curl biceps prise ouverte » contient
      le mot biceps : le proposer n'invente rien, ca relit ce qui a ete ecrit.
      C'est la troisieme source de proposition, apres les mouvements et la
@@ -2203,6 +2278,90 @@
     { id: 'toproll', nom: 'Toproll' },
     { id: 'mixte',   nom: 'Mixte' }
   ];
+
+  /* ---------- LES STYLES DE BRAS DE FER ----------
+
+     Table montree a MB le 2026-10-28 et validee. Elle sort ENTIEREMENT du
+     glossaire de la federation de Toronto, deja citee par le catalogue pour
+     le hook — pas d'une source neuve choisie pour l'occasion.
+
+     Les six mouvements du carnet y sont definis mot pour mot :
+       supination « turns your palm up and toward you »
+       pronation  « turns your palm down and away »
+       posting / riser « keeping your knuckles and wrist above your
+                         opponent's and pressing upward »
+       back pressure « pulling your hand back toward your own shoulder »
+       side pressure « driving across toward the pin pad »
+
+     LE HOOK GARDE LA DECISION DE MB DU 23/10 : supination, contre l'article
+     de 2026 qui le decrit en pronation. Voir la note de `hook-poulie`.
+
+     TROIS DES SIX MOUVEMENTS RESTENT 'terrain' — rising, back et side
+     pressure viennent d'une seule etude EMG et portent deja « restent a
+     verifier » dans MUSCLES_PAR_MOUVEMENT. Toute lecture de style en
+     herite, et l'ecran le dit. */
+  var LIEN_TAWF = 'https://www.tawf.ca/league/learn/arm-wrestling-techniques';
+
+  var STYLES_AW = [
+    { id: 'toproll', nom: 'Toproll',
+      forces: ['pronation', 'rising', 'back_pressure'],
+      dit: 'you pronate and slide your grip up toward your opponent’s '
+         + 'fingertips […] then you open their hand and wrist and « roll » '
+         + 'the pressure back toward yourself and down',
+      lien: LIEN_TAWF },
+    { id: 'hook', nom: 'Hook',
+      forces: ['supination', 'cupping', 'side_pressure'],
+      dit: 'You supinate — turning your hand inward toward yourself — and '
+         + 'curl your wrist […] drive it down on the inside',
+      lien: LIEN_TAWF },
+    { id: 'press', nom: 'Press',
+      forces: ['side_pressure'],
+      dit: 'you drive your weight and shoulder forward and over the top to '
+         + 'push their hand down toward the pad',
+      lien: LIEN_TAWF }
+  ];
+
+  function styleAW(id) {
+    for (var i = 0; i < STYLES_AW.length; i++) {
+      if (STYLES_AW[i].id === id) return STYLES_AW[i];
+    }
+    return null;
+  }
+
+  /* Combien de styles portent chaque mouvement. UN mouvement porte par un
+     seul style est ATTRIBUABLE ; porte par deux, il ne dit pas lequel.
+
+     C'est DERIVE et non ecrit en dur : le jour ou le press gagne un
+     mouvement a lui, la side pressure redevient attribuable au hook sans
+     qu'on touche au comptage. */
+  function stylesParForce() {
+    var c = {};
+    STYLES_AW.forEach(function (st) {
+      st.forces.forEach(function (f) { c[f] = (c[f] || 0) + 1; });
+    });
+    return c;
+  }
+
+  /* QUELS STYLES LE CARNET PEUT-IL LIRE a partir des exercices ?
+
+     Un style n'est lisible que s'il porte au moins un mouvement QUE LUI
+     porte. Le press n'en a qu'un, la side pressure, et le hook la porte
+     aussi : le carnet ne peut donc pas le distinguer.
+
+     IL NE FAUT PAS AFFICHER « Press 0 serie » — ca se lirait « tu ne
+     presses jamais », qui est faux. Ce qui est vrai, c'est « le carnet ne
+     sait pas le voir », et c'est ce que l'ecran dit.
+
+     DERIVE, jamais ecrit en dur : le jour ou le press gagne un mouvement a
+     lui, il devient lisible sans qu'on touche a ce code. */
+  function stylesLisibles() {
+    var par = stylesParForce(), lisibles = [], aveugles = [];
+    STYLES_AW.forEach(function (st) {
+      var propre = st.forces.filter(function (f) { return par[f] === 1; });
+      (propre.length ? lisibles : aveugles).push({ style: st, propres: propre });
+    });
+    return { lisibles: lisibles, aveugles: aveugles };
+  }
 
   var compteur = 0;
   function uid(p) {
@@ -4142,6 +4301,75 @@
     return { parForce: c, total: total };
   }
 
+  /* Quel STYLE les exercices revelent, sur une fenetre.
+
+     ON NE COMPTE QUE CE QUI DESIGNE. La side pressure appartient au hook ET
+     au press : l'attribuer au hook gonflerait un style au prix de l'autre,
+     et la repartir de moitie serait une invention. Elle est donc rendue a
+     part, dans `partage`, et l'ecran DIT pourquoi.
+
+     C'est la difference entre « le carnet ne sait pas » et « le carnet
+     devine » : la premiere se dit, la seconde se paie. */
+  function repartitionStyles(etat, depuisJours) {
+    var parStyle = {}, partage = {}, total = 0, exclusives = stylesParForce();
+    STYLES_AW.forEach(function (st) { parStyle[st.id] = 0; });
+
+    seancesMuscuTriees(etat).forEach(function (se) {
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      (se.exercices || []).forEach(function (ex) {
+        var n = (ex.series || []).filter(function (s) { return s.faite; }).length;
+        if (!n) return;
+        forcesDeLExercice(ex).forEach(function (f) {
+          if (!exclusives[f]) return;
+          total += n;
+          if (exclusives[f] > 1) { partage[f] = (partage[f] || 0) + n; return; }
+          STYLES_AW.forEach(function (st) {
+            if (st.forces.indexOf(f) >= 0) parStyle[st.id] += n;
+          });
+        });
+      });
+    });
+    return { parStyle: parStyle, partage: partage, total: total };
+  }
+
+  /* Le style DECLARE sur les sparrings. Rien n'est deduit ici : c'est une
+     case que MB coche lui-meme, et elle vaut mieux qu'une lecture. */
+  function stylesDeclares(etat, depuisJours) {
+    var c = {}, total = 0, sans = 0;
+    STYLES.forEach(function (st) { c[st.id] = 0; });
+    (etat.seances || []).forEach(function (se) {
+      if (!se || se.type !== 'sparring') return;
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      if (c[se.style] == null) { sans += 1; return; }
+      c[se.style] += 1; total += 1;
+    });
+    return { parStyle: c, total: total, sansStyle: sans };
+  }
+
+  /* Ce qu'un sparring porte de mesurable. Les minutes et les rounds sont
+     saisis a la main : un sparring sans eux compte quand meme comme une
+     seance, et c'est pour ca que les trois comptes sont separes. */
+  function statsSparring(etat, depuisJours) {
+    var r = { seances: 0, rounds: 0, minutes: 0, droite: 0, gauche: 0,
+              avecDouleur: 0, partenaires: [] };
+    var vus = {};
+    (etat.seances || []).forEach(function (se) {
+      if (!se || se.type !== 'sparring') return;
+      if (depuisJours != null && joursDepuis(se.date) > depuisJours) return;
+      r.seances += 1;
+      r.rounds += Number(se.rounds) || 0;
+      r.minutes += Number(se.dureeMin) || 0;
+      if (se.cote === 'droite') r.droite += 1;
+      if (se.cote === 'gauche') r.gauche += 1;
+      if ((se.douleurs || []).length) r.avecDouleur += 1;
+      String(se.partenaires || '').split(/[,;\n]/).forEach(function (p) {
+        p = p.trim();
+        if (p && !vus[p.toLowerCase()]) { vus[p.toLowerCase()] = 1; r.partenaires.push(p); }
+      });
+    });
+    return r;
+  }
+
   /* ---------- le retour d'un testeur ----------
 
      Un rapport utile tient en deux morceaux : ce que la personne a vu, et le
@@ -4304,6 +4532,12 @@
     derniereSollicitation: derniereSollicitation, zoneDelai: zoneDelai,
     fenetreAvant: fenetreAvant, episodesDouleur: episodesDouleur,
     volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
+    MOTS_FORCE: MOTS_FORCE, forcesDuNom: forcesDuNom,
+    forcesDeLExercice: forcesDeLExercice,
+    STYLES_AW: STYLES_AW, styleAW: styleAW, stylesParForce: stylesParForce,
+    repartitionStyles: repartitionStyles, stylesDeclares: stylesDeclares,
+    stylesLisibles: stylesLisibles,
+    statsSparring: statsSparring,
     chargeParSemaine: chargeParSemaine, comparerDeuxPeriodes: comparerDeuxPeriodes,
     PERIODES_SUIVI: PERIODES_SUIVI, periodeSuivi: periodeSuivi,
     joursDeLaFenetre: joursDeLaFenetre,

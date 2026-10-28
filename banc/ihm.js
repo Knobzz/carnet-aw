@@ -181,6 +181,19 @@
 
      On ne nomme que le plus HAUT des coupables : un enfant qui sort parce
      que son parent sort n'ajoute rien au diagnostic. */
+
+  /* Le sous-onglet du Suivi est un etat de MODULE, comme la region choisie.
+     Un bloc qui le laisse ailleurs que sur « Seances » le laisse ainsi pour
+     tous les suivants. Mesure du 28/10 : 448 controles joues au lieu de
+     551, une centaine emportes par un onglet reste sur « Recup ». */
+  function rangerSousOnglet(doc) {
+    var bt = null;
+    Array.prototype.forEach.call(doc.querySelectorAll('.sous-onglet'), function (b) {
+      if (b.textContent === 'Séances') bt = b;
+    });
+    if (bt && bt.getAttribute('aria-pressed') !== 'true') bt.click();
+  }
+
   function debordements(doc, fen, largeur) {
     var sortis = [];
     Array.prototype.forEach.call(doc.querySelectorAll('body *'), function (n) {
@@ -833,6 +846,17 @@
                            type: 'normale', faite: true }] }];
       e.seances = e.seances.concat([recup]);
       fen.App.vues.suivi.rendre(vue);
+      /* LE BLOC RECUP A DEMENAGE dans son sous-onglet le 2026-10-28, a la
+         demande de MB : « une separation nette entre Suivi des seances,
+         suivi de la Recup et suivi des Sparring ». Le controle l'y suit.
+         Il tombait, et il avait raison de tomber : le bloc n'est plus sur
+         l'ecran d'ouverture. */
+      var versRecup = null;
+      Array.prototype.forEach.call(doc.querySelectorAll('.sous-onglet'), function (b) {
+        if (b.textContent === 'Récup') versRecup = b;
+      });
+      v.vrai(!!versRecup, '[temoin] le sous-onglet Récup existe, avant d’y aller');
+      if (versRecup) versRecup.click();
       var texteSuivi = doc.body.innerText;
       v.vrai(/récupération/i.test(texteSuivi),
              '[temoin] le bloc Récupération est bien rendu, avant de le mesurer');
@@ -845,6 +869,11 @@
            + 'plus, figée, que personne n’avait demandée');
       v.egal(titres.indexOf('Forces de Larratt — 28 derniers jours'), -1,
              '« Forces de Larratt » a disparu de Suivi aussi');
+
+      /* ON REPOSE L'ONGLET avant la suite du bloc : ce qui vient mesure
+         l'ecran des seances. */
+      rangerSousOnglet(doc);
+      fen.App.vues.suivi.rendre(vue);
 
       var barres = doc.querySelectorAll('.barre');
       v.vrai(barres.length >= 6, '[temoin] les six mouvements font six lignes');
@@ -1059,7 +1088,14 @@
            + 'leurs planches restent atteignables');
       v.vrai(/Aucun muscle de cette région/.test(doc.body.innerText),
              'et l’écran dit qu’aucun n’a travaillé');
-      v.egal(doc.querySelectorAll('.barre-vide').length, duTriceps.length,
+      /* PORTEE RESSERREE le 2026-10-28, et non affaiblie : ce compte
+         portait sur TOUT le document. Depuis que le bloc « Ton style »
+         rend un style a zero avec la meme classe, il en comptait une de
+         plus — 3 au lieu de 2. Le controle disait vrai ; il ne disait pas
+         OU. Il compte maintenant dans le bloc des muscles, le seul qu'il
+         mesure. */
+      v.egal(doc.querySelectorAll('.barres-muscles .barre-vide').length,
+             duTriceps.length,
              'chacun porte « jamais » au lieu d’une barre minuscule');
       v.vrai(!!doc.querySelector('.planche-fond'),
              'et une planche est affichée, là où il n’y en avait aucune');
@@ -3174,6 +3210,155 @@
     fen.App.ui.vider(vue);
     fen.App.store.etat().seances = [];
     fen.App.store.etat().routineRecup = null;
+  });
+
+  /* ------------------------------------------------------------------
+     LES SOUS-ONGLETS DU SUIVI
+
+     MB, 28/10 : « il faudra aussi une séparation nette entre Suivi des
+     séances, suivi de la Récup et suivi des Sparring ». Trois dispositions
+     lui ont été montrées, cliquables et mesurées ; il a pris les
+     sous-onglets.
+
+     CE BLOC MESURE L'ÉCRAN, pas le modèle : la séparation existait DÉJÀ
+     dans les données — les compteurs filtrent `type === 'muscu'` depuis
+     toujours — et ce qui manquait est que l'écran le DISE.
+     ------------------------------------------------------------------ */
+  bloc('Les sous-onglets du Suivi', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.seances = [];
+
+    function jourIl(n) {
+      var d = new fen.Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function exo(nom, nb) {
+      var s = [];
+      for (var k = 0; k < nb; k++) {
+        s.push({ id: 'x' + nom + k, type: 'normale', faite: true, faiteA: null,
+                 chargeCible: '', repsCible: '', dureeCible: '',
+                 chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null });
+      }
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: fen.App.m.slug(nom),
+               aw: true, typeCharge: 'kg', colonnes: ['charge', 'reps'],
+               forces: [], muscles: [], structures: [], outils: [],
+               consigne: '', reposSecondes: 90, series: s };
+    }
+    e.seances = [
+      { id: 'm1', type: 'muscu', date: jourIl(2), heure: '', note: '', douleurs: [],
+        exercices: [exo('Toproll à la poulie', 6), exo('Wrist curl', 3),
+                    exo('Side pressure à la poulie', 5)] },
+      { id: 's1', type: 'sparring', date: jourIl(1), style: 'hook', rounds: 6,
+        dureeMin: 20, cote: 'droite', partenaires: 'Marc', douleurs: [] },
+      { id: 's2', type: 'sparring', date: jourIl(3), style: 'hook', rounds: 4,
+        dureeMin: 15, cote: 'droite', partenaires: 'Julien', douleurs: [] }
+    ];
+
+    fen.App.vues.suivi.rendre(vue);
+
+    /* ---- la barre existe, et elle est cliquable au doigt ---- */
+    var onglets = doc.querySelectorAll('.sous-onglet');
+    v.egal(onglets.length, 3, 'trois sous-onglets');
+    v.egal(Array.prototype.map.call(onglets, function (b) { return b.textContent; })
+             .join('/'), 'Séances/Récup/Sparring', 'et ils se nomment');
+    var minH = 9999, minL = 9999;
+    Array.prototype.forEach.call(onglets, function (b) {
+      var r = b.getBoundingClientRect();
+      minH = Math.min(minH, r.height); minL = Math.min(minL, r.width);
+    });
+    v.vrai(minH >= 44,
+           'le plus court fait 44 px — la maquette les avait à 38 ('
+         + Math.round(minH) + ' px)');
+    v.vrai(minL >= 60, 'et le plus étroit reste lisible ('
+         + Math.round(minL) + ' px)');
+
+    /* ---- SÉANCES : le style déduit, et ce que le carnet ne sait pas ---- */
+    v.egal(onglets.length ? onglets[0].getAttribute('aria-pressed') : '(aucun onglet)',
+           'true', 'Séances est l’onglet d’ouverture');
+    var t = vue.innerText;
+    v.vrai(t.indexOf('Ne compte que les séances de musculation') >= 0,
+           'l’écran DIT sa portée — c’est ce qui manquait, pas le filtre');
+    v.vrai(t.indexOf('Toproll') >= 0 && t.indexOf('Hook') >= 0,
+           'les deux styles lisibles sont nommés');
+    v.vrai(t.indexOf('Press — non lisible') >= 0,
+           'et le PRESS est dit NON LISIBLE plutôt que montré à zéro : '
+         + '« 0 série » se lirait « tu ne presses jamais »');
+    v.vrai(t.indexOf('Side pressure') >= 0,
+           'la mesure partagée se montre, à part et nommée');
+
+    /* L'ÉCART, qui est le fond de la demande. */
+    v.vrai(t.indexOf('TOPROLL') >= 0 && t.indexOf('HOOK') >= 0
+           && t.indexOf('tu spares surtout en') >= 0,
+           'et l’écart se dit : entraîné en toproll, sparring en hook');
+
+    /* UN NOM QUI NE S'OUVRE PAS NE PORTE PAS LA MARQUE D'UN NOM CLIQUABLE.
+       Mesure de l'EFFET peint, pas de la classe : j'avais recopié
+       `barre-nom`, dont le souligné pointillé annonce « il se passe
+       quelque chose ». */
+    var nomStyle = null;
+    Array.prototype.forEach.call(vue.querySelectorAll('.barre span'), function (s) {
+      if (!nomStyle && s.textContent === 'Toproll') nomStyle = s;
+    });
+    v.vrai(!!nomStyle, '[temoin] le libellé « Toproll » est bien une barre');
+    if (nomStyle) {
+      v.egal(fen.getComputedStyle(nomStyle).textDecorationLine, 'none',
+             'et il n’est PAS souligné : rien ne s’ouvre en cliquant dessus');
+    }
+
+    /* ---- RÉCUP : pas de période, et pas d'écran blanc ----
+       PAS D'INDEX NU : sur la version d'avant il n'y a aucun sous-onglet,
+       `onglets[1]` levait une TypeError et 18 des 23 controles n'etaient
+       jamais joues — 2/5, une chute illisible. Sixieme fois de la session. */
+    if (onglets.length > 1) onglets[1].click();
+    v.egal(vue.querySelectorAll('.periodes').length, 0,
+           'l’onglet Récup ne montre PAS le sélecteur de période : ses blocs '
+         + 'ne le lisent pas, et un sélecteur sans effet est un mensonge');
+    v.vrai(vue.innerText.indexOf('Aucune journée de récupération') >= 0,
+           'et il ne reste pas BLANC quand il n’y a rien — le bloc rendait '
+         + 'un fragment vide, tenable parmi dix, illisible seul');
+    v.egal(vue.innerText.indexOf('Toproll'), -1,
+           'aucune donnée de séance ne fuit dans l’onglet Récup');
+
+    /* ---- SPARRING : le déclaré, et ce qui manque au vocabulaire ---- */
+    if (onglets.length > 2) onglets[2].click();
+    var ts = vue.innerText;
+    v.vrai(ts.indexOf('Ne compte que les sparrings') >= 0, 'le sparring dit sa portée');
+    v.vrai(ts.indexOf('DÉCLARÉ') >= 0,
+           'et qu’il ne déduit RIEN : le style y est coché à la main');
+    v.vrai(ts.indexOf('2 sparr.') >= 0, 'les deux sparrings en hook sont comptés');
+    v.vrai(ts.indexOf('10') >= 0 && ts.indexOf('35') >= 0,
+           'rounds et minutes sont là, séparés');
+    v.vrai(ts.indexOf('Le press n’est pas proposé ici') >= 0,
+           'et le carnet DIT que le press manque à ses styles déclarables — '
+         + 'un manque nommé n’est pas un oubli');
+    v.vrai(vue.querySelectorAll('.periodes').length === 1,
+           'le sélecteur de période revient ici : les blocs de sparring le lisent');
+
+    /* ---- rien ne déborde, sur les trois ---- */
+    var sortis = [];
+    Array.prototype.forEach.call(doc.querySelectorAll('.sous-onglet'), function (b) {
+      b.click();
+      debordements(doc, fen, LARGEUR).forEach(function (n) { sortis.push(n); });
+    });
+    v.egal(sortis.length, 0, 'rien ne déborde de 320 px sur les trois onglets');
+
+    /* ---- le choix ne survit PAS à une réouverture ---- */
+    var tous = doc.querySelectorAll('.sous-onglet');
+    if (tous.length > 2) tous[2].click();
+    fen.App.ui.vider(vue);
+    fen.App.vues.suivi.rendre(vue);
+    tous = doc.querySelectorAll('.sous-onglet');
+    v.egal(tous.length > 2 ? tous[2].getAttribute('aria-pressed') : '(aucun onglet)',
+           'true',
+           '[temoin] un re-rendu dans la même session garde l’onglet : c’est '
+         + 'une lecture en cours, on ne la jette pas sous les doigts');
+
+    rangerSousOnglet(doc);
+    fen.App.ui.vider(vue);
+    fen.App.store.etat().seances = [];
   });
 
   bloc('Récupération', function (v, h) {

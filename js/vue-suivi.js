@@ -766,7 +766,17 @@
   function blocRecup(e) {
     var f = document.createDocumentFragment();
     var jours = A.m.seancesRecupTriees(e).filter(function (s) { return A.m.recupFaite(s); });
-    if (!jours.length) return f;
+    /* IL RENDAIT UN FRAGMENT VIDE, et c'etait tenable tant qu'il etait un
+       bloc parmi dix : il disparaissait, personne ne le cherchait. Depuis
+       les sous-onglets il EST l'onglet — et un onglet blanc se lit « c'est
+       casse », pas « tu n'as rien coche ». */
+    if (!jours.length) {
+      f.appendChild(h('div', { class: 'vide' },
+        h('strong', { text: 'Aucune journée de récupération' }),
+        'Depuis l’onglet Récup, définis ta routine et coche ce que tu as '
+      + 'fait : la régularité des sept derniers jours apparaîtra ici.'));
+      return f;
+    }
 
     f.appendChild(section('Récupération — régularité',
       'L’élastique quotidien ne se mesure pas en kilos : ce qui compte est de l’avoir fait.'));
@@ -1224,6 +1234,268 @@
     });
   }
 
+  /* ------------------------------------------------------------------
+     LE STYLE QUE LES EXERCICES RÉVÈLENT
+
+     MB, 28/10 : « j’aimerai que le suivi montre quelle technique il
+     privilégie dans son entraînement, laquelle il fait le moins ».
+
+     Les mouvements sont DÉDUITS du nom quand la case est vide (choix de MB
+     le 28/10), et la table style → mouvements vient du glossaire de la
+     fédération de Toronto, déjà citée par le catalogue pour le hook.
+
+     LE PRESS N’APPARAÎT PAS COMME UNE BARRE À ZÉRO. Son seul mouvement, la
+     side pressure, est partagé avec le hook : « Press 0 série » se lirait
+     « tu ne presses jamais », alors que la vérité est « le carnet ne sait
+     pas le voir ». La différence se dit, elle ne se devine pas.
+     ------------------------------------------------------------------ */
+  function blocStyleEntrainement(e, periode) {
+    var jours = A.m.joursDeLaFenetre(periode.semaines);
+    var r = A.m.repartitionStyles(e, jours);
+    var lis = A.m.stylesLisibles();
+    var f = document.createDocumentFragment();
+
+    f.appendChild(section('Ton style — ' + periode.nom,
+      'Déduit des exercices que tu fais, par leurs mouvements. Un exercice '
+    + 'dont tu as coché les mouvements à la main garde les tiens : le carnet '
+    + 'ne lit le nom que si la case est vide.'));
+
+    if (!r.total) {
+      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun style lisible' }),
+        'Aucun exercice validé sur cette période ne nomme un mouvement de '
+      + 'bras de fer. « Toproll à la poulie », « Wrist curl », « Supination » '
+      + 'en portent un ; « Curl marteau », non.'));
+      return f;
+    }
+
+    var max = 1;
+    lis.lisibles.forEach(function (x) {
+      max = Math.max(max, r.parStyle[x.style.id]);
+    });
+    Object.keys(r.partage).forEach(function (k) { max = Math.max(max, r.partage[k]); });
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    var barres = h('div', { class: 'barres' });
+
+    lis.lisibles.forEach(function (x) {
+      var n = r.parStyle[x.style.id];
+      barres.appendChild(h('div', { class: 'barre' + (n ? '' : ' barre-vide') },
+        h('span', { text: x.style.nom }),
+        h('div', { class: 'barre-piste' },
+          h('i', { class: 'gen', style: 'width:' + (n / max * 100) + '%' })),
+        h('span', { class: 'barre-val', text: n + ' sér.' })));
+    });
+
+    /* Le partagé se montre, mais À PART et nommé : il appartient à deux
+       styles, et le ranger dans l’un des deux gonflerait celui-là au prix
+       de l’autre. */
+    Object.keys(r.partage).forEach(function (fid) {
+      var n = r.partage[fid];
+      barres.appendChild(h('div', { class: 'barre' },
+        h('span', { text: A.m.nomForce(fid) }),
+        h('div', { class: 'barre-piste' },
+          h('i', { class: 'gen gen-partage', style: 'width:' + (n / max * 100) + '%' })),
+        h('span', { class: 'barre-val', text: n + ' sér.' })));
+    });
+
+    corps.appendChild(barres);
+    carte.appendChild(corps);
+    f.appendChild(carte);
+
+    lis.lisibles.forEach(function (x) {
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
+        h('b', { text: x.style.nom + ' : ' }),
+        x.propres.map(A.m.nomForce).join(' · ').toLowerCase()));
+    });
+
+    lis.aveugles.forEach(function (x) {
+      f.appendChild(h('div', { class: 'dit-a-part' },
+        h('b', { text: x.style.nom + ' — non lisible. ' }),
+        'Son seul mouvement, ' + x.style.forces.map(A.m.nomForce).join(' et ').toLowerCase()
+      + ', est partagé avec un autre style : le carnet ne peut pas dire '
+      + 'lequel des deux tu travaillais. Ce n’est pas un zéro, c’est une '
+      + 'ignorance — et elle se dit.'));
+    });
+
+    /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce
+       qu’on travaille contre ce qu’on déclare à la table. */
+    var dec = A.m.stylesDeclares(e, jours);
+    if (dec.total) {
+      var fort = null, faible = null;
+      lis.lisibles.forEach(function (x) {
+        var n = r.parStyle[x.style.id];
+        if (!fort || n > r.parStyle[fort.id]) fort = x.style;
+        if (!faible || n < r.parStyle[faible.id]) faible = x.style;
+      });
+      var spFort = null;
+      A.m.STYLES.forEach(function (st) {
+        if (!spFort || dec.parStyle[st.id] > dec.parStyle[spFort.id]) spFort = st;
+      });
+      if (fort && spFort && A.m.slug(fort.nom) !== A.m.slug(spFort.nom)
+          && dec.parStyle[spFort.id]) {
+        f.appendChild(h('div', { class: 'dit-ecart' },
+          'Tu t’entraînes surtout en ', h('b', { text: fort.nom.toUpperCase() }),
+          ' (' + r.parStyle[fort.id] + ' séries) et tu spares surtout en ',
+          h('b', { text: spFort.nom.toUpperCase() }),
+          ' (' + dec.parStyle[spFort.id] + ' sur ' + dec.total + '). '
+        + 'Le carnet montre l’écart ; il ne dit pas lequel a raison.'));
+      } else if (fort) {
+        f.appendChild(h('div', { class: 'dit-ecart' },
+          'Entraînement et sparring vont dans le même sens : ',
+          h('b', { text: fort.nom.toUpperCase() }), '. Le style le moins '
+        + 'travaillé est ' + (faible ? faible.nom.toLowerCase() : '—') + '.'));
+      }
+    }
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
+     LE STYLE DÉCLARÉ EN SPARRING — rien n’est déduit ici
+     ------------------------------------------------------------------ */
+  function blocStyleSparring(e, periode) {
+    var jours = A.m.joursDeLaFenetre(periode.semaines);
+    var r = A.m.stylesDeclares(e, jours);
+    var f = document.createDocumentFragment();
+
+    f.appendChild(section('Ton style en sparring — ' + periode.nom,
+      'Le style que tu as DÉCLARÉ sur chaque sparring. Rien n’est deviné : '
+    + 'c’est une case que tu coches.'));
+
+    if (!r.total) {
+      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun style déclaré' }),
+        r.sansStyle
+          ? r.sansStyle + ' sparring' + (r.sansStyle > 1 ? 's' : '')
+            + ' sur la période, sans style coché. Le style se choisit en haut '
+            + 'de la fiche du sparring.'
+          : 'Aucun sparring noté sur cette période.'));
+      return f;
+    }
+
+    var max = 1;
+    A.m.STYLES.forEach(function (st) { max = Math.max(max, r.parStyle[st.id]); });
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    var barres = h('div', { class: 'barres' });
+    A.m.STYLES.forEach(function (st) {
+      var n = r.parStyle[st.id];
+      barres.appendChild(h('div', { class: 'barre' + (n ? '' : ' barre-vide') },
+        h('span', { text: st.nom }),
+        h('div', { class: 'barre-piste' },
+          h('i', { class: 'gen', style: 'width:' + (n / max * 100) + '%' })),
+        h('span', { class: 'barre-val', text: n + (n > 1 ? ' sparr.' : ' sparr.') })));
+    });
+    corps.appendChild(barres);
+    carte.appendChild(corps);
+    f.appendChild(carte);
+
+    if (r.sansStyle) {
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0',
+        text: r.sansStyle + ' sparring' + (r.sansStyle > 1 ? 's' : '')
+            + ' sans style coché ' + (r.sansStyle > 1 ? 'ne comptent' : 'ne compte')
+            + ' dans aucune barre.' }));
+    }
+
+    /* Le PRESS manque aux styles déclarables, et c’est une décision, pas un
+       oubli : l’ajouter changerait la fiche de sparring. */
+    f.appendChild(h('div', { class: 'dit-a-part' },
+      h('b', { text: 'Le press n’est pas proposé ici. ' }),
+      'Les styles déclarables sont ' + A.m.STYLES.map(function (s) { return s.nom; })
+        .join(', ').toLowerCase() + '. Si tu presses, c’est une entrée à '
+    + 'ajouter — dis-le, elle n’apparaîtra pas toute seule.'));
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
+     CE QU’UN SPARRING PORTE DE MESURABLE
+
+     Trois comptes SÉPARÉS, et pas une moyenne : les rounds et les minutes
+     sont saisis à la main, un sparring sans eux compte quand même comme une
+     séance. Une moyenne les mélangerait en silence.
+     ------------------------------------------------------------------ */
+  function blocVolumeSparring(e, periode) {
+    var r = A.m.statsSparring(e, A.m.joursDeLaFenetre(periode.semaines));
+    var f = document.createDocumentFragment();
+
+    f.appendChild(section('À la table — ' + periode.nom,
+      'Ce que tes sparrings portent de chiffré. Un zéro peut vouloir dire '
+    + '« non noté » : les rounds et la durée sont facultatifs.'));
+
+    if (!r.seances) {
+      f.appendChild(h('div', { class: 'vide' }, h('strong', { text: 'Aucun sparring' }),
+        'Depuis l’onglet Séance, « + Noter un sparring ».'));
+      return f;
+    }
+
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    /* `totaux` et `chiffre` : les classes que le bloc Récup emploie déjà.
+       J'avais écrit « chiffres », qui n'existe pas — le `dl` serait tombé
+       sans style, et aucun contrôle ne l'aurait dit. */
+    var dl = h('dl', { class: 'totaux' },
+      h('div', {}, h('dt', { text: 'sparrings' }),
+        h('dd', { class: 'chiffre', text: String(r.seances) })),
+      h('div', {}, h('dt', { text: 'rounds' }),
+        h('dd', { class: 'chiffre', text: String(r.rounds) })),
+      h('div', { class: 'aw' }, h('dt', { text: 'minutes' }),
+        h('dd', { class: 'chiffre', text: String(r.minutes) })));
+    corps.appendChild(dl);
+    carte.appendChild(corps);
+    f.appendChild(carte);
+
+    var dits = [];
+    if (r.droite || r.gauche) dits.push('Bras droit ' + r.droite + ' · gauche ' + r.gauche);
+    if (r.avecDouleur) dits.push(r.avecDouleur + ' avec une douleur notée');
+    if (r.partenaires.length) {
+      dits.push(r.partenaires.length + ' partenaire'
+              + (r.partenaires.length > 1 ? 's' : '') + ' : '
+              + r.partenaires.join(', '));
+    }
+    if (dits.length) {
+      f.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 0',
+                               text: dits.join('. ') + '.' }));
+    }
+    return f;
+  }
+
+  /* ------------------------------------------------------------------
+     LES TROIS SOUS-ONGLETS
+
+     MB, 28/10 : « une séparation nette entre Suivi des séances, suivi de la
+     Récup et suivi des Sparring », puis, devant trois maquettes cliquables,
+     « C, les sous-onglets ».
+
+     LE CHOIX NE SURVIT PAS À LA FERMETURE, pour la même raison que la
+     région choisie, écrite en tête de ce fichier : c’est un geste de
+     LECTURE, pas un réglage. Rouvrir l’app sur « Sparring » donnerait un
+     écran filtré sans qu’on se souvienne de l’avoir demandé.
+     ------------------------------------------------------------------ */
+  var sousOngletChoisi = 'seances';
+
+  var SOUS_ONGLETS = [
+    { id: 'seances',  nom: 'Séances' },
+    { id: 'recup',    nom: 'Récup' },
+    { id: 'sparring', nom: 'Sparring' }
+  ];
+
+  function barreSousOnglets(refaire) {
+    var barre = h('div', { class: 'sous-onglets', role: 'tablist',
+                           'aria-label': 'Ce que le suivi regarde' });
+    SOUS_ONGLETS.forEach(function (o) {
+      var bt = h('button', { type: 'button', class: 'sous-onglet', text: o.nom,
+                             role: 'tab',
+                             'aria-pressed': o.id === sousOngletChoisi ? 'true' : 'false',
+                             'aria-selected': o.id === sousOngletChoisi ? 'true' : 'false' });
+      bt.addEventListener('click', function () {
+        if (o.id === sousOngletChoisi) return;
+        sousOngletChoisi = o.id;
+        refaire();
+      });
+      barre.appendChild(bt);
+    });
+    return barre;
+  }
+
   function rendre(hote) {
     A.ui.vider(hote);
     var e = etat();
@@ -1249,18 +1521,44 @@
       rendre(hote);
       window.scrollTo(0, y);
     }
-    hote.appendChild(selecteurPeriode(e, refaire));
+    hote.appendChild(barreSousOnglets(refaire));
+
+    /* LA PÉRIODE NE S’AFFICHE QUE LÀ OÙ ELLE AGIT. Les blocs de récup ont
+       leurs propres fenêtres — sept jours, puis la semaine — et ne la
+       lisent pas : un sélecteur qui ne fait rien est un mensonge d’écran. */
+    if (sousOngletChoisi !== 'recup') hote.appendChild(selecteurPeriode(e, refaire));
+
+    if (sousOngletChoisi === 'recup') {
+      hote.appendChild(h('div', { class: 'portee',
+        text: 'Ne compte que les journées de récupération. Les séances et les '
+            + 'sparrings ont leur propre suivi.' }));
+      hote.appendChild(blocRecup(e));
+      return;
+    }
+
+    if (sousOngletChoisi === 'sparring') {
+      hote.appendChild(h('div', { class: 'portee',
+        text: 'Ne compte que les sparrings notés.' }));
+      hote.appendChild(blocStyleSparring(e, periode));
+      hote.appendChild(blocVolumeSparring(e, periode));
+      return;
+    }
 
     /* L'ordre répond à « qu'est-ce que je regarde en ouvrant l'onglet ».
        D'abord ce qui appelle une décision aujourd'hui — la question du
        lendemain, puis la dernière sollicitation par exercice. Ensuite ce
-       qu'on travaille : volume, mouvements, muscles. Les structures et les
-       douleurs ferment la marche : ce sont des recoupements, qu'on va
+       qu'on travaille : style, volume, mouvements, muscles. Les structures
+       et les douleurs ferment la marche : ce sont des recoupements, qu'on va
        chercher quand quelque chose fait mal, pas tous les jours. */
+    hote.appendChild(h('div', { class: 'portee',
+      text: 'Ne compte que les séances de musculation. La récup et les '
+          + 'sparrings ont leur propre onglet — sauf les douleurs, qui se '
+          + 'lisent de partout, parce qu’une douleur ne choisit pas sa '
+          + 'provenance.' }));
     hote.appendChild(blocVingtQuatre(e, function () { rendre(hote); }));
+    hote.appendChild(blocStyleEntrainement(e, periode));
     hote.appendChild(blocSollicitation(e));
     hote.appendChild(blocVolume(e));
-    hote.appendChild(blocRecup(e));
     hote.appendChild(blocForces(e, periode));
     hote.appendChild(blocRegions(e, periode, refaire));
     hote.appendChild(blocMuscles(e, periode, refaire));

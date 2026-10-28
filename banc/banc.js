@@ -3344,6 +3344,186 @@
      qu'on veut en lire est « l'ai-je fait », pas « combien ».
      ================================================================ */
 
+  /* ------------------------------------------------------------------
+     LE STYLE QUE LES EXERCICES RÉVÈLENT
+
+     MB, 28/10 : « j'aimerai que le suivi montre quelle technique il
+     privilégie dans son entraînement, laquelle il fait le moins (toproll,
+     hook press) en regardant les exercices qu'il fait ».
+
+     Deux décisions de MB ce jour-là : les mouvements se DÉDUISENT du nom,
+     et la table style → mouvements sort du glossaire de la fédération de
+     Toronto, déjà citée par le catalogue.
+     ------------------------------------------------------------------ */
+  bloc('Le style que les exercices révèlent', function (v) {
+
+    /* SIXIEME FOIS DE LA SESSION qu'un bloc de banc meurt sur un symbole
+       absent et emporte ses voisins. Sur la version d'avant, `forcesDuNom`
+       n'existe pas : l'appel nu levait une TypeError et 31 des 32 controles
+       n'etaient jamais joues — 0/1, une chute illisible.
+
+       Ces enveloppes rendent une valeur neutre quand la machinerie manque.
+       Chaque controle tombe alors avec SA valeur, et la chute se lit. */
+    function fdn(nom) {
+      return (A.m.forcesDuNom ? A.m.forcesDuNom(nom) : []).join(',');
+    }
+    function fde(ex) {
+      return (A.m.forcesDeLExercice ? A.m.forcesDeLExercice(ex) : []).join(',');
+    }
+    var par = A.m.stylesParForce ? A.m.stylesParForce() : {};
+    var lis = A.m.stylesLisibles ? A.m.stylesLisibles() : { lisibles: [], aveugles: [] };
+    function rep(e, j) {
+      return A.m.repartitionStyles ? A.m.repartitionStyles(e, j)
+                                   : { parStyle: {}, partage: {}, total: -1 };
+    }
+    function dec(e, j) {
+      return A.m.stylesDeclares ? A.m.stylesDeclares(e, j)
+                                : { parStyle: {}, total: -1, sansStyle: -1 };
+    }
+    function sta(e, j) {
+      return A.m.statsSparring ? A.m.statsSparring(e, j)
+                               : { seances: -1, rounds: -1, minutes: -1, droite: -1,
+                                   gauche: -1, avecDouleur: -1, partenaires: [] };
+    }
+
+    /* ---- les mots d'un mouvement ---- */
+    v.egal(fdn('Toproll à la poulie'), 'pronation',
+           'un toproll nommé porte la PRONATION');
+    v.egal(fdn('Hook à la poulie'), 'supination',
+           'un hook porte la SUPINATION — décision de MB du 23/10, contre '
+         + 'l’article de 2026');
+    v.egal(fdn('Wrist curl'), 'cupping',
+           'un wrist curl porte le CUPPING');
+    v.egal(fdn('Riser à la poulie'), 'rising',
+           'un riser porte le RISING');
+
+    /* ---- ce qui ne doit RIEN porter, et c'est le plus coûteux ----
+
+       CES CONTROLES TIENNENT SUR LA VERSION D'AVANT, et il faut le savoir :
+       la table n'y existe pas, donc TOUT y rend vide. Ils ne prouvent rien
+       seuls — c'est le groupe qui parle, avec les positifs juste au-dessus
+       (8/32 a la chute, et les positifs sont dans les 24 qui tombent).
+
+       SUR LA VERSION NEUVE, ils mordent pour de bon : ajouter « press » a
+       MOTS_FORCE les fait tomber tous les trois, et c'est exactement la
+       raison pour laquelle le mot n'y est pas. */
+    v.egal(fdn('Wrist curl inversé'), '',
+           'un wrist curl INVERSÉ ne porte pas le cupping : c’est une '
+         + 'extension, et aucun mouvement du carnet ne la porte');
+    v.egal(fdn('Bench press'), '',
+           '« bench press » ne porte AUCUN mouvement — le mot « press » n’est '
+         + 'pas dans la table, parce qu’il désigne trois exercices livrés');
+    v.egal(fdn('Overhead press'), '',
+           '« overhead press » non plus');
+    v.egal(fdn('Close grip bench press'), '',
+           'ni « close grip bench press »');
+    v.egal(fdn('Curl marteau'), '',
+           'un curl marteau ne nomme aucun mouvement de bras de fer');
+    v.egal(fdn('Wrist curl avec poignée de hook'), 'cupping',
+           'et « poignée de hook » est un OUTIL : il ne fait pas supiner — '
+         + 'sans cette garde, il proposait SUPINATION');
+
+    /* ---- la case cochée gagne sur la lecture ---- */
+    v.egal(fde({ nom: 'Bench press', forces: ['rising'] }),
+           'rising',
+           'ce que l’utilisateur a COCHÉ gagne : on ne complète pas une '
+         + 'décision en douce');
+    v.egal(fde({ nom: 'Toproll à la poulie', forces: [] }),
+           'pronation',
+           'et la lecture ne sert que là où la case est VIDE');
+
+    /* ---- la table, et ce qu'elle rend lisible ---- */
+    v.egal(par.side_pressure, 2,
+           'la side pressure appartient à DEUX styles — hook et press');
+    v.egal((par.pronation || 0) + '' + (par.supination || 0) + (par.cupping || 0) + (par.rising || 0), '1111',
+           '[temoin] les autres n’appartiennent qu’à un seul : c’est ce qui '
+         + 'les rend attribuables');
+
+    v.egal(lis.lisibles.map(function (x) { return x.style.id; }).join(','),
+           'toproll,hook', 'deux styles sont lisibles');
+    v.egal(lis.aveugles.map(function (x) { return x.style.id; }).join(','),
+           'press',
+           'le PRESS ne l’est pas : son seul mouvement est partagé, et le '
+         + 'carnet ne peut pas dire lequel des deux tu travaillais');
+
+    /* ---- le comptage, sur un décor ---- */
+    var e = A.store.vide();
+    function jourIl(n) {
+      var d = new Date(); d.setDate(d.getDate() - n);
+      var z = function (x) { return (x < 10 ? '0' : '') + x; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    }
+    function exo(nom, nb, forces) {
+      var s = [];
+      for (var i = 0; i < nb; i++) {
+        s.push({ id: 'x' + nom + i, type: 'normale', faite: true, faiteA: null,
+                 chargeCible: '', repsCible: '', dureeCible: '',
+                 chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null });
+      }
+      return { id: 'e' + nom, ordre: 0, nom: nom, slug: A.m.slug(nom), aw: true,
+               typeCharge: 'kg', colonnes: ['charge', 'reps'], forces: forces || [],
+               muscles: [], structures: [], outils: [], consigne: '',
+               reposSecondes: 90, series: s };
+    }
+    e.seances = [
+      { id: 'm1', type: 'muscu', date: jourIl(2), heure: '', note: '', douleurs: [],
+        exercices: [exo('Toproll à la poulie', 6), exo('Riser à la poulie', 4)] },
+      { id: 'm2', type: 'muscu', date: jourIl(5), heure: '', note: '', douleurs: [],
+        exercices: [exo('Wrist curl', 3), exo('Side pressure à la poulie', 5),
+                    exo('Curl marteau', 7)] },
+      { id: 's1', type: 'sparring', date: jourIl(1), style: 'hook', rounds: 6,
+        dureeMin: 20, cote: 'droite', partenaires: 'Marc', douleurs: [] },
+      { id: 's2', type: 'sparring', date: jourIl(3), style: 'hook', rounds: 4,
+        dureeMin: 15, cote: 'droite', partenaires: 'Julien, Marc',
+        douleurs: [{ zone: 'coude_medial', cote: 'droite', intensite: 4 }] },
+      { id: 's3', type: 'sparring', date: jourIl(6), style: '', rounds: 0,
+        dureeMin: 0, cote: null, partenaires: '', douleurs: [] }
+    ];
+
+    var r = rep(e, 30);
+    v.egal((r.parStyle.toproll || 0), 10,
+           'le toproll compte ses séries — 6 de pronation et 4 de rising');
+    v.egal((r.parStyle.hook || 0), 3, 'le hook les siennes — 3 de cupping');
+    v.egal((r.partage.side_pressure || 0), 5,
+           'et les 5 séries de side pressure sont mises À PART : les ranger '
+         + 'dans le hook le gonflerait au prix du press');
+    v.egal((r.parStyle.press || 0), 0,
+           '[temoin] le press reste à zéro — c’est pour ça que l’écran ne '
+         + 'l’affiche PAS comme une barre : « 0 » se lirait « jamais »');
+    v.egal(r.total, 18, 'le total compte le partagé aussi — 10 + 3 + 5');
+
+    /* UN EXERCICE SANS MOUVEMENT NE COMPTE PAS : le curl marteau porte
+       7 séries et n’entre nulle part. C’est ce qui sépare « le carnet ne
+       sait pas » de « tu n’as rien fait ». */
+    v.vrai(r.total < 25,
+           'le curl marteau et ses 7 séries n’entrent nulle part : 18 et non 25');
+
+    /* ---- le style DÉCLARÉ, qui ne se déduit pas ---- */
+    var d = dec(e, 30);
+    v.egal((d.parStyle.hook || 0), 2, 'deux sparrings déclarés en hook');
+    v.egal(d.total, 2, 'et le total ne compte que ceux qui portent un style');
+    v.egal(d.sansStyle, 1,
+           'celui sans style coché est compté À PART — il existe, il ne '
+         + 'se range nulle part');
+
+    /* ---- ce qu'un sparring porte de chiffré ---- */
+    var sp = sta(e, 30);
+    v.egal(sp.seances, 3, 'trois sparrings sur la fenêtre');
+    v.egal(sp.rounds + '/' + sp.minutes, '10/35',
+           'rounds et minutes s’additionnent SÉPARÉMENT — un sparring sans '
+         + 'eux compte quand même comme une séance');
+    v.egal(sp.droite + '/' + sp.gauche, '2/0', 'le bras est compté');
+    v.egal(sp.avecDouleur, 1, 'et les sparrings avec une douleur notée');
+    v.egal(sp.partenaires.join(','), 'Marc,Julien',
+           'les partenaires se dédoublonnent, sans casse ni ordre perdu');
+
+    /* ---- la fenêtre est respectée ---- */
+    var court = rep(e, 3);
+    v.egal((court.parStyle.toproll || 0), 10, '[temoin] la séance de J-2 reste dedans à 3 jours');
+    v.egal((court.parStyle.hook || 0), 0,
+           'mais celle de J-5 en sort : la fenêtre n’est pas décorative');
+  });
+
   bloc('Récupération', function (v) {
     function jour(d, faits) {
       return { id: 're' + d, type: 'recup', date: d, heure: d + 'T20:00:00.000Z',
