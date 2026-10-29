@@ -113,15 +113,28 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
 1. **Trois types livrés SANS fiche de revue** : `anti toproll`, `multi tool`,
    `armwrestling buddies`. Ils sont dans le modèle sans être passés par le
    rituel — c'est le même défaut que les 59 écritures de catalogue du 29/10.
-2. **VINGT ET UN ACCESSOIRES ne proposent AUCUN muscle** : les 9 du
-   Multi-Tool (Zylinder S/M/L/XL, Exzentrisch, Kegel, Toproll Counter, Wrist
-   Pro, Multi Hand Grip), les 6 des Armwrestling Buddies (Offset Cylinder,
-   Anti-Toproll ×2, Eccentric Grip, King's Cup, Cone Handle) et les 6
-   positions de mousqueton. Or **ce sont eux qui changent ce qui travaille**,
-   pas la boîte. Et c'est **structurel** : les réglages livrés sont de
-   simples CHAÎNES, donc ils ne peuvent pas porter de muscles —
-   `musclesDesReglages()` ne lit que ceux que MB a saisis lui-même.
-3. La dette du **Cone Handle** est l'un de ces vingt et un.
+2. **DEUX accessoires muets, pas vingt et un.** J'avais écrit le contraire
+   ici même, et MB l'a relevé : « l'équipement est déjà ajouté par marque
+   [...] les équipements par marques indiquent déjà les muscles en plus
+   nan ? ». **Il a raison.** J'avais DÉDUIT « aucun muscle » de la forme de
+   la table — les réglages livrés sont des chaînes — sans TESTER ce que le
+   carnet rend. Le vrai compte, testé nom par nom :
+
+   | | |
+   |---|---|
+   | proposent déjà par leur nom de marque | **10** |
+   | positions de mousqueton, pas des accessoires | 6 |
+   | Zylinder S/M/L/XL : « Aufsatz Zylinder L » rend ses 5 muscles | 4 |
+   | **vrais trous : Wrist Pro, Multi Hand Grip** | **2** |
+
+   Le nom court « Zylinder L » seul est interdit **exprès** : « Pronator
+   Zylinder » est un autre produit Titangrip, et le code l'écrit.
+
+   **C'est le piège que la règle nomme** : mesurer l'EFFET, jamais la
+   DÉCLARATION. J'ai lu la table et conclu ; il fallait appeler la fonction.
+3. La dette du **Cone Handle** : il propose UN muscle (fléchisseurs des
+   doigts) là où sa fiche Golden Grip nomme une cup profonde, une tension
+   côté auriculaire et de la supination.
 
 ## 2. Les variantes, plutôt qu'un nom par engin
 
