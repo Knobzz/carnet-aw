@@ -271,17 +271,63 @@
 
   var barre = null, compteurs = null;
 
+  /* LE COMPTEUR COMPTE CE QUI RESTE A FAIRE, pas ce qui est en memoire.
+
+     Il annoncait « 2 renommage(s) en attente » alors qu'un seul restait :
+     l'autre etait deja au dictionnaire. C'est le nombre que MB lit, et le
+     29/10 c'est lui qui lui a fait coller vingt renommages dont dix-huit
+     etaient faits. Un compteur qui compte autre chose que ce qu'il annonce
+     fait agir de travers. */
   function majBarre() {
-    var n = Object.keys(memoire).length;
+    var tous = Object.keys(memoire);
+    var restants = tous.filter(function (k) { return !dejaApplique(k, memoire[k]); });
+    var n = restants.length;
+    var faits = tous.length - n;
     compteurs.textContent = n
       ? n + ' renommage(s) en attente'
-      : 'Aucun renommage. Modifie un nom ou ses autres écritures pour en poser un.'
+        + (faits ? ' (' + faits + ' deja au dictionnaire, non recopie(s))' : '')
+      : (faits
+          ? 'Aucun renommage en attente — les ' + faits + ' en mémoire sont '
+            + 'déjà au dictionnaire.'
+          : 'Aucun renommage. Modifie un nom ou ses autres écritures pour en poser un.')
         + (memoireOk ? '' : ' — le navigateur refuse de les retenir entre deux chargements.');
     barre.hidden = false;
   }
 
+  /* CE QUI RESTE A FAIRE, PAS CE QU'ON A DEJA FAIT.
+
+     La memoire des renommages vit dans `localStorage` et s'accumule d'une
+     relecture a l'autre — c'est ce qui evite de perdre une revue en cours.
+     Mais elle ne savait pas qu'un renommage avait ete APPLIQUE.
+
+     Le 29/10, MB a colle vingt renommages en pensant donner une consigne :
+     DIX-HUIT etaient appliques depuis longtemps, deux decrivaient un etat
+     intermediaire depasse, et trois ecritures avaient ete retirees expres
+     depuis (les « a la sangle », qu'un controle du banc interdit). Les
+     reappliquer aurait defait un travail fait expres.
+
+     On compare donc avec le dictionnaire VIVANT, et on ne recopie que
+     l'ecart. */
+  function dejaApplique(cle, v) {
+    var cible = (v.nom && v.nom !== cle) ? v.nom : cle;
+    var f = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === cible; })[0];
+    if (!f) return false;
+    if (v.aussi == null) return true;
+    var veut = String(v.aussi).split(',').map(function (x) { return x.trim(); })
+                 .filter(function (x) { return x; });
+    var a = f.aussi || [];
+    return veut.every(function (x) { return a.indexOf(x) >= 0; });
+  }
+
   function texteDesRenommages() {
-    return Object.keys(memoire).map(function (k) {
+    var restants = Object.keys(memoire).filter(function (k) {
+      return !dejaApplique(k, memoire[k]);
+    });
+    if (!restants.length) {
+      return '(rien à reporter : tout ce qui est en mémoire est déjà au '
+           + 'dictionnaire)';
+    }
+    return restants.map(function (k) {
       var v = memoire[k];
       var bouts = [];
       if (v.nom && v.nom !== k) bouts.push('nom : ' + v.nom);
