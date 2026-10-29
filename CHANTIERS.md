@@ -11,18 +11,26 @@ posé le 23/10 — les mouvements d'abord, les équipements bien après.
 
 ---
 
-## 0. Finir le dictionnaire — C'EST LE CHANTIER EN COURS
+## 0. Finir le dictionnaire — **LES QUATRE FAMILLES SONT FAITES**
+
+**Le 2026-10-29**, les dix lots sont livrés et les quatre familles qui
+restaient — triceps, dorsaux, pectoraux, biceps — sont passées. Ce qui
+reste de ce chantier n'est plus une famille : ce sont les **dettes
+mesurées**, en bas de ce fichier, et neuf noms de dos qui attendent un
+muscle que le carnet n'a pas.
 
 **L'ordre de MB, 2026-10-23** : les mouvements d'abord, les équipements
 « dans un second temps beaucoup plus tardif ». Rien de ce qui suit ne
 commence tant que celui-ci n'est pas fini.
 
-**Neuf lots livrés, 67 fiches** : le poignet et l'avant-bras (8), la main et
+**Dix lots livrés, 67 fiches** : le poignet et l'avant-bras (8), la main et
 le grip (5), les exercices de table (3), les épaules et le dos (17), les
 fléchisseurs du coude (9), les épaules (12), les triceps (4), les dorsaux
 (4 — plus deux écritures au Rowing, qui retrouve au passage les rhomboïdes
-et le trapèze qu'il n'avait pas), les pectoraux (1, le 29/10 : l'Écarté,
-qui absorbe à lui seul les treize noms muets de sa page).
+et le trapèze qu'il n'avait pas), les pectoraux (1 : l'Écarté, qui
+absorbe à lui seul les treize noms muets de sa page), les biceps (0, le
+29/10 — huit écritures et AUCUNE fiche neuve : les noms muets
+appartenaient à des fiches qui existaient déjà).
 
 **CE QUI RESTE, MESURÉ LE 2026-10-29**, après le lot des épaules, sur les
 noms réels des pages de docteur-fitness :
@@ -45,8 +53,16 @@ noms réels des pages de docteur-fitness :
    treize étaient LE MÊME GESTE : l'écarté. La dette des écritures de *Dips
    prise large* se solde à **zéro** — la page n'en portait qu'une, « Dips
    aux barres parallèles », que MB a refusée.
-4. **Les biceps — C'EST LE DERNIER.** 7 muets seulement : le lot 5 a déjà
-   fait le gros.
+4. ~~**Les biceps.**~~ **LIVRÉS le 29/10, et sans ouvrir une seule fiche.**
+   Les six noms muets étaient des variantes de « Curl biceps », qui portait
+   déjà « Spider curl » et « Curl incliné » — MB : « Bah les deux
+   existaient déjà donc..... ». Les deux noms maigres ont rejoint le hammer
+   curl.
+
+**ET APRÈS ?** Le chantier 1, les **équipements**, que MB avait placé
+« dans un second temps beaucoup plus tardif » — c'est maintenant. Mais les
+**dettes** ci-dessous se règlent d'abord si on les veut : elles sont
+mesurées et nommées, et aucune ne demande plus d'une décision.
 
 **CE QU'UN LOT COÛTE VRAIMENT** — leçon du lot des épaules : il a fallu faire
 entrer **quatre muscles** avant de pouvoir écrire une seule fiche, parce que

@@ -1527,10 +1527,31 @@
        donc identiques, et la difference est ecrite sur la planche de revue
        plutot que simulee dans les muscles. */
     { nom: 'Curl biceps', groupe: 'biceps',
+      /* ---------- LES BICEPS (lot 10) ----------
+
+         Valide par MB le 2026-10-29, dernier lot du dictionnaire. Mesure
+         sur les 34 noms de la page : SEPT ne proposaient rien, deux ne
+         rendaient qu'un muscle.
+
+         AUCUNE FICHE NEUVE, et c'est la mesure qui l'a evite : mon premier
+         reflexe etait d'ouvrir « Curl spider » et « Curl incline ». Cette
+         fiche les porte DEJA, sous « Spider curl » et « Curl incline ». MB,
+         en validant : « Bah les deux existaient deja donc..... »
+
+         LES SIX NOMS MUETS SONT DES VARIANTES DE CE GESTE : le banc
+         incline, le pupitre vertical de l'araignee, la poulie allongee, le
+         plateau du serveur. Le carnet n'a qu'une entree « biceps », sans
+         ses deux chefs : leurs listes seraient identiques. Ce que la
+         difference SERAIT — bras derriere le corps etire la longue portion,
+         bras devant la raccourcit — est ecrit sur la planche, pas simule
+         dans les muscles. Meme traitement qu'aux lots 5 et 7. */
       aussi: ['Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ',
               'Curl debout', 'Curl à la poulie', 'Cable curl',
               'Curl incliné', 'Incline curl', 'Spider curl', 'Curl araignée',
-              'Drag curl', 'Curl 21', 'Bayesian curl'],
+              'Drag curl', 'Curl 21', 'Bayesian curl',
+              'Curl spider', 'Curl haltère debout sur banc incliné',
+              'Curl haltère incliné avec rotation', 'Curl allongé à la poulie',
+              'Curl overhead avec élastique', 'Waiter curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl concentré', groupe: 'biceps',
       aussi: ['Concentration curl', 'Curl concentration',
@@ -1542,7 +1563,12 @@
               'Curl au pupitre à la machine'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Hammer curl', groupe: 'biceps',
-      aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères'],
+      /* DEUX ECRITURES AU LOT 10 : elles ne rendaient que le
+         BRACHIO-RADIAL, le lecteur de noms y lisant « marteau » sans voir
+         le curl. */
+      aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères',
+              'Curl haltère prise marteau au pupitre',
+              'Curl en prise marteau avec élastique'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl inversé', groupe: 'avant_bras',
       aussi: ['Reverse curl', 'Curl inversé haltères', 'Curl inversé barre',

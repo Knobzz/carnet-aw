@@ -5410,6 +5410,62 @@
   });
 
   /* ==================================================================
+     LE LOT 10 — LES BICEPS, ET AUCUNE FICHE NEUVE
+
+     Mesure sur les 34 noms de la page : SEPT ne proposaient rien, deux ne
+     rendaient qu'un muscle. Mon premier reflexe etait d'ouvrir « Curl
+     spider » et « Curl incline » : « Curl biceps » les portait DEJA. MB, en
+     validant : « Bah les deux existaient deja donc..... »
+
+     CE BLOC GARDE DONC DEUX CHOSES A LA FOIS : que les huit ecritures
+     menent bien quelque part, et qu'elles n'aient PAS ouvert de fiche.
+     ================================================================== */
+  bloc('Le lot 10 — les biceps', function (v) {
+    function fiche(n) {
+      return A.m.ficheDictionnaire(n, { exercices: [], dictionnaire: [] });
+    }
+
+    /* ---- LES SIX NOMS MUETS MENENT AU CURL ---- */
+    ['Curl spider', 'Curl haltère debout sur banc incliné',
+     'Curl haltère incliné avec rotation', 'Curl allongé à la poulie',
+     'Curl overhead avec élastique', 'Waiter curl'
+    ].forEach(function (n) {
+      v.egal((fiche(n) || {}).nom, 'Curl biceps',
+             '« ' + n + ' » mène au curl — il ne rendait RIEN');
+    });
+
+    /* ---- LES DEUX NOMS MAIGRES MENENT AU MARTEAU ----
+       Ils ne rendaient que le BRACHIO-RADIAL : le lecteur de noms y lisait
+       « marteau » sans voir le curl. */
+    ['Curl haltère prise marteau au pupitre',
+     'Curl en prise marteau avec élastique'].forEach(function (n) {
+      v.egal((fiche(n) || {}).nom, 'Hammer curl',
+             '« ' + n + ' » mène au hammer curl — il ne rendait que le '
+           + 'brachio-radial');
+      v.egal(A.m.musclesDuNom(n).length, 3,
+             'et il rend ses TROIS muscles, pas un seul');
+    });
+
+    /* ---- ET AUCUNE FICHE N'A ETE OUVERTE ----
+       C'est l'autre moitie du lot, et celle que MB a nommee. */
+    ['Curl spider', 'Curl incliné', 'Waiter curl', 'Drag curl'
+    ].forEach(function (n) {
+      v.egal(A.m.DICTIONNAIRE.filter(function (d) { return d.nom === n; }).length, 0,
+             '[prix] « ' + n + ' » n’a PAS sa fiche — « Curl biceps » le porte '
+           + 'déjà comme écriture, et en ouvrir une serait le doublon. Il '
+           + 'tient des deux côtés : ce qui bouge, ce sont les écritures');
+    });
+
+    /* LE COMPTE DES FICHES NE BOUGE PAS. Un lot qui n'ajoute que des
+       ecritures doit laisser le dictionnaire a sa taille. */
+    v.egal(A.m.DICTIONNAIRE.filter(function (d) {
+      return d.groupe === 'biceps';
+    }).length, 6,
+           '[prix] le groupe Biceps compte toujours SIX fiches : ce lot '
+         + 'n’en ouvre aucune');
+  });
+
+  /* ==================================================================
      LE LOT 9 — LES PECTORAUX
 
      Mesure sur les 51 noms distincts de la page : TREIZE ne proposaient
