@@ -558,7 +558,13 @@
      le plus travaillé prime », dit MB. Le déduire de ses muscles ne marche
      pas : mesuré le 29/10, 30 fiches sur 62 ont des muscles `moteur` dans
      PLUSIEURS groupes. Le développé couché en a un dans chacun des trois.
-     Ce qui manquait n'était pas une mesure, c'était une décision. */
+     Ce qui manquait n'était pas une mesure, c'était une décision.
+
+     LES 62 SONT VALIDÉS par MB le 29/10, liste entière sous les yeux, les
+     30 arbitrages marqués comme tels : « Tout est bon ». Le plus surprenant
+     — le haussement d'épaules dans DOS, son seul moteur étant le trapèze —
+     lui a été nommé à part. Un lot futur qui veut déplacer un rangement
+     rouvre une décision PRISE ; il ne comble pas un trou. */
   var GROUPES_DICO = [
     { id: 'epaules',    nom: 'Épaules' },
     { id: 'dos',        nom: 'Dos' },
