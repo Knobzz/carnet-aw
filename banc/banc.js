@@ -5410,6 +5410,75 @@
   });
 
   /* ==================================================================
+     LE LOT 9 — LES PECTORAUX
+
+     Mesure sur les 51 noms distincts de la page : TREIZE ne proposaient
+     rien, et les treize sont LE MEME MOUVEMENT — l'ecarte.
+
+     MB, en validant : « Developpe serre n'existe t'il pas deja ? Comme
+     d'hab, attention aux doublons ». Il existe, et c'est pour ca qu'il
+     gagne des ECRITURES au lieu d'une fiche.
+     ================================================================== */
+  bloc('Le lot 9 — les pectoraux', function (v) {
+    function mus(n) { return A.m.musclesDuNom(n).slice().sort().join(','); }
+    function fiche(n) {
+      return A.m.ficheDictionnaire(n, { exercices: [], dictionnaire: [] });
+    }
+
+    var ec = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === 'Écarté'; });
+    v.egal(ec.length, 1, 'la fiche « Écarté » est livrée, et une seule fois');
+    /* PAS DE SORTIE ANTICIPEE ICI. Aucun des controles suivants ne LEVE
+       quand la fiche manque — ils rendent vide, donc ils TOMBENT, et
+       c'est ce qu'on veut lire a la chute. Un `return` les aurait
+       emportes : essaye, la chute passe de huit rouges a un seul. */
+
+    /* ---- CE QUI SEPARE L'ECARTE D'UN DEVELOPPE ----
+       Le coude ne travaille pas : PAS DE TRICEPS. C'est toute la raison de
+       sa fiche — rendre la meme liste que le developpe couche effacerait ce
+       qu'on vient chercher dans un ecarte. */
+    v.egal(mus('Écarté'), 'coraco_brachial,deltoide,grand_pectoral',
+           'l’écarté rend trois muscles, SANS le triceps : le coude ne '
+         + 'travaille pas');
+    v.vrai(A.m.musclesDuNom('Développé couché').indexOf('triceps') >= 0,
+           '[prix] alors que le développé couché, lui, le garde — il tient des '
+         + 'deux côtés, et c’est la comparaison qui porte le sens');
+    v.egal(mus('Écarté').indexOf('biceps'), -1,
+           'et SANS le biceps : sa citation dit une FLEXION, alors qu’un '
+         + 'écarté est une ADDUCTION horizontale (vrai aussi quand la fiche '
+         + 'MANQUE — c’est le contrôle de présence qui garde ce cas)');
+
+    /* ---- LES TREIZE NOMS MUETS MENENT TOUS ICI ---- */
+    var muets = ['Écartés couché avec haltères', 'Écartés incliné avec haltères',
+      'Écartés Hyght', 'Écartés à la poulie vis-à-vis', 'Pec deck',
+      'Butterfly à la machine', 'Écartés avec élastique',
+      'Écartés unilatéraux à la landmine', 'Svend press'];
+    var ratees = muets.filter(function (n) {
+      return (fiche(n) || {}).nom !== 'Écarté';
+    });
+    v.egal(ratees.join(' · '), '',
+           'les noms de la page mènent tous à « Écarté » — ils ne rendaient '
+         + 'RIEN, ou « Pectoral » tout seul');
+
+    /* ---- LE DEVELOPPE SERRE N'EST PAS DEDOUBLE ----
+       MB : « attention aux doublons ». Il gagne trois ecritures. */
+    v.egal(A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Développé serré';
+    }).length, 1,
+           '[prix] « Développé serré » n’existe qu’UNE fois — la garde de MB, '
+         + 'elle doit tenir avant comme après');
+    v.egal((fiche('Hex press') || {}).nom, 'Développé serré',
+           'le hex press le rejoint : deux haltères serrés, le COUDE '
+         + 'travaille — ce n’est pas un écarté');
+
+    /* ---- ET UNE ECRITURE RESTE DEHORS ---- */
+    v.egal(fiche('Écartés avec sangles de suspension'), null,
+           '[temoin] « Écartés avec sangles de suspension » n’est à AUCUNE '
+         + 'fiche, et doit le rester : une garde refuse qu’un nom de '
+         + 'mouvement porte un ÉQUIPEMENT (règle de MB du 27/10). Il tient '
+         + 'des deux côtés — écriture refusée, pas oubliée');
+  });
+
+  /* ==================================================================
      LE LOT 8 — LES DORSAUX
 
      MB, 29/10 : « Prepare les dorsaux », puis « Onze suffisent », puis

@@ -1447,6 +1447,40 @@
               'Presse à épaules inclinée', 'Développé nuque',
               'Développé nuque à la barre guidée', 'Behind the neck press'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
+    /* ---------- LES PECTORAUX (lot 9) ----------
+
+       Validé par MB le 2026-10-29. Mesure sur les 51 noms distincts de la
+       page « exercices pectoraux » : TREIZE ne proposaient rien, quatre ne
+       rendaient qu'un muscle.
+
+       LE LOT LE PLUS COURT DES NEUF, et pour une raison qui se mesure : les
+       treize muets sont LE MÊME MOUVEMENT. Une seule fiche neuve.
+
+       CE QUI SÉPARE L'ÉCARTÉ D'UN DÉVELOPPÉ : le COUDE NE TRAVAILLE PAS.
+       Donc PAS DE TRICEPS, là où le développé couché en fait un moteur. Un
+       carnet qui rendrait la même liste pour les deux effacerait exactement
+       ce qu'on vient chercher dans un écarté. */
+    { nom: 'Écarté', groupe: 'pectoraux',
+      /* PAS DE BICEPS, et c'est mesuré : sa citation dit « weak flexor of
+         the arm at the glenohumeral joint » — une FLEXION, alors qu'un
+         écarté est une ADDUCTION horizontale. Le coraco-brachial, lui,
+         entre : sa citation nomme l'adduction, qui EST le geste.
+
+         « Écartés avec sangles de suspension » est restée DEHORS : une
+         garde refuse qu'un nom de mouvement porte un équipement — règle de
+         MB du 27/10 — et le mot « sangles » lui faisait rendre les
+         fléchisseurs des doigts. */
+      aussi: ['Écartés couché avec haltères', 'Écartés incliné avec haltères',
+              'Écartés décliné avec haltères', 'Écartés Hyght',
+              'Écarté unilatéral à la poulie', 'Écartés à la poulie haute',
+              'Écartés à la poulie vis-à-vis',
+              'Écartés à la poulie vis-à-vis haute à genoux',
+              'Écartés couché à la poulie vis-à-vis',
+              'Écartés inclinés à la machine', 'Écartés avec élastique',
+              'Écartés unilatéraux à la landmine',
+              'Pec deck', 'Butterfly à la machine', 'Butterfly',
+              'Chest fly', 'Svend press'],
+      muscles: ['grand_pectoral', 'deltoide', 'coraco_brachial'] },
     { nom: 'Développé couché', groupe: 'pectoraux',
       aussi: ['Bench press', 'Développé barre', 'Développé haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
@@ -1455,8 +1489,12 @@
               'Développé incliné haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Développé serré', groupe: 'triceps',
+      /* LE HEX PRESS ENTRE AU LOT 9, et ce n'est PAS un écarté : deux
+         haltères serrés l'un contre l'autre, le coude travaille et le
+         triceps mène. Il ne rendait que « Pectoral ». */
       aussi: ['Close grip bench press', 'Développé couché prise serrée',
-              'Close grip'],
+              'Close grip', 'Hex press', 'Hex press à la barre guidée',
+              'Développé couché serré avec haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Dips prise large', groupe: 'pectoraux',
       aussi: ['Dips pectoraux', 'Dips buste penché', 'Chest dips',

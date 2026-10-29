@@ -3,7 +3,7 @@
    est servie depuis le cache dès que le réseau manque. Aucune donnée
    d'entraînement ne passe par ici : elle ne quitte jamais le téléphone. */
 
-var CACHE = 'carnet-aw-v1.61.0';
+var CACHE = 'carnet-aw-v1.62.0';
 
 var FICHIERS = [
   './',

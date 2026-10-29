@@ -17,11 +17,12 @@ posé le 23/10 — les mouvements d'abord, les équipements bien après.
 « dans un second temps beaucoup plus tardif ». Rien de ce qui suit ne
 commence tant que celui-ci n'est pas fini.
 
-**Huit lots livrés, 66 fiches** : le poignet et l'avant-bras (8), la main et
+**Neuf lots livrés, 67 fiches** : le poignet et l'avant-bras (8), la main et
 le grip (5), les exercices de table (3), les épaules et le dos (17), les
 fléchisseurs du coude (9), les épaules (12), les triceps (4), les dorsaux
-(4, le 29/10 — plus deux écritures au Rowing, qui retrouve au passage les
-rhomboïdes et le trapèze qu'il n'avait pas).
+(4 — plus deux écritures au Rowing, qui retrouve au passage les rhomboïdes
+et le trapèze qu'il n'avait pas), les pectoraux (1, le 29/10 : l'Écarté,
+qui absorbe à lui seul les treize noms muets de sa page).
 
 **CE QUI RESTE, MESURÉ LE 2026-10-29**, après le lot des épaules, sur les
 noms réels des pages de docteur-fitness :
@@ -40,10 +41,12 @@ noms réels des pages de docteur-fitness :
 2. ~~**Les dorsaux.**~~ **LIVRÉS le 29/10**, onze noms sur vingt et un — MB :
    « Onze suffisent ». Les neuf autres attendent les érecteurs du rachis. 21 noms muets, et cohérents entre eux — les pull-overs,
    le soulevé de terre, le muscle-up, les tractions assistées.
-3. **Les pectoraux — C'EST LE PROCHAIN.** 14 muets, surtout des variantes
-   d'engin. Ils porteront aussi les écritures de *Dips prise large*, qui
-   attendent leur page.
-4. **Les biceps.** 7 muets seulement : le lot 5 a déjà fait le gros.
+3. ~~**Les pectoraux.**~~ **LIVRÉS le 29/10.** Treize noms muets, et les
+   treize étaient LE MÊME GESTE : l'écarté. La dette des écritures de *Dips
+   prise large* se solde à **zéro** — la page n'en portait qu'une, « Dips
+   aux barres parallèles », que MB a refusée.
+4. **Les biceps — C'EST LE DERNIER.** 7 muets seulement : le lot 5 a déjà
+   fait le gros.
 
 **CE QU'UN LOT COÛTE VRAIMENT** — leçon du lot des épaules : il a fallu faire
 entrer **quatre muscles** avant de pouvoir écrire une seule fiche, parce que
@@ -53,6 +56,15 @@ les muscles AVANT de promettre un lot.
 **LE RITUEL, inchangé** : je liste et je source (citation mot pour mot +
 lien) dans `revue/catalogue.js`, MB lit la planche `revue/index.html` où les
 noms sont **modifiables**, il valide, et seulement ensuite on livre.
+
+**ET UNE RÈGLE DE PRÉSENTATION, parce que MB a dû la demander QUATRE FOIS** —
+« attention au doublon » (dips, lot 7), « il me semble que le rowing était
+déjà présent » (lot 8), « Développé serré n'existe t'il pas déjà ? »
+(lot 9) : **tout résumé de lot sépare les FICHES NEUVES des FICHES DÉJÀ
+LÀ**, nommément, avant de détailler quoi que ce soit. La planche le montre
+déjà (« +N écriture(s) sur une fiche déjà livrée ») et le banc le garde,
+mais MB lit le message avant la planche. Ce n'est pas une mesure qui
+manquait, c'est une phrase.
 
 ---
 
