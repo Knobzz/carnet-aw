@@ -84,6 +84,25 @@ s'est faite à la poulie plutôt qu'aux haltères.
 **Conséquence sur les lots en cours** : les `aussi` qu'on écrit maintenant ne
 sont pas perdus, mais une partie deviendra des variantes le jour venu.
 
+**CE QUE LA RECHERCHE PAR MOTS A DÉJÀ RÉGLÉ, ET CE QU'ELLE N'A PAS RÉGLÉ**
+(29/10, après la question de MB : « si c'est à la poulie, ya forcément le
+câble ou la sangle au final ? »).
+
+Les **122 écritures d'engin** du dictionnaire ne sont plus nécessaires pour
+*trouver* une fiche : « poulie », « cable », « pulley » et « sangle » sont
+désormais le même mot pour la recherche, et l'engin est optionnel dans une
+frappe. Mesuré : 122 frappes perdues sur 320 passent à zéro.
+
+Elles servent encore à **classer** : une fiche qui porte littéralement ce
+qu'on tape passe devant. Les retirer coûterait donc de la précision de
+classement, pas de la capacité à trouver. **C'est à ce chantier de
+trancher**, et pas avant : le jour où l'engin devient une variante
+enregistrée, il sort de `aussi` par construction.
+
+**Ce que ça ne règle toujours pas** : l'historique ne garde toujours aucune
+trace de l'engin réellement utilisé. C'est le cœur de ce chantier, et la
+recherche n'y touche pas.
+
 ## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images
 
 **Quand** : « plus tard, quand le dictionnaire sera déjà bien rempli »
