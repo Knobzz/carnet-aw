@@ -822,6 +822,64 @@
     v.egal(A.m.texteTempsSousTension(v2), '',
            'jamais « 0 s », qui ferait croire à une séance où l’on n’a rien tenu');
 
+    /* ---- REPS SEULES, SANS POIDS ----
+
+       MB, 29/10 : « Attention, je dois pouvoir mettre juste des reps sans
+       poids, ou juste de la durée ». Les deux marchaient ; c'est la PHRASE
+       qui mentait. Avec 8 et 6 reps sans charge, l'écran écrivait « sur un
+       exercice sans charge NI REPS — rien à multiplier, et RIEN DE SAISI
+       non plus » : deux faussetés dans une seule ligne.
+
+       La branche couvrait trois cas, le texte n'en décrivait qu'un — le
+       piège n° 5 appliqué à une phrase. */
+    var repsSeules = seance('2026-10-20', [
+      exoDuree('Traction partielle', [serie('normale', '', 8), serie('normale', '', 6)], ['reps'])
+    ]);
+    var vr = A.m.volumeSeance(repsSeules);
+    /* [prix] CES TROIS TIENNENT DES DEUX CÔTÉS, et c'est le but : le COMPTE
+       était déjà juste, seule la phrase mentait. Ils tombent si un jour on
+       casse le compte en réparant le texte. */
+    v.egal(vr.repsTotal, 14, '[prix] reps seules : les reps s’additionnent, '
+         + 'avant comme après');
+    v.egal(vr.tonnage, 0, '[prix] et sans charge, le tonnage reste à zéro');
+    v.egal(vr.seriesIncompletes, 0,
+           '[prix] ce n’est PAS une saisie incomplète : l’exercice n’a pas de '
+         + 'colonne charge');
+    v.egal(vr.seriesRepsSeules, 2, 'elles sont comptées pour ce qu’elles sont');
+    v.egal(vr.seriesRienDeSaisi, 0,
+           'et surtout PAS comme « rien de saisi » : 8 et 6 ont été tapés');
+    var tr = A.m.texteHorsTonnage(vr);
+    v.vrai(tr.indexOf('reps seules') >= 0,
+           'l’écran dit « en reps seules » : ' + tr);
+    v.egal(tr.indexOf('rien de saisi'), -1,
+           'et ne prétend plus que rien n’a été saisi');
+    v.egal(tr.indexOf('sans charge ni reps'), -1,
+           'ni que l’exercice n’a pas de reps — il n’a que ça');
+    v.vrai(tr.indexOf('14 reps') >= 0,
+           'il renvoie au compte où elles ATTERRISSENT, sinon « hors '
+         + 'tonnage » se lit comme « perdues »');
+
+    /* ---- CHARGE SEULE, L'AUTRE BORD ---- */
+    var chargeSeule = seance('2026-10-20', [
+      exoDuree('Tenue lestée', [serie('normale', 20, '')], ['charge'])
+    ]);
+    var vc = A.m.volumeSeance(chargeSeule);
+    v.egal(vc.seriesChargeSeule, 1, 'charge seule : comptée pour ce qu’elle est');
+    v.egal(vc.tonnage, 0, '[prix] et sans reps, rien à multiplier');
+    v.vrai(A.m.texteHorsTonnage(vc).indexOf('charge seule') >= 0,
+           'l’écran le dit aussi : ' + A.m.texteHorsTonnage(vc));
+
+    /* ---- ET LA SOMME NE BOUGE PAS ----
+       `seriesSansTonnage` reste le total : d'autres contrôles le lisent, et
+       le casser pour gagner trois compteurs serait un échange perdant. */
+    v.egal(vr.seriesSansTonnage, 2,
+           '[prix] la somme compte toujours les deux, avant comme après');
+    v.egal(vc.seriesSansTonnage, 1, '[prix] et celle-là aussi');
+    v.egal(vr.seriesRepsSeules + vr.seriesChargeSeule + vr.seriesRienDeSaisi,
+           vr.seriesSansTonnage,
+           'les trois cas font exactement la somme — sans quoi une série '
+         + 'sortirait du tonnage sans que personne ne dise pourquoi');
+
     /* Tonnage ET durée sur le même exercice : les deux comptes cohabitent. */
     var mixte = seance('2026-10-20', [
       (function () {

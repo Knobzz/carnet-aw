@@ -4856,6 +4856,11 @@
             ? poidsKg : null;
     var r = { series: 0, seriesFaites: 0, tonnage: 0, tonnageAw: 0, tonnageGeneral: 0,
               seriesNonChiffrees: 0, seriesIncompletes: 0, seriesSansTonnage: 0,
+              /* `seriesSansTonnage` reste la SOMME — d'autres la lisent. Ces
+                 trois-la disent ce qui manque vraiment, et c'est ce que la
+                 phrase a besoin de savoir : « reps seules » et « rien de
+                 saisi » ne se racontent pas pareil. */
+              seriesRepsSeules: 0, seriesChargeSeule: 0, seriesRienDeSaisi: 0,
               seriesAw: 0, repsTotal: 0,
               /* A PART, ET JAMAIS ADDITIONNE A `tonnage` : MB, 29/10, apres
                  qu'on a chiffre ce que basculer couterait — des chiffres deja
@@ -4900,8 +4905,19 @@
           /* Le tonnage est charge × reps : sans les deux colonnes, il n'y a
              rien à multiplier, et ce n'est PAS une saisie manquante. Une série
              qui porte une durée est déjà comptée en temps sous tension — la
-             signaler ici serait du bruit sur chaque isométrique. */
-          if (dr == null) r.seriesSansTonnage += 1;
+             signaler ici serait du bruit sur chaque isométrique.
+
+             TROIS CAS, ET LA PHRASE EN DISAIT UN SEUL. MB, 29/10 : « je dois
+             pouvoir mettre juste des reps sans poids ». Avec 8 et 6 reps sans
+             charge, l'écran écrivait « sur un exercice sans charge NI REPS —
+             rien à multiplier, et RIEN DE SAISI non plus » : deux faussetés.
+             On trie donc par ce qui manque, et chacun aura sa phrase. */
+          if (dr == null) {
+            r.seriesSansTonnage += 1;
+            if (!aCharge && rp != null) r.seriesRepsSeules += 1;
+            else if (!aReps && ch != null) r.seriesChargeSeule += 1;
+            else r.seriesRienDeSaisi += 1;
+          }
         } else if (tc.id === 'poids_corps' && rp != null) {
           /* ---- LE POIDS DU CORPS A SA PROPRE CASE ----
 
@@ -4956,8 +4972,20 @@
       bouts.push(v.seriesIncompletes + (v.seriesIncompletes > 1 ? ' séries incomplètes' : ' série incomplète')
         + ' : il manque la charge ou les reps.');
     }
-    if (v.seriesSansTonnage) {
-      bouts.push(v.seriesSansTonnage + (v.seriesSansTonnage > 1 ? ' séries' : ' série')
+    /* TROIS PHRASES POUR TROIS CAS. Une seule les couvrait, et elle mentait
+       sur deux d'entre eux : « reps seules » n'est ni « sans reps » ni « rien
+       de saisi ». */
+    if (v.seriesRepsSeules) {
+      bouts.push(v.seriesRepsSeules + (v.seriesRepsSeules > 1 ? ' séries' : ' série')
+        + ' en reps seules : sans colonne charge, il n’y a rien à multiplier'
+        + (v.repsTotal ? ' — elles comptent dans les ' + v.repsTotal + ' reps.' : '.'));
+    }
+    if (v.seriesChargeSeule) {
+      bouts.push(v.seriesChargeSeule + (v.seriesChargeSeule > 1 ? ' séries' : ' série')
+        + ' en charge seule : sans colonne reps, il n’y a rien à multiplier.');
+    }
+    if (v.seriesRienDeSaisi) {
+      bouts.push(v.seriesRienDeSaisi + (v.seriesRienDeSaisi > 1 ? ' séries' : ' série')
         + ' sur un exercice sans charge ni reps — rien à multiplier, et rien de saisi non plus.');
     }
     return bouts.join(' ');
