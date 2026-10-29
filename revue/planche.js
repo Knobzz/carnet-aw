@@ -226,6 +226,43 @@
 
      Ce que ces noms repondent aujourd'hui reste LISIBLE, sur chaque carte,
      dans la pastille « aujourd'hui : ... » — c'est la qu'il faut le lire. */
+  /* LES DOUBLONS DU CATALOGUE, calcules comme le banc les calcule.
+
+     Une ecriture reclamee par deux mouvements est un DOUBLON, sauf si la
+     fiche qui la prend DECLARE le transfert par `reprend`. Declaree, c'est
+     un transfert ; muette, `ficheDictionnaire` prendrait la premiere de la
+     table et le choix serait invisible.
+
+     ZERO N'EST PAS ACQUIS : au 29/10, avant correction, ce compteur valait
+     UN pour les entrees et QUATRE pour les ecritures. */
+  function doublonsDuCatalogue() {
+    var cle = A.m.slug, dits = {}, parNom = {}, par = {}, sortie = [];
+    cat.MOUVEMENTS.forEach(function (f) {
+      (parNom[cle(f.nom)] = parNom[cle(f.nom)] || []).push(f.nom);
+      if (f.reprend) {
+        (f.reprend.ecritures || []).forEach(function (e) {
+          dits[cle(e)] = { vers: f.nom, de: f.reprend.de };
+        });
+      }
+      [f.nom].concat(f.aussi || []).forEach(function (ec) {
+        var k = cle(ec), l = (par[k] = par[k] || []);
+        if (l.indexOf(f.nom) < 0) l.push(f.nom);
+      });
+    });
+    Object.keys(parNom).forEach(function (k) {
+      if (parNom[k].length > 1) sortie.push('« ' + parNom[k][0] + ' » DEUX FOIS');
+    });
+    Object.keys(par).forEach(function (k) {
+      var noms = par[k];
+      if (noms.length < 2) return;
+      var t = dits[k];
+      if (t && noms.length === 2
+          && noms.indexOf(t.vers) >= 0 && noms.indexOf(t.de) >= 0) return;
+      sortie.push(k + ' → ' + noms.join(' / '));
+    });
+    return sortie;
+  }
+
   function nomsQuiDisentAutreChose() {
     var l = [];
     cat.MOUVEMENTS.forEach(function (f) {
@@ -395,8 +432,9 @@
        propose et qui n'y est pas encore : sans ca, un LOT NEUF serait
        invisible sur la planche qui sert justement a le valider. */
     var lignes = A.m.DICTIONNAIRE.map(function (d) {
+      var f = cat.MOUVEMENTS.filter(function (x) { return x.nom === d.nom; })[0];
       return { nom: d.nom, aussi: d.aussi || [], muscles: d.muscles,
-               livre: true };
+               livre: true, ecartees: (f && f.aussiEcartees) || null };
     });
     cat.MOUVEMENTS.forEach(function (f) {
       var livree = A.m.DICTIONNAIRE.filter(function (d) {
@@ -416,12 +454,17 @@
         lignes.push({ nom: f.nom, aussi: f.aussi || [],
                       muscles: livree.muscles,
                       livre: false, enPlus: enPlus,
+                      ecartees: f.aussiEcartees || null,
+                      reprend: f.reprend || null,
                       ecarte: f.ecarte || null });
         return;
       }
       lignes.push({ nom: f.nom, aussi: f.aussi || [],
                     muscles: f.muscles.map(function (x) { return x.id; }),
-                    livre: false, ecarte: f.ecarte || null });
+                    livre: false,
+                    ecartees: f.aussiEcartees || null,
+                    reprend: f.reprend || null,
+                    ecarte: f.ecarte || null });
     });
 
     var montrerLivres = false, montrerTouchees = false;
@@ -492,7 +535,31 @@
             : 'RIEN')));
         if (!d.ecarte) aAjouter++;
       }
+      /* UN TRANSFERT SE LIT. Une fiche neuve qui prend un nom a une fiche
+         livrée l'écrit : sans ça, MB validait une fiche sans voir ce qu'elle
+         RETIRE à une autre — et deux fiches auraient réclamé le même nom. */
+      if (d.reprend) {
+        delta.appendChild(el('span', 'et change',
+          'reprend ' + (d.reprend.ecritures || []).length + ' écriture(s) à '
+          + '« ' + d.reprend.de + ' » : '
+          + (d.reprend.ecritures || []).join(', ')));
+      }
       bloc.appendChild(delta);
+
+      /* CE QUI A ÉTÉ PROPOSÉ ET REFUSÉ, AVEC SA RAISON. La planche ne
+         distinguait pas « en attente » de « refusé pour une raison » : les
+         cinq pompes et le wrist curl en pronation ressortaient comme du
+         travail à faire, et MB a recollé vingt renommages déjà appliqués
+         pour la même raison. */
+      if (d.ecartees && d.ecartees.length) {
+        var ec = el('div', 'delta');
+        ec.appendChild(el('span', 'et',
+          d.ecartees.length + ' écriture(s) ÉCARTÉE(S), pas en attente'));
+        d.ecartees.forEach(function (e) {
+          ec.appendChild(el('span', 'et pareil', '« ' + e[0] + ' » — ' + e[1]));
+        });
+        bloc.appendChild(ec);
+      }
 
       /* On parcourt LES MUSCLES LIVRÉS, pas ceux de la fiche de revue : si
          un muscle entre au dictionnaire sans citation, il se voit. */
@@ -549,6 +616,21 @@
         ? empruntees.length + ' CITATION(S) EMPRUNTÉE(S) à la page d’un autre '
           + 'muscle : ' + empruntees.join(' · ')
         : 'aucune citation empruntée à la page d’un autre muscle.'));
+
+    /* LE COMPTEUR DE DOUBLONS. Zéro n'est pas acquis : au 29/10, avant
+       correction, il valait UN pour les entrées (« Dips prise serrée » deux
+       fois) et QUATRE pour les écritures (toutes à « Extension triceps »).
+       Le banc porte la même mesure, bloc « Le catalogue de revue sans
+       doublon » — celle-ci est là pour que MB la VOIE. */
+    var doubles = doublonsDuCatalogue();
+    tete.appendChild(el('div',
+      'item-resume' + (doubles.length ? ' rouge' : ''),
+      doubles.length
+        ? doubles.length + ' DOUBLON(S) dans le catalogue — un nom réclamé '
+          + 'par deux entrées sans que le transfert soit déclaré : '
+          + doubles.join(' · ')
+        : 'aucun doublon : chaque nom n’est réclamé que par une entrée, et '
+          + 'les transferts sont déclarés.'));
 
     /* Zéro n'est pas acquis : remets « Curl pronation » dans les écritures
        du curl inversé et ce bloc passe au rouge. */

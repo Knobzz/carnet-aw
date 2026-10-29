@@ -59,7 +59,12 @@
 (function () {
   var q = '?v=1.55.0';            // gouverne par outils/version.py
   var t = '&t=' + Date.now();    // et jamais de cache, ici
-  ['../js/store.js', '../js/model.js', 'banc.js'].forEach(function (f) {
+  /* `../revue/catalogue.js` est de la DONNEE, pas du code d'application :
+     il se charge pour etre MESURE. C'est la source d'ou le dictionnaire
+     s'ecrit, et jusqu'au 29/10 rien ne la gardait — un doublon y a survecu
+     jusqu'aux yeux de MB. */
+  ['../js/store.js', '../js/model.js', '../revue/catalogue.js',
+   'banc.js'].forEach(function (f) {
     document.write('<scr' + 'ipt src="' + f + q + t + '"></scr' + 'ipt>');
   });
 })();

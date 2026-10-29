@@ -5253,6 +5253,180 @@
            'et les deux nouveaux y valent zéro, sans erreur');
   });
 
+  /* ==================================================================
+     LE CATALOGUE DE REVUE NE PORTE PAS DE DOUBLON
+
+     MB, 29/10 : « Dips prise serrée est déjà existant [...] Pareil pour
+     Pompes, yavait déjà un mouvement pompes.... Donc attention aux
+     DOUBLONS s'il te plaît, règle moi ça ».
+
+     MESURE DU JOUR, avant de toucher à quoi que ce soit :
+
+       le dictionnaire LIVRE                        0 doublon
+       le catalogue, entrées portant le même nom     1 (« Dips prise serrée »)
+       le catalogue, écritures réclamées deux fois   4 (à « Extension triceps »)
+
+     CE QUE MB A VU EST LE PLUS PETIT DES TROIS. Le vrai doublon du lot 7
+     était que TROIS de ses quatre fiches neuves portaient un nom
+     qu'« Extension triceps » possède déjà.
+
+     POURQUOI RIEN NE L'A ARRÊTÉ : le bloc « Une fiche ne se propose qu'une
+     fois » garde le dictionnaire LIVRÉ. Personne ne gardait la SOURCE d'où
+     il s'écrit.
+     ================================================================== */
+  bloc('Le catalogue de revue sans doublon', function (v) {
+    var cat = window.CATALOGUE;
+    /* NON-VACUITE D'ABORD, ET ELLE EST EN TETE DU BLOC. Sans le catalogue
+       chargé, toutes les boucles ci-dessous seraient vides, donc vertes,
+       donc muettes — le pire des verts. Ce contrôle n'est pas un témoin :
+       il TOMBE si `banc/index.html` cesse de charger le fichier. */
+    v.vrai(!!(cat && cat.MOUVEMENTS && cat.MOUVEMENTS.length > 40),
+           'le catalogue de revue est chargé et porte ses mouvements — sans '
+         + 'quoi tout ce bloc mesurerait le vide');
+    if (!cat || !cat.MOUVEMENTS) return;
+    var mvts = cat.MOUVEMENTS;
+
+    function cle(n) { return A.m.slug(n); }
+
+    /* --- UNE SEULE ENTREE PAR MOUVEMENT --- */
+    var parNom = {};
+    mvts.forEach(function (f) { (parNom[cle(f.nom)] = parNom[cle(f.nom)] || []).push(f.id); });
+    var nomsDoubles = Object.keys(parNom).filter(function (k) {
+      return parNom[k].length > 1;
+    }).map(function (k) { return k + ' → ' + parNom[k].join(' / '); });
+    v.egal(nomsDoubles.join(' · '), '',
+           'aucun mouvement du catalogue n’apparaît DEUX fois — le lot 7 '
+         + 'avait ouvert une seconde « Dips prise serrée » à côté de celle '
+         + 'du lot 4');
+
+    /* --- UNE ECRITURE N'EST RECLAMEE QUE PAR UN MOUVEMENT ---
+
+       SAUF transfert déclaré : une fiche neuve qui PREND un nom à une fiche
+       livrée porte `reprend`. Déclarée, la collision est un transfert ;
+       muette, c’est un doublon. */
+    var repris = {};
+    mvts.forEach(function (f) {
+      if (!f.reprend) return;
+      (f.reprend.ecritures || []).forEach(function (e) {
+        repris[cle(e)] = { vers: f.nom, de: f.reprend.de };
+      });
+    });
+
+    var par = {};
+    mvts.forEach(function (f) {
+      [f.nom].concat(f.aussi || []).forEach(function (ec) {
+        (par[cle(ec)] = par[cle(ec)] || []).push(f.nom);
+      });
+    });
+    var muettes = Object.keys(par).filter(function (k) {
+      var noms = [];
+      par[k].forEach(function (n) { if (noms.indexOf(n) < 0) noms.push(n); });
+      if (noms.length < 2) return false;
+      var t = repris[k];
+      if (!t) return true;                       // collision non déclarée
+      /* Déclarée : les DEUX fiches en cause doivent être celles du
+         transfert, sinon la déclaration couvre autre chose. */
+      return !(noms.length === 2
+               && noms.indexOf(t.vers) >= 0 && noms.indexOf(t.de) >= 0);
+    }).map(function (k) { return k + ' → ' + par[k].join(' / '); });
+    v.egal(muettes.join(' · '), '',
+           'aucune écriture n’est réclamée par deux mouvements sans que le '
+         + 'transfert soit DÉCLARÉ — « Barre au front », « Skull crusher », '
+         + '« Extension nuque » et « Kickback » appartiennent à « Extension '
+         + 'triceps »');
+
+    /* --- UN TRANSFERT DECLARE NOMME UNE FICHE ET UNE ECRITURE REELLES --- */
+    var faux = [];
+    mvts.forEach(function (f) {
+      if (!f.reprend) return;
+      var source = mvts.filter(function (x) { return x.nom === f.reprend.de; })[0];
+      if (!source) { faux.push(f.nom + ' : « ' + f.reprend.de + ' » inconnue'); return; }
+      (f.reprend.ecritures || []).forEach(function (e) {
+        var a = [source.nom].concat(source.aussi || []).map(cle);
+        if (a.indexOf(cle(e)) < 0) {
+          faux.push(f.nom + ' : « ' + e + ' » n’est pas à « ' + source.nom + ' »');
+        }
+      });
+    });
+    v.egal(faux.join(' · '), '',
+           'et chaque `reprend` nomme une fiche qui EXISTE et une écriture '
+         + 'qu’elle POSSÈDE — sans quoi la déclaration couvrirait du vide');
+    v.vrai(Object.keys(repris).length > 0,
+           'des transferts sont déclarés — sans quoi les deux contrôles '
+         + 'ci-dessus seraient vides, donc verts pour rien');
+
+    /* --- `apres` S'ACCORDE AVEC LA SOMME DES `reprend` ---
+
+       Une fiche dépouillée écrit ce qui lui RESTE. Le calculer et le
+       comparer évite qu’un lot ajoute un transfert sans que personne ne
+       mesure ce que la fiche d’origine devient. */
+    var desaccords = [];
+    mvts.forEach(function (f) {
+      if (!f.apres) return;
+      var reste = [f.nom].concat(f.aussi || []).filter(function (ec) {
+        var t = repris[cle(ec)];
+        return !(t && t.de === f.nom);
+      }).filter(function (ec) { return ec !== f.nom; });
+      var dit = (f.apres || []).slice().sort().join(' | ');
+      var calc = reste.slice().sort().join(' | ');
+      if (dit !== calc) desaccords.push(f.nom + ' : dit [' + dit + '] calculé [' + calc + ']');
+    });
+    v.egal(desaccords.join(' · '), '',
+           '`apres` dit exactement ce qui RESTE à la fiche une fois les '
+         + 'transferts faits');
+    v.vrai(mvts.some(function (f) { return !!f.apres; }),
+           'au moins une fiche écrit ce qui lui reste — sans quoi le '
+         + 'contrôle ci-dessus serait vide');
+
+    /* --- UNE ECRITURE ECARTEE PORTE SA RAISON, ET N'EST PAS LIVREE ---
+
+       LE DÉFAUT JUMEAU, et il coûte autant : se croire propre parce qu’on a
+       écrit « écartée » sur une écriture POURTANT EN SERVICE. La planche la
+       montrerait comme refusée alors que le carnet y répond. */
+    var sansRaison = [], pourtantLivrees = [];
+    mvts.forEach(function (f) {
+      (f.aussiEcartees || []).forEach(function (e) {
+        var nom = e[0], pourquoi = e[1];
+        if (!pourquoi || String(pourquoi).length < 15) {
+          sansRaison.push(f.nom + ' : ' + nom);
+        }
+        var livree = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === f.nom; })[0];
+        if (livree && [livree.nom].concat(livree.aussi || []).map(cle)
+                        .indexOf(cle(nom)) >= 0) {
+          pourtantLivrees.push(f.nom + ' : « ' + nom + ' »');
+        }
+      });
+    });
+    v.egal(sansRaison.join(' · '), '',
+           'chaque écriture écartée DIT pourquoi — « écartée » sans raison '
+         + 'se relit comme un oubli, et se repropose au lot suivant');
+    v.egal(pourtantLivrees.join(' · '), '',
+           'et aucune écriture dite écartée n’est en réalité LIVRÉE');
+    v.vrai(mvts.filter(function (f) { return (f.aussiEcartees || []).length; }).length >= 4,
+           'quatre fiches au moins nomment ce qu’elles ont écarté — les '
+         + 'pompes, les dips, le wrist curl inversé et l’extension triceps');
+
+    /* --- ET CE QUE LE CATALOGUE PROMET, LE DICTIONNAIRE LE TIENT ---
+
+       Une fiche LIVRÉE dont le catalogue porte des écritures en plus est
+       légitime (un lot en attente). Mais l’inverse ne l’est pas : une
+       écriture LIVRÉE que le catalogue ne connaît plus veut dire qu’on a
+       édité le catalogue sans voir qu’elle était en service. */
+    var oubliees = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      var f = mvts.filter(function (x) { return x.nom === d.nom; })[0];
+      if (!f) return;
+      var connu = [f.nom].concat(f.aussi || [])
+        .concat((f.aussiEcartees || []).map(function (e) { return e[0]; })).map(cle);
+      (d.aussi || []).forEach(function (ec) {
+        if (connu.indexOf(cle(ec)) < 0) oubliees.push(d.nom + ' : « ' + ec + ' »');
+      });
+    });
+    v.egal(oubliees.join(' · '), '',
+           'et aucune écriture EN SERVICE n’a disparu du catalogue sans y '
+         + 'être nommée écartée');
+  });
+
   /* ================================================================
      Exécution
      ================================================================ */

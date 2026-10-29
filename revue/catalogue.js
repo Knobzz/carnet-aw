@@ -487,7 +487,10 @@
     {
       id: 'wrist-curl',
       nom: 'Wrist curl',
-      aussi: ['Flexion du poignet', 'Cupping'],
+      aussi: ['Flexion du poignet', 'Cupping', 'Wrist curl à la poulie',
+              'Cable wrist curl', 'Wrist curl à la barre',
+              'Barbell wrist curl', 'Wrist curl avec haltères',
+              'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
       geste: 'Avant-bras posé, paume vers le haut : le poignet se plie et '
            + 'ramène la main vers l’avant-bras.',
       muscles: [
@@ -533,8 +536,21 @@
     {
       id: 'wrist-curl-inverse',
       nom: 'Wrist curl inversé',
+      /* « Wrist curl en pronation » a ete propose au lot 1 et jamais livre.
+         Il nomme la POSITION de l'avant-bras, pas le geste — meme motif que
+         « Traction pronation » et « Traction supination », retirees au lot 4
+         par le controle d'accord des ecritures. */
       aussi: ['Reverse wrist curl', 'Extension du poignet',
-              'Wrist curl en pronation'],
+              'Wrist curl inversé à la poulie',
+              'Reverse cable wrist curl',
+              'Wrist curl inversé à la barre',
+              'Wrist curl inversé avec haltères',
+              'Extension du poignet à la poulie'],
+      aussiEcartees: [
+        ['Wrist curl en pronation',
+         'nomme la POSITION de l’avant-bras, pas le geste — comme '
+         + '« Traction pronation », retirée au lot 4']
+      ],
       geste: 'Avant-bras posé, paume vers le BAS : le dos de la main remonte '
            + 'vers l’avant-bras.',
       muscles: [
@@ -605,8 +621,9 @@
     {
       id: 'deviation-ulnaire',
       nom: 'Déviation ulnaire',
-      aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation',
-              'Déviation ulnaire au cable'],
+      aussi: ['Déviation cubitale', 'Inclinaison ulnaire',
+              'Ulnar deviation', 'Déviation ulnaire au cable', 'Chop',
+              'Cable Chop', 'Déviation ulnaire à la poulie'],
       geste: 'Le poignet penche vers l’auriculaire, sans se plier ni se '
            + 'tendre.',
       note: 'AUCUN terme de bras de fer trouvé. Les sources du sport nomment '
@@ -639,7 +656,9 @@
     {
       id: 'supination',
       nom: 'Supination',
-      aussi: ['Supination à la clé'],
+      aussi: ['Supination à la clé', 'Supination à la poulie',
+              'Supination avec haltère', 'Supination avec élastique',
+              'Cable supination'],
       geste: 'L’avant-bras tourne : la paume va vers le haut.',
       muscles: [
         m('supinateur', 'moteur', S.sup, C.sup),
@@ -727,7 +746,9 @@
     {
       id: 'finger-curl',
       nom: 'Finger curl',
-      aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts'],
+      aussi: ['Rouleau de doigts', 'Finger rolling',
+              'Enroulement des doigts', 'Finger curl à la barre',
+              'Finger curl à la poulie', 'Barbell finger curl'],
       geste: 'La barre roule jusqu’au bout des doigts, puis les doigts la '
            + 'ramènent dans la paume. Le poignet ne bouge pas.',
       muscles: [
@@ -866,7 +887,8 @@
     {
       id: 'tenue-cup',
       nom: 'Cup hold',
-      aussi: ['Tenue en cup', 'Tenue de poignet fermé'],
+      aussi: ['Tenue en cup', 'Tenue de poignet fermé',
+              'Cup hold à la poulie', 'Cup hold avec haltère'],
       geste: 'Le poignet reste fermé sous la charge, sans bouger.',
       muscles: [
         m('fcr', 'tient', S.fcr, C.fcr),
@@ -938,7 +960,9 @@
     {
       id: 'curl-concentre',
       nom: 'Curl concentré',
-      aussi: ['Concentration curl', 'Curl concentration'],
+      aussi: ['Concentration curl', 'Curl concentration',
+              'Curl concentré à la poulie',
+              'Curl concentré avec élastique'],
       geste: 'Assis, le coude calé contre la cuisse : rien ne bouge que '
            + 'l’avant-bras.',
       muscles: [
@@ -955,7 +979,10 @@
     {
       id: 'curl-pupitre',
       nom: 'Preacher curl',
-      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre'],
+      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre',
+              'Curl au pupitre à la barre EZ',
+              'Curl au pupitre à la poulie',
+              'Curl au pupitre à la machine'],
       geste: 'Le bras repose à plat sur le pupitre incliné, l’épaule en '
            + 'avant : le coude se plie sans que le bras recule.',
       muscles: [
@@ -1042,7 +1069,8 @@
     {
       id: 'curl-zottman',
       nom: 'Curl Zottman',
-      aussi: ['Zottman curl'],
+      aussi: ['Zottman curl', 'Curl Zottman avec haltères',
+              'Zottman curl haltères'],
       geste: 'On monte en supination et on redescend en pronation, en '
            + 'tournant l’avant-bras en haut du mouvement.',
       muscles: [
@@ -1131,7 +1159,8 @@
     {
       id: 'curl-pronation',
       nom: 'Curl pronation à la poulie',
-      aussi: ['Pronation cable curl'],
+      aussi: ['Pronation cable curl', 'Pronation curl',
+              'Pronation curl à la poulie'],
       geste: 'Sangle enroulée autour du POUCE : l’avant-bras tourne en '
            + 'pronation PENDANT que le coude remonte, presque jusqu’au '
            + 'menton. Les deux gestes dans le même mouvement.',
@@ -1234,7 +1263,20 @@
       id: 'developpe-militaire',
       nom: 'Développé militaire',
       aussi: ['Overhead press', 'Développé épaules', 'Shoulder press',
-              'Développé militaire debout'],
+              'Développé militaire debout', 'Military press',
+              'Strict press', 'Développé épaules assis',
+              'Développé épaules avec haltères',
+              'Développé épaules à la machine',
+              'Développé épaule avec kettlebell',
+              'Développé épaules avec élastique',
+              'Développé épaule unilatéral avec élastique',
+              'Développé épaules assis avec élastique',
+              'Développé épaules debout à la landmine',
+              'Développé épaule unilatéral à genoux à la landmine',
+              'Développé épaules à la barre guidée',
+              'Presse à épaules inclinée', 'Développé nuque',
+              'Développé nuque à la barre guidée',
+              'Behind the neck press'],
       geste: 'La barre part des épaules et monte au-dessus de la tête, les '
            + 'coudes se tendent.',
       muscles: [
@@ -1293,28 +1335,57 @@
         m('triceps', 'moteur', S.tri, C.tri)
       ],
       note: 'TU AS DEMANDÉ LA DISTINCTION, et le carnet rendait « Dips → '
-          + 'Triceps » pour les deux. MAIS ELLE N’EST PAS SOURCÉE : je n’ai '
-          + 'trouvé aucune mesure comparant les dips prise large et prise '
-          + 'serrée. Que le pectoral mène d’un côté et le triceps de '
-          + 'l’autre est un raisonnement sur les bras de levier — le mien, '
-          + 'et les deux badges rouges le disent. Les pompes et les '
-          + 'tractions, elles, ont été mesurées, et la mesure a REFUSÉ de '
-          + 'les séparer. Il se peut donc que celle-ci ne tienne pas non '
-          + 'plus. À toi : on la garde en l’état, ou on fond les deux dips '
-          + 'en une entrée tant qu’on n’a pas de mesure.'
+          + 'Triceps » pour les deux. ELLE N’EST PAS SOURCÉE : aucune mesure '
+          + 'comparant les dips prise large et prise serrée n’a été trouvée, '
+          + 'et que le pectoral mène d’un côté et le triceps de l’autre est '
+          + 'un raisonnement sur les bras de levier — le mien, et les deux '
+          + 'badges rouges le disent. TU L’AS TRANCHÉE LE 29/10 : « prise '
+          + 'serrée, c’est l’accent sur les triceps, et prise large, c’est '
+          + 'accent sur le pectoral ». La distinction reste donc, et la '
+          + 'question ne se repose plus. CE QUI RESTE DÛ À CETTE FICHE : les '
+          + 'écritures de dips penchés viendront avec le lot des PECTORAUX — '
+          + 'la page des triceps ne les porte pas.'
     },
     {
       id: 'dips-triceps',
       nom: 'Dips prise serrée',
+      /* LES QUATRE DERNIERES SONT DU LOT 7, ET IL Y EN AVAIT NEUF.
+
+         MB, 29/10 : « Dips prise serrée est déjà existant [...] attention
+         aux DOUBLONS ». Le lot 7 avait ouvert une SECONDE entree du meme
+         nom, avec treize ecritures. Elle est supprimee : une seule entree
+         par mouvement, et ce qu'un lot ajoute s'ajoute ICI.
+
+         LE CRITERE DE TRI EST CELUI DE MB, et c'est lui qui a refuse « Dips
+         aux barres paralleles » : c'est l'INCLINAISON qui decide, pas
+         l'engin. Un nom n'entre donc que si son appareil n'autorise QU'UN
+         penche — sur un banc, les mains derriere soi, on ne peut pas se
+         pencher en avant. Les anneaux, une machine d'assistance ou un
+         elastique autorisent les deux : leur nom ne dit rien. */
       aussi: ['Dips triceps', 'Dips buste droit', 'Triceps dips',
-              'Dips verticaux'],
+              'Dips verticaux',
+              'Dips entre deux bancs', 'Dips sur banc', 'Dips sur une chaise',
+              'Bench dips'],
+      aussiEcartees: [
+        ['Dips aux anneaux', 'les anneaux autorisent les deux inclinaisons'],
+        ['Dips assistés', 'dit l’assistance, pas l’inclinaison'],
+        ['Dips assistés à la machine', 'dit l’assistance, pas l’inclinaison'],
+        ['Dips assistés avec élastique', 'dit l’assistance, pas l’inclinaison'],
+        ['Dips assis à la machine', 'dit l’appareil, pas l’inclinaison'],
+        ['Dips aux barres parallèles',
+         'refusé par MB le 29/10 : « pas besoin » — la barre ne dit pas '
+         + 'l’inclinaison, et le site le range en pectoraux']
+      ],
       geste: 'Buste droit, coudes serrés le long du corps : le corps descend '
            + 'et remonte à la force des triceps.',
       muscles: [
         m('deltoide', 'aide', S.delt, C.delt),
         m('triceps', 'moteur', S.tri, C.tri),
         m('ancone', 'aide', S.anc, C.anc)
-      ]
+      ],
+      note: 'HUIT des dix-sept noms mal servis de la page des triceps '
+          + 'étaient des DIPS. Quatre entrent, cinq restent dehors : voir '
+          + 'les écritures écartées, chacune avec sa raison.'
     },
     {
       id: 'traction',
@@ -1521,10 +1592,27 @@
     {
       id: 'pompes',
       nom: 'Pompes',
-      aussi: ['Push up', 'Pompe', 'Push ups', 'Pompes prise large',
-              'Pompes prise serrée', 'Pompes diamant', 'Diamond push up',
-              'Wide push up', 'Pompes déclinées', 'Pompes inclinées',
-              'Pompes serrées'],
+      /* ONZE PROPOSEES, SIX LIVREES, ET LE CHOIX ETAIT MESURE.
+
+         MB, 29/10 : « Pareil pour Pompes, yavait deja un mouvement
+         pompes ». La planche les ressortait comme « en attente » : c'etait
+         FAUX. Le message de livraison du lot 4 (bb368b4) dit pourquoi :
+         « Pour les POMPES (EMG 2025, 20 hommes), standard, diamant et prise
+         large changent l'INTENSITE, pas les muscles. Une entree Pompes
+         couvre six ecritures. »
+
+         Les cinq refusees sont de deux sortes, et aucune n'est un oubli :
+         trois DOUBLENT en francais une ecriture deja livree, deux portent un
+         ANGLE que l'etude ne couvre pas. */
+      aussi: ['Push up', 'Pompe', 'Push ups', 'Pompes diamant',
+              'Diamond push up', 'Wide push up'],
+      aussiEcartees: [
+        ['Pompes prise large', 'double « Wide push up », déjà livrée'],
+        ['Pompes prise serrée', 'double « Pompes diamant », déjà livrée'],
+        ['Pompes serrées', 'double « Pompes diamant », déjà livrée'],
+        ['Pompes déclinées', 'un ANGLE ; l’EMG 2025 ne mesure que les prises'],
+        ['Pompes inclinées', 'un ANGLE ; l’EMG 2025 ne mesure que les prises']
+      ],
       geste: 'Au sol, le corps descend et remonte sur les bras.',
       muscles: [
         m('grand_pectoral', 'moteur', S.pm, C.pm, null,
@@ -1577,7 +1665,16 @@
     {
       id: 'elevation-laterale',
       nom: 'Élévation latérale',
-      aussi: ['Lateral raise', 'Élévations latérales'],
+      aussi: ['Lateral raise', 'Élévations latérales',
+              'Side lateral raise', 'Élévation latérale à la poulie',
+              'Élévations latérales inclinées avec haltère',
+              'Élévation latérale à la poulie en inclinaison',
+              'Élévations latérales à la poulie',
+              'Élévations latérales unilatérales à la poulie',
+              'Élévations latérales à la machine',
+              'Élévation latérale debout à la machine',
+              'Élévations latérales avec kettlebell',
+              'Élévations latérales à la landmine'],
       geste: 'Bras le long du corps, ils montent sur les côtés jusqu’à '
            + 'l’horizontale.',
       muscles: [
@@ -1590,10 +1687,31 @@
     {
       id: 'extension-triceps',
       nom: 'Extension triceps',
+      /* CETTE FICHE EST LA SOURCE DES QUATRE DOUBLONS DU LOT 7.
+
+         Elle possede « Barre au front », « Skull crusher », « Extension
+         nuque » et « Kickback ». Le lot 7 voulait en faire des FICHES sans
+         les lui retirer : deux fiches auraient alors reclame le meme nom, et
+         `ficheDictionnaire` prend la PREMIERE de la table — le doublon
+         aurait ete silencieux.
+
+         Les trois fiches neuves portent donc `reprend`, qui declare le
+         transfert. Ce qui RESTE ici apres le lot 7 est ecrit dans `apres`,
+         et une garde du banc verifie que les deux s'accordent.
+
+         « Extension au-dessus de la tete » a ete proposee au lot 4 et jamais
+         livree : elle decrit la meme position que « Extension nuque », qui
+         part au lot 7. */
       aussi: ['Pushdown', 'Barre au front', 'Extension à la poulie',
               'Skull crusher', 'Extension nuque', 'Kickback',
-              'Triceps poulie', 'Extension haltère', 'Extension au-dessus '
-            + 'de la tête', 'Triceps corde'],
+              'Triceps poulie', 'Extension haltère', 'Triceps corde'],
+      aussiEcartees: [
+        ['Extension au-dessus de la tête',
+         'même position que « Extension nuque », qui part au lot 7 chez '
+         + '« Extension verticale des triceps »']
+      ],
+      apres: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
+              'Extension haltère', 'Triceps corde'],
       geste: 'Le coude se tend contre la charge.',
       muscles: [
         m('triceps', 'moteur', S.tri, C.tri),
@@ -1980,7 +2098,14 @@
      AUCUN MUSCLE NEUF : le triceps et l'anconé sont au carnet, avec leurs
      planches, et tous deux déjà cités. Ce lot ne coûte que des noms.
 
-     CINQ GESTES, UNE SEULE LISTE, ET C'EST ASSUMÉ. Le carnet n'a qu'une
+     QUATRE GESTES NEUFS, UNE SEULE LISTE, ET C'EST ASSUMÉ. (Ils étaient
+     cinq : l'entrée « Dips prise serrée » de ce lot était un DOUBLON de
+     celle du lot 4, et ses écritures ont rejoint cette dernière.)
+
+     TROIS DES QUATRE REPRENNENT UN NOM À « EXTENSION TRICEPS », qui le
+     possède aujourd'hui comme écriture. Le transfert est déclaré par
+     `reprend`, et une garde du banc refuse une collision qui ne l'est pas.
+     Le carnet n'a qu'une
      entrée « triceps », sans ses trois chefs : les listes sont donc
      IDENTIQUES. On sépare quand même, parce que ce sont des gestes NOMMÉS
      que MB tape — exactement le traitement du lot 5, où le hammer, le
@@ -1994,6 +2119,8 @@
     {
       id: 'barre-au-front',
       nom: 'Barre au front',
+      reprend: { de: 'Extension triceps',
+                 ecritures: ['Barre au front', 'Skull crusher'] },
       aussi: ['Skull crusher', 'Barre front', 'Barre au front à la barre EZ',
               'Extensions des triceps couché avec haltères',
               'Extensions des triceps décliné avec haltères',
@@ -2016,6 +2143,7 @@
     {
       id: 'extension-verticale-triceps',
       nom: 'Extension verticale des triceps',
+      reprend: { de: 'Extension triceps', ecritures: ['Extension nuque'] },
       aussi: ['Extension nuque', 'Overhead triceps extension',
               'Extension verticale', 'Extensions verticales',
               'Extension verticale assis à la barre',
@@ -2040,6 +2168,7 @@
     {
       id: 'kickback',
       nom: 'Kickback',
+      reprend: { de: 'Extension triceps', ecritures: ['Kickback'] },
       aussi: ['Kickback triceps', 'Extension arrière', 'Triceps kickback',
               'Kickback alterné assis', 'Kickback debout avec haltères',
               'Extensions concentrées des triceps à la poulie',
@@ -2068,29 +2197,6 @@
           + '« Pectoral » sur ce nom, parce qu’il y lit « press ». Une '
           + 'réponse fausse coûte plus cher qu’une absence — on ne corrige '
           + 'pas ce qui a répondu.'
-    },
-    {
-      id: 'dips-variantes',
-      nom: 'Dips prise serrée',
-      aussi: ['Dips triceps', 'Dips buste droit', 'Triceps dips',
-              'Dips verticaux', 'Dips aux anneaux', 'Dips entre deux bancs',
-              'Dips sur banc', 'Dips sur une chaise', 'Dips assistés',
-              'Dips assistés à la machine', 'Dips assistés avec élastique',
-              'Dips assis à la machine', 'Bench dips'],
-      geste: 'Buste droit, coudes serrés le long du corps : on descend et on '
-           + 'pousse sur les bras.',
-      muscles: [
-        m('deltoide', 'aide', S.delt, C.delt),
-        m('triceps', 'moteur', S.tri, C.tri),
-        m('ancone', 'aide', S.anc, C.anc)
-      ],
-      note: 'HUIT des dix-sept noms mal servis étaient des dips. '
-          + 'UNE QUESTION POUR TOI, et je ne la tranche pas : « Dips aux '
-          + 'barres parallèles » n’est PAS dans cette liste. Le site le range '
-          + 'dans les PECTORAUX, le carnet a deux fiches — prise large et '
-          + 'prise serrée — et c’est l’inclinaison du buste qui décide, pas '
-          + 'la barre. Une écriture ne peut appartenir qu’à UNE fiche : dis '
-          + 'laquelle, ou laisse-la dehors.'
     }
   );
 

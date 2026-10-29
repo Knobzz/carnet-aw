@@ -167,6 +167,26 @@ Petites, nommées, et qui ne demandent qu'une décision.
   l'abduction et sa citation Kenhub le dit — mais l'ajouter le 29/10 aurait
   été une attribution que MB n'avait pas vue sur la planche. À reprendre avec
   les autres fiches déjà livrées.
+- **Les dips prise large attendent le lot des PECTORAUX.** MB a tranché le
+  29/10 la question que le lot 4 lui posait : « prise serrée, c'est l'accent
+  sur les triceps, et prise large, c'est accent sur le pectoral ». La
+  distinction reste donc. Mais le lot 7 a lu la page des TRICEPS : prise
+  serrée gagne quatre écritures, prise large aucune. Les noms de dips
+  penchés viendront avec le lot des pectoraux — c'est la seule page qui les
+  porte.
+- **Cinq écritures de dips n'appartiennent à aucune des deux fiches**, et
+  c'est écrit dans le catalogue avec la raison : les anneaux, une machine
+  d'assistance ou un élastique autorisent LES DEUX inclinaisons, donc leur
+  nom ne dit pas laquelle. Même raison que « Dips aux barres parallèles »,
+  refusé par MB. Si une mesure comparant les deux inclinaisons apparaît un
+  jour, elles redeviennent une question.
+- **Le catalogue avait 59 écritures de retard sur le dictionnaire**, trouvées
+  par la garde neuve dès sa première exécution. Elles y sont rentrées. LA
+  LEÇON, elle, reste due : le catalogue est ce que MB valide, et deux
+  livraisons (les 16 écritures du développé militaire + 10 de l'élévation
+  latérale en 1.54.0, les 28 variantes d'engin en 1.55.0) n'ont touché que
+  le dictionnaire. La garde empêche que ça recommence, elle ne dispense pas
+  d'écrire dans les deux.
 - **Les rangs sont RAISONNÉS, pas mesurés** : 43 sur 43 pour le lot des
   épaules. Aucune EMG ne dit qui mène un face pull. La planche l'écrit, et
   c'est le seul endroit où l'œil de MB vaut mieux que la mesure.
