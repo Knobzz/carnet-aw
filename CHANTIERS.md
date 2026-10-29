@@ -89,13 +89,39 @@ manquait, c'est une phrase.
 **Quand** : après les lots de mouvements. Ordre posé par MB le 2026-10-23,
 « dans un second temps beaucoup plus tardif ».
 
-Les équipements changent les muscles réellement sollicités par un même geste.
-Le carnet a déjà de quoi l'accrocher : les outils ont un catalogue et des
-réglages, et `musclesProposes()` connaît une source `reglage`.
+**MESURÉ LE 2026-10-29, à l'ouverture du chantier : il est déjà bâti aux
+trois quarts**, et ce fichier le décrivait comme s'il était vierge.
 
-Y est déjà renvoyée : **« Barre épaisse »**, écartée du lot 2 parce que c'est
-le même geste que le gripper — c'est la poignée large qui ajoute le creux de
-la paume. Elle EST l'outil, elle n'est pas un mouvement.
+CE QUI EXISTE : **20 types d'équipement**, 86 mots reconnus, 83 muscles
+ajoutés. **Seize des vingt proposent déjà quelque chose** — cinq par une
+liste de muscles, douze en pointant les **entrées du dictionnaire** qu'ils
+servent (`pronator → Pronation`, `cup → Cup hold`…), et aucune de ces
+entrées ne mène dans le vide. Les quatre qui ne proposent rien le font
+**pour une raison écrite** : deux sont des boîtes à accessoires (Multi-Tool,
+Armwrestling Buddies) où c'est l'accessoire qui décide, deux ne décident pas
+du geste (ceinture de judo, corde).
+
+**« Barre épaisse » est déjà traitée** : elle est le type `fat grip`, et
+c'est le SEUL équipement mesuré par une étude (Krings 2021). La dette du
+lot 2 est soldée.
+
+IL EXISTE MÊME UNE PLANCHE DE REVUE, `revue/equipement.html`, avec une fiche
+sourcée par type dans `revue/outils.js` — liens produits, citation, note.
+
+**CE QUI RESTE, ET LA PLANCHE LE DIT EN ROUGE :**
+
+1. **Trois types livrés SANS fiche de revue** : `anti toproll`, `multi tool`,
+   `armwrestling buddies`. Ils sont dans le modèle sans être passés par le
+   rituel — c'est le même défaut que les 59 écritures de catalogue du 29/10.
+2. **VINGT ET UN ACCESSOIRES ne proposent AUCUN muscle** : les 9 du
+   Multi-Tool (Zylinder S/M/L/XL, Exzentrisch, Kegel, Toproll Counter, Wrist
+   Pro, Multi Hand Grip), les 6 des Armwrestling Buddies (Offset Cylinder,
+   Anti-Toproll ×2, Eccentric Grip, King's Cup, Cone Handle) et les 6
+   positions de mousqueton. Or **ce sont eux qui changent ce qui travaille**,
+   pas la boîte. Et c'est **structurel** : les réglages livrés sont de
+   simples CHAÎNES, donc ils ne peuvent pas porter de muscles —
+   `musclesDesReglages()` ne lit que ceux que MB a saisis lui-même.
+3. La dette du **Cone Handle** est l'un de ces vingt et un.
 
 ## 2. Les variantes, plutôt qu'un nom par engin
 
