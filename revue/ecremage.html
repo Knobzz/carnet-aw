@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Écrémage — ce que les quatre recherches ont trouvé</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px 16px 60px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .ec-tete { max-width: 1100px; margin: 0 auto 14px; }
+  .ec-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .ec-tete p { margin: 4px 0; font-size: .89rem; color: var(--texte-2); }
+  .ec-tete b { color: var(--texte); }
+  .ec-avert { border-left: 3px solid var(--laiton); padding: 6px 0 6px 10px;
+              margin: 10px 0; font-size: .86rem; }
+  .ec-barre { max-width: 1100px; margin: 12px auto; display: flex; gap: 8px;
+              flex-wrap: wrap; align-items: center; }
+  .ec-bt { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .ec-bt:hover { border-color: var(--laiton); color: var(--laiton); }
+  .ec-bt[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .ec-compte { font-size: .8rem; color: var(--texte-2); }
+  .ec-compte b { color: var(--laiton); }
+  .ec-corps { max-width: 1100px; margin: 0 auto; }
+  .ec-cas { border: 1px solid var(--trait); border-radius: 9px;
+            background: var(--fond-2); margin-bottom: 9px; padding: 10px 12px; }
+  .ec-cas.ec-fait { opacity: .5; }
+  .ec-ligne1 { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .ec-quoi { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+             border: 1px solid var(--trait); border-radius: 999px;
+             padding: 1px 8px; white-space: nowrap; }
+  .ec-quoi.q-autre { border-color: #e06c6c; color: #e06c6c; }
+  .ec-quoi.q-variante { border-color: var(--laiton); color: var(--laiton); }
+  .ec-quoi.q-doublon { border-color: var(--texte-2); color: var(--texte-2); }
+  .ec-quoi.q-question { border-color: #6ca8e0; color: #6ca8e0; }
+  .ec-fiche { font-weight: 600; }
+  .ec-ecr { color: var(--laiton); }
+  .ec-dit { font-size: .86rem; margin: 6px 0 0; }
+  .ec-prix { font-size: .84rem; margin: 5px 0 0; color: #e0b46c;
+             border-left: 2px solid #e0b46c; padding-left: 8px; }
+  .ec-src { font-size: .78rem; color: var(--texte-2); margin: 5px 0 0; }
+  .ec-choix { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .ec-choix button { background: none; border: 1px solid var(--trait);
+        border-radius: 999px; color: var(--texte-2); font: inherit;
+        font-size: .78rem; padding: 2px 11px; cursor: pointer; }
+  .ec-choix button:hover { border-color: var(--laiton); color: var(--laiton); }
+  .ec-choix button[aria-pressed="true"] { background: var(--laiton);
+        border-color: var(--laiton); color: var(--fond); font-weight: 600; }
+  .ec-note { width: 100%; box-sizing: border-box; margin-top: 7px;
+             background: var(--fond); border: 1px solid var(--trait);
+             border-radius: 6px; color: var(--texte); font: inherit;
+             font-size: .84rem; padding: 5px 8px; }
+  .ec-sortie { max-width: 1100px; margin: 16px auto 0; }
+  .ec-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
+  .ec-sortie textarea { width: 100%; height: 170px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+</style>
+</head>
+<body>
+
+<div class="ec-tete">
+  <h1>Écrémage — ce que les quatre recherches ont trouvé</h1>
+  <p>Quatre recherches web, une par bloc de muscles : <b>avant-bras</b> (48 écritures),
+     <b>épaules</b> (37), <b>dos</b> (33), <b>pectoraux + triceps + biceps</b> (46).
+     Le compte a été fait <b>avant</b> de lancer, et les trois petits groupes
+     fusionnés pour tenir en quatre agents.</p>
+  <p><b>Aucun ajout n’est proposé</b> : la consigne donnée aux quatre était de
+     classer et de signaler ce qui est en trop, jamais d’enrichir.
+     <b>Rien ici n’écrit dans le carnet.</b></p>
+  <p class="ec-avert" id="ecAvert"></p>
+  <p class="ec-avert"><b>Une limite que les quatre ont signalée d’elles-mêmes :</b>
+     <b>ExRx.net refuse la lecture automatisée</b> (HTTP 403). Sa taxonomie n’a
+     donc pas pu être confirmée. Ce qui a servi, par ordre de fiabilité : un
+     essai contrôlé (PMC11906226), des études EMG (Dickie 2017, Ohrnberger 2019,
+     Marcolin 2015), Wikipédia, StrengthLog, Catalyst Athletics, puis des
+     catalogues d’exercices.</p>
+</div>
+
+<div class="ec-barre">
+  <button type="button" class="ec-bt" id="ecTous">Tout</button>
+  <button type="button" class="ec-bt" id="ecAutre">Autre exercice</button>
+  <button type="button" class="ec-bt" id="ecVariante">Variantes mal rangées</button>
+  <button type="button" class="ec-bt" id="ecDoublon">Ne porte rien</button>
+  <button type="button" class="ec-bt" id="ecQuestion">Aucune source ne tranche</button>
+  <button type="button" class="ec-bt" id="ecReste">Pas encore tranché</button>
+  <span class="ec-compte" id="ecCompte"></span>
+</div>
+
+<div class="ec-corps" id="ecCorps"></div>
+
+<div class="ec-sortie">
+  <h2>Tes décisions</h2>
+  <div class="ec-barre" style="margin-top:0">
+    <button type="button" class="ec-bt" id="ecCopier">Copier</button>
+    <button type="button" class="ec-bt" id="ecVider">Tout effacer</button>
+    <span class="ec-compte" id="ecEtat"></span>
+  </div>
+  <textarea id="ecJson" readonly></textarea>
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/ecremage.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var E = A.ecremage;
+  var CLE = 'carnet-aw-ecremage';
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  var choix = {};
+  try { choix = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) { choix = {}; }
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(choix)); } catch (e) {} }
+
+  var LIBELLE = { autre: 'autre exercice', variante: 'variante mal rangée',
+                  doublon: 'ne porte rien', question: 'aucune source ne tranche' };
+  var OPTIONS = {
+    autre: ['Sortir de cette fiche', 'Lui faire sa fiche', 'Garder tel quel'],
+    variante: ['En faire une variante', 'Garder en autre écriture', 'Retirer'],
+    doublon: ['Retirer', 'Garder'],
+    question: ['J’en parle', 'Laisser tel quel']
+  };
+
+  var filtre = 'tous';
+  function idDe(c) { return c.fiche + ' § ' + c.ecr; }
+
+  function rendre() {
+    var z = document.getElementById('ecCorps');
+    z.innerHTML = '';
+    var n = 0;
+    E.CAS.forEach(function (c) {
+      var id = idDe(c);
+      var pris = choix[id];
+      if (filtre === 'reste' && pris) return;
+      if (filtre !== 'tous' && filtre !== 'reste' && c.quoi !== filtre) return;
+      n++;
+      var bloc = h('div', { class: 'ec-cas' + (pris ? ' ec-fait' : '') });
+      bloc.appendChild(h('div', { class: 'ec-ligne1' }, [
+        h('span', { class: 'ec-quoi q-' + c.quoi, text: LIBELLE[c.quoi] }),
+        h('span', { class: 'ec-fiche', text: c.fiche }),
+        h('span', { class: 'ec-ecr', text: '▸ ' + c.ecr })
+      ]));
+      bloc.appendChild(h('p', { class: 'ec-dit', text: c.dit }));
+      if (c.prix) bloc.appendChild(h('p', { class: 'ec-prix', text: c.prix }));
+      if (c.src) bloc.appendChild(h('p', { class: 'ec-src', text: 'source : ' + c.src }));
+
+      var ch = h('div', { class: 'ec-choix' });
+      OPTIONS[c.quoi].forEach(function (o) {
+        var b = h('button', { type: 'button', text: o,
+          'aria-pressed': (pris && pris.decision === o) ? 'true' : 'false' });
+        b.addEventListener('click', function () {
+          if (choix[id] && choix[id].decision === o) delete choix[id];
+          else choix[id] = { fiche: c.fiche, ecr: c.ecr, quoi: c.quoi,
+                             decision: o, note: (choix[id] || {}).note || '' };
+          garder(); rendre();
+        });
+        ch.appendChild(b);
+      });
+      bloc.appendChild(ch);
+
+      var note = h('input', { class: 'ec-note', type: 'text',
+        placeholder: 'ta note (facultatif)…',
+        value: (pris && pris.note) || '' });
+      note.addEventListener('input', function () {
+        choix[id] = choix[id] || { fiche: c.fiche, ecr: c.ecr, quoi: c.quoi, decision: '' };
+        choix[id].note = note.value;
+        garder(); majSortie();
+      });
+      bloc.appendChild(note);
+      z.appendChild(bloc);
+    });
+
+    var pris = Object.keys(choix).length;
+    document.getElementById('ecCompte').innerHTML =
+      n + ' cas affiché(s) · <b>' + pris + '</b> tranché(s) sur ' + E.CAS.length;
+    [['tous','ecTous'],['autre','ecAutre'],['variante','ecVariante'],
+     ['doublon','ecDoublon'],['question','ecQuestion'],['reste','ecReste']
+    ].forEach(function (p) {
+      document.getElementById(p[1]).setAttribute('aria-pressed',
+        filtre === p[0] ? 'true' : 'false');
+    });
+    majSortie();
+  }
+
+  function majSortie() {
+    var l = [];
+    E.CAS.forEach(function (c) {
+      var d = choix[idDe(c)];
+      if (!d) return;
+      l.push('- ' + c.fiche + ' ▸ ' + c.ecr + '  →  ' + (d.decision || '(note seule)')
+           + (d.note ? '   // ' + d.note : ''));
+    });
+    document.getElementById('ecJson').value = l.length ? l.join('\n')
+      : 'Rien de tranché pour l’instant.';
+  }
+
+  [['tous','ecTous'],['autre','ecAutre'],['variante','ecVariante'],
+   ['doublon','ecDoublon'],['question','ecQuestion'],['reste','ecReste']
+  ].forEach(function (p) {
+    document.getElementById(p[1]).addEventListener('click', function () {
+      filtre = p[0]; rendre();
+    });
+  });
+  document.getElementById('ecCopier').addEventListener('click', function () {
+    var t = document.getElementById('ecJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('ecEtat').textContent = 'copié.';
+  });
+  document.getElementById('ecVider').addEventListener('click', function () {
+    choix = {}; garder(); rendre();
+    document.getElementById('ecEtat').textContent = '';
+  });
+
+  document.getElementById('ecAvert').innerHTML =
+    '<b>Avant toute suppression :</b> ' + E.AVERTISSEMENT_SUPPRESSION;
+
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>

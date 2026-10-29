@@ -211,9 +211,73 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    sens — celui de la cup. L'autre reste un raisonnement, validé par MB
    gravures sous les yeux, et aucune source ne le contredit.
 
-## 2. Les variantes, plutôt qu'un nom par engin
+## 2. Les variantes, plutôt qu'un nom par engin — **OUVERT le 2026-10-30**
 
-**Quand** : quand le dictionnaire sera rempli.
+**Quand** : quand le dictionnaire sera rempli. — **Il l'est : ouvert le 30/10.**
+
+### CE QUI A ÉTÉ ESSAYÉ, PUIS ABANDONNÉ — deux fois, et c'est MB qui a tranché
+
+**Première idée : la variante ENREGISTRÉE avec la série.** L'exercice aurait
+porté un champ `variante`, et le Suivi aurait regroupé par mouvement. Simulée
+(`revue/simulations-variantes.html`), MB a choisi **A sur les trois écrans**.
+Puis, en voyant la planche d'édition : « **c'était une idée les variantes comme
+on vient de faire mais c'est trop, on oublie cette histoire** ».
+
+**Ce que ces deux simulations ont quand même rapporté, et qui reste vrai :**
+
+- le carnet **sait déjà** l'engin (il stocke le nom saisi tel quel) ; ce qu'il
+  ne sait pas faire, c'est **regrouper** — quatre séances du même curl, écrites
+  avec trois engins, rendent **trois** entrées dans la liste de suivi ;
+- un **champ neuf sur un exercice survit au disque** (le store recopie les
+  séances telles quelles) ; dans `reglages`, la même clé **disparaît** ;
+- **18 groupes d'écritures** portent une nuance que l'engin seul effacerait
+  (couché / incliné / décliné, unilatéral, barre droite contre barre EZ) :
+  une variante doit porter **l'engin ET la position**.
+
+### CE QU'ON FAIT À LA PLACE — plus petit, et c'est MB qui l'a décrit
+
+MB, 30/10 : « Dans Ajouter un exercice, quand je clique sur Parcourir le
+dictionnaire, et que je clique sur un exo avec plusieurs noms connus, une
+fois que j'ai cliqué sur le nom principal qu'on lui a donné, il va s'afficher
+dans "Nom de l'exercice" et **proposer automatiquement les variantes en
+dessous** si l'on veut en sélectionner une. »
+
+**Simulé et mesuré** (`revue/simulation-variantes-sous-le-nom.html`) : un seul
+bloc sous un champ qui existe déjà, affiché **seulement** si le mouvement a des
+variantes, et ne rien choisir reste le comportement d'aujourd'hui. **42**
+mouvements verraient le bloc, **25** jamais. Le plus fourni : Développé
+militaire, **15 variantes** — c'est le chiffre à regarder, il paraît trop.
+
+### LE DISTINGO QUE MB A NOMMÉ, ET SA LIMITE
+
+« Curl rising à la poulie » / « Rising cable curl », c'est **la même chose**.
+« Curl Larratt » / « Tenue de coude » aussi. Mesuré sur les 328 écritures :
+**164 variantes** (un engin ou une position change) et **164 autres écritures**.
+
+**Ce partage n'est sûr que dans un sens.** Ce qui apporte un engin ou une
+position EST une variante. Mais parmi les 164 « autres écritures » se cachent
+de vrais mouvements différents qu'**aucune règle mécanique ne distingue d'un
+synonyme** : « Spider curl », « Drag curl », « Curl 21 » sous *Curl biceps* ;
+« Farmer walk » sous *Dead hang*. D'où la recherche du 30/10.
+
+### L'ÉCRÉMAGE — où il en est
+
+Quatre recherches web, une par bloc de muscles, **79 cas** rapportés :
+**8** autres exercices, **21** variantes mal rangées, **34** qui ne portent
+rien, **16** qu'aucune source ne tranche.
+
+Le détail est dans **`revue/RECHERCHE-2026-10-30.md`**, et MB tranche dans
+**`revue/ecremage.html`**. **Rien n'est appliqué.**
+
+**UNE RÉSERVE EST POSÉE D'AVANCE** : la recherche conseille de retirer six
+fiches de traction sur huit, dont **les quatre « partielle » que MB a
+demandées lui-même le 29/10**. Aucune des sources citées ne porte sur le bras
+de fer. Rien ne se retire là sans qu'il le dise.
+
+---
+
+**Ce qui suit est la rédaction d'origine du chantier, gardée pour la mesure
+qu'elle porte.**
 
 MB, 2026-10-29 : « je vois le même exo avec des variantes (barbell, dumbell
 etc etc), je pense qu'il sera intéressant de prendre **le nom de l'exo de

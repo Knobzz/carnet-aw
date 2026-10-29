@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les variantes — voir, corriger, ajouter</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes prefixees `sim-`. Le 29/10, une classe `onglets` est entree en
+     collision avec la barre d'onglets de l'app et deux ecrans de 320 px se
+     sont rendus a 1009 — trouve en MESURANT, pas en regardant. */
+  body { margin: 0; padding: 14px 16px 60px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sim-intro { max-width: 1320px; margin: 0 auto 14px; }
+  .sim-intro h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .sim-intro p { margin: 4px 0; color: var(--texte-2); font-size: .9rem; }
+  .sim-intro b { color: var(--texte); }
+  .sim-rangee { display: flex; gap: 26px; align-items: flex-start;
+                max-width: 1320px; margin: 0 auto; }
+  .sim-tel { width: 320px; flex: 0 0 320px; position: sticky; top: 14px; }
+  .sim-ecran { border: 1px solid var(--trait-fort); border-radius: 12px;
+               background: var(--fond-2); padding: 12px; width: 320px;
+               box-sizing: border-box; min-height: 430px; }
+  .sim-etapes { display: flex; gap: 4px; margin-bottom: 10px; }
+  .sim-etapes button { flex: 1; background: none; border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte-2); font: inherit; font-size: .72rem;
+        padding: 4px 0; cursor: pointer; }
+  .sim-etapes button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); }
+  .sim-haut { font-size: .72rem; color: var(--texte-2); text-transform: uppercase;
+              letter-spacing: .05em; margin: 0 0 8px;
+              border-bottom: 1px solid var(--trait); padding-bottom: 5px; }
+  .sim-aide { font-size: .8rem; color: var(--texte-2); margin: 10px 0 0; }
+  .sim-choix { border: 1px solid var(--trait); border-radius: var(--r-s);
+               margin-top: 6px; overflow: hidden; }
+  .sim-choix button { display: block; width: 100%; text-align: left; background: none;
+        border: 0; border-top: 1px solid var(--trait); color: var(--texte);
+        font: inherit; padding: 9px 10px; cursor: pointer; }
+  .sim-choix button:first-child { border-top: 0; }
+  .sim-choix button:hover { background: var(--fond-3); }
+  .sim-choix button[aria-pressed="true"] { background: var(--fond-3);
+        box-shadow: inset 3px 0 0 var(--laiton); }
+  .sim-sous { font-size: .76rem; color: var(--texte-2); margin-top: 2px; }
+  .sim-pastille { font-size: .72rem; color: var(--laiton);
+                  border: 1px solid var(--laiton); border-radius: 999px;
+                  padding: 0 7px; white-space: nowrap; }
+  .sim-eng { font-size: .72rem; color: var(--texte-2); border: 1px solid var(--trait);
+             border-radius: 999px; padding: 0 6px; white-space: nowrap; }
+  .sim-engs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+
+  .sim-cote { flex: 1; min-width: 480px; }
+  .sim-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+               margin-bottom: 10px; }
+  .sim-barre input[type=search] { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit; font-size: .86rem;
+        padding: 5px 10px; width: 190px; }
+  .sim-bt { background: var(--fond-2); border: 1px solid var(--trait);
+            border-radius: 6px; color: var(--texte); font: inherit;
+            font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .sim-bt:hover { border-color: var(--laiton); color: var(--laiton); }
+  .sim-bt[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .sim-compte { font-size: .8rem; color: var(--texte-2); }
+  .sim-compte b { color: var(--laiton); }
+
+  .sim-mvt { border: 1px solid var(--trait); border-radius: 10px;
+             background: var(--fond-2); margin-bottom: 10px; overflow: hidden; }
+  .sim-mvt > h3 { margin: 0; font-size: .92rem; padding: 8px 11px;
+                  background: var(--fond-3); display: flex; align-items: center;
+                  gap: 9px; cursor: pointer; }
+  .sim-mvt > h3 small { font-weight: 400; color: var(--texte-2); font-size: .78rem;
+                        margin-left: auto; }
+  .sim-vars { padding: 9px 11px; display: flex; flex-wrap: wrap; gap: 5px;
+              align-items: center; }
+  .sim-vars i { font-style: normal; color: var(--texte);
+                border: 1px solid var(--trait); border-radius: 999px;
+                padding: 1px 8px; font-size: .8rem; cursor: pointer; }
+  .sim-vars i:hover { border-color: var(--laiton); }
+  .sim-vars i.sim-bizarre { border-color: var(--laiton); background: var(--laiton);
+                            color: var(--fond); font-weight: 600; }
+  .sim-vars i.sim-neuve { border-color: var(--vert, #6cc08b);
+                          color: var(--vert, #6cc08b); }
+  .sim-vars i.sim-neuve.sim-bizarre { background: var(--laiton);
+                          border-color: var(--laiton); color: var(--fond); }
+  .sim-signal { color: var(--laiton); font-size: .9em; }
+  .sim-vars i.sim-bizarre .sim-signal { color: var(--fond); }
+  .sim-plus { background: none; border: 1px dashed var(--trait);
+              border-radius: 999px; color: var(--texte-2); font: inherit;
+              font-size: .8rem; padding: 1px 10px; cursor: pointer; }
+  .sim-plus:hover { border-color: var(--laiton); color: var(--laiton); }
+  .sim-ajout { padding: 0 11px 10px; display: flex; flex-wrap: wrap; gap: 6px;
+               align-items: center; border-top: 1px dashed var(--trait);
+               padding-top: 9px; }
+  .sim-ajout select, .sim-ajout input { background: var(--fond);
+        border: 1px solid var(--trait); border-radius: 6px; color: var(--texte);
+        font: inherit; font-size: .82rem; padding: 4px 7px; }
+  .sim-ajout input { width: 170px; }
+  .sim-ajout label { font-size: .78rem; color: var(--texte-2); }
+
+  .sim-bilan { max-width: 1320px; margin: 18px auto 0;
+               border-top: 1px solid var(--trait); padding-top: 10px;
+               font-size: .86rem; color: var(--texte-2); }
+  .sim-bilan b { color: var(--texte); }
+  .sim-recap { max-width: 1320px; margin: 16px auto 0; }
+  .sim-recap h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
+  .sim-recap ul { margin: 0 0 10px; padding-left: 20px; font-size: .86rem; }
+  .sim-recap li { margin-bottom: 3px; }
+  .sim-recap small { color: var(--texte-2); }
+  .sim-recap em { font-style: normal; color: var(--laiton); }
+  .sim-recap .sim-vert { color: var(--vert, #6cc08b); }
+  .sim-bts { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="sim-intro">
+  <h1>Les variantes — voir, corriger, ajouter</h1>
+  <p><b>Rien n’est poussé</b> : cette page est une planche, le carnet n’a pas
+     bougé. À gauche, le rendu final sur 320&nbsp;px. À droite, <b>les
+     67 mouvements</b> du dictionnaire et leurs variantes.</p>
+  <p><b>Clique une variante</b> pour la signaler bizarre · <b>+ variante</b>
+     pour en ajouter une · le <b>nom</b> du mouvement le charge dans le
+     téléphone. Tout tient entre deux rechargements, et se recopie en bas.</p>
+  <p id="simQuoi"></p>
+</div>
+
+<div class="sim-rangee">
+  <div class="sim-tel">
+    <div class="sim-etapes" id="simEtapes"></div>
+    <div class="sim-ecran" id="simEcran"></div>
+    <p class="sim-aide" id="simAide"></p>
+  </div>
+  <div class="sim-cote">
+    <div class="sim-barre">
+      <input type="search" id="simQ" placeholder="chercher un mouvement…">
+      <button type="button" class="sim-bt" id="simFTous">Tous</button>
+      <button type="button" class="sim-bt" id="simFAvec">Avec variantes</button>
+      <button type="button" class="sim-bt" id="simFSans">Sans aucune</button>
+      <button type="button" class="sim-bt" id="simFTouche">Ce que j’ai touché</button>
+      <span class="sim-compte" id="simCompte"></span>
+    </div>
+    <div id="simListe"></div>
+  </div>
+</div>
+
+<div class="sim-recap" id="simRecap"></div>
+<p class="sim-bilan" id="simBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, V = A.variantes;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  /* ================== CE QUE MB DECIDE, ET QUI SURVIT ==================
+     Une seule cle, trois registres. Elle tient dans le navigateur et se
+     recopie en bas : rien n'entre dans le carnet sans passer par la. */
+  var CLE = 'carnet-aw-variantes-revue';
+  var decisions = { bizarres: {}, ajoutees: {} };
+  try {
+    var lu = JSON.parse(localStorage.getItem(CLE) || '{}');
+    if (lu && typeof lu === 'object') {
+      decisions.bizarres = lu.bizarres || {};
+      decisions.ajoutees = lu.ajoutees || {};
+    }
+  } catch (e) {}
+  function garder() {
+    try { localStorage.setItem(CLE, JSON.stringify(decisions)); } catch (e) {}
+  }
+
+  /* ================== LES MOUVEMENTS ==================
+     LES 67, et non les 30 qui ont deja deux variantes : MB a demande de
+     pouvoir en AJOUTER, et un mouvement qui n'en a aucune est justement
+     celui qui en a le plus besoin. */
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+
+  function variantesDe(fiche) {
+    var derivees = V.variantesDe(fiche).map(function (v) {
+      return { texte: v.texte, ecritures: v.ecritures, signaux: V.aSignaler(v, fiche),
+               neuve: false };
+    });
+    var ajoutees = (decisions.ajoutees[fiche.nom] || []).map(function (t) {
+      return { texte: t, ecritures: [], signaux: [], neuve: true };
+    });
+    return derivees.concat(ajoutees);
+  }
+
+  var mouvements = fiches.map(function (f) {
+    return { fiche: f, variantes: variantesDe(f) };
+  });
+  mouvements.sort(function (a, b) { return b.variantes.length - a.variantes.length; });
+
+  function recharger(nomFiche) {
+    mouvements.forEach(function (x) {
+      if (!nomFiche || x.fiche.nom === nomFiche) x.variantes = variantesDe(x.fiche);
+    });
+  }
+
+  /* ================== LE TELEPHONE ================== */
+  var choisie = mouvements[0];
+  var variante = null;
+  var etape = 0;
+  var ETAPES = ['1 · Choisir', '2 · Variante', '3 · Séance', '4 · Suivi'];
+  var AIDES = [
+    'L’écran d’aujourd’hui, inchangé : le dictionnaire par groupe de muscles.',
+    'Le seul écran neuf. « Sans précision » reste en tête — c’est ce que fait le carnet aujourd’hui.',
+    'La séance. Le nom de base tient en entier, la variante est en pastille.',
+    'Suivi ▸ Historique par exercice : une ligne par mouvement, les engins dessous.'
+  ];
+
+  function rendreTel() {
+    var b = document.getElementById('simEtapes');
+    b.innerHTML = '';
+    ETAPES.forEach(function (t, i) {
+      var bt = h('button', { type: 'button', text: t,
+                             'aria-pressed': i === etape ? 'true' : 'false' });
+      bt.addEventListener('click', function () { etape = i; rendreTel(); });
+      b.appendChild(bt);
+    });
+    document.getElementById('simAide').textContent = AIDES[etape];
+    var ec = document.getElementById('simEcran');
+    ec.innerHTML = '';
+    if (etape === 0) ecranChoisir(ec);
+    else if (etape === 1) ecranVariante(ec);
+    else if (etape === 2) ecranSeance(ec);
+    else ecranSuivi(ec);
+  }
+
+  function ecranChoisir(ec) {
+    ec.appendChild(h('p', { class: 'sim-haut', text: 'Nom de l’exercice' }));
+    var liste = h('div', { class: 'sim-choix' });
+    mouvements.slice(0, 8).forEach(function (x) {
+      var bt = h('button', { type: 'button',
+                             'aria-pressed': x === choisie ? 'true' : 'false' });
+      bt.appendChild(h('b', { text: x.fiche.nom }));
+      bt.appendChild(h('div', { class: 'sim-sous',
+        text: (x.fiche.aussi || []).slice(0, 3).join(' · ') }));
+      bt.addEventListener('click', function () {
+        choisie = x; variante = null; etape = 1; rendreTel();
+      });
+      liste.appendChild(bt);
+    });
+    ec.appendChild(liste);
+  }
+
+  function ecranVariante(ec) {
+    ec.appendChild(h('p', { class: 'sim-haut', text: choisie.fiche.nom }));
+    ec.appendChild(h('p', { class: 'sim-sous', text: 'Avec quoi, et comment ?' }));
+    var liste = h('div', { class: 'sim-choix' });
+    var sans = h('button', { type: 'button',
+                             'aria-pressed': variante === null ? 'true' : 'false' });
+    sans.appendChild(h('b', { text: 'Sans précision' }));
+    sans.appendChild(h('div', { class: 'sim-sous',
+      text: 'Ce que fait le carnet aujourd’hui. Reste possible.' }));
+    sans.addEventListener('click', function () { variante = null; etape = 2; rendreTel(); });
+    liste.appendChild(sans);
+    if (!choisie.variantes.length) {
+      liste.appendChild(h('button', { type: 'button', disabled: 'disabled',
+        text: 'Aucune variante — ajoute-en une à droite.' }));
+    }
+    choisie.variantes.forEach(function (v) {
+      if (decisions.bizarres[choisie.fiche.nom + ' § ' + v.texte]) return;
+      var bt = h('button', { type: 'button',
+                             'aria-pressed': v === variante ? 'true' : 'false' });
+      bt.appendChild(h('b', { text: v.texte }));
+      if (v.ecritures.length > 1) {
+        bt.appendChild(h('div', { class: 'sim-sous',
+          text: 'aussi écrit : ' + v.ecritures.slice(1).join(' · ') }));
+      }
+      bt.addEventListener('click', function () { variante = v; etape = 2; rendreTel(); });
+      liste.appendChild(bt);
+    });
+    ec.appendChild(liste);
+  }
+
+  function ecranSeance(ec) {
+    ec.appendChild(h('p', { class: 'sim-haut', text: 'Séance du jour' }));
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    corps.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' }, [
+      h('b', { text: choisie.fiche.nom }),
+      variante ? h('span', { class: 'sim-pastille', text: variante.texte }) : null
+    ]));
+    corps.appendChild(h('div', { class: 'item-resume',
+      text: '4 séries · 10 reps · 35 kg · repos 2 min' }));
+    carte.appendChild(corps);
+    ec.appendChild(carte);
+    ec.appendChild(h('p', { class: 'sim-sous', style: 'margin-top:10px',
+      text: variante
+        ? 'La variante est enregistrée avec la série : c’est elle qui permettra '
+          + 'de filtrer la progression.'
+        : 'Sans variante, le carnet se comporte comme aujourd’hui.' }));
+    mouvements.slice(1, 3).forEach(function (x) {
+      if (!x.variantes.length) return;
+      var c2 = h('div', { class: 'carte' });
+      var k2 = h('div', { class: 'carte-corps' });
+      k2.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' }, [
+        h('b', { text: x.fiche.nom }),
+        h('span', { class: 'sim-pastille', text: x.variantes[0].texte })
+      ]));
+      k2.appendChild(h('div', { class: 'item-resume', text: '3 séries · 12 reps · 20 kg' }));
+      c2.appendChild(k2);
+      ec.appendChild(c2);
+    });
+  }
+
+  function ecranSuivi(ec) {
+    ec.appendChild(h('p', { class: 'sim-haut', text: 'Historique par exercice' }));
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    mouvements.slice(0, 5).forEach(function (x) {
+      var bloc = h('div', { style: 'padding:7px 0' });
+      bloc.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' }, [
+        h('b', { text: x.fiche.nom }),
+        h('span', { class: 'delai', 'data-zone': 'ok', text: (3 + x.variantes.length) + ' j' })
+      ]));
+      var engs = h('div', { class: 'sim-engs' });
+      var vus = {};
+      x.variantes.forEach(function (v) {
+        if (decisions.bizarres[x.fiche.nom + ' § ' + v.texte]) return;
+        var premier = v.texte.split(' · ')[0];
+        if (vus[premier]) return;
+        vus[premier] = 1;
+        engs.appendChild(h('span', { class: 'sim-eng', text: premier }));
+      });
+      bloc.appendChild(engs);
+      corps.appendChild(bloc);
+    });
+    carte.appendChild(corps);
+    ec.appendChild(carte);
+  }
+
+  /* ================== LA LISTE DE DROITE ================== */
+  var filtre = 'avec';
+  var recherche = '';
+
+  function touche(x) {
+    if ((decisions.ajoutees[x.fiche.nom] || []).length) return true;
+    return x.variantes.some(function (v) {
+      return decisions.bizarres[x.fiche.nom + ' § ' + v.texte];
+    });
+  }
+
+  function visible(x) {
+    if (recherche) {
+      var q = m.slug(recherche);
+      var dans = m.slug(x.fiche.nom).indexOf(q) >= 0
+        || (x.fiche.aussi || []).some(function (e) { return m.slug(e).indexOf(q) >= 0; });
+      if (!dans) return false;
+    }
+    if (filtre === 'touche') return touche(x);
+    /* UN MOUVEMENT QU'ON VIENT DE TOUCHER RESTE SOUS LES YEUX. Trouve en
+       jouant l'ajout : ajouter une variante a un mouvement « sans aucune »
+       le faisait disparaitre de la liste au moment meme du clic — on ne
+       voyait pas ce qu'on venait d'ecrire. */
+    if (touche(x)) return true;
+    if (filtre === 'avec') return x.variantes.length >= 2;
+    if (filtre === 'sans') return x.variantes.length === 0;
+    return true;
+  }
+
+  function rendreListe() {
+    var z = document.getElementById('simListe');
+    z.innerHTML = '';
+    var n = 0;
+    mouvements.forEach(function (x) {
+      if (!visible(x)) return;
+      n++;
+      z.appendChild(blocMouvement(x));
+    });
+    if (!n) {
+      z.appendChild(h('p', { class: 'sim-sous', text: 'Aucun mouvement ici.' }));
+    }
+    document.getElementById('simCompte').innerHTML =
+      n + ' mouvement(s) affiché(s) · <b>' + Object.keys(decisions.bizarres).length
+      + '</b> marquée(s) · <b>' + nbAjoutees() + '</b> ajoutée(s)';
+    majRecap();
+  }
+
+  function nbAjoutees() {
+    var n = 0;
+    Object.keys(decisions.ajoutees).forEach(function (k) {
+      n += decisions.ajoutees[k].length;
+    });
+    return n;
+  }
+
+  function blocMouvement(x) {
+    var bloc = h('div', { class: 'sim-mvt' });
+    var t = h('h3', {}, [document.createTextNode(x.fiche.nom)]);
+    t.appendChild(h('small', { text: x.variantes.length + ' variante(s)' }));
+    t.addEventListener('click', function () {
+      choisie = x; variante = null; etape = 1; rendreTel();
+    });
+    t.setAttribute('title', 'Charger ce mouvement dans le téléphone');
+    bloc.appendChild(t);
+
+    var zone = h('div', { class: 'sim-vars' });
+    if (!x.variantes.length) {
+      zone.appendChild(h('span', { class: 'sim-sous',
+        text: 'Aucune variante dérivée — son dictionnaire ne nomme aucun engin.' }));
+    }
+    x.variantes.forEach(function (v) {
+      var id = x.fiche.nom + ' § ' + v.texte;
+      var p = h('i', { 'data-id': id,
+        title: v.neuve ? 'Ajoutée par toi — clique pour la retirer'
+             : (v.signaux.length ? v.signaux.join('\n')
+                                 : 'Clique si elle te paraît bizarre') });
+      p.appendChild(document.createTextNode(v.texte));
+      if (v.signaux.length) p.appendChild(h('span', { class: 'sim-signal', text: ' △' }));
+      var classes = [];
+      if (v.neuve) classes.push('sim-neuve');
+      if (decisions.bizarres[id]) classes.push('sim-bizarre');
+      if (classes.length) p.className = classes.join(' ');
+      p.addEventListener('click', function () {
+        if (v.neuve) {
+          /* une variante AJOUTEE se retire, elle ne se signale pas : la
+             signaler bizarre n'aurait pas de sens, MB vient de l'ecrire. */
+          var l = decisions.ajoutees[x.fiche.nom] || [];
+          decisions.ajoutees[x.fiche.nom] = l.filter(function (t2) { return t2 !== v.texte; });
+          if (!decisions.ajoutees[x.fiche.nom].length) delete decisions.ajoutees[x.fiche.nom];
+        } else if (decisions.bizarres[id]) {
+          delete decisions.bizarres[id];
+        } else {
+          decisions.bizarres[id] = { mouvement: x.fiche.nom, variante: v.texte,
+                                     de: v.ecritures.slice() };
+        }
+        garder(); recharger(x.fiche.nom); rendreListe(); rendreTel();
+      });
+      zone.appendChild(p);
+    });
+
+    var plus = h('button', { class: 'sim-plus', type: 'button', text: '+ variante' });
+    var form = formAjout(x, function () {
+      garder(); recharger(x.fiche.nom); rendreListe(); rendreTel();
+    });
+    form.style.display = 'none';
+    plus.addEventListener('click', function () {
+      var ouvert = form.style.display !== 'none';
+      form.style.display = ouvert ? 'none' : 'flex';
+      if (!ouvert) form.querySelector('select').focus();
+    });
+    zone.appendChild(plus);
+    bloc.appendChild(zone);
+    bloc.appendChild(form);
+    return bloc;
+  }
+
+  /* L'AJOUT : l'engin et la position se CHOISISSENT dans les listes que le
+     carnet connait deja — on n'invente pas un vocabulaire parallele. Le
+     champ libre existe pour ce que ces listes ne couvrent pas, et il le
+     dira dans le recap. */
+  function formAjout(x, apres) {
+    var f = h('div', { class: 'sim-ajout' });
+    var selE = h('select');
+    selE.appendChild(h('option', { value: '', text: '— engin —' }));
+    Object.keys(V.NOM_ENGIN).forEach(function (k) {
+      selE.appendChild(h('option', { value: k, text: V.NOM_ENGIN[k] }));
+    });
+    var selP = h('select');
+    selP.appendChild(h('option', { value: '', text: '— sans position —' }));
+    var vues = {};
+    V.POSITIONS.forEach(function (p) {
+      if (vues[p[1]]) return;
+      vues[p[1]] = 1;
+      selP.appendChild(h('option', { value: p[1], text: p[1] }));
+    });
+    var libre = h('input', { type: 'text', placeholder: 'ou tape l’étiquette…' });
+    var bt = h('button', { class: 'sim-bt', type: 'button', text: 'Ajouter' });
+
+    function ajouter() {
+      var texte = libre.value.trim();
+      if (!texte) {
+        if (!selE.value && !selP.value) return;
+        texte = V.etiquette(selE.value || null,
+                            selP.value ? [selP.value] : []);
+      }
+      if (!texte) return;
+      var deja = (decisions.ajoutees[x.fiche.nom] || []).indexOf(texte) >= 0
+        || x.variantes.some(function (v) { return v.texte === texte; });
+      if (deja) {
+        bt.textContent = 'déjà là';
+        setTimeout(function () { bt.textContent = 'Ajouter'; }, 1600);
+        return;
+      }
+      decisions.ajoutees[x.fiche.nom] = (decisions.ajoutees[x.fiche.nom] || []).concat([texte]);
+      selE.value = ''; selP.value = ''; libre.value = '';
+      apres();
+    }
+    bt.addEventListener('click', ajouter);
+    libre.addEventListener('keydown', function (e) { if (e.key === 'Enter') ajouter(); });
+
+    f.appendChild(h('label', { text: 'Nouvelle variante :' }));
+    f.appendChild(selE);
+    f.appendChild(selP);
+    f.appendChild(h('label', { text: 'ou' }));
+    f.appendChild(libre);
+    f.appendChild(bt);
+    return f;
+  }
+
+  /* ================== LE RECAP, COPIABLE ================== */
+  function majRecap() {
+    var z = document.getElementById('simRecap');
+    z.innerHTML = '';
+    var bz = Object.keys(decisions.bizarres);
+    var aj = Object.keys(decisions.ajoutees);
+    if (!bz.length && !aj.length) {
+      z.appendChild(h('p', { class: 'sim-sous',
+        text: 'Rien de marqué ni d’ajouté pour l’instant. Clique une variante '
+            + 'pour la signaler, ou « + variante » pour en créer une.' }));
+      return;
+    }
+    z.appendChild(h('h2', { text: 'Tes décisions — ' + bz.length
+      + ' marquée(s), ' + nbAjoutees() + ' ajoutée(s)' }));
+    var ul = h('ul');
+    bz.forEach(function (k) {
+      var d = decisions.bizarres[k];
+      ul.appendChild(h('li', { html: '<em>bizarre</em> — <b>' + d.mouvement
+        + '</b> : « ' + d.variante + ' »'
+        + (d.de.length ? ' <small>dérivée de : ' + d.de.join(' · ') + '</small>' : '') }));
+    });
+    aj.forEach(function (nom) {
+      decisions.ajoutees[nom].forEach(function (t) {
+        ul.appendChild(h('li', { html: '<span class="sim-vert">ajoutée</span> — <b>'
+          + nom + '</b> : « ' + t + ' »' }));
+      });
+    });
+    z.appendChild(ul);
+
+    var copier = h('button', { class: 'sim-bt', type: 'button', text: 'Copier la liste' });
+    copier.addEventListener('click', function () {
+      var l = [];
+      bz.forEach(function (k) {
+        var d = decisions.bizarres[k];
+        l.push('- BIZARRE · ' + d.mouvement + ' — « ' + d.variante + ' »'
+             + (d.de.length ? '  (dérivée de : ' + d.de.join(' · ') + ')' : ''));
+      });
+      aj.forEach(function (nom) {
+        decisions.ajoutees[nom].forEach(function (t) {
+          l.push('- AJOUTÉE · ' + nom + ' — « ' + t + ' »');
+        });
+      });
+      var ta = h('textarea', { style: 'position:fixed;left:-9999px' });
+      ta.value = l.join('\n');
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      copier.textContent = 'copié — colle-le dans le chat';
+      setTimeout(function () { copier.textContent = 'Copier la liste'; }, 2500);
+    });
+    var vider = h('button', { class: 'sim-bt', type: 'button', text: 'Tout effacer' });
+    vider.addEventListener('click', function () {
+      decisions = { bizarres: {}, ajoutees: {} };
+      garder(); recharger(); rendreListe(); rendreTel();
+    });
+    z.appendChild(h('div', { class: 'sim-bts' }, [copier, vider]));
+  }
+
+  /* ================== LA BARRE ================== */
+  function poserFiltre(nom) {
+    filtre = nom;
+    [['tous', 'simFTous'], ['avec', 'simFAvec'], ['sans', 'simFSans'],
+     ['touche', 'simFTouche']].forEach(function (p) {
+      document.getElementById(p[1]).setAttribute('aria-pressed',
+        filtre === p[0] ? 'true' : 'false');
+    });
+    rendreListe();
+  }
+  document.getElementById('simFTous').addEventListener('click', function () { poserFiltre('tous'); });
+  document.getElementById('simFAvec').addEventListener('click', function () { poserFiltre('avec'); });
+  document.getElementById('simFSans').addEventListener('click', function () { poserFiltre('sans'); });
+  document.getElementById('simFTouche').addEventListener('click', function () { poserFiltre('touche'); });
+  document.getElementById('simQ').addEventListener('input', function (e) {
+    recherche = e.target.value; rendreListe();
+  });
+
+  /* ================== LES CHIFFRES ================== */
+  var totEcr = 0, ecartees = 0, totVar = 0, avecDeux = 0, sansAucune = 0;
+  fiches.forEach(function (f) {
+    (f.aussi || []).forEach(function (e) {
+      if (!V.enginDe(e)) return;
+      totEcr++;
+      if (V.PAS_UNE_VARIANTE[e]) ecartees++;
+    });
+    var v = V.variantesDe(f);
+    totVar += v.length;
+    if (v.length >= 2) avecDeux++;
+    if (!v.length) sansAucune++;
+  });
+
+  document.getElementById('simQuoi').innerHTML =
+    'Tout vient du dictionnaire réel : <b>' + fiches.length + ' fiches</b>, '
+    + '<b>' + totEcr + ' écritures d’engin</b> dont <b>' + ecartees + '</b> écartées '
+    + '(ce ne sont pas des variantes). Il en sort <b>' + totVar + ' variantes</b> : '
+    + '<b>' + avecDeux + '</b> mouvements en ont au moins deux, et <b>' + sansAucune
+    + '</b> n’en ont aucune — c’est à eux que « + variante » sert le plus.';
+
+  document.getElementById('simBilan').innerHTML =
+    '<b>Ce qu’il faut savoir.</b> '
+    + '<b>1.</b> Une variante porte <b>deux choses</b> : l’engin et, quand il y '
+    + 'en a une, la position. L’engin seul effacerait 18 nuances mesurées. Une '
+    + 'variante <b>sans</b> position, c’est l’engin seul — cette forme contient '
+    + 'l’autre. '
+    + '<b>2.</b> Les écritures qui se fondent dans une variante déjà présente '
+    + 'restent dans la fiche pour la <b>recherche</b> : taper « cable curl » '
+    + 'trouvera toujours. '
+    + '<b>3.</b> Le repère △ est une <b>mesure, pas une décision</b> : étiquette '
+    + 'de plus de 26 signes, trois positions empilées, ou support pris pour un '
+    + 'engin. Survole-le, il dit pourquoi. '
+    + '<b>4.</b> <b>Tes séances déjà enregistrées ne bougent pas</b> : elles '
+    + 'gardent leur nom plein tant qu’on ne les rattache pas. C’est la seule '
+    + 'décision que cette planche ne tranche pas.';
+
+  poserFiltre('avec');
+  rendreTel();
+})(window.App);
+</script>
+</body>
+</html>

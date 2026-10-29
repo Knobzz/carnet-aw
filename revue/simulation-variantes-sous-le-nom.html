@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les variantes sous le nom — simulation</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes prefixees `sv-`. Le 29/10, une classe `onglets` est entree en
+     collision avec la barre d'onglets de l'app et deux ecrans de 320 px se
+     sont rendus a 1009 — trouve en MESURANT, pas en regardant. */
+  body { margin: 0; padding: 14px 16px 50px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sv-intro { max-width: 1280px; margin: 0 auto 16px; }
+  .sv-intro h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .sv-intro p { margin: 4px 0; color: var(--texte-2); font-size: .9rem; }
+  .sv-intro b { color: var(--texte); }
+  .sv-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .sv-rangee { display: flex; gap: 26px; align-items: flex-start;
+               max-width: 1280px; margin: 0 auto; }
+  .sv-tel { width: 320px; flex: 0 0 320px; position: sticky; top: 14px; }
+  .sv-ecran { border: 1px solid var(--trait-fort); border-radius: 12px;
+              background: var(--fond-2); padding: 12px; width: 320px;
+              box-sizing: border-box; min-height: 480px; }
+  .sv-aide { font-size: .8rem; color: var(--texte-2); margin: 10px 0 0; }
+  .sv-refaire { margin-top: 8px; }
+
+  /* --- le panneau, au plus pres du vrai --- */
+  .sv-label { font-size: .78rem; color: var(--texte-2); display: block;
+              margin: 0 0 4px; }
+  .sv-champ { width: 100%; box-sizing: border-box; background: var(--fond);
+              border: 1px solid var(--trait); border-radius: var(--r-s);
+              color: var(--texte); font: inherit; padding: 9px 10px; }
+  .sv-champ.sv-rempli { border-color: var(--laiton); }
+  .sv-bt { width: 100%; margin-top: 8px; background: var(--fond-3);
+           border: 1px solid var(--trait); border-radius: var(--r-s);
+           color: var(--texte); font: inherit; padding: 8px 10px; cursor: pointer; }
+  .sv-bt:hover { border-color: var(--laiton); }
+  .sv-groupe { border: 1px solid var(--trait); border-radius: var(--r-s);
+               margin-top: 8px; overflow: hidden; }
+  .sv-groupe > button { display: flex; width: 100%; background: var(--fond-3);
+        border: 0; color: var(--texte); font: inherit; font-size: .88rem;
+        padding: 8px 10px; cursor: pointer; align-items: center; gap: 8px; }
+  .sv-groupe > button small { margin-left: auto; color: var(--texte-2);
+                              font-size: .76rem; }
+  .sv-mvt { display: block; width: 100%; text-align: left; background: none;
+            border: 0; border-top: 1px solid var(--trait); color: var(--texte);
+            font: inherit; padding: 8px 10px; cursor: pointer; }
+  .sv-mvt:hover { background: var(--fond-3); }
+  .sv-mvt small { display: block; color: var(--texte-2); font-size: .76rem; }
+
+  /* --- LE BLOC NEUF : les variantes sous le nom --- */
+  .sv-variantes { margin-top: 10px; border: 1px solid var(--laiton);
+                  border-radius: var(--r-s); padding: 9px 10px;
+                  background: color-mix(in srgb, var(--laiton) 7%, transparent); }
+  .sv-variantes > p { margin: 0 0 7px; font-size: .78rem; color: var(--texte-2); }
+  .sv-variantes > p b { color: var(--laiton); }
+  .sv-puces { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sv-puces button { background: var(--fond); border: 1px solid var(--trait);
+        border-radius: 999px; color: var(--texte); font: inherit;
+        font-size: .79rem; padding: 3px 10px; cursor: pointer; }
+  .sv-puces button:hover { border-color: var(--laiton); }
+  .sv-puces button[aria-pressed="true"] { background: var(--laiton);
+        border-color: var(--laiton); color: var(--fond); font-weight: 600; }
+  .sv-choisi { margin-top: 9px; font-size: .8rem; color: var(--texte-2); }
+  .sv-choisi b { color: var(--texte); }
+
+  /* --- la colonne de droite --- */
+  .sv-cote { flex: 1; min-width: 460px; }
+  .sv-cote h2 { font-size: 1.02rem; margin: 0 0 4px; }
+  .sv-cote > p { font-size: .86rem; color: var(--texte-2); margin: 0 0 10px; }
+  .sv-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin-bottom: 10px; }
+  .sv-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit; font-size: .86rem;
+        padding: 5px 10px; width: 180px; }
+  .sv-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .sv-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .sv-tab { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .sv-tab th { text-align: left; color: var(--texte-2); font-size: .74rem;
+               text-transform: uppercase; letter-spacing: .04em;
+               border-bottom: 1px solid var(--trait); padding: 5px 8px 5px 0; }
+  .sv-tab td { border-bottom: 1px solid var(--trait); padding: 6px 8px 6px 0;
+               vertical-align: top; }
+  .sv-tab .sv-nom { font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .sv-tab .sv-nom:hover { color: var(--laiton); }
+  .sv-tab i { font-style: normal; border: 1px solid var(--trait);
+              border-radius: 999px; padding: 0 7px; margin: 0 3px 3px 0;
+              display: inline-block; font-size: .78rem; }
+  .sv-tab i.sv-autre { border-style: dashed; color: var(--texte-2); }
+  .sv-leg { font-size: .8rem; color: var(--texte-2); margin: 0 0 10px; }
+  .sv-leg i { font-style: normal; border: 1px solid var(--trait);
+              border-radius: 999px; padding: 0 7px; font-size: .78rem; }
+  .sv-leg i.sv-autre { border-style: dashed; color: var(--texte-2); }
+  .sv-bilan { max-width: 1280px; margin: 18px auto 0; font-size: .86rem;
+              color: var(--texte-2); border-top: 1px solid var(--trait);
+              padding-top: 10px; }
+  .sv-bilan b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<div class="sv-intro">
+  <h1>Les variantes sous le nom — ce que tu as décrit</h1>
+  <p class="sv-cite">« Quand je clique sur Parcourir le dictionnaire, et que je
+     clique sur un exo, une fois que j’ai cliqué sur le nom principal, il va
+     s’afficher dans “Nom de l’exercice” et proposer automatiquement les
+     variantes en dessous si l’on veut en sélectionner une. »</p>
+  <p><b>Rien n’est poussé.</b> L’écran de gauche fait 320 px, avec le vrai CSS
+     et le vrai dictionnaire — <b>clique vraiment</b> : Parcourir → un groupe →
+     un mouvement, et le bloc des variantes apparaît sous le champ.</p>
+  <p id="svQuoi"></p>
+</div>
+
+<div class="sv-rangee">
+  <div class="sv-tel">
+    <div class="sv-ecran" id="svEcran"></div>
+    <p class="sv-aide" id="svAide"></p>
+    <button type="button" class="sv-pb sv-refaire" id="svRefaire">↺ Recommencer</button>
+  </div>
+  <div class="sv-cote">
+    <h2>Ce que chaque mouvement proposerait</h2>
+    <p>Clique un nom pour le charger dans le téléphone.</p>
+    <p class="sv-leg"><i>poulie</i> une <b>variante</b> — un engin ou une
+       position change, elle s’affiche sous le nom. &nbsp;
+       <i class="sv-autre">Larratt curl</i> une <b>autre écriture</b> — le même
+       geste dit autrement : elle sert à la <b>recherche</b> et ne s’affiche
+       pas.</p>
+    <div class="sv-barre">
+      <input type="search" id="svQ" placeholder="chercher un mouvement…">
+      <button type="button" class="sv-pb" id="svFTous">Tous</button>
+      <button type="button" class="sv-pb" id="svFVar">Qui ont des variantes</button>
+      <button type="button" class="sv-pb" id="svFBcp">Plus de 6 variantes</button>
+      <span id="svCompte" style="font-size:.8rem;color:var(--texte-2)"></span>
+    </div>
+    <table class="sv-tab"><thead><tr>
+      <th>Mouvement</th><th>Variantes · autres écritures</th>
+    </tr></thead><tbody id="svTable"></tbody></table>
+  </div>
+</div>
+
+<p class="sv-bilan" id="svBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, V = A.variantes;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  /* ========== LE DISTINGO QUE MB A NOMME ==========
+     « Curl rising à la poulie » et « Rising cable curl », c'est LA MEME
+     CHOSE. « Curl Larratt », « Tenue de coude », « Hold de coude » aussi.
+     Ce ne sont pas des variantes : ce sont d'autres ECRITURES du même
+     geste, et elles ne doivent pas encombrer le menu — elles servent à
+     la RECHERCHE, qui les trouve toutes.
+
+     CE QUI FAIT UNE VARIANTE, et c'est mesurable : l'écriture apporte un
+     ENGIN que le nom de base n'a pas, ou une POSITION. Tout le reste est
+     une autre écriture.
+
+     CE QUE CE PARTAGE NE SAIT PAS FAIRE, et c'est dit plutôt que masqué :
+     « Spider curl » ou « Drag curl » ne changent ni l'engin ni la
+     position — ils tombent donc du côté « autre écriture », alors que ce
+     sont des GESTES différents. Aucune règle mécanique ne les distingue
+     d'un vrai synonyme ; seule une source, ou MB, peut trancher. */
+  function partage(fiche) {
+    var engBase = V.enginDe(fiche.nom);
+    var variantes = [], autres = [], vues = {};
+    (fiche.aussi || []).forEach(function (e) {
+      if (V.PAS_UNE_VARIANTE[e]) { autres.push(e); return; }
+      var eng = V.enginDe(e);
+      var pos = V.positionDe(e, fiche.nom);
+      var estVariante = (eng && eng !== engBase) || pos.length;
+      if (!estVariante) { autres.push(e); return; }
+      var etiq = V.etiquette(eng && eng !== engBase ? eng : null, pos);
+      if (!etiq) { autres.push(e); return; }
+      if (vues[etiq]) { vues[etiq].ecritures.push(e); return; }
+      var v = { texte: etiq, ecritures: [e] };
+      vues[etiq] = v;
+      variantes.push(v);
+    });
+    return { variantes: variantes, autres: autres };
+  }
+
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+  var tout = fiches.map(function (f) {
+    var p = partage(f);
+    return { fiche: f, variantes: p.variantes, autres: p.autres };
+  });
+  tout.sort(function (a, b) { return b.variantes.length - a.variantes.length; });
+  function parNom(n) {
+    for (var i = 0; i < tout.length; i++) if (tout[i].fiche.nom === n) return tout[i];
+    return null;
+  }
+
+  /* ========== LE TELEPHONE ========== */
+  var etape = 'depart';       // depart | dico | choisi
+  var ouvert = null;          // le groupe deplie
+  var courant = null;         // le mouvement choisi
+  var variante = null;
+
+  var AIDES = {
+    depart: 'L’écran d’aujourd’hui. Clique « Parcourir le dictionnaire ».',
+    dico: 'Inchangé : les six groupes, repliés. Déplie-en un, puis clique un mouvement.',
+    choisi: 'LE SEUL CHANGEMENT : le nom est dans le champ, et le bloc laiton est apparu dessous. Il ne s’affiche que si le mouvement a des variantes, et choisir reste facultatif.'
+  };
+
+  function rendre() {
+    var ec = document.getElementById('svEcran');
+    ec.innerHTML = '';
+    ec.appendChild(h('label', { class: 'sv-label', text: 'Nom de l’exercice' }));
+    var champ = h('input', { class: 'sv-champ' + (courant ? ' sv-rempli' : ''),
+                             type: 'text', value: courant ? courant.fiche.nom : '',
+                             placeholder: 'Développé couché, Curl…' });
+    ec.appendChild(champ);
+
+    var bt = h('button', { class: 'sv-bt', type: 'button',
+      text: etape === 'dico' ? 'Masquer le dictionnaire ▴'
+                             : 'Parcourir le dictionnaire ▾' });
+    bt.addEventListener('click', function () {
+      etape = etape === 'dico' ? (courant ? 'choisi' : 'depart') : 'dico';
+      rendre();
+    });
+    ec.appendChild(bt);
+
+    if (etape === 'dico') ec.appendChild(leDictionnaire());
+
+    /* ---- LE BLOC NEUF ---- */
+    if (courant && etape !== 'dico') {
+      if (courant.variantes.length) ec.appendChild(leBlocVariantes());
+      else {
+        ec.appendChild(h('p', { class: 'sv-choisi',
+          text: 'Ce mouvement n’a pas de variante : rien ne s’affiche, et '
+              + 'l’écran reste celui d’aujourd’hui.' }));
+      }
+    }
+
+    document.getElementById('svAide').textContent = AIDES[etape];
+    marquerTable();
+  }
+
+  function leDictionnaire() {
+    var z = h('div');
+    var groupes = m.fichesParGroupe ? m.fichesParGroupe(S.vide(), '') : null;
+    (m.GROUPES_DICO || []).forEach(function (g) {
+      var id = typeof g === 'string' ? g : g.id;
+      var dedans = fiches.filter(function (f) { return f.groupe === id; });
+      if (!dedans.length) return;
+      var bloc = h('div', { class: 'sv-groupe' });
+      var tete = h('button', { type: 'button' });
+      tete.appendChild(document.createTextNode(
+        (ouvert === id ? '▾ ' : '▸ ') + (m.nomGroupeDico ? m.nomGroupeDico(id) : id)));
+      tete.appendChild(h('small', { text: dedans.length }));
+      tete.addEventListener('click', function () {
+        ouvert = ouvert === id ? null : id; rendre();
+      });
+      bloc.appendChild(tete);
+      if (ouvert === id) {
+        dedans.forEach(function (f) {
+          var x = parNom(f.nom);
+          var b = h('button', { class: 'sv-mvt', type: 'button' });
+          b.appendChild(document.createTextNode(f.nom));
+          b.appendChild(h('small', { text: x && x.variantes.length
+            ? x.variantes.length + ' variante(s)' : 'pas de variante' }));
+          b.addEventListener('click', function () {
+            courant = x; variante = null; etape = 'choisi'; rendre();
+          });
+          bloc.appendChild(b);
+        });
+      }
+      z.appendChild(bloc);
+    });
+    return z;
+  }
+
+  function leBlocVariantes() {
+    var z = h('div', { class: 'sv-variantes' });
+    z.appendChild(h('p', { html: '<b>' + courant.variantes.length
+      + ' variante(s)</b> — facultatif, tu peux ne rien choisir.' }));
+    var puces = h('div', { class: 'sv-puces' });
+    courant.variantes.forEach(function (v) {
+      var b = h('button', { type: 'button', text: v.texte,
+        'aria-pressed': v === variante ? 'true' : 'false',
+        title: 'écrit aussi : ' + v.ecritures.join(' · ') });
+      b.addEventListener('click', function () {
+        variante = (v === variante) ? null : v; rendre();
+      });
+      puces.appendChild(b);
+    });
+    z.appendChild(puces);
+    z.appendChild(h('p', { class: 'sv-choisi', html: variante
+      ? 'Enregistré : <b>' + courant.fiche.nom + '</b> · <b>' + variante.texte + '</b>'
+      : 'Enregistré : <b>' + courant.fiche.nom + '</b>, sans précision.' }));
+    return z;
+  }
+
+  /* ========== LA COLONNE DE DROITE ========== */
+  var filtre = 'var', recherche = '';
+  var corpsTable = document.getElementById('svTable');
+
+  function visible(x) {
+    if (recherche) {
+      var q = m.slug(recherche);
+      if (m.slug(x.fiche.nom).indexOf(q) < 0
+          && !(x.fiche.aussi || []).some(function (e) { return m.slug(e).indexOf(q) >= 0; })) {
+        return false;
+      }
+    }
+    if (filtre === 'var') return x.variantes.length >= 1;
+    if (filtre === 'bcp') return x.variantes.length > 6;
+    return true;
+  }
+
+  function rendreTable() {
+    corpsTable.innerHTML = '';
+    var n = 0;
+    tout.forEach(function (x) {
+      if (!visible(x)) return;
+      n++;
+      var tr = h('tr', { 'data-nom': x.fiche.nom });
+      var td1 = h('td', { class: 'sv-nom', text: x.fiche.nom,
+                          title: 'Charger dans le téléphone' });
+      td1.addEventListener('click', function () {
+        courant = x; variante = null; etape = 'choisi'; rendre();
+      });
+      tr.appendChild(td1);
+      var td2 = h('td');
+      x.variantes.forEach(function (v) { td2.appendChild(h('i', { text: v.texte })); });
+      x.autres.forEach(function (e) {
+        td2.appendChild(h('i', { class: 'sv-autre', text: e }));
+      });
+      tr.appendChild(td2);
+      corpsTable.appendChild(tr);
+    });
+    document.getElementById('svCompte').textContent = n + ' mouvement(s)';
+    marquerTable();
+  }
+
+  function marquerTable() {
+    corpsTable.querySelectorAll('tr').forEach(function (tr) {
+      tr.style.outline = (courant && tr.getAttribute('data-nom') === courant.fiche.nom)
+        ? '1px solid var(--laiton)' : '';
+    });
+  }
+
+  function poser(f) {
+    filtre = f;
+    [['tous', 'svFTous'], ['var', 'svFVar'], ['bcp', 'svFBcp']].forEach(function (p) {
+      document.getElementById(p[1]).setAttribute('aria-pressed',
+        filtre === p[0] ? 'true' : 'false');
+    });
+    rendreTable();
+  }
+  document.getElementById('svFTous').addEventListener('click', function () { poser('tous'); });
+  document.getElementById('svFVar').addEventListener('click', function () { poser('var'); });
+  document.getElementById('svFBcp').addEventListener('click', function () { poser('bcp'); });
+  document.getElementById('svQ').addEventListener('input', function (e) {
+    recherche = e.target.value; rendreTable();
+  });
+  document.getElementById('svRefaire').addEventListener('click', function () {
+    etape = 'depart'; courant = null; variante = null; ouvert = null; rendre();
+  });
+
+  /* ========== LES CHIFFRES ========== */
+  var nVar = 0, nAutres = 0, nAvec = 0, nSans = 0, pire = null;
+  tout.forEach(function (x) {
+    nVar += x.variantes.length;
+    nAutres += x.autres.length;
+    if (x.variantes.length) nAvec++; else nSans++;
+    if (!pire || x.variantes.length > pire.variantes.length) pire = x;
+  });
+
+  document.getElementById('svQuoi').innerHTML =
+    'Mesuré sur le dictionnaire réel : <b>' + fiches.length + ' fiches</b> et '
+    + '<b>' + (nVar + nAutres) + ' écritures</b>, partagées en <b>' + nVar
+    + ' variantes</b> (un engin ou une position change) et <b>' + nAutres
+    + ' autres écritures</b> (le même geste, dit autrement). <b>' + nAvec
+    + '</b> mouvements afficheraient le bloc, <b>' + nSans + '</b> ne le '
+    + 'verraient jamais. Le plus fourni : <b>' + pire.fiche.nom + '</b>, '
+    + pire.variantes.length + ' variantes.';
+
+  document.getElementById('svBilan').innerHTML =
+    '<b>Est-ce jouable ? Oui, et c’est la plus petite des trois idées.</b> '
+    + 'Un seul bloc apparaît sous un champ qui existe déjà, il ne s’affiche '
+    + 'que si le mouvement a des variantes, et ne rien choisir reste le '
+    + 'comportement d’aujourd’hui. '
+    + '<br><br><b>Mais deux choses demandent ton œil, et je ne peux pas les '
+    + 'trancher seul.</b> '
+    + '<b>1. Le partage n’est sûr que dans un sens.</b> Ce qui apporte un '
+    + 'engin ou une position EST une variante, c’est mesuré. Mais parmi les '
+    + nAutres + ' « autres écritures » se cachent de vrais mouvements '
+    + 'différents que rien ne distingue mécaniquement d’un synonyme : '
+    + '« Spider curl », « Drag curl », « Curl 21 », « Bayesian curl » et '
+    + '« Waiter curl » sont rangés sous <i>Curl biceps</i> ; « Pompes '
+    + 'diamant » et « Wide push up » sous <i>Pompes</i> ; et « <b>Farmer '
+    + 'walk</b> » sous <i>Dead hang</i>, alors que c’est un autre exercice. '
+    + '<b>2. Il y en a peut-être trop.</b> ' + pire.fiche.nom + ' en '
+    + 'proposerait ' + pire.variantes.length + ' d’un coup, sous un champ de '
+    + '320 px. C’est le chiffre à regarder en premier.';
+
+  poser('var');
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>
