@@ -162,10 +162,13 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    que les fléchisseurs des doigts — dans les deux sens, c'est la main qui
    tient. Sans orientation choisie, il garde ce qu'il proposait.
 
-   **CE QUI RESTE RAISONNÉ, ET C'EST ÉCRIT SUR CHAQUE ORIENTATION** : quel
-   sens va avec quelle face. Aucune fiche de fabricant ne décrit le sens
-   de montage — les quatre décrivent la forme. MB peut les inverser d'un
-   mot.
+   **LE SENS EST VALIDÉ**, par MB le 29/10, **gravures sous les yeux** : il
+   avait demandé à les voir — « je ne vois pas juste avec les noms
+   scientifiques » — et la planche d'équipement les montre depuis sous
+   chaque réglage. Il a répondu : « C'est le bon ». Le raisonnement reste
+   un raisonnement — aucune fiche de fabricant ne décrit le sens de
+   montage — mais un bras de fer l'a regardé et l'a reconnu. Un prochain
+   passage qui voudrait inverser rouvre une décision **prise**.
 
    **ET LA DETTE D'ORIGINE RESTE, plus petite** : la fiche Golden Grip du
    Cone Handle nomme aussi une **tension côté auriculaire** et de la

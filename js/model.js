@@ -2861,8 +2861,13 @@
 
        QUEL SENS VA AVEC QUELLE FACE : RAISONNE, et aucune source ne le dit.
        Les fiches des quatre fabricants decrivent la FORME du cone, jamais
-       son sens de montage. Le raisonnement est ecrit sur chaque orientation,
-       et MB peut l'inverser d'un mot.
+       son sens de montage. Le raisonnement est ecrit sur chaque orientation.
+
+       VALIDE PAR MB LE 29/10, gravures sous les yeux : « C'est le bon ».
+       Il avait demande a les VOIR — « je ne vois pas juste avec les noms
+       scientifiques » — et la planche d'equipement les montre depuis.
+       Un prochain passage qui voudrait inverser rouvre une decision
+       PRISE ; il ne comble pas un trou.
 
        SANS ORIENTATION CHOISIE, le cone garde ce qu'il proposait : les
        flechisseurs des doigts, communs aux deux sens — c'est la main qui
