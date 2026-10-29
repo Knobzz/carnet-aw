@@ -1385,9 +1385,23 @@
 
        ECARTE : le haussement d'epaules, qui travaille le TRAPEZE. Le carnet
        rendait « Deltoide » parce que le nom contient « epaules ». */
+    /* DOUZE ECRITURES DE PLUS, validees avec le lot 6 : toutes le meme
+       geste sur un autre engin. Ses muscles ne bougent pas — ce lot ne les
+       a pas remesures. */
     { nom: 'Développé militaire',
       aussi: ['Overhead press', 'Développé épaules', 'Shoulder press',
-              'Développé militaire debout'],
+              'Développé militaire debout', 'Military press', 'Strict press',
+              'Développé épaules assis', 'Développé épaules avec haltères',
+              'Développé épaules à la machine',
+              'Développé épaule avec kettlebell',
+              'Développé épaules avec élastique',
+              'Développé épaule unilatéral avec élastique',
+              'Développé épaules assis avec élastique',
+              'Développé épaules debout à la landmine',
+              'Développé épaule unilatéral à genoux à la landmine',
+              'Développé épaules à la barre guidée',
+              'Presse à épaules inclinée', 'Développé nuque',
+              'Développé nuque à la barre guidée', 'Behind the neck press'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Développé couché',
       aussi: ['Bench press', 'Développé barre', 'Développé haltères'],
@@ -1548,9 +1562,142 @@
     { nom: 'Tirage vertical',
       aussi: ['Lat pulldown', 'Tirage poulie haute', 'Tirage nuque'],
       muscles: ['grand_dorsal', 'grand_rond', 'biceps', 'brachial'] },
+    /* L'ELEVATION LATERALE GAGNE SES HUIT ECRITURES D'ENGIN, pas un muscle.
+       Le supra-epineux amorce l'abduction et sa citation le dit — mais
+       l'ajouter ici serait une attribution que MB n'a pas vue sur la
+       planche. Elle ira au lot suivant. */
     { nom: 'Élévation latérale',
-      aussi: ['Lateral raise', 'Élévations latérales'],
+      aussi: ['Lateral raise', 'Élévations latérales', 'Side lateral raise',
+              'Élévation latérale à la poulie',
+              'Élévations latérales inclinées avec haltère',
+              'Élévation latérale à la poulie en inclinaison',
+              'Élévations latérales à la poulie',
+              'Élévations latérales unilatérales à la poulie',
+              'Élévations latérales à la machine',
+              'Élévation latérale debout à la machine',
+              'Élévations latérales avec kettlebell',
+              'Élévations latérales à la landmine'],
       muscles: ['deltoide'] },
+
+    /* ================= LOT 6 — LES ÉPAULES, validé le 2026-10-29 =========
+
+       MESURE QUI A OUVERT LE LOT, sur les 58 noms de la page « exercices
+       épaules » de docteur-fitness : 19 ne proposaient RIEN, et surtout
+       DIX-SEPT rendaient « Deltoïde » et rien d'autre. Un face pull, un
+       développé militaire et une rotation externe recevaient la même
+       réponse, parce que le carnet lisait « épaule » dans le nom et
+       concluait. Une réponse fausse coûte plus cher qu'une absence : on ne
+       corrige pas ce qui a répondu.
+
+       CE LOT A DÛ FAIRE ENTRER QUATRE MUSCLES AVANT DE POUVOIR ÉCRIRE UNE
+       SEULE FICHE. Le carnet portait deux rotateurs INTERNES de l'épaule et
+       pas un seul externe : « rotation externe » n'avait aucun moteur à
+       nommer.
+
+       LES LISTES SONT TRIÉES DANS L'ORDRE DE `MUSCLES`, et elles ont été
+       générées depuis `revue/catalogue.js` plutôt que recopiées — dix des
+       douze devaient être retriées, et une liste juste mais mal ordonnée
+       passe tous les contrôles de contenu.
+
+       LES RANGS (moteur / aide / tient) VIVENT DANS LE CATALOGUE, pas ici :
+       le modèle ne garde que QUI travaille, pas qui mène. Les quarante-cinq
+       attributions y portent chacune leur citation Kenhub mot pour mot. */
+    { nom: 'Haussement d’épaules',
+      aussi: ['Shrug', 'Shrugs', 'Haussements', 'Dumbbell shrug',
+              'Haussement d’épaules avec haltères', 'Shrug barre',
+              'Shrugs avec haltères', 'Shrug à la poulie',
+              'Shrugs avec élastique', 'Shrug à la machine à mollets',
+              'Overhead shrug', 'Barbell shrug'],
+      /* IL MANQUE L'ANGULAIRE DE L'OMOPLATE, et ce n'est pas un oubli :
+         aucune planche libre ne l'illustre. Sa ligne Kenhub est MOT POUR
+         MOT celle de la partie descendante du trapèze — « Draws scapula
+         superomedially ». Cette fiche propose donc la moitié de ce qu'elle
+         travaille. Inscrit dans CHANTIERS.md. */
+      muscles: ['trapeze', 'rhomboides'] },
+    { nom: 'Élévation frontale',
+      aussi: ['Front raise', 'Élévations frontales',
+              'Élévation frontale à la poulie',
+              'Élévation frontale allongée à la barre',
+              'Élévation frontale sur banc incliné',
+              'Élévations frontales à la poulie basse',
+              'Élévations frontales avec élastique', 'Dumbbell front raise'],
+      muscles: ['grand_pectoral', 'deltoide'] },
+    /* L'OISEAU ABSORBE QUATRE APPELLATIONS SANS RAPPORT entre elles —
+       « oiseau », « écartés arrière », « pec deck inversé », « extension
+       horizontale ». C'est exactement ce que les autres écritures servent à
+       rattraper. */
+    { nom: 'Oiseau',
+      aussi: ['Reverse fly', 'Rear delt fly',
+              'Élévation latérale buste penché', 'Bent over lateral raise',
+              'Oiseau assis sur un banc', 'Oiseau à la poulie à 45°',
+              'Oiseau avec élastique', 'Écartés arrière',
+              'Écartés arrière avec élastique', 'Pec deck inversé',
+              'Reverse pec deck',
+              'Extension horizontale des épaules avec élastique'],
+      muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
+                'rhomboides'] },
+    { nom: 'Face pull',
+      aussi: ['Face pull couché à la poulie', 'Tirage visage',
+              'Tirage à la corde au visage', 'Rope face pull'],
+      muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
+                'rhomboides'] },
+    /* IL RENDAIT « DORSAL » À SES TROIS ÉCRITURES, parce que le carnet y
+       lisait « tirage ». */
+    { nom: 'Tirage menton',
+      aussi: ['Upright row', 'Tirage menton à la barre',
+              'Tirage menton à la poulie', 'Tirage menton avec kettlebell',
+              'Tirage menton avec élastique',
+              'Tirage menton à la barre guidée'],
+      muscles: ['trapeze', 'deltoide', 'biceps', 'brachial'] },
+    /* LES DEUX SENS DE LA ROTATION, et c'est le geste qui a rendu ce lot
+       impossible jusqu'au 29/10 : le carnet n'avait aucun rotateur externe. */
+    { nom: 'Rotation externe d’épaule',
+      aussi: ['External rotation', 'Rotation externe', 'Rotateurs externes',
+              'Rotation externe coude au corps',
+              'Rotation externe de l’épaule couchée avec haltère',
+              'Rotation externe de l’épaule à la poulie',
+              'Rotation externe de l’épaule en abduction avec élastique',
+              'Rotations externes de l’épaule avec élastique'],
+      muscles: ['deltoide', 'infra_epineux', 'petit_rond'] },
+    { nom: 'Rotation interne d’épaule',
+      aussi: ['Internal rotation', 'Rotation interne', 'Rotateurs internes',
+              'Rotation interne coude au corps',
+              'Rotation interne à 90° à la poulie',
+              'Rotations internes de l’épaule avec élastique'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'deltoide',
+                'subscapulaire'] },
+    /* UN GESTE COMPOSÉ : tirage menton, puis rotation externe, puis
+       développé. Le carnet ne sait pas composer deux gestes — chaque
+       combinaison est une entrée, et sa liste est l'union de listes déjà
+       citées. Même traitement que le « Curl rising à la poulie ». */
+    { nom: 'Rotation cubaine',
+      aussi: ['Cuban rotation', 'Cuban press', 'Rotations cubaines',
+              'Rotation cubaine à la barre'],
+      muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
+                'biceps', 'triceps'] },
+    /* SA ROTATION PART PAUMES VERS SOI ET FINIT PAUMES VERS L'AVANT : c'est
+       une rotation EXTERNE, d'où l'infra-épineux et le petit rond. */
+    { nom: 'Développé Arnold',
+      aussi: ['Arnold press', 'Développé Arnold avec haltères'],
+      muscles: ['grand_pectoral', 'deltoide', 'infra_epineux', 'petit_rond',
+                'triceps'] },
+    { nom: 'Élévation en Y',
+      /* « Y-raise » est parti : il se reduit au MEME mot que « Y raise »,
+         et la fiche se proposait donc deux fois elle-meme. */
+      aussi: ['Y raise', 'Élévation en Y à la poulie'],
+      muscles: ['trapeze', 'deltoide', 'supra_epineux'] },
+    { nom: 'Handstand push-up',
+      /* LES SANGLES SONT PARTIES : une garde plus ancienne refuse qu'un
+         nom de mouvement porte un equipement, et elle a raison — le geste
+         est le meme avec ou sans. */
+      aussi: ['HSPU', 'Pompes en équilibre', 'Pompes piquées', 'Pike push-up'],
+      muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
+    /* UNE TENUE, pas un geste : au catalogue, ses deux muscles portent le
+       rang « tient » — les seuls du lot. Le carnet sait la noter en
+       secondes. */
+    { nom: 'Croix de fer',
+      aussi: ['Iron cross', 'Croix de fer avec haltères'],
+      muscles: ['deltoide', 'supra_epineux'] },
     { nom: 'Extension triceps',
       aussi: ['Pushdown', 'Barre au front', 'Extension à la poulie',
               'Skull crusher', 'Extension nuque', 'Kickback',
@@ -1828,6 +1975,25 @@
   function musclesDuNom(nom) {
     var s = slug(nom);
     if (!s) return [];
+
+    /* ---- LE DICTIONNAIRE FAIT FOI SUR SES PROPRES NOMS ----
+
+       Si ce nom EST une ecriture d'une fiche livree, c'est la fiche qui
+       repond. Elle a ete validee muscle par muscle, citation a l'appui ;
+       le moteur de mots, lui, devine.
+
+       MESURE DU 29/10, sur les 313 ecritures livrees : 236 s'accordaient
+       deja avec les mots, 77 non — dont QUATRE seulement sur une fiche
+       anterieure a ce jour. Ce repli ne change donc rien de ce qui
+       existait, et il supprime le besoin de recopier environ 400 paires
+       mot-muscle qui ne portent aucun sens.
+
+       MEME GESTE QUE `forcesDuNom`, qui retombe sur la fiche livree depuis
+       le 28/10. Un nom qui n'est PAS une ecriture — « curl biceps a la
+       poulie » — continue de passer par les mots. */
+    var livree = ficheLivree(nom);
+    if (livree && (livree.muscles || []).length) return livree.muscles.slice();
+
     var vus = {};
 
     /* Le COTE se lit en premier. Son mot est RETIRE de ce qui reste a lire
@@ -3443,8 +3609,11 @@
     { id: 'tendre_coude', nom: 'Tendre le coude',
       aide: 'pousser la main loin de l’épaule — l’extension, les dips',
       muscles: ['triceps', 'ancone'] },
+    /* L'OISEAU A QUITTE CET EXEMPLE le 29/10, et c'est le controle des
+       exemples qui l'a dit : devenu une vraie fiche, il ne charge qu'UN de
+       ses cinq muscles dans cette zone. Il travaille surtout le dos. */
     { id: 'epaule', nom: 'L’épaule',
-      aide: 'le bras entier bouge — l’élévation latérale, l’oiseau',
+      aide: 'le bras entier bouge — l’élévation latérale, la croix de fer',
       muscles: ['deltoide', 'coraco_brachial', 'subscapulaire',
                 'supra_epineux'] },
     /* DEUX ZONES NEUVES pour la coiffe, le 29/10. Sans elles, l'infra-épineux

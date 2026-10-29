@@ -5021,6 +5021,33 @@
   bloc('Les deux sens de la rotation d’épaule', function (v) {
     function mus(n) { return A.m.musclesDuNom(n).join(','); }
 
+    /* ---- LES DOUZE FICHES SONT LIVREES ----
+
+       Ce controle manquait, et c'est la chute qui l'a dit : rien de ce
+       bloc ne tombait quand les douze fiches etaient absentes. L'invariant
+       « dictionnaire et lecture s'accordent » ne verifie que les fiches
+       PRESENTES — il passe vacuement sur un dictionnaire qui ne les a pas. */
+    var ATTENDU = {
+      'Haussement d’épaules': 2, 'Élévation frontale': 2, 'Oiseau': 5,
+      'Face pull': 5, 'Tirage menton': 4, 'Rotation externe d’épaule': 3,
+      'Rotation interne d’épaule': 5, 'Rotation cubaine': 6,
+      'Développé Arnold': 5, 'Élévation en Y': 3, 'Handstand push-up': 3,
+      'Croix de fer': 2
+    };
+    var manquent = [], faux = [];
+    Object.keys(ATTENDU).forEach(function (nom) {
+      var f = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === nom; })[0];
+      if (!f) { manquent.push(nom); return; }
+      if ((f.muscles || []).length !== ATTENDU[nom]) {
+        faux.push(nom + ' : ' + (f.muscles || []).length + ' au lieu de '
+                  + ATTENDU[nom]);
+      }
+    });
+    v.egal(manquent.join(' · '), '',
+           'les DOUZE fiches du lot 6 sont au dictionnaire');
+    v.egal(faux.join(' · '), '',
+           'et chacune porte le nombre de muscles que la planche annonçait');
+
     /* ---- LES QUATRE MUSCLES SONT LA ---- */
     ['supra_epineux', 'infra_epineux', 'petit_rond', 'rhomboides'].forEach(function (id) {
       var m = A.m.muscle(id) || {};
@@ -5092,6 +5119,33 @@
     }).join(','), '',
            'les deux zones ne partagent que le deltoïde, qui fait vraiment '
          + 'les deux — tout autre recoupement serait une erreur de table');
+
+    /* ---- LE REPLI VERS LE DICTIONNAIRE, ET SA BORNE ----
+
+       `musclesDuNom` repond desormais depuis la fiche livree quand le nom
+       EST une de ses ecritures. L'invariant « dictionnaire et lecture du
+       nom s'accordent » en mesure l'effet sur les 313 ecritures ; ici on
+       mesure la BORNE, c'est-a-dire que le repli ne mange pas tout.
+
+       Sans ce second controle, remplacer `musclesDuNom` par « rends
+       toujours la fiche » passerait le premier. */
+    var exact = A.m.musclesDuNom('Face pull').slice().sort().join(',');
+    /* `|| []` N'EST PAS DE LA DECORATION : sans lui ce controle LEVE quand
+       la fiche n'existe pas, et le `try` du banc enveloppe le BLOC, pas le
+       controle. Vu a la chute : le bloc perdait son dernier controle. */
+    var fiche = ((A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Face pull';
+    })[0] || {}).muscles || []).slice().sort().join(',');
+    v.egal(exact, fiche,
+           'un nom qui EST une écriture reçoit la liste de sa fiche, pas '
+         + 'celle que les mots devinent');
+    var libre = A.m.musclesDuNom('Face pull assis sur un ballon');
+    v.vrai(libre.length > 0,
+           '[temoin] un nom LIBRE propose quand même quelque chose — sans '
+         + 'lui, « il passe par les mots » serait vrai d’un carnet muet');
+    v.vrai(!A.m.ficheLivree('Face pull assis sur un ballon'),
+           'et ce nom n’est PAS une écriture livrée : il passe donc par les '
+         + 'mots, ce qui borne le repli au lieu de le laisser tout manger');
 
     /* ---- ET LES RHOMBOIDES SONT LISIBLES ---- */
     v.vrai(mus('Face pull').indexOf('rhomboides') >= 0,

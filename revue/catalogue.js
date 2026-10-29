@@ -303,6 +303,23 @@
          + 'Kinesiol 2007;17(1):80-89, EMG sur 12 sujets',
       revu: null,
       lien: 'https://doi.org/10.1016/j.jelekin.2005.11.013'
+    },
+    /* LA COIFFE DES ROTATEURS, entrée au carnet le 2026-10-29. */
+    supra: {
+      qui: 'Kenhub — Supraspinatus', revu: '2022-12-05',
+      lien: 'https://www.kenhub.com/en/library/anatomy/supraspinatus-muscle'
+    },
+    infra: {
+      qui: 'Kenhub — Infraspinatus', revu: '2023-11-03',
+      lien: 'https://www.kenhub.com/en/library/anatomy/infraspinatus-muscle'
+    },
+    tmin: {
+      qui: 'Kenhub — Teres minor', revu: '2023-11-03',
+      lien: 'https://www.kenhub.com/en/library/anatomy/teres-minor-muscle'
+    },
+    rhom: {
+      qui: 'Kenhub — Rhomboid muscles', revu: '2023-09-19',
+      lien: 'https://www.kenhub.com/en/library/anatomy/rhomboid-muscles'
     }
   };
 
@@ -438,6 +455,22 @@
     ei: 'Wrist joints: Weak hand extension ; Metacarpophalangeal and '
       + 'interphalangeal joints of index finger: Finger extension',
     edm: 'Metacarpophalangeal joint 5: Finger extension',
+    supra: 'Shoulder joint: abduction of arm, stabilization of the humeral '
+         + 'head in the glenoid cavity',
+    infra: 'Shoulder joint: Arm external rotation; Stabilizes humeral head '
+         + 'in glenoid cavity',
+    tmin: 'Shoulder joint: Arm external rotation, arm adduction; Stabilizes '
+        + 'humeral head in glenoid cavity',
+    /* UNE SEULE LIGNE POUR LE MAJEUR ET LE MINEUR : l'encart Kenhub ne les
+       separe que sur les origines et insertions, pas sur l'action. */
+    rhom: 'Scapulothoracic joint: Draws scapula superomedially, Rotates '
+        + 'glenoid cavity inferiorly; Supports position of scapula',
+    /* LA PARTIE DESCENDANTE DU TRAPEZE, distincte de la transverse deja
+       citee plus haut. C'est elle que le haussement d'epaules engage.
+       L'encart Kenhub ne porte PAS le mot « elevation » — il est dans le
+       corps du texte, et les notes le disent comme tel. */
+    trap_desc: 'Descending part (superior fibers) — Scapulothoracic joint: '
+             + 'draws scapula superomedially',
     fujii: 'PT and ECR showed parallel activities during the static '
          + 'extension [...] the co-contraction of PT and ECR during wrist '
          + 'extension movements occurs to prevent supinating the forearm'
@@ -1640,16 +1673,29 @@
               'Overhead shrug', 'Barbell shrug'],
       geste: 'Les épaules montent vers les oreilles, bras tendus sous la '
            + 'charge.',
-      muscles: [],
+      muscles: [
+        m('trapeze', 'moteur', S.trap, C.trap_desc),
+        m('rhomboides', 'aide', S.rhom, C.rhom)
+      ],
       note: 'IL N’EST PLUS ÉCARTÉ, ET C’EST UNE MESURE QUI LE DIT. Sa note '
           + 'disait « le TRAPÈZE, que les 36 muscles ne contiennent pas ». '
           + 'Elle est périmée : le trapèze est entré au carnet avec le LOT 5 '
           + '(commit 480183f, « fait entrer le TRENTE-SEPTIÈME muscle »), et '
           + 'son champ `quoi` dit mot pour mot « rapproche les omoplates et '
           + 'hausse les épaules ». L’obstacle qui l’avait fait écarter '
-          + 'n’existe plus. Le carnet rend TOUJOURS « Deltoïde » sur ce nom, '
-          + 'parce qu’il y lit « épaules » — et c’est faux. Les muscles '
-          + 'viendront d’une source anatomique, pas de cette planche.'
+          + 'n’existe plus.  CE QUI MANQUE SE DIT : l’ANGULAIRE DE '
+          + 'L’OMOPLATE n’est pas au carnet, faute de planche libre — la '
+          + 'seule trouvée n’est du domaine public qu’aux États-Unis. Or sa '
+          + 'ligne Kenhub est MOT POUR MOT celle de la partie descendante du '
+          + 'trapèze : « Draws scapula superomedially ». Ce geste propose '
+          + 'donc la moitié de ce qu’il travaille, et c’est écrit.  '
+          + 'L’ENCART KENHUB NE DIT PAS « elevation » : ses trois parties '
+          + 'sont décrites sans ce mot, qui vit dans le CORPS du texte — '
+          + '« The descending (upper) fibers act with the levator scapulae '
+          + 'muscle to produce an elevation of the scapula at the '
+          + 'scapulothoracic joint ». On cite la ligne de l’encart, et cette '
+          + 'phrase-ci reste une note : on ne fait pas passer l’une pour '
+          + 'l’autre.'
     },
 
     /* ================= LOT 6 : LES ÉPAULES, LES NOMS =================
@@ -1687,7 +1733,10 @@
               'Élévations frontales avec élastique', 'Dumbbell front raise'],
       geste: 'Bras tendu, la charge monte DEVANT soi jusqu’à hauteur '
            + 'd’épaule.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('grand_pectoral', 'aide', S.pm, C.pm)
+      ],
       note: 'Absente du carnet. Cinq écritures sur le site, aucune reconnue.'
     },
     {
@@ -1702,7 +1751,13 @@
               'Extension horizontale des épaules avec élastique'],
       geste: 'Buste penché ou appuyé, les bras s’ouvrent vers l’ARRIÈRE, '
            + 'coudes légèrement fléchis.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('rhomboides', 'aide', S.rhom, C.rhom),
+        m('trapeze', 'aide', S.trap, C.trap),
+        m('infra_epineux', 'aide', S.infra, C.infra),
+        m('petit_rond', 'aide', S.tmin, C.tmin)
+      ],
       note: 'La fiche qui absorbe le plus de noms : six du site, sous quatre '
           + 'appellations sans rapport les unes avec les autres — « oiseau », '
           + '« écartés arrière », « pec deck inversé », « extension '
@@ -1718,7 +1773,13 @@
               'Tirage à la corde au visage', 'Rope face pull'],
       geste: 'La corde est tirée vers le visage, coudes hauts, les mains '
            + 'passant de part et d’autre de la tête.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('infra_epineux', 'aide', S.infra, C.infra),
+        m('petit_rond', 'aide', S.tmin, C.tmin),
+        m('rhomboides', 'aide', S.rhom, C.rhom),
+        m('trapeze', 'aide', S.trap, C.trap)
+      ],
       note: 'Absent du carnet sous toute forme, alors que c’est un geste '
           + 'd’arrière d’épaule très programmé.'
     },
@@ -1730,7 +1791,12 @@
               'Tirage menton avec élastique', 'Tirage menton à la barre guidée'],
       geste: 'La charge longe le corps et monte vers le menton, coudes au-'
            + 'dessus des mains.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('trapeze', 'aide', S.trap, C.trap_desc),
+        m('biceps', 'aide', S.bic, C.bic),
+        m('brachial', 'aide', S.bra, C.bra)
+      ],
       note: 'Absent, et PIRE qu’absent : le carnet répond aujourd’hui '
           + '« Dorsal » à ses trois écritures du site, parce qu’il y lit '
           + '« tirage ».'
@@ -1746,7 +1812,11 @@
               'Rotations externes de l’épaule avec élastique'],
       geste: 'Coude fléchi et fixe, l’avant-bras s’écarte vers l’EXTÉRIEUR '
            + 'en tournant le bras dans l’épaule.',
-      muscles: [],
+      muscles: [
+        m('infra_epineux', 'moteur', S.infra, C.infra),
+        m('petit_rond', 'moteur', S.tmin, C.tmin),
+        m('deltoide', 'aide', S.delt, C.delt)
+      ],
       note: 'La coiffe des rotateurs. Quatre écritures sur le site, aucune '
           + 'reconnue — et c’est un geste qui compte au bras de fer.'
     },
@@ -1759,7 +1829,13 @@
               'Rotations internes de l’épaule avec élastique'],
       geste: 'Même position, l’avant-bras revient vers le VENTRE : le bras '
            + 'tourne vers l’intérieur dans l’épaule.',
-      muscles: [],
+      muscles: [
+        m('subscapulaire', 'moteur', S.sub, C.sub),
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('grand_dorsal', 'aide', S.ld, C.ld),
+        m('grand_rond', 'aide', S.tm, C.tm),
+        m('deltoide', 'aide', S.delt, C.delt)
+      ],
       note: 'L’autre moitié de la coiffe. Deux écritures sur le site.'
     },
     {
@@ -1769,7 +1845,14 @@
               'Rotation cubaine à la barre'],
       geste: 'Un tirage menton, puis une rotation externe, puis un développé '
            + '— les trois enchaînés sans lâcher.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('infra_epineux', 'aide', S.infra, C.infra),
+        m('petit_rond', 'aide', S.tmin, C.tmin),
+        m('trapeze', 'aide', S.trap, C.trap_desc),
+        m('triceps', 'aide', S.tri, C.tri),
+        m('biceps', 'aide', S.bic, C.bic)
+      ],
       note: 'Un geste NOMMÉ, pas une variante d’engin : il porte un nom '
           + 'propre, comme le Zottman côté biceps. C’est ce qui lui vaut sa '
           + 'fiche plutôt qu’une place dans les autres écritures.'
@@ -1780,7 +1863,13 @@
       aussi: ['Arnold press', 'Développé Arnold avec haltères'],
       geste: 'Un développé qui part paumes vers soi et tourne en montant, '
            + 'pour finir paumes vers l’avant.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('triceps', 'aide', S.tri, C.tri),
+        m('infra_epineux', 'aide', S.infra, C.infra),
+        m('petit_rond', 'aide', S.tmin, C.tmin)
+      ],
       note: 'Même raisonnement que la rotation cubaine : un nom propre, donc '
           + 'une fiche.'
     },
@@ -1790,7 +1879,11 @@
       aussi: ['Y raise', 'Élévation en Y à la poulie', 'Y-raise'],
       geste: 'Bras tendus, la charge monte en DIAGONALE vers le haut et '
            + 'l’extérieur : les deux bras dessinent un Y.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('trapeze', 'aide', S.trap, C.trap_desc),
+        m('supra_epineux', 'aide', S.supra, C.supra)
+      ],
       note: 'Une seule écriture sur le site. Je la propose SÉPARÉE de '
           + 'l’oiseau parce que le bras MONTE au lieu de partir en arrière. '
           + 'Si tu préfères en faire une autre écriture de l’oiseau, '
@@ -1803,7 +1896,11 @@
               'Handstand push-up avec sangles de suspension'],
       geste: 'En appui tête en bas contre un mur, les bras fléchissent puis '
            + 'poussent : un développé vertical au poids du corps.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'moteur', S.delt, C.delt),
+        m('triceps', 'moteur', S.tri, C.tri),
+        m('grand_pectoral', 'aide', S.pm, C.pm)
+      ],
       note: 'Les pompes piquées sont le même geste en plus accessible : une '
           + 'autre écriture, pas une fiche.'
     },
@@ -1813,7 +1910,10 @@
       aussi: ['Iron cross', 'Croix de fer avec haltères'],
       geste: 'Bras écartés à l’horizontale, tenus sous la charge sans '
            + 'bouger.',
-      muscles: [],
+      muscles: [
+        m('deltoide', 'tient', S.delt, C.delt),
+        m('supra_epineux', 'tient', S.supra, C.supra)
+      ],
       note: 'Je la propose parce qu’elle est TENUE et non dynamique — le '
           + 'carnet sait déjà noter ça en secondes, avec la colonne Durée.'
     },
@@ -1870,7 +1970,7 @@
 
   exports.CATALOGUE = {
     lot: 6,
-    titre: 'Les épaules — LES NOMS SEULEMENT, pas les muscles',
+    titre: 'Les épaules',
     RANGS: RANGS,
     MOUVEMENTS: MOUVEMENTS
   };
