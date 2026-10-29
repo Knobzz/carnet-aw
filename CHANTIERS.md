@@ -122,9 +122,15 @@ par MB le 29/10 parmi trois simulations (`revue/simulations-dictionnaire.html`).
 Avant-bras. Un mouvement n'en a QU'UN — « le muscle le plus travaillé
 prime ». Le groupe est **écrit sur chaque fiche** : le déduire des muscles
 ne marche pas, 30 fiches sur 62 ont des moteurs dans plusieurs groupes.
-Trente ont été **tranchées à la main**, et restent discutables — le
-haussement d'épaules va dans **Dos**, parce que son seul moteur est le
-trapèze.
+Trente ont été **tranchées à la main** — le haussement d'épaules va dans
+**Dos**, parce que son seul moteur est le trapèze.
+
+**LES 62 SONT VALIDÉS.** MB a lu la liste entière le 29/10, arbitrages
+marqués, avec les cinq que je questionnais moi-même — le haussement
+d'épaules, le curl inversé séparé du Zottman, le curl pronation séparé du
+curl rising, side pressure et back pressure rangés différemment — et il a
+répondu : « Tout est bon ». La question est close ; un lot futur qui veut
+déplacer un rangement rouvre une décision prise, il ne comble pas un trou.
 
 **CE QUI MANQUE ENCORE, et c'est tout ce qui reste de ce chantier** : les
 **images par exercice**. Zéro fiche sur 62 en porte une, et les GIF de
