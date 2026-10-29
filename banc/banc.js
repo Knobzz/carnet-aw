@@ -1006,7 +1006,7 @@
      ================================================================ */
 
   bloc('Muscles et prise', function (v) {
-    v.egal(A.m.MUSCLES.length, 37, 'trente-sept muscles — toute la planche, les profonds qu’elle ne montre pas, la main, le grand rond, et le trapèze entré le 26/10');
+    v.egal(A.m.MUSCLES.length, 41, 'quarante-et-un muscles — toute la planche, les profonds qu’elle ne montre pas, la main, le trapèze entré le 26/10, et la COIFFE DES ROTATEURS complétée le 29/10 (supra-épineux, infra-épineux, petit rond) avec les rhomboïdes');
     v.egal(A.m.nomMuscle('fcu'), 'Fléchisseur ulnaire du carpe', 'nommés en clair');
     v.egal(A.m.nomMuscle('zzz'), 'zzz', 'un identifiant inconnu se rend tel quel');
     v.vrai(!!A.m.muscle('biceps').quoi, 'et chacun dit ce qu’il FAIT — sinon personne ne coche');
@@ -2091,7 +2091,7 @@
     var vides = ids.filter(function (r) { return !groupes[r]; });
     v.egal(orphelins.join(','), '', 'aucun muscle dans un groupe qui n’est pas une region');
     v.egal(vides.join(','), '', 'aucune region sans muscle');
-    v.egal(A.m.MUSCLES.length, 37, 'les 37 muscles sont toujours la');
+    v.egal(A.m.MUSCLES.length, 41, 'les 41 muscles sont toujours la');
 
     /* Les noms courts ne doivent escamoter personne : la liste du contenu
        est DERIVEE des MUSCLES, jamais ecrite a cote. */
@@ -2099,10 +2099,17 @@
            '« Triceps » dit qu’il tient aussi l’ancone');
     v.egal(A.m.musclesDeLaRegion('torse_av').length, 1,
            '« Pectoraux » est EXACT : la region ne tient que lui');
-    v.egal(A.m.musclesDeLaRegion('torse_ar').join(', '), 'Dorsal, Trapèze',
-           '« Dorsaux » en tient DEUX depuis le 26/10 : le grand dorsal et '
-         + 'le trapèze. Le libellé de la région reste « Dorsaux », et c’est '
-         + 'ce contrôle qui dira si un troisième entre sans qu’on le nomme');
+    /* IL A FAIT CE POUR QUOI IL A ETE ECRIT. Son libelle disait « c'est ce
+       controle qui dira si un troisieme entre sans qu'on le nomme », et il
+       est tombe le 29/10 a l'arrivee des rhomboides. On le met a jour en
+       NOMMANT le troisieme ; la question de savoir si « Dorsaux » reste le
+       bon libelle pour trois muscles est posee a MB, pas tranchee ici. */
+    v.egal(A.m.musclesDeLaRegion('torse_ar').join(', '),
+           'Dorsal, Trapèze, Rhomboïdes',
+           '« Dorsaux » en tient TROIS depuis le 29/10 : le grand dorsal, le '
+         + 'trapèze et les rhomboïdes. Le libelle de la region reste '
+         + '« Dorsaux », et c’est ce controle qui dira si un quatrieme entre '
+         + 'sans qu’on le nomme');
 
     /* Le nom reste court — c'est le mot de la salle. Il n'est tenable que
        parce que le contenu se dit ailleurs : ce controle garde la LISTE,
@@ -2302,7 +2309,11 @@
   });
 
   bloc('Où ça tire', function (v) {
-    v.egal(A.m.ZONES_RESSENTIES.length, 13, 'treize zones ressenties');
+    /* QUINZE depuis le 29/10 : les deux sens de la rotation d'epaule sont
+       entres separement. Un seul libelle « tourner le bras » aurait rendu
+       cinq muscles dont trois font l'inverse des deux autres — meme
+       raisonnement que le bord du pouce et le bord de l'auriculaire. */
+    v.egal(A.m.ZONES_RESSENTIES.length, 15, 'quinze zones ressenties');
 
     var muets = A.m.ZONES_RESSENTIES.filter(function (z) {
       return !z.nom || !z.aide || !(z.muscles || []).length;
@@ -2424,8 +2435,11 @@
            'et les deux apports sont là');
 
     var ordre = A.m.musclesDesZones(['tendre_coude', 'epaule']);
-    v.egal(ordre.join(','), 'deltoide,coraco_brachial,subscapulaire,triceps,ancone',
-           'l’ordre est celui du tableau, pas celui des appuis');
+    v.egal(ordre.join(','),
+           'deltoide,coraco_brachial,subscapulaire,supra_epineux,triceps,ancone',
+           'l’ordre est celui du tableau, pas celui des appuis — le '
+         + 'supra-épineux, entré le 29/10 dans la zone « épaule », se range '
+         + 'donc avec elle et non à la fin');
 
     v.egal(A.m.musclesDesZones(['zzz']).length, 0, 'une zone inconnue n’apporte rien');
     v.egal(A.m.musclesDesZones().length, 0, 'et rien du tout non plus');
@@ -4995,6 +5009,96 @@
     v.egal(A.m.volumeSeance(grip, 78.9).seriesNonChiffrees, 1,
            'alors que le GRIPPER y reste : la case n’a pas été vidée pour '
          + 'tout le monde, elle a perdu un seul cas');
+  });
+
+  /* ==================================================================
+     LA COIFFE DES ROTATEURS, ENTREE LE 29/10
+
+     Le carnet portait DEUX rotateurs internes de l'epaule et pas un seul
+     externe. Ce bloc mesure les deux sens, parce que c'est en les mesurant
+     separement qu'on a vu que je n'avais pose les mots que d'un cote.
+     ================================================================== */
+  bloc('Les deux sens de la rotation d’épaule', function (v) {
+    function mus(n) { return A.m.musclesDuNom(n).join(','); }
+
+    /* ---- LES QUATRE MUSCLES SONT LA ---- */
+    ['supra_epineux', 'infra_epineux', 'petit_rond', 'rhomboides'].forEach(function (id) {
+      var m = A.m.muscle(id) || {};
+      v.vrai(!!m.nom && !!m.latin && !!m.image && !!m.quoi && !!m.groupe,
+             '« ' + (m.nom || id) + ' » est complet : nom, latin, planche, '
+           + 'ce qu’il fait, et sa région');
+    });
+
+    /* ---- LA ROTATION EXTERNE A ENFIN SES MOTEURS ----
+       Avant ce lot, elle n'en avait AUCUN : le carnet ne portait que des
+       rotateurs INTERNES. Une fiche l'aurait decrite avec des muscles qui
+       font l'inverse du geste. */
+    var dehors = mus('Rotation externe d’épaule');
+    v.vrai(dehors.indexOf('infra_epineux') >= 0 && dehors.indexOf('petit_rond') >= 0,
+           'la rotation EXTERNE propose ses deux moteurs — l’infra-épineux '
+         + 'et le petit rond (lu : ' + dehors + ')');
+    v.vrai(mus('External rotation').indexOf('infra_epineux') >= 0,
+           'et le mot anglais mène au même endroit');
+
+    /* ---- ET L'INTERNE AUSSI, ce qui n'allait pas de soi ----
+       Je n'avais pose les mots que du cote EXTERNE : « Rotation interne »
+       retombait sur « Deltoide » par le mot « epaule », c'est-a-dire le
+       defaut meme que ce lot ferme. Mesure du bac a sable.
+
+       LE DOUBLON QUI NE LEVE RIEN : ma correction ajoutait une SECONDE cle
+       `grand_rond` a la table des mots. En JavaScript la seconde gagne et
+       la premiere disparait sans erreur — la table lue est deja fusionnee,
+       donc rien ne peut le mesurer sauf l'effet. Le voici. */
+    var dedans = mus('Rotation interne d’épaule');
+    v.vrai(dedans.indexOf('subscapulaire') >= 0,
+           'la rotation INTERNE propose le subscapulaire, son moteur (lu : '
+         + dedans + ')');
+    v.vrai(dedans.indexOf('grand_rond') >= 0,
+           'et le grand rond, dont la citation dit « Extension and internal '
+         + 'rotation of the humerus » — c’est le mot qui a révélé un doublon '
+         + 'de clé silencieux dans la table');
+
+    /* ---- LES DEUX SENS NE SE MELANGENT PAS, SAUF LE DELTOIDE ----
+
+       Ecrit d'abord sans l'exception, et il est tombe : le deltoide repond
+       aux deux. Il a RAISON d'y repondre, et sa citation Kenhub le dit —
+       « Clavicular part: flexion and INTERNAL rotation of the arm ; Spinal
+       part: extension and EXTERNAL rotation of the arm ». C'est le seul
+       muscle du carnet dont deux parties font l'inverse l'une de l'autre.
+
+       Le controle garde donc son sens : tout AUTRE recoupement serait une
+       erreur de table, et il tomberait. */
+    var communs = dehors.split(',').filter(function (id) {
+      return id && id !== 'deltoide' && dedans.split(',').indexOf(id) >= 0;
+    });
+    v.egal(communs.join(','), '',
+           'aucun muscle SAUF LE DELTOIDE n’est proposé par les deux sens : '
+         + 'lui seul a deux parties qui tournent le bras en sens inverse '
+         + '(fautifs : ' + (communs.join(', ') || 'aucun') + ')');
+    v.vrai(dehors.indexOf('deltoide') >= 0 && dedans.indexOf('deltoide') >= 0,
+           '[temoin] et le deltoide est bien dans les deux — sans lui, '
+         + '« aucun recoupement » serait vrai pour rien');
+
+    /* ---- LES ZONES RESSENTIES, pour qui ne connait pas les noms ---- */
+    var zDehors = A.m.musclesDesZones(['epaule_dehors']);
+    var zDedans = A.m.musclesDesZones(['epaule_dedans']);
+    v.vrai(zDehors.indexOf('petit_rond') >= 0,
+           '« Tourner le bras vers l’extérieur » atteint le petit rond sans '
+         + 'qu’on ait à connaître son nom');
+    v.vrai(zDedans.indexOf('subscapulaire') >= 0,
+           'et l’autre zone atteint le subscapulaire');
+    v.egal(zDehors.filter(function (id) {
+      return id !== 'deltoide' && zDedans.indexOf(id) >= 0;
+    }).join(','), '',
+           'les deux zones ne partagent que le deltoïde, qui fait vraiment '
+         + 'les deux — tout autre recoupement serait une erreur de table');
+
+    /* ---- ET LES RHOMBOIDES SONT LISIBLES ---- */
+    v.vrai(mus('Face pull').indexOf('rhomboides') >= 0,
+           '« Face pull » atteint les rhomboïdes — il ne proposait RIEN '
+         + 'avant ce lot');
+    v.egal((A.m.muscle('rhomboides') || {}).groupe, 'torse_ar',
+           'et ils sont rangés dans les dorsaux, qui en tiennent donc trois');
   });
 
   bloc('Mouvements', function (v) {

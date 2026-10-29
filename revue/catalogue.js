@@ -1632,27 +1632,245 @@
     },
     {
       id: 'haussement-epaules',
-      ecarte: 'un trou du carnet',
       nom: 'Haussement d’épaules',
-      aussi: ['Shrug', 'Shrugs', 'Haussements'],
+      aussi: ['Shrug', 'Shrugs', 'Haussements', 'Dumbbell shrug',
+              'Haussement d’épaules avec haltères', 'Shrug barre',
+              'Shrugs avec haltères', 'Shrug à la poulie',
+              'Shrugs avec élastique', 'Shrug à la machine à mollets',
+              'Overhead shrug', 'Barbell shrug'],
       geste: 'Les épaules montent vers les oreilles, bras tendus sous la '
            + 'charge.',
-      muscles: [
-        m('deltoide', 'moteur', S.delt, C.delt)
-      ],
-      note: 'ÉCARTÉ, ET C’EST UN TROU DU CARNET. Le haussement d’épaules '
-          + 'travaille le TRAPÈZE, que les 36 muscles ne contiennent pas. '
-          + 'Aujourd’hui le carnet rend « Deltoïde » — parce que le nom '
-          + 'contient « épaules » — et c’est faux : le deltoïde abduit le '
-          + 'bras, il ne hausse pas l’épaule. Deux issues possibles : '
-          + 'ajouter le trapèze au carnet, ou faire en sorte que ce nom ne '
-          + 'propose RIEN plutôt que du faux. À toi.'
+      muscles: [],
+      note: 'IL N’EST PLUS ÉCARTÉ, ET C’EST UNE MESURE QUI LE DIT. Sa note '
+          + 'disait « le TRAPÈZE, que les 36 muscles ne contiennent pas ». '
+          + 'Elle est périmée : le trapèze est entré au carnet avec le LOT 5 '
+          + '(commit 480183f, « fait entrer le TRENTE-SEPTIÈME muscle »), et '
+          + 'son champ `quoi` dit mot pour mot « rapproche les omoplates et '
+          + 'hausse les épaules ». L’obstacle qui l’avait fait écarter '
+          + 'n’existe plus. Le carnet rend TOUJOURS « Deltoïde » sur ce nom, '
+          + 'parce qu’il y lit « épaules » — et c’est faux. Les muscles '
+          + 'viendront d’une source anatomique, pas de cette planche.'
+    },
+
+    /* ================= LOT 6 : LES ÉPAULES, LES NOMS =================
+
+       MB, 29/10 : « Ne prends pas en compte les muscles impactés, on fera
+       nos recherches sur les muscles ailleurs que sur ce site. On commence
+       par les épaules, tu me fais une simulation avec le nom des mouvements
+       comme on avait fait, je valide les noms + noms connus et on lance. »
+
+       DONC `muscles: []` PARTOUT ICI. Ce lot ne propose QUE des noms. Les
+       muscles entreront après, d’une source anatomique citée — pas de
+       docteur-fitness, qui ne cite aucune référence sur aucune de ses
+       fiches.
+
+       MESURE QUI OUVRE LE LOT, sur les 58 noms de la page « exercices
+       épaules » de docteur-fitness : 19 ne proposent RIEN, et surtout
+       DIX-SEPT rendent « Deltoïde » et rien d’autre. Un face pull, un
+       développé militaire et une rotation externe reçoivent la même
+       réponse, parce que le carnet lit « épaule » dans le nom et conclut.
+       Une réponse fausse coûte plus cher qu’une absence : on ne corrige pas
+       ce qui a répondu.
+
+       LE REGROUPEMENT SUIT LE CRITÈRE DE MB, posé au lot 2 : « peut-on
+       faire ce geste avec un autre outil, ou sans ? » Si oui, l’outil ne
+       fait pas un mouvement de plus — « élévations latérales à la poulie »
+       est une AUTRE ÉCRITURE d’« élévation latérale », pas une fiche. */
+    {
+      id: 'elevation-frontale',
+      nom: 'Élévation frontale',
+      aussi: ['Front raise', 'Élévations frontales',
+              'Élévation frontale à la poulie',
+              'Élévation frontale allongée à la barre',
+              'Élévation frontale sur banc incliné',
+              'Élévations frontales à la poulie basse',
+              'Élévations frontales avec élastique', 'Dumbbell front raise'],
+      geste: 'Bras tendu, la charge monte DEVANT soi jusqu’à hauteur '
+           + 'd’épaule.',
+      muscles: [],
+      note: 'Absente du carnet. Cinq écritures sur le site, aucune reconnue.'
+    },
+    {
+      id: 'oiseau',
+      nom: 'Oiseau',
+      aussi: ['Reverse fly', 'Rear delt fly', 'Élévation latérale buste penché',
+              'Bent over lateral raise', 'Oiseau assis sur un banc',
+              'Oiseau à la poulie à 45°', 'Oiseau avec élastique',
+              'Oiseau inversé avec sangles de suspension', 'Écartés arrière',
+              'Écartés arrière avec élastique', 'Pec deck inversé',
+              'Reverse pec deck',
+              'Extension horizontale des épaules avec élastique'],
+      geste: 'Buste penché ou appuyé, les bras s’ouvrent vers l’ARRIÈRE, '
+           + 'coudes légèrement fléchis.',
+      muscles: [],
+      note: 'La fiche qui absorbe le plus de noms : six du site, sous quatre '
+          + 'appellations sans rapport les unes avec les autres — « oiseau », '
+          + '« écartés arrière », « pec deck inversé », « extension '
+          + 'horizontale ». C’est exactement ce que les autres écritures '
+          + 'servent à rattraper. À noter : « Oiseau inversé avec sangles de '
+          + 'suspension » rend aujourd’hui SIX muscles du GRIP, parce que le '
+          + 'carnet y lit « suspension ».'
+    },
+    {
+      id: 'face-pull',
+      nom: 'Face pull',
+      aussi: ['Face pull couché à la poulie', 'Tirage visage',
+              'Tirage à la corde au visage', 'Rope face pull'],
+      geste: 'La corde est tirée vers le visage, coudes hauts, les mains '
+           + 'passant de part et d’autre de la tête.',
+      muscles: [],
+      note: 'Absent du carnet sous toute forme, alors que c’est un geste '
+          + 'd’arrière d’épaule très programmé.'
+    },
+    {
+      id: 'tirage-menton',
+      nom: 'Tirage menton',
+      aussi: ['Upright row', 'Tirage menton à la barre',
+              'Tirage menton à la poulie', 'Tirage menton avec kettlebell',
+              'Tirage menton avec élastique', 'Tirage menton à la barre guidée'],
+      geste: 'La charge longe le corps et monte vers le menton, coudes au-'
+           + 'dessus des mains.',
+      muscles: [],
+      note: 'Absent, et PIRE qu’absent : le carnet répond aujourd’hui '
+          + '« Dorsal » à ses trois écritures du site, parce qu’il y lit '
+          + '« tirage ».'
+    },
+    {
+      id: 'rotation-externe-epaule',
+      nom: 'Rotation externe d’épaule',
+      aussi: ['External rotation', 'Rotation externe', 'Rotateurs externes',
+              'Rotation externe coude au corps',
+              'Rotation externe de l’épaule couchée avec haltère',
+              'Rotation externe de l’épaule à la poulie',
+              'Rotation externe de l’épaule en abduction avec élastique',
+              'Rotations externes de l’épaule avec élastique'],
+      geste: 'Coude fléchi et fixe, l’avant-bras s’écarte vers l’EXTÉRIEUR '
+           + 'en tournant le bras dans l’épaule.',
+      muscles: [],
+      note: 'La coiffe des rotateurs. Quatre écritures sur le site, aucune '
+          + 'reconnue — et c’est un geste qui compte au bras de fer.'
+    },
+    {
+      id: 'rotation-interne-epaule',
+      nom: 'Rotation interne d’épaule',
+      aussi: ['Internal rotation', 'Rotation interne', 'Rotateurs internes',
+              'Rotation interne coude au corps',
+              'Rotation interne à 90° à la poulie',
+              'Rotations internes de l’épaule avec élastique'],
+      geste: 'Même position, l’avant-bras revient vers le VENTRE : le bras '
+           + 'tourne vers l’intérieur dans l’épaule.',
+      muscles: [],
+      note: 'L’autre moitié de la coiffe. Deux écritures sur le site.'
+    },
+    {
+      id: 'rotation-cubaine',
+      nom: 'Rotation cubaine',
+      aussi: ['Cuban rotation', 'Cuban press', 'Rotations cubaines',
+              'Rotation cubaine à la barre'],
+      geste: 'Un tirage menton, puis une rotation externe, puis un développé '
+           + '— les trois enchaînés sans lâcher.',
+      muscles: [],
+      note: 'Un geste NOMMÉ, pas une variante d’engin : il porte un nom '
+          + 'propre, comme le Zottman côté biceps. C’est ce qui lui vaut sa '
+          + 'fiche plutôt qu’une place dans les autres écritures.'
+    },
+    {
+      id: 'developpe-arnold',
+      nom: 'Développé Arnold',
+      aussi: ['Arnold press', 'Développé Arnold avec haltères'],
+      geste: 'Un développé qui part paumes vers soi et tourne en montant, '
+           + 'pour finir paumes vers l’avant.',
+      muscles: [],
+      note: 'Même raisonnement que la rotation cubaine : un nom propre, donc '
+          + 'une fiche.'
+    },
+    {
+      id: 'elevation-y',
+      nom: 'Élévation en Y',
+      aussi: ['Y raise', 'Élévation en Y à la poulie', 'Y-raise'],
+      geste: 'Bras tendus, la charge monte en DIAGONALE vers le haut et '
+           + 'l’extérieur : les deux bras dessinent un Y.',
+      muscles: [],
+      note: 'Une seule écriture sur le site. Je la propose SÉPARÉE de '
+          + 'l’oiseau parce que le bras MONTE au lieu de partir en arrière. '
+          + 'Si tu préfères en faire une autre écriture de l’oiseau, '
+          + 'renomme-la ici et ça suffira.'
+    },
+    {
+      id: 'handstand-push-up',
+      nom: 'Handstand push-up',
+      aussi: ['HSPU', 'Pompes en équilibre', 'Pompes piquées', 'Pike push-up',
+              'Handstand push-up avec sangles de suspension'],
+      geste: 'En appui tête en bas contre un mur, les bras fléchissent puis '
+           + 'poussent : un développé vertical au poids du corps.',
+      muscles: [],
+      note: 'Les pompes piquées sont le même geste en plus accessible : une '
+          + 'autre écriture, pas une fiche.'
+    },
+    {
+      id: 'croix-de-fer',
+      nom: 'Croix de fer',
+      aussi: ['Iron cross', 'Croix de fer avec haltères'],
+      geste: 'Bras écartés à l’horizontale, tenus sous la charge sans '
+           + 'bouger.',
+      muscles: [],
+      note: 'Je la propose parce qu’elle est TENUE et non dynamique — le '
+          + 'carnet sait déjà noter ça en secondes, avec la colonne Durée.'
+    },
+
+    /* ---- LES QUATRE ÉCARTÉS DU LOT 6 ----
+       Une liste d’écartés n’est pas un reliquat : c’est ce qui évite qu’on
+       reprenne la même discussion au lot suivant. */
+    {
+      id: 'thruster',
+      ecarte: 'le bas du corps',
+      nom: 'Thruster',
+      aussi: ['Thruster avec kettlebell', 'Thruster à la landmine'],
+      geste: 'Un squat, puis un développé au-dessus de la tête dans le même '
+           + 'élan.',
+      muscles: [],
+      note: 'ÉCARTÉ. La moitié du geste est dans les JAMBES, et le carnet '
+          + 'n’a aucun muscle de jambe : une fiche « thruster » mentirait '
+          + 'par omission, et rien à l’écran ne dirait qu’elle ment.'
+    },
+    {
+      id: 'arrache-halftere',
+      ecarte: 'le bas du corps',
+      nom: 'Arraché avec haltère',
+      aussi: ['Dumbbell snatch'],
+      geste: 'L’haltère part du sol et finit bras tendu au-dessus de la '
+           + 'tête, en un seul mouvement.',
+      muscles: [],
+      note: 'ÉCARTÉ, même raison : un mouvement de corps entier, venu des '
+          + 'haltérophiles. Le carnet ne couvre pas le bas du corps.'
+    },
+    {
+      id: 'rotations-russes-developpe',
+      ecarte: 'pas d’oblique au carnet',
+      nom: 'Rotations russes avec développé épaules',
+      aussi: [],
+      geste: 'Le tronc tourne d’un côté puis de l’autre entre deux '
+           + 'développés.',
+      muscles: [],
+      note: 'ÉCARTÉ. La rotation vient du TRONC, et le carnet n’a pas '
+          + 'd’oblique. Le reste est un développé déjà couvert.'
+    },
+    {
+      id: 'passage-epaule',
+      ecarte: 'mobilité',
+      nom: 'Passage d’épaule avec élastique',
+      aussi: ['Shoulder dislocate', 'Passage d’épaule'],
+      geste: 'L’élastique tenu large passe de devant à derrière le corps, '
+           + 'bras tendus.',
+      muscles: [],
+      note: 'ÉCARTÉ. C’est de la MOBILITÉ, pas une série qu’on charge : rien '
+          + 'à compter en charge × reps, ni en temps sous tension.'
     }
   ];
 
   exports.CATALOGUE = {
-    lot: 1,
-    titre: 'Le poignet et l’avant-bras',
+    lot: 6,
+    titre: 'Les épaules — LES NOMS SEULEMENT, pas les muscles',
     RANGS: RANGS,
     MOUVEMENTS: MOUVEMENTS
   };

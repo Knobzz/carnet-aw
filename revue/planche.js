@@ -193,9 +193,20 @@
      dans ce que son entrée revendique. Un sous-ensemble est normal — le
      mot-clé n'est pas encore posé, le nom ne rend encore qu'une partie. Un
      muscle EN TROP veut dire que le nom parle d'un autre geste. */
+  /* UNE FICHE QUI NE REVENDIQUE RIEN NE PEUT RIEN CONTREDIRE.
+
+     Cette garde compare ce qu'un nom RETOURNE a ce que son entree
+     REVENDIQUE. Sur un lot de noms seuls (`muscles: []`), tout nom qui
+     repond quoi que ce soit y tombe : la garde a liste 35 « noms qui disent
+     deja autre chose » le 29/10, pour une raison qui n'a rien a voir avec
+     un defaut. Elle ne mesurait plus rien, elle faisait du bruit.
+
+     Ce que ces noms repondent aujourd'hui reste LISIBLE, sur chaque carte,
+     dans la pastille « aujourd'hui : ... » — c'est la qu'il faut le lire. */
   function nomsQuiDisentAutreChose() {
     var l = [];
     cat.MOUVEMENTS.forEach(function (f) {
+      if (!(f.muscles || []).length) return;
       var revendique = (f.muscles || []).map(function (e) { return e.id; });
       [f.nom].concat(f.aussi || []).forEach(function (n) {
         var trop = A.m.musclesDuNom(n).filter(function (id) {
@@ -369,8 +380,12 @@
         'et ' + (d.livre ? 'pareil' : 'change'),
         d.livre ? 'livré'
                 : (d.ecarte ? 'écarté → ' + d.ecarte : 'à ajouter')));
+      /* UNE FICHE SANS MUSCLE LE DIT. Le lot 6 ne propose que des noms,
+         donc ses entrees portent `muscles: []` : une pastille vide se
+         lirait comme un defaut d'affichage, pas comme une intention. */
       delta.appendChild(el('span', 'et',
-        d.muscles.map(A.m.nomCourtMuscle).join(', ')));
+        d.muscles.length ? d.muscles.map(A.m.nomCourtMuscle).join(', ')
+                         : 'muscles : a sourcer'));
       /* Pour un mouvement pas encore livre, on montre AUSSI ce que le
          carnet repond aujourd'hui : c'est l'ecart que MB valide. */
       if (!d.livre) {
@@ -505,10 +520,27 @@
 
     document.title = (sansSource ? '✗ ' : '✓ ') + aLire.length
       + ' mouvements — Dictionnaire';
+    /* LE CHAPEAU SUIT CE QUE LE LOT CONTIENT. Un lot de NOMS SEULEMENT
+       (`muscles: []` partout) ne peut pas annoncer « muscle par muscle,
+       avec d'ou ca vient » : la phrase promettrait ce que la planche ne
+       montre pas, et c'est exactement le genre d'ecart qu'on traque
+       ailleurs. */
+    /* SUR CE QUI EST EN REVUE, PAS SUR TOUT LE CATALOGUE. Les lots deja
+       livres gardent leurs muscles : les compter ici rendait la condition
+       toujours vraie, et le chapeau annoncait des muscles sur un lot qui
+       n'en propose aucun. Mesure du 29/10. */
+    var aDesMuscles = cat.MOUVEMENTS.some(function (f) {
+      if (f.ecarte) return false;
+      if (A.m.DICTIONNAIRE.some(function (d) { return d.nom === f.nom; })) return false;
+      return (f.muscles || []).length;
+    });
     document.getElementById('chapeau').textContent =
-      'Lot ' + cat.lot + ' — ' + cat.titre + '. Ce qui sera LIVRÉ, muscle par '
-      + 'muscle, avec d’où ça vient. Les noms sont modifiables ; rien n’est '
-      + 'écrit dans le carnet.';
+      'Lot ' + cat.lot + ' — ' + cat.titre + '. '
+      + (aDesMuscles
+          ? 'Ce qui sera LIVRÉ, muscle par muscle, avec d’où ça vient. '
+          : 'Ce lot ne porte QUE des noms : les muscles viendront après, '
+          + 'depuis une source anatomique citée. ')
+      + 'Les noms sont modifiables ; rien n’est écrit dans le carnet.';
 
     var leg = document.getElementById('legende');
     leg.appendChild(el('b', null, 'Les quatre rangs'));

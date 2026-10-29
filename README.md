@@ -11,6 +11,7 @@ ensuite sans réseau. Les données restent sur l'appareil — l'hébergement ne 
 livrer les fichiers, et le carnet n'envoie rien nulle part.
 
 - Le modèle de données : [MODELE.md](MODELE.md)
+- Les chantiers à venir : [CHANTIERS.md](CHANTIERS.md)
 - La ligne de série, isolée : [maquette-ligne-serie.html](maquette-ligne-serie.html)
 
 ---

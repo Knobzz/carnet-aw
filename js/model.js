@@ -276,6 +276,42 @@
       groupe: 'epaule', quoi: 'tourne le bras vers l’intérieur',
       articulation: 'epaule', profond: true },
 
+    /* ---- LA COIFFE DES ROTATEURS SE COMPLÈTE, le 2026-10-29 ----
+
+       Le carnet portait DEUX rotateurs internes de l'épaule — le
+       subscapulaire et le grand rond — et pas un seul EXTERNE. Le lot des
+       épaules l'a rendu visible : le mouvement « rotation externe
+       d'épaule » n'avait aucun moteur à nommer, et une fiche l'aurait donc
+       décrit avec des muscles qui font l'inverse du geste.
+
+       Les `quoi` traduisent leur citation Kenhub, qui vit dans
+       `revue/catalogue.js` et s'y vérifie. */
+    { id: 'supra_epineux', nom: 'Supra-épineux', court: 'Supra-épineux',
+      aussi: 'sus-épineux',
+      latin: 'Supraspinatus', image: 'icones/muscle-supra_epineux.png',
+      groupe: 'epaule', quoi: 'amorce l’écartement du bras et cale la tête de l’humérus',
+      articulation: 'epaule', profond: true },
+    { id: 'infra_epineux', nom: 'Infra-épineux', court: 'Infra-épineux',
+      aussi: 'sous-épineux',
+      latin: 'Infraspinatus', image: 'icones/muscle-infra_epineux.png',
+      groupe: 'epaule', quoi: 'tourne le bras vers l’extérieur',
+      articulation: 'epaule' },
+    { id: 'petit_rond', nom: 'Petit rond', court: 'Petit rond',
+      latin: 'Teres minor', image: 'icones/muscle-petit_rond.png',
+      groupe: 'epaule',
+      quoi: 'tourne le bras vers l’extérieur, avec l’infra-épineux',
+      articulation: 'epaule', profond: true },
+    /* UNE SEULE ENTREE POUR LE MAJEUR ET LE MINEUR, et c'est la SOURCE qui
+       le dicte : Kenhub leur donne UNE action commune, et ne les separe que
+       sur les origines et insertions. Meme traitement que les flechisseurs
+       des doigts (superficiel et profond) et les extenseurs du pouce. */
+    { id: 'rhomboides', nom: 'Rhomboïdes', court: 'Rhomboïdes',
+      aussi: 'rhomboïde',
+      latin: 'Rhomboidei', image: 'icones/muscle-rhomboides.png',
+      groupe: 'torse_ar',
+      quoi: 'rapprochent l’omoplate de la colonne', articulation: 'epaule',
+      profond: true },
+
     /* --- bras --- */
     { id: 'biceps', nom: 'Biceps brachial', court: 'Biceps', aussi: 'biceps',
       latin: 'Biceps brachii', image: 'icones/muscle-biceps.png', groupe: 'bras_av',
@@ -1030,6 +1066,23 @@
                           'ouverture main', 'ouverture doigts', 'extensor band',
                           'extenseurs a elastique',
                           'elastique autour des doigts'],
+    /* LES MOTS DE LA COIFFE. « rotation externe » et « rotation interne »
+       sont les deux seuls mots qui designent sans ambiguite : « coiffe » et
+       « rotateurs » amenent les quatre, ce qui est juste mais large, donc
+       reserve aux noms qui le disent explicitement. */
+    supra_epineux:       ['supra epineux', 'sus epineux', 'supraspinatus',
+                          'coiffe des rotateurs', 'coiffe'],
+    infra_epineux:       ['infra epineux', 'sous epineux', 'infraspinatus',
+                          'rotation externe', 'rotations externes',
+                          'rotateurs externes', 'external rotation',
+                          'coiffe des rotateurs', 'coiffe'],
+    petit_rond:          ['petit rond', 'teres minor',
+                          'rotation externe', 'rotations externes',
+                          'rotateurs externes', 'external rotation',
+                          'coiffe des rotateurs', 'coiffe'],
+    rhomboides:          ['rhomboides', 'rhomboide', 'rhomboid',
+                          'rapprocher les omoplates', 'retraction scapulaire',
+                          'face pull'],
     trapeze:             ['trapeze', 'traps', 'traction', 'tractions',
                           'pull up', 'pull ups',
                           'traction prise large', 'wide grip pull up',
@@ -1069,7 +1122,12 @@
                           'extenseurs a elastique',
                           'elastique autour des doigts'],
     court_palmaire:        ['court palmaire'],
-    subscapulaire:         ['subscapulaire', 'sous scapulaire',
+    /* « rotation interne » entre le 29/10, en meme temps que les mots de la
+       rotation externe : les poser d'un seul cote laissait l'autre tomber
+       sur « Deltoide » par le mot « epaule » — le defaut que ce lot ferme. */
+    subscapulaire:         ['rotation interne', 'rotations internes',
+                          'rotateurs internes', 'internal rotation',
+                          'subscapulaire', 'sous scapulaire',
                           'side pressure a la poulie', 'presse de cote',
                           'side pressure'],
     coraco_brachial:     ['coraco',
@@ -1134,6 +1192,11 @@
                           'back pressure a la poulie', 'tirage arriere',
                           'back pressure', 'pression arriere'],
     grand_rond:          ['grand rond', 'teres major',
+                          /* la rotation INTERNE, ajoutee le 29/10 avec la
+                             coiffe : sa citation dit « Extension and
+                             internal rotation of the humerus ». */
+                          'rotation interne', 'rotations internes',
+                          'rotateurs internes', 'internal rotation',
                           'traction', 'tractions', 'pull up', 'pull ups',
                           'chin up', 'traction pronation',
                           'traction supination', 'wide grip pull up',
@@ -3382,10 +3445,29 @@
       muscles: ['triceps', 'ancone'] },
     { id: 'epaule', nom: 'L’épaule',
       aide: 'le bras entier bouge — l’élévation latérale, l’oiseau',
-      muscles: ['deltoide', 'coraco_brachial', 'subscapulaire'] },
+      muscles: ['deltoide', 'coraco_brachial', 'subscapulaire',
+                'supra_epineux'] },
+    /* DEUX ZONES NEUVES pour la coiffe, le 29/10. Sans elles, l'infra-épineux
+       et le petit rond ne seraient atteignables que par leur nom latin —
+       c'est exactement ce que « où ça tire » existe pour éviter : « une case
+       qu'on ne sait pas cocher reste vide ».
+
+       ON SEPARE LES DEUX SENS, comme le bord du pouce et le bord de
+       l'auriculaire plus haut : un seul libellé « tourner le bras » rendrait
+       cinq muscles dont trois font l'inverse des deux autres. */
+    { id: 'epaule_dehors', nom: 'Tourner le bras vers l’extérieur',
+      aide: 'le coude reste au corps, l’avant-bras s’écarte — la rotation '
+          + 'externe à l’élastique',
+      muscles: ['infra_epineux', 'petit_rond', 'deltoide'] },
+    { id: 'epaule_dedans', nom: 'Tourner le bras vers l’intérieur',
+      aide: 'le coude reste au corps, l’avant-bras revient vers le ventre '
+          + '— la rotation interne, et ce que le bras de fer demande',
+      muscles: ['subscapulaire', 'grand_rond', 'grand_pectoral',
+                'grand_dorsal'] },
     { id: 'bras_vers_soi', nom: 'Ramener le bras vers soi',
       aide: 'le torse travaille avec le bras — le tirage, le pull-over',
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze'] }
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
+                'rhomboides'] }
   ];
 
   function zoneRessentie(id) {

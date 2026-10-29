@@ -116,7 +116,13 @@ SORTIE = os.path.join(RACINE, 'icones')
 
 # Les deux seules planches où la carte coupe le MUSCLE. Décidé en les
 # regardant, puis vérifié par le contrôle « la liste correspond à la mesure ».
-A_RECADRER = ('biceps', 'brachial', 'opposant_auriculaire', 'grand_rond')
+# `petit_rond` est entre le 2026-10-29, et ce n'est pas moi qui l'ai vu : le
+# controle « la liste correspond a la mesure » l'a signale des sa premiere
+# passe — « petit_rond coupe a 64% et hors liste ». Meme planche que le grand
+# rond (530x504, Gray 410), donc meme coupe. C'est le deuxieme muscle que ce
+# controle trouve tout seul, apres l'opposant de l'auriculaire.
+A_RECADRER = ('biceps', 'brachial', 'opposant_auriculaire', 'grand_rond',
+              'petit_rond')
 
 CARTE_L = 290            # .planche-carte max-width, et elle coupe à droite
 VIGNETTE_H = 400         # .planche-bouton .planche-fond max-height
