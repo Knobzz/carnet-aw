@@ -1290,6 +1290,68 @@
           + 'chef claviculaire fléchit le bras — mais il passe au rang '
           + '« aide ».'
     },
+    /* ================= LOT 9 : LES PECTORAUX =================
+
+       Mesure sur les 51 noms distincts de la page « exercices pectoraux » :
+       TREIZE ne proposent rien, quatre ne rendent qu'un muscle.
+
+       C'EST LE LOT LE PLUS SIMPLE DES NEUF : les treize muets sont LE MEME
+       MOUVEMENT, l'ECARTE. Treize facons de dire un seul geste, plus
+       « Pec deck » et « Butterfly » qui n'en rendaient qu'un.
+
+       AUCUN MUSCLE NEUF. Et la dette des dips prise large se solde a ZERO :
+       la page n'en porte qu'une ecriture, « Dips aux barres paralleles »,
+       que MB a refusee le 29/10 — « pas besoin ». ================= */
+    {
+      id: 'ecarte',
+      nom: 'Écarté',
+      /* TREIZE NOMS MUETS, UNE SEULE FICHE. L'inclinaison du banc, la
+         poulie, la machine et l'elastique changent le nom et la courbe de
+         resistance — pas les muscles. C'est la regle du lot 4, et elle a
+         ete mesuree alors sur les pompes et les tractions. */
+      aussi: ['Écartés couché avec haltères', 'Écartés incliné avec haltères',
+              'Écartés décliné avec haltères', 'Écartés Hyght',
+              'Écarté unilatéral à la poulie', 'Écartés à la poulie haute',
+              'Écartés à la poulie vis-à-vis',
+              'Écartés à la poulie vis-à-vis haute à genoux',
+              'Écartés couché à la poulie vis-à-vis',
+              'Écartés inclinés à la machine', 'Écartés avec élastique',
+              'Écartés unilatéraux à la landmine',
+              'Pec deck', 'Butterfly à la machine', 'Butterfly',
+              'Chest fly', 'Svend press'],
+      geste: 'Allongé ou debout, bras ÉCARTÉS et coudes à peine fléchis : '
+           + 'les mains se rejoignent devant la poitrine sans que le coude '
+           + 'ne travaille.',
+      muscles: [
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('deltoide', 'aide', S.delt, C.delt),
+        m('coraco_brachial', 'aide', S.cb, C.cb)
+      ],
+      aussiEcartees: [
+        ['Écartés avec sangles de suspension',
+         'une garde plus ancienne refuse qu’un nom de mouvement porte un '
+         + 'ÉQUIPEMENT — règle de MB du 27/10, qui avait déjà retiré les '
+         + 'sangles du Handstand push-up. Et le mot « sangles » fait rendre '
+         + 'à ce nom les fléchisseurs des doigts : la sangle est un objet '
+         + 'qu’on TIENT']
+      ],
+      note: 'TREIZE DES NOMS MUETS DE LA PAGE SONT CE SEUL GESTE, et c’est '
+          + 'ce qui rend ce lot court : l’inclinaison, la poulie, la '
+          + 'machine et l’élastique changent le nom et la courbe de '
+          + 'résistance, pas les muscles. — CE QUI LE SÉPARE D’UN DÉVELOPPÉ, '
+          + 'et c’est la raison de sa fiche : le COUDE NE TRAVAILLE PAS. '
+          + 'Donc PAS DE TRICEPS, là où le développé couché en fait un '
+          + 'moteur. Un carnet qui rendrait la même liste pour les deux '
+          + 'effacerait exactement ce qu’on vient chercher dans un écarté. '
+          + '— CE QUE JE N’AI PAS MIS : le BICEPS. Sa citation dit « weak '
+          + 'flexor of the arm at the glenohumeral joint » — une FLEXION, '
+          + 'alors qu’un écarté est une ADDUCTION horizontale. Lui donner un '
+          + 'rôle ici serait une précision que le carnet n’a pas. — LE '
+          + 'CORACO-BRACHIAL, lui, entre : sa citation nomme l’adduction du '
+          + 'bras, qui EST le geste. — « SVEND PRESS » EST ICI et non chez '
+          + 'les développés : on y presse un disque entre les paumes, bras '
+          + 'tendus. C’est la même adduction, pas une extension de coude.'
+    },
     {
       id: 'developpe-couche',
       nom: 'Développé couché',
@@ -2032,8 +2094,12 @@
     {
       id: 'developpe-serre',
       nom: 'Développé serré',
+      /* LE HEX PRESS ENTRE AU LOT 9 : deux haltères serrés l'un contre
+         l'autre, c'est un developpe PRISE SERREE, pas un ecarte — le coude
+         travaille, et le triceps mene. Il ne rendait que « Pectoral ». */
       aussi: ['Close grip bench press', 'Développé couché prise serrée',
-              'Close grip'],
+              'Close grip', 'Hex press', 'Hex press à la barre guidée',
+              'Développé couché serré avec haltères'],
       geste: 'Allongé, mains rapprochées : les coudes restent près du corps '
            + 'et se tendent.',
       muscles: [
@@ -2501,8 +2567,8 @@
   );
 
   exports.CATALOGUE = {
-    lot: 8,
-    titre: 'Les dorsaux',
+    lot: 9,
+    titre: 'Les pectoraux',
     RANGS: RANGS,
     MOUVEMENTS: MOUVEMENTS
   };
