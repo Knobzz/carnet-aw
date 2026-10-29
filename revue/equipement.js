@@ -396,6 +396,33 @@
       /* LES MUSCLES, AVEC LEUR GRAVURE. */
       ids.forEach(function (id) { bloc.appendChild(rendreMuscle(id)); });
 
+      /* ---- LES REGLAGES QUI PORTENT DES MUSCLES, AVEC LES LEURS ----
+
+         MB, 29/10 : « Montre moi les dessins des muscles impactes pour
+         les deux stp, je ne vois pas juste avec les noms
+         scientifiques. » C'est la meme phrase qu'au 26/10, citee en
+         tete de ce fichier : « pas les images, il me faut du visuel ».
+
+         Les reglages n'etaient annonces que par leur NOM. Les deux
+         orientations du cone, qui sont justement ce qu'il faut
+         comparer, n'avaient aucune image.
+
+         LES MUSCLES SE DEMANDENT AU MODELE, par le meme chemin que
+         l'app : une liste recopiee ici divergerait. Un reglage qui
+         n'en porte pas — un trou de mousqueton — ne montre rien, et
+         c'est juste : il ne change pas ce qui travaille. */
+      pos.forEach(function (nomReglage) {
+        var bidon = { nom: 'x', outils: [cle], reglages: {} };
+        bidon.reglages[A.m.slug(cle)] = nomReglage;
+        var mids = A.m.musclesDesReglages(A.store.vide(), bidon) || [];
+        if (!mids.length) return;
+        var t = el('div', 'delta');
+        t.appendChild(el('span', 'et change',
+          'Réglage « ' + nomReglage + ' » — ' + mids.length + ' muscle(s)'));
+        bloc.appendChild(t);
+        mids.forEach(function (id) { bloc.appendChild(rendreMuscle(id)); });
+      });
+
       /* LA COMPATIBILITÉ — demande de MB du 26/10, LIVRÉE le 27/10. Elle
          est lue DANS LE MODÈLE : la fiche ne la porte plus, parce que deux
          copies d'un même texte divergent, et que celle qu'on ne lit plus
