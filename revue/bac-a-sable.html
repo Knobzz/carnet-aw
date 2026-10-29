@@ -64,6 +64,12 @@
           arbitrer</b> : le carnet montre les deux et ce que tu perdrais.</li>
       <li><b>Un exercice ▸ Équipements</b> — le Multi-Tool et ses accessoires ;
           décoche l’outil et regarde ses muscles repartir avec lui.</li>
+      <li><b>Réglages ▸ Mon poids</b> — trois pesées étalées sur quatre mois,
+          avec l’écart de l’une à l’autre. Ajoutes-en une, supprime-en une.</li>
+      <li><b>Journal ▸ la séance « Traction pronation »</b> — datée d’il y a
+          5 jours, elle affiche le poids d’il y a <b>deux mois</b>, pas celui
+          d’hier. C’est tout ce que « daté » achète. La colonne reste
+          <i>Lest</i> : le poids vient du carnet, le lest se saisit.</li>
     </ul>
   </div>
 
@@ -171,6 +177,34 @@ function decor(fen) {
           [s(10, null, 28), s(10, null, 28)]),
       exo('Curl Larratt', ['charge', 'reps'], ['biceps', 'brachial', 'brachio_radial'],
           [s(8, null, 18), s(8, null, 18)])
+    ]
+  });
+
+  /* --- MON POIDS : trois pesées étalées, et une séance qui les LIT ---
+
+     MB, 29/10 : « il me faut une simulation, je veux voir comment ça se
+     présente sur l'appli ».
+
+     TROIS DATES, PAS UNE. Une seule valeur ne montrerait ni l'écart entre
+     pesées, ni ce que la date achète. Avec celles-ci, la séance ci-dessous
+     — datée d'il y a 5 jours — affiche le poids d'il y a DEUX MOIS, pas
+     celui d'hier. C'est la seule façon de voir la différence à l'œil. */
+  m.poserPesee(e, jourIl(120), 80.4);
+  m.poserPesee(e, jourIl(60), 78.9);
+  m.poserPesee(e, jourIl(1), 77.6);
+
+  /* UNE SEANCE EN POIDS DU CORPS, sans quoi le poids ne se lirait nulle
+     part hors des Réglages — la moitié qui manque. Une série sans lest, une
+     avec : les deux colonnes se lisent ensemble, le poids vient du carnet
+     et le lest se saisit. */
+  e.seances.push({
+    id: m.uid('m'), type: 'muscu', date: jourIl(5), heure: '', note: '',
+    douleurs: [],
+    exercices: [
+      exo('Traction pronation', ['charge', 'reps'],
+          ['grand_dorsal', 'biceps', 'brachio_radial'],
+          [s(8, null, null), s(6, null, 5)],
+          { typeCharge: 'poids_corps', aw: false })
     ]
   });
 

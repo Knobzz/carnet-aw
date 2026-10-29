@@ -4802,6 +4802,201 @@
      13. Les mouvements — six, et la clé de stockage ne bouge pas
      ================================================================ */
 
+  /* ==================================================================
+     MON POIDS, DATE
+
+     MB, 29/10 : « j'y ai pense quand j'ai mis un exo avec poids du corps,
+     n'ayant pas mon poids de corps enregistre, j'ai trouve ca dommage ».
+     ================================================================== */
+  bloc('Mon poids, daté', function (v) {
+    /* LE SEUL TEMOIN DE CE BLOC, ET IL EST EN TETE.
+
+       Tout le reste appelle une API qui n'existait pas avant : sur la
+       version d'avant, le bloc lève à sa première ligne et le `try` du banc
+       enveloppe le BLOC, pas le contrôle. Un témoin placé à la fin n'aurait
+       jamais été joué à la chute — et un témoin qu'on ne voit pas tenir ne
+       vaut pas mieux qu'un contrôle qu'on n'a pas vu tomber. */
+    v.egal(A.m.typeCharge('poids_corps').tonnage, false,
+           '[temoin] le poids du corps n’entre TOUJOURS pas dans le tonnage. '
+         + 'Il tient des deux côtés, et c’est exactement ce qu’on voulait : '
+         + 'basculer aurait fait réécrire des chiffres déjà lus. Il tombera '
+         + 'le jour où cette décision se prendra');
+
+    function neuf() { return A.store.vide(); }
+
+    /* ---- 1. LA LISTE BLANCHE REFUSE CE QUI N'EST PAS UNE PESEE ---- */
+    var sale = A.m.normaliserPesees([
+      null,
+      'pas un objet',
+      { poids: 78 },                       // sans date
+      { date: '2026-10-01' },              // sans poids
+      { date: '2026-10-02', poids: 0 },    // zero
+      { date: '2026-10-03', poids: 501 },  // au-dela de la borne
+      { date: '2026-10-04', poids: '78' }, // une chaine
+      { date: '2026-10-05', poids: 78.46 } // la seule valide
+    ]);
+    v.egal(sale.length, 1,
+           'sept entrées fautives sont écartées, une seule passe — une liste '
+         + 'blanche, comme pour les relevés');
+    v.egal(sale[0].poids, 78.5,
+           'et elle est arrondie au dixième : 78.46 kg n’a pas de sens sur '
+         + 'une balance de salle de bain');
+    v.vrai(!!sale[0].id,
+           'elle reçoit un id, sinon un import ne saurait pas la reconnaître');
+
+    /* ---- 2. UNE SEULE PESEE PAR JOUR ---- */
+    var e = neuf();
+    A.m.poserPesee(e, '2026-10-20', 78);
+    A.m.poserPesee(e, '2026-10-20', 77.5);
+    v.egal(e.pesees.length, 1,
+           'se repeser le même jour CORRIGE, ça n’ajoute pas une ligne');
+    v.egal(e.pesees[0].poids, 77.5, 'et c’est la dernière qui reste');
+    A.m.poserPesee(e, '2026-10-21', 77.8);
+    /* GARDE DE NON-VACUITE, pas un témoin : elle ne tient que sur la
+       version courante. Sans elle, « une seule par jour » serait vrai d'un
+       carnet qui refuse TOUTE pesée. */
+    v.egal(e.pesees.length, 2, 'un autre jour ajoute bien une ligne');
+    v.egal(A.m.poserPesee(e, '2026-10-22', 900), null,
+           'et un poids hors bornes n’entre pas : la borne rejette une frappe '
+         + '(785 pour 78.5), pas un gabarit');
+    v.egal(e.pesees.length, 2, 'le carnet n’a donc pas bougé');
+
+    /* ---- 3. LE COEUR : LE POIDS EN VIGUEUR UN JOUR DONNE ----
+
+       C'est la seule chose que « daté » achète, et elle ne se voit QUE sur
+       une date qui n'est pas aujourd'hui. */
+    var h = neuf();
+    A.m.poserPesee(h, '2026-07-01', 80);
+    A.m.poserPesee(h, '2026-10-01', 77);
+    v.egal((A.m.poidsAuJour(h, '2026-10-01') || {}).poids, 77,
+           'le jour même d’une pesée, c’est elle');
+    v.egal((A.m.poidsAuJour(h, '2026-08-15') || {}).poids, 80,
+           'un jour d’août lit la pesée de JUILLET, pas celle d’octobre — '
+         + 'c’est tout l’intérêt de la date');
+    v.egal((A.m.poidsAuJour(h, '2026-12-25') || {}).poids, 77,
+           'et un jour postérieur aux deux lit la plus récente');
+    /* L'ETAT QUE LE CHEMIN HEUREUX NE PRODUIT JAMAIS : on se pèse
+       aujourd'hui et on regarde aujourd'hui. Le défaut sort le jour où MB
+       ouvre une séance de juin. */
+    v.egal(A.m.poidsAuJour(h, '2026-06-30'), null,
+           'un jour ANTÉRIEUR à toute pesée rend null : extrapoler vers '
+         + 'l’arrière attribuerait à une séance de juin un poids pesé en '
+         + 'juillet, c’est-à-dire inventer une mesure');
+    v.egal(A.m.poidsAuJour(neuf(), '2026-10-01'), null,
+           'un carnet sans aucune pesée aussi');
+
+    /* ---- 4. LA SUPPRESSION ---- */
+    var sup = neuf();
+    var pe = A.m.poserPesee(sup, '2026-10-20', 78);
+    v.egal(A.m.supprimerPesee(sup, pe.id), true, 'une pesée se supprime');
+    v.egal(sup.pesees.length, 0, 'et elle part pour de bon');
+    v.egal(A.m.supprimerPesee(sup, 'pe_inconnu'), false,
+           'un id inconnu rend false au lieu de vider la liste');
+
+    /* ---- 5. LE RECHARGEMENT — le piège du 28/10, rejoué ----
+
+       Une clé neuve absente de `normaliser` disparaît au premier
+       rechargement, et la fonctionnalité marche jusque-là. `remplacer` EST
+       `normaliser` : c'est la porte, et elle se mesure. */
+    var avant = neuf();
+    A.m.poserPesee(avant, '2026-10-20', 78);
+    A.m.poserPesee(avant, '2026-10-21', 77.5);
+    A.store.remplacer(avant);
+    var relu = A.store.etat();
+    v.egal((relu.pesees || []).length, 2,
+           'les pesées SURVIVENT au passage par `normaliser` — sans la ligne '
+         + 'de liste blanche, elles disparaîtraient au rechargement et '
+         + 'aucun écran ne le dirait');
+    v.egal((A.m.poidsAuJour(relu, '2026-10-20') || {}).poids, 78,
+           'et elles se relisent à leur date');
+
+    /* ---- 6. L'IMPORT — la moitié qu'on ne voit pas ---- */
+    var ici = neuf();
+    A.m.poserPesee(ici, '2026-10-20', 78);
+    A.store.remplacer(ici);
+    var bilan = A.store.fusionner({
+      seances: [], pesees: [
+        { id: 'pe_a', date: '2026-09-01', poids: 80 },
+        { id: 'pe_b', date: '2026-10-20', poids: 99 }
+      ]
+    });
+    var apres = A.store.etat();
+    v.egal((apres.pesees || []).length, 2,
+           'un import AJOUTE les pesées de la sauvegarde : sans bloc dans '
+         + '`fusionner`, elles seraient perdues en silence — la clé dans '
+         + '`normaliser` ne rattrape QUE ce qui est déjà ici');
+    v.egal((A.m.poidsAuJour(apres, '2026-09-15') || {}).poids, 80,
+           'celle de septembre est bien entrée');
+    v.egal((A.m.poidsAuJour(apres, '2026-10-20') || {}).poids, 78,
+           'et sur une date déjà pesée, CELLE D’ICI gagne — deux pesées le '
+         + 'même jour feraient choisir au hasard de l’ordre');
+    v.egal(bilan.peseesAjoutees + ' / ' + bilan.peseesGardees, '1 / 1',
+           'le bilan le dit, pour que l’import ne soit pas muet là-dessus');
+
+    /* ---- 7. LE CHIFFRE A PART, ET LE TONNAGE QUI NE BOUGE PAS ----
+
+       MB, 29/10 : « Chiffre à part ». La promesse du lot est qu'AUCUN
+       chiffre déjà lu ne change ; elle se mesure, elle ne s'affirme pas.
+       La séance mêle donc du poids du corps ET du kilo. */
+    function serieP(lest, reps) {
+      return { id: 'x', type: 'normale', faite: true, faiteA: null,
+               chargeCible: '', repsCible: '', dureeCible: '',
+               chargeReel: lest == null ? '' : String(lest),
+               repsReel: String(reps), dureeReel: '', rpe: null };
+    }
+    function exoP(nom, tc, series) {
+      return { id: 'x', ordre: 0, nom: nom, slug: nom, aw: false, typeCharge: tc,
+               colonnes: ['charge', 'reps'], muscles: [], forces: [],
+               structures: [], outils: [], reglages: {}, consigne: '',
+               reposSecondes: 90, series: series };
+    }
+    var melange = { id: 'sm', type: 'muscu', date: '2026-10-24', douleurs: [],
+      exercices: [
+        exoP('Traction', 'poids_corps', [serieP(null, 8), serieP(5, 6)]),
+        exoP('Curl', 'kg', [serieP(20, 10)])
+      ] };
+
+    /* --- SANS PESEE : la série est COMPTÉE, mais sans kilos --- */
+    var vSans = A.m.volumeSeance(melange);
+    v.egal(vSans.seriesPoidsCorps, 2,
+           'sans pesée, les deux séries au poids du corps sont quand même '
+         + 'COMPTÉES — les perdre serait pire que ne pas les chiffrer');
+    v.egal(vSans.tonnagePoidsCorps, 0,
+           'mais elles ne produisent aucun kilo : inventer un poids jamais '
+         + 'pesé serait une mesure fausse');
+    v.vrai(/aucune pesée/.test(A.m.texteHorsTonnage(vSans)),
+           'et la phrase DIT pourquoi il n’y a pas de chiffre, au lieu de se '
+         + 'taire (lu : ' + A.m.texteHorsTonnage(vSans) + ')');
+
+    /* --- AVEC PESEE : les kilos paraissent --- */
+    var vAvec = A.m.volumeSeance(melange, 78.9);
+    v.egal(Math.round(vAvec.tonnagePoidsCorps), 1135,
+           '78.9 kg × 8 reps, puis 78.9 + 5 kg de lest × 6 : 1 135 kg '
+         + 'déplacés, là où l’écran affichait 0');
+    v.vrai(/À PART du volume/.test(A.m.texteHorsTonnage(vAvec)),
+           'la phrase dit que ce chiffre est À PART — sans ça, on le lirait '
+         + 'comme du tonnage');
+
+    /* --- LA PROMESSE : LE TONNAGE N'A PAS BOUGÉ D’UN KILO --- */
+    v.egal(vAvec.tonnage, 200,
+           'le tonnage reste celui du CURL SEUL — 20 kg × 10. C’est la '
+         + 'promesse du lot, et elle se mesure sur une séance qui mêle les '
+         + 'deux : aucun chiffre déjà lu ne change');
+    v.egal(vSans.tonnage, vAvec.tonnage,
+           'et il est le MÊME avec ou sans pesée : connaître son poids ne '
+         + 'réécrit pas l’historique');
+    v.egal(vAvec.seriesNonChiffrees, 0,
+           'le poids du corps a QUITTÉ la case « charge non chiffrée » : il a '
+         + 'ses kilos maintenant, la vieille phrase mentirait sur lui');
+    /* Et le gripper, lui, y reste : sans ce cas, on aurait pu vider la case
+       pour tout le monde et les deux contrôles seraient verts. */
+    var grip = { id: 'sg', type: 'muscu', date: '2026-10-24', douleurs: [],
+      exercices: [exoP('Gripper', 'niveau', [serieP('N3', 6)])] };
+    v.egal(A.m.volumeSeance(grip, 78.9).seriesNonChiffrees, 1,
+           'alors que le GRIPPER y reste : la case n’a pas été vidée pour '
+         + 'tout le monde, elle a perdu un seul cas');
+  });
+
   bloc('Mouvements', function (v) {
     v.egal(A.m.FORCES.length, 6, 'six mouvements sont proposés');
     var ids = A.m.FORCES.map(function (f) { return f.id; });

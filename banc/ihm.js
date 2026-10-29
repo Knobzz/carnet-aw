@@ -3105,8 +3105,12 @@
       Array.prototype.forEach.call(vue.children, function (n) {
         if (n.classList && n.classList.contains('sous-titre')) titres.push(n.textContent);
       });
+      /* « MON POIDS » S'INSERE APRES « EN SALLE », le 29/10 : c'est un
+         réglage de la personne, pas du carnet, et il se saisit rarement —
+         il n'a donc rien à faire au-dessus du catalogue, qu'on ouvre tout
+         le temps. */
       v.egal(titres.join(' · '),
-             'Thème · En salle · Exercices connus · Équipement · '
+             'Thème · En salle · Mon poids · Exercices connus · Équipement · '
            + 'Mon dictionnaire · Sauvegarde · '
            + 'État du stockage · Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
@@ -5487,6 +5491,216 @@
                      'alors qu’un sparring où l’on a écrit UN mot est GARDÉ : '
                    + 'il s’enregistre à mesure');
               l.splice(l.length - 1, 1);
+              fen.App.ui.vider(vue);
+            });
+          });
+        });
+      });
+    });
+  });
+
+  /* ==================================================================
+     MON POIDS, A L'ECRAN
+
+     MB, 29/10 : « j'y ai pensé quand j'ai mis un exo avec poids du corps,
+     n'ayant pas mon poids de corps enregistré, j'ai trouvé ça dommage ».
+     ================================================================== */
+  bloc('Mon poids, à l’écran', function (v, h) {
+    var fen = h.fen, doc = h.doc, m = fen.App.m;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    if (Array.isArray(e.pesees)) e.pesees.length = 0; else e.pesees = [];
+
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(200).then(function () {
+      /* ---- 1. A VIDE, LA SECTION PARLE ---- */
+      v.vrai(vue.textContent.indexOf('Mon poids') >= 0, 'la section est là');
+      v.vrai(/Aucune pesée/.test(vue.textContent),
+             'et à vide elle le DIT, au lieu d’une liste blanche qu’on ne '
+           + 'sait pas lire');
+      /* L'AIDE DIT CE QUE LE GESTE NE FAIT PAS. Sans elle, MB attendrait
+         que son volume par semaine bouge, et il ne bougera pas. */
+      v.vrai(/n’entre dans aucun tonnage/.test(vue.textContent),
+             'l’aide dit que le tonnage ne bougera PAS — c’est la moitié '
+           + 'qu’on oublie d’écrire, et celle qui fait attendre pour rien');
+
+      /* ---- 2. ON TAPE DANS LES VRAIS CHAMPS ---- */
+      var dates = vue.querySelectorAll('input[type="date"]');
+      var nombres = vue.querySelectorAll('input[type="number"]');
+      /* GARDES DE NON-VACUITE, pas des témoins : elles ne tiennent que sur
+         la version courante, où les champs existent. Sans elles, la suite
+         serait vraie pour rien — mais à la chute, elles tombent comme le
+         reste, et c'est normal. */
+      v.vrai(dates.length >= 1 && nombres.length >= 1,
+             'la section offre une date et un nombre');
+      if (!dates.length || !nombres.length) return;
+      var cDate = dates[0], cKg = nombres[0];
+      var btPeser = null;
+      Array.prototype.forEach.call(vue.querySelectorAll('button'), function (b) {
+        if (!btPeser && b.textContent.trim() === 'Enregistrer') btPeser = b;
+      });
+      v.vrai(!!btPeser, 'et un bouton pour enregistrer');
+      if (!btPeser) return;
+
+      cDate.value = '2026-10-20';
+      cKg.value = '78.4';
+      btPeser.click();
+
+      v.egal((fen.App.store.etat().pesees || []).length, 1,
+             'le clic enregistre vraiment la pesée');
+      v.vrai(/78\.4 kg/.test(vue.textContent),
+             'et la ligne apparaît à l’écran avec son poids');
+      v.egal(cKg.value, '',
+             'le champ se vide : laisser le poids dedans ferait croire qu’il '
+           + 'reste à enregistrer');
+
+      /* L'ECART AVEC LA PESEE PRECEDENTE, qui n'existe que parce qu'elles
+         sont datées. */
+      cDate.value = '2026-10-27';
+      cKg.value = '77.4';
+      btPeser.click();
+      v.vrai(/-1 kg/.test(vue.textContent),
+             'une deuxième pesée affiche l’ÉCART avec la précédente : c’est '
+           + 'la seule chose qu’une valeur unique ne dirait pas');
+
+      /* LE DEBORDEMENT SE MESURE ICI, AVEC DES LIGNES DEDANS. Le contrôle
+         général des Réglages passe sur un carnet SANS pesée : la liste y est
+         vide, et ses lignes — date, poids, écart, bouton Supprimer — sont
+         précisément ce qui est le plus large. Il ne les voyait pas. */
+      v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+             'et à 320 px, rien ne sort de l’écran une fois la liste REMPLIE — '
+           + 'date, poids, écart et bouton Supprimer sur une seule rangée');
+
+      /* ---- 3. LA SEANCE LIT LE POIDS A SA DATE ---- */
+      fen.App.ui.vider(vue);
+      var st = fen.App.store.etat();
+      st.seances.length = 0;
+      st.programmes.length = 0;
+      st.seanceEnCoursId = null;
+
+      var prog = m.programme('Essai poids');
+      /* DEUX SERIES, UNE SANS LEST ET UNE AVEC. Le décor en avait zéro, et
+         la quatrième case ne paraît que s'il y a des kilos à montrer : le
+         contrôle était juste, c'est le décor qui ne jouait rien. */
+      var exoPdc = m.exerciceProgramme({ nom: 'Traction',
+                                         typeCharge: 'poids_corps' });
+      exoPdc.series = [m.serieProgramme({ repsCible: 8 }),
+                       m.serieProgramme({ chargeCible: 5, repsCible: 6 })];
+      prog.exercices = [exoPdc];
+      st.programmes.push(prog);
+      var se = m.seanceMuscu(prog);
+      /* Le volume ne lit QUE le réel : une cible non saisie ne pèse rien. */
+      (se.exercices[0].series || []).forEach(function (sr, i) {
+        sr.repsReel = i === 0 ? '8' : '6';
+        sr.chargeReel = i === 0 ? '' : '5';
+        sr.faite = true;
+      });
+      /* UNE SEANCE DE JUILLET, alors que les deux pesées sont d'OCTOBRE.
+         C'est l'état qu'on ne produit jamais en se pesant le jour même, et
+         c'est le seul où « daté » veut dire quelque chose. */
+      se.date = '2026-07-15';
+      st.seances.push(se);
+      st.seanceEnCoursId = se.id;
+
+      fen.App.vues.seance.rendre(vue);
+
+      return attendre(240).then(function () {
+        function meta() {
+          var n = vue.querySelector('.exo-meta');
+          return n ? n.textContent : '(aucune)';
+        }
+        /* Celle-ci, en revanche, TIENT des deux côtés : la ligne nommait
+           déjà « Poids du corps » avant ce lot. C'est le seul vrai témoin
+           du bloc — et sans lui, « aucun chiffre » serait vrai d'un écran
+           qui n'afficherait rien du tout. */
+        v.vrai(meta().indexOf('Poids du corps') >= 0,
+               '[temoin] la ligne nommait DÉJÀ « Poids du corps » avant ce '
+             + 'lot : elle tient des deux côtés, et sans elle « aucun '
+             + 'chiffre » serait vrai d’un écran vide (lu : ' + meta() + ')');
+        v.egal(/\d+(\.\d+)?\s*kg/.test(meta()), false,
+               'une séance de JUILLET n’affiche AUCUN poids alors que deux '
+             + 'pesées d’octobre existent : extrapoler vers l’arrière '
+             + 'attribuerait à cette séance une mesure jamais faite');
+
+        /* ET AVEC UNE PESEE ANTERIEURE, LE CHIFFRE PARAIT. Sans ce second
+           cas, un écran qui n'affiche JAMAIS rien passerait le contrôle
+           d'au-dessus. */
+        m.poserPesee(fen.App.store.etat(), '2026-07-01', 80.2);
+        fen.App.ui.vider(vue);
+        fen.App.vues.seance.rendre(vue);
+        return attendre(240).then(function () {
+          v.vrai(/80\.2 kg/.test(meta()),
+                 'avec une pesée de JUILLET, la séance de juillet l’affiche — '
+               + 'et c’est elle, pas les 77.4 kg d’octobre (lu : ' + meta() + ')');
+
+          /* ---- LA QUATRIEME CASE, A L'ECRAN ----
+             MB, 29/10 : « Chiffre à part ». Le banc de modèle dit que le
+             chiffre est juste ; il ne dit rien de la grille. */
+          var dl = vue.querySelector('.totaux');
+          v.vrai(!!dl, '[temoin] le bloc des totaux est rendu — il tient des '
+               + 'deux côtés, et sans lui la suite serait vraie pour rien');
+          if (dl) {
+            var cases = dl.querySelectorAll('div:not([hidden])');
+            v.egal(cases.length, 4,
+                   'quatre cases : séries, volume, dont AW, et le poids du corps');
+            v.vrai(/au poids du corps/i.test(dl.textContent),
+                   'la quatrième est nommée, pas un chiffre orphelin');
+            /* 2x2 ET PAS QUATRE DE FRONT : on mesure les RECTANGLES, pas la
+               règle CSS. Quatre de front à 320 px donneraient ~78 px par
+               case ; en 2x2, chacune en fait plus de 120. */
+            var larg = Math.round(cases[0].getBoundingClientRect().width);
+            v.vrai(larg > 120,
+                   'et la grille passe en 2×2 : la première case fait ' + larg
+                 + ' px, là où quatre colonnes lui en laisseraient ~78');
+            var hauts = Array.prototype.map.call(cases, function (c) {
+              return Math.round(c.getBoundingClientRect().top);
+            });
+            v.egal(new Set(hauts).size, 2,
+                   'les quatre cases tiennent sur DEUX lignes — mesuré sur leur '
+                 + 'position réelle, pas sur la règle CSS');
+            v.egal(debordements(doc, fen, LARGEUR).join(' · '), '',
+                   'et rien ne sort des 320 px avec la case en plus');
+          }
+
+          /* ---- 4. ET LE JOURNAL, qui est l'endroit où ça compte ----
+
+             Trouvé en cliquant dans le bac à sable le 29/10, pas par un
+             contrôle : la Séance affichait le poids, le Journal non. C'est
+             pourtant là qu'on relit une séance ANCIENNE, donc là que la
+             date sert à quelque chose. Une moitié, au sens du piège n° 5. */
+          fen.App.store.etat().seanceEnCoursId = null;
+          fen.App.ui.vider(vue);
+          fen.App.vues.journal.rendre(vue);
+          return attendre(220).then(function () {
+            var cible = null;
+            Array.prototype.forEach.call(vue.querySelectorAll('*'), function (x) {
+              if (cible || x.children.length) return;
+              if (/Essai poids|Traction/.test(x.textContent)) cible = x;
+            });
+            v.vrai(!!cible,
+                   'la séance apparaît au Journal, et on peut l’ouvrir');
+            if (cible) cible.click();
+            return attendre(220).then(function () {
+              var pan = doc.querySelector('.panneau');
+              var t = pan ? pan.textContent : '(aucun)';
+              v.vrai(/Traction/.test(t),
+                     '[temoin] le détail de la séance est ouvert et nomme '
+                   + 'l’exercice — il tient des deux côtés, et sans lui la '
+                   + 'suite serait vraie pour rien');
+              v.vrai(/80\.2 kg/.test(t),
+                     'et le Journal affiche le poids de JUILLET sur cette '
+                   + 'séance de juillet : c’est là qu’on relit une séance '
+                   + 'ancienne, donc là que la date sert');
+              Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (pa) {
+                var x = pa.querySelector('.panneau-entete .bt-icone');
+                if (x) x.click();
+              });
+              var fin = fen.App.store.etat();
+              fin.seances.length = 0;
+              fin.programmes.length = 0;
+              fin.seanceEnCoursId = null;
+              if (Array.isArray(fin.pesees)) fin.pesees.length = 0;
               fen.App.ui.vider(vue);
             });
           });

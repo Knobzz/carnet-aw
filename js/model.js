@@ -4401,10 +4401,24 @@
     return Math.max(1, Math.round((t[t.length - 1] - t[0]) / 60000));
   }
 
-  function volumeSeance(seance) {
+  /* `poidsKg` : LE POIDS DU CORPS EN VIGUEUR A LA DATE DE CETTE SEANCE, que
+     l'appelant lit avec `poidsAuJour`. Il arrive en argument parce qu'il vit
+     dans l'ETAT et pas dans la seance : donner a cette fonction l'acces au
+     carnet entier pour un seul chiffre la rendrait dependante de tout.
+
+     SANS L'ARGUMENT, LE COMPTEUR VAUT ZERO et rien ne change — c'est ce qui
+     permet au graphe par semaine de rester exactement ce qu'il etait. */
+  function volumeSeance(seance, poidsKg) {
+    var pdc = (typeof poidsKg === 'number' && isFinite(poidsKg) && poidsKg > 0)
+            ? poidsKg : null;
     var r = { series: 0, seriesFaites: 0, tonnage: 0, tonnageAw: 0, tonnageGeneral: 0,
               seriesNonChiffrees: 0, seriesIncompletes: 0, seriesSansTonnage: 0,
               seriesAw: 0, repsTotal: 0,
+              /* A PART, ET JAMAIS ADDITIONNE A `tonnage` : MB, 29/10, apres
+                 qu'on a chiffre ce que basculer couterait — des chiffres deja
+                 lus reecrits, et une marche dans l'historique le jour de la
+                 premiere pesee. */
+              tonnagePoidsCorps: 0, seriesPoidsCorps: 0, poidsCorpsConnu: pdc,
               tempsSousTension: 0, tempsSousTensionAw: 0, seriesDuree: 0 };
     (seance.exercices || []).forEach(function (ex) {
       var tc = typeCharge(ex.typeCharge);
@@ -4445,9 +4459,25 @@
              qui porte une durée est déjà comptée en temps sous tension — la
              signaler ici serait du bruit sur chaque isométrique. */
           if (dr == null) r.seriesSansTonnage += 1;
+        } else if (tc.id === 'poids_corps' && rp != null) {
+          /* ---- LE POIDS DU CORPS A SA PROPRE CASE ----
+
+             Il tombait dans `seriesNonChiffrees`, avec le gripper et
+             l'élastique, et la phrase disait « comptées en séries, pas en
+             kilos ». Ce n'est plus vrai de lui : on connaît son poids, donc
+             on connaît ses kilos.
+
+             LE LEST S'AJOUTE AU POIDS, et une case vide vaut zéro lest —
+             c'est ce que la colonne « Lest » veut dire.
+
+             SANS PESEE ANTERIEURE, on compte la SERIE sans lui donner de
+             kilos. Inventer un poids serait pire que n'en afficher aucun,
+             et la phrase dira pourquoi. */
+          r.seriesPoidsCorps += 1;
+          if (pdc != null) r.tonnagePoidsCorps += (pdc + (ch || 0)) * rp;
         } else if (!tc.tonnage || (cTxt && ch == null)) {
-          /* N3, une bande rouge, le poids du corps : la charge N'EST PAS un
-             nombre, et ce n'est pas un défaut de saisie. */
+          /* N3, une bande rouge : la charge N'EST PAS un nombre, et ce n'est
+             pas un défaut de saisie. */
           r.seriesNonChiffrees += 1;
         } else {
           /* Type chiffré, deux colonnes affichées, mais une valeur manque. */
@@ -4464,8 +4494,20 @@
     var bouts = [];
     if (v.seriesNonChiffrees) {
       bouts.push(v.seriesNonChiffrees + (v.seriesNonChiffrees > 1 ? ' séries' : ' série')
-        + ' à charge non chiffrée (gripper, élastique, poids du corps) — '
+        + ' à charge non chiffrée (gripper, élastique) — '
         + (v.seriesNonChiffrees > 1 ? 'comptées' : 'comptée') + ' en séries, pas en kilos.');
+    }
+    /* LE POIDS DU CORPS A SA PHRASE, et elle a deux versions. Sans pesée
+       antérieure, se taire laisserait croire que la série n'a pas compté ;
+       on dit donc ce qui manque, et où le poser. */
+    if (v.seriesPoidsCorps) {
+      var nS = v.seriesPoidsCorps + (v.seriesPoidsCorps > 1 ? ' séries' : ' série');
+      bouts.push(v.poidsCorpsConnu != null
+        ? nS + ' au poids du corps : ' + fmt(Math.round(v.tonnagePoidsCorps))
+          + ' kg déplacés (poids + lest), comptés À PART du volume, qui ne '
+          + 'retient que des charges mesurées.'
+        : nS + ' au poids du corps, sans chiffre : aucune pesée n’est '
+          + 'antérieure à cette date. Ajoute-la dans Réglages ▸ Mon poids.');
     }
     if (v.seriesIncompletes) {
       bouts.push(v.seriesIncompletes + (v.seriesIncompletes > 1 ? ' séries incomplètes' : ' série incomplète')
@@ -5003,6 +5045,89 @@
                             ? Math.min(10, Math.max(0, Math.round(intensite))) : null };
     etat.releves.push(neuf);
     return neuf;
+  }
+
+  /* ==================================================================
+     MON POIDS DE CORPS, DATE
+
+     MB, 29/10 : « j'y ai pense quand j'ai mis un exo avec poids du corps,
+     n'ayant pas mon poids de corps enregistre, j'ai trouve ca dommage ».
+
+     IL EST DATE, ET C'EST TOUT L'INTERET. Un poids de corps change. Stocke
+     en une valeur unique, il aurait recalcule l'historique a chaque pesee :
+     le volume de juillet redessine au poids d'octobre. C'est exactement le
+     defaut de la seance de recup mal datee — une valeur qui devrait porter
+     sa date et qui ne la porte pas.
+
+     `poids_corps` GARDE `tonnage: false`. Le faire basculer changerait
+     retroactivement des chiffres deja lus ; c'est une decision a prendre a
+     part. Ces fonctions ne touchent a aucun tonnage.
+     ================================================================== */
+
+  /* LISTE BLANCHE, comme `normaliserReleves`. La borne haute ne juge
+     personne : elle rejette une frappe (785 pour 78.5), pas un gabarit. */
+  function normaliserPesees(liste) {
+    if (!Array.isArray(liste)) return [];
+    var sortie = [];
+    liste.forEach(function (p) {
+      if (!p || typeof p !== 'object') return;
+      if (typeof p.date !== 'string' || !p.date) return;
+      var kg = p.poids;
+      if (typeof kg !== 'number' || !isFinite(kg) || kg <= 0 || kg > 500) return;
+      sortie.push({ id: p.id || uid('pe'), date: p.date,
+                    poids: Math.round(kg * 10) / 10 });
+    });
+    return sortie;
+  }
+
+  /* La plus RECENTE d'abord : c'est l'ordre de lecture a l'ecran. */
+  function peseesTriees(etat) {
+    return normaliserPesees(etat && etat.pesees).sort(function (a, b) {
+      return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
+    });
+  }
+
+  /* UNE SEULE PESEE PAR JOUR : se repeser le soir corrige le matin, ça
+     n'ajoute pas une ligne. Meme geste que `poserReleve`. */
+  function poserPesee(etat, date, poids) {
+    if (!etat.pesees) etat.pesees = [];
+    var kg = typeof poids === 'number' ? poids : parseFloat(poids);
+    if (!isFinite(kg) || kg <= 0 || kg > 500) return null;
+    for (var i = etat.pesees.length - 1; i >= 0; i--) {
+      if (etat.pesees[i] && etat.pesees[i].date === date) etat.pesees.splice(i, 1);
+    }
+    var neuve = { id: uid('pe'), date: date, poids: Math.round(kg * 10) / 10 };
+    etat.pesees.push(neuve);
+    return neuve;
+  }
+
+  function supprimerPesee(etat, id) {
+    if (!Array.isArray(etat.pesees)) return false;
+    for (var i = 0; i < etat.pesees.length; i++) {
+      if (etat.pesees[i] && etat.pesees[i].id === id) {
+        etat.pesees.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* LE POIDS EN VIGUEUR UN JOUR DONNE : la pesee la plus recente qui ne soit
+     pas POSTERIEURE a ce jour. Les dates sont en 'AAAA-MM-JJ', donc la
+     comparaison de chaines suffit et ne depend d'aucun fuseau.
+
+     RIEN AVANT CE JOUR REND `null`, et il faut que ce soit `null`. On
+     pourrait etre tente de retomber sur la premiere pesee connue : ce serait
+     attribuer a une seance de juillet un poids pese en octobre, c'est-a-dire
+     inventer une mesure. L'ecran dit « pas de pesee » ; c'est honnete. */
+  function poidsAuJour(etat, date) {
+    if (typeof date !== 'string' || !date) return null;
+    var trouve = null;
+    normaliserPesees(etat && etat.pesees).forEach(function (p) {
+      if (p.date > date) return;
+      if (!trouve || p.date > trouve.date) trouve = p;
+    });
+    return trouve;
   }
 
   /* Tout ce qui a ete note pour une zone, seances ET releves melanges : c'est
@@ -5844,6 +5969,9 @@
     intensiteDe: intensiteDe, texteDouleur: texteDouleur,
     suiviZone: suiviZone, zonesRencontrees: zonesRencontrees,
     relevesTries: relevesTries, normaliserReleves: normaliserReleves,
+    normaliserPesees: normaliserPesees, peseesTriees: peseesTriees,
+    poserPesee: poserPesee, supprimerPesee: supprimerPesee,
+    poidsAuJour: poidsAuJour,
     poserReleve: poserReleve, questions24h: questions24h, ecart24h: ecart24h,
     volumeRecupParSemaine: volumeRecupParSemaine,
     rangParType: rangParType, serieAuRangParType: serieAuRangParType,

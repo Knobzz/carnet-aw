@@ -21,7 +21,9 @@
      ------------------------------------------------------------------ */
   function majTotaux() {
     if (!refs) return;
-    var v = A.m.volumeSeance(seance);
+    /* LE POIDS DU JOUR DE LA SEANCE, pas celui d'aujourd'hui. */
+    var pe = seance ? A.m.poidsAuJour(etat(), seance.date) : null;
+    var v = A.m.volumeSeance(seance, pe ? pe.poids : null);
     refs.nbSeries.textContent = v.seriesFaites + ' / ' + v.series;
     refs.tonnage.textContent = A.m.fmt(Math.round(v.tonnage));
 
@@ -41,6 +43,15 @@
     if (v.tempsSousTension) bouts.push(A.m.texteTempsSousTension(v));
     refs.reps.textContent = bouts.join(' · ');
     refs.exclus.textContent = A.m.texteHorsTonnage(v);
+
+    /* LA QUATRIEME CASE, et elle n'apparaît QUE s'il y a un chiffre. Une
+       série au poids du corps sans pesée antérieure n'en produit pas : une
+       case vide se lirait comme un zéro, et c'est la phrase au-dessous qui
+       dit alors ce qui manque. */
+    var aPdc = v.tonnagePoidsCorps > 0;
+    refs.casePdc.hidden = !aPdc;
+    refs.totaux.classList.toggle('a-quatre', aPdc);
+    if (aPdc) refs.tonnagePdc.textContent = A.m.fmt(Math.round(v.tonnagePoidsCorps));
   }
 
   /* ------------------------------------------------------------------
@@ -315,7 +326,27 @@
       meta.appendChild(h('span', { text: 'Repos ' + exo.reposSecondes + ' s' }));
       if (exo.cote) meta.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(exo.cote) }));
       if (exo.prise) meta.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(exo.prise).toLowerCase() }));
-      if (tc.id !== 'kg') meta.appendChild(h('span', { text: tc.nom }));
+      /* UN EXERCICE EN POIDS DU CORPS DIT LE POIDS DE CE JOUR-LA.
+
+         C'est ici que MB a senti le manque : « n'ayant pas mon poids de
+         corps enregistré, j'ai trouvé ça dommage ». La ligne affichait
+         « Poids du corps » et rien d'autre.
+
+         `poidsAuJour` lit la pesée EN VIGUEUR à la date de la SÉANCE, pas
+         celle d'aujourd'hui — c'est tout ce que « daté » achète, et ça ne
+         se voit que sur une séance ancienne.
+
+         QUAND IL N'Y A RIEN, ON N'INVENTE RIEN : la ligne retombe sur
+         l'ancien libellé. Un poids extrapolé vers l'arrière serait une
+         mesure que MB n'a jamais faite. */
+      if (tc.id === 'poids_corps') {
+        var pe = seance ? A.m.poidsAuJour(etat(), seance.date) : null;
+        meta.appendChild(h('span', { text: pe
+          ? tc.nom + ' ' + pe.poids + ' kg'
+          : tc.nom }));
+      } else if (tc.id !== 'kg') {
+        meta.appendChild(h('span', { text: tc.nom }));
+      }
       (exo.outils || []).forEach(function (o) {
         meta.appendChild(h('span', { class: 'jeton jeton-outil', text: A.m.outilDit(exo, o) }));
       });
@@ -489,10 +520,15 @@
     refs.etiquetteAw = h('dt', { text: 'dont AW' });
     refs.exclus = h('p', { class: 'note-exclus' });
     refs.reps = h('p', { class: 'note-exclus' });
-    hote.appendChild(h('dl', { class: 'totaux' },
+    refs.tonnagePdc = h('dd', { class: 'chiffre', text: '0' });
+    refs.casePdc = h('div', { class: 'pdc', hidden: true },
+      h('dt', { text: 'au poids du corps' }), refs.tonnagePdc);
+    refs.totaux = h('dl', { class: 'totaux' },
       h('div', {}, h('dt', { text: 'Séries faites' }), refs.nbSeries),
       h('div', {}, h('dt', { text: 'Volume' }), refs.tonnage),
-      h('div', { class: 'aw' }, refs.etiquetteAw, refs.tonnageAw)));
+      h('div', { class: 'aw' }, refs.etiquetteAw, refs.tonnageAw),
+      refs.casePdc);
+    hote.appendChild(refs.totaux);
     hote.appendChild(refs.exclus);
     hote.appendChild(refs.reps);
 

@@ -703,6 +703,12 @@ select.champ { appearance: none; background-image: none; }
 .totaux dt { font-size: .66rem; letter-spacing: .04em; color: var(--texte-3); text-transform: uppercase; margin: 0 0 2px; }
 .totaux dd { margin: 0; font-size: 1.12rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .totaux .aw dd { color: var(--laiton); }
+/* QUATRE CASES : 2x2, pas quatre de front. A 320 px, quatre colonnes font
+   ~78 px chacune et le chiffre y est a l'etroit — on ecraserait les trois
+   cases existantes pour loger la neuve. La regle ne s'applique que quand le
+   quatrieme chiffre existe. */
+.totaux.a-quatre { grid-template-columns: repeat(2, 1fr); }
+.totaux .pdc dd { color: var(--texte-2); }
 .note-exclus { font-size: .74rem; color: var(--texte-2); margin: -6px 0 10px; padding: 0 2px; }
 .note-exclus:empty { display: none; margin: 0; }
 

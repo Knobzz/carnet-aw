@@ -85,6 +85,10 @@
               dit += ' Dictionnaire : ' + b.fichesAjoutees + ' fiche(s) ajoutée(s), '
                    + b.fichesGardees + ' gardée(s).';
             }
+            if (b.peseesAjoutees || b.peseesGardees) {
+              dit += ' Pesées : ' + b.peseesAjoutees + ' ajoutée(s), '
+                   + b.peseesGardees + ' gardée(s).';
+            }
             A.ui.toast(dit);
           } },
         { nom: 'Remplacer — effacer ' + e.seances.length + ' séance(s) d’ici',
@@ -697,6 +701,100 @@
 
     hote.appendChild(btNotif);
     hote.appendChild(etatNotif);
+
+    /* ================================================================
+       MON POIDS
+
+       MB, 29/10 : « j'y ai pensé quand j'ai mis un exo avec poids du corps,
+       n'ayant pas mon poids de corps enregistré, j'ai trouvé ça dommage ».
+
+       IL EST DATÉ. Un poids de corps change ; une valeur unique aurait
+       recalculé l'historique à chaque pesée. Une ligne par pesée, et c'est
+       `poidsAuJour` qui rend celle qui était en vigueur un jour donné.
+
+       PAS DE TAILLE. Elle avait été demandée aussi, et je ne la pose pas :
+       RIEN dans le carnet ne la lirait. Un champ que rien ne consomme est
+       un champ qui pourrit, et c'est l'argument qui vaut ici autant
+       qu'ailleurs. Le jour où un écran en a besoin, elle entrera avec lui.
+       ================================================================ */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Mon poids' }));
+
+    var champDatePoids = h('input', { class: 'champ', type: 'date',
+                                      value: A.m.aujourdHui() });
+    var champPoids = h('input', { class: 'champ', type: 'number', min: '1',
+                                  max: '500', step: '0.1', inputmode: 'decimal',
+                                  placeholder: 'kg' });
+    var btPeser = h('button', { class: 'bt bt-petit', text: 'Enregistrer' });
+    var listePesees = h('div');
+
+    function rendrePesees() {
+      A.ui.vider(listePesees);
+      var l = A.m.peseesTriees(e);
+      if (!l.length) {
+        listePesees.appendChild(h('div', { class: 'item-resume',
+          text: 'Aucune pesée. Tant qu’il n’y en a pas, un exercice en poids '
+              + 'du corps ne peut rien afficher d’autre que son lest.' }));
+        return;
+      }
+      l.forEach(function (p, i) {
+        /* L'ECART AVEC LA PESEE PRECEDENTE — c'est-à-dire la SUIVANTE dans
+           la liste, puisqu'elle est triée du plus récent au plus ancien.
+           Gratuit dès lors que les pesées sont datées, et c'est la seule
+           chose que la liste apprend qu'une valeur unique ne dirait pas. */
+        var avant = l[i + 1];
+        var ecart = avant ? Math.round((p.poids - avant.poids) * 10) / 10 : null;
+        var bt = h('button', { class: 'bt bt-petit bt-danger pousse',
+                               text: 'Supprimer' });
+        A.ui.confirmer2(bt, 'Confirmer ?', function () {
+          A.m.supprimerPesee(e, p.id);
+          A.store.sauver(true);
+          rendrePesees();
+        });
+        listePesees.appendChild(h('div', { class: 'item-ligne rangee' },
+          h('span', { text: A.m.dateCourte(p.date) }),
+          h('b', { text: p.poids + ' kg' }),
+          h('span', { class: 'item-resume',
+                      text: ecart == null ? ''
+                          : (ecart > 0 ? '+' : '') + ecart + ' kg' }),
+          bt));
+      });
+    }
+
+    function enregistrerPesee() {
+      var kg = parseFloat(String(champPoids.value).replace(',', '.'));
+      if (!isFinite(kg) || kg <= 0 || kg > 500) {
+        A.ui.toast('Un poids entre 1 et 500 kg. Le carnet refuse la frappe, '
+                 + 'pas le gabarit.');
+        return;
+      }
+      var quand = champDatePoids.value || A.m.aujourdHui();
+      A.m.poserPesee(e, quand, kg);
+      A.store.sauver(true);
+      champPoids.value = '';
+      rendrePesees();
+      A.ui.toast('Pesée du ' + A.m.dateCourte(quand) + ' enregistrée. Elle ne '
+               + 'change aucun tonnage.');
+    }
+    btPeser.addEventListener('click', enregistrerPesee);
+    /* Entrée valide : sur un téléphone, viser le bouton après avoir tapé
+       deux chiffres est un geste de trop. */
+    champPoids.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); enregistrerPesee(); }
+    });
+
+    hote.appendChild(h('div', { class: 'rangee' }, champDatePoids, champPoids, btPeser));
+    /* L'AIDE DIT CE QUE LE GESTE FAIT ET CE QU'IL NE FAIT PAS. Sans la
+       seconde moitié, MB attendrait que son volume par semaine bouge, et il
+       ne bougera pas : `poids_corps` garde `tonnage: false`, décision prise
+       à part pour ne pas réécrire des chiffres déjà lus. */
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 10px',
+      text: 'Une pesée par jour ; te repeser le soir corrige le matin. Elle '
+          + 'sert à lire un exercice en poids du corps AU POIDS DE CE '
+          + 'JOUR-LÀ — une séance de juillet garde le poids de juillet. Elle '
+          + 'n’entre dans aucun tonnage : ton volume par semaine ne bougera '
+          + 'pas.' }));
+    rendrePesees();
+    hote.appendChild(listePesees);
 
     /* Le CATALOGUE vient avant l'équipement, et les deux avant le reste.
        On cherche « qu'est-ce que j'ai déjà saisi » plus souvent qu'on

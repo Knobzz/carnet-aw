@@ -47,6 +47,12 @@
       /* Les releves de douleur du lendemain : independants des seances, parce
          que le lendemain d'une grosse seance est souvent un jour de repos. */
       releves: [],
+      /* MES PESEES : { id, date, poids }. Datees, parce qu'un poids de corps
+         change et qu'une valeur unique recalculerait l'historique a chaque
+         pesee. INERTE POUR LES VERSIONS ANTERIEURES, comme le dictionnaire :
+         une 1.51 relit sans broncher une sauvegarde qui les porte, elle les
+         ignore. C'est la garantie de retour arriere. */
+      pesees: [],
       seances: [],
       reglages: { theme: 'auto', ecranAllume: true, notifierRepos: false,
                   /* La periode du Suivi. Un id, valide par le modele a la
@@ -84,6 +90,11 @@
        rechargeait pas. */
     if (Array.isArray(brut.dictionnairePerso)) d.dictionnairePerso = brut.dictionnairePerso;
     if (Array.isArray(brut.releves)) d.releves = brut.releves;
+    /* SANS CETTE LIGNE, LES PESEES NE SURVIVENT A RIEN — meme piege que le
+       dictionnaire perso, trouve dans le bac a sable le 28/10 : `normaliser`
+       est une liste blanche, et la fonctionnalite marche tant qu'on ne
+       recharge pas. Un controle du banc rejoue le cycle complet. */
+    if (Array.isArray(brut.pesees)) d.pesees = brut.pesees;
     if (Array.isArray(brut.seances)) d.seances = brut.seances;
     if (brut.reglages && typeof brut.reglages === 'object') {
       d.reglages.theme = ['auto', 'clair', 'sombre'].indexOf(brut.reglages.theme) >= 0
@@ -115,6 +126,7 @@
        relise entiere. Voir A.m.migrer() — il dit ce qui bouge et ce qui ne
        bouge pas. */
     if (A.m && A.m.normaliserReleves) d.releves = A.m.normaliserReleves(d.releves);
+    if (A.m && A.m.normaliserPesees) d.pesees = A.m.normaliserPesees(d.pesees);
     if (A.m && A.m.migrer) A.m.migrer(d);
 
     d.versionDonnees = VERSION_DONNEES;
@@ -213,7 +225,8 @@
     var bilan = { seancesAjoutees: 0, seancesGardees: 0, relevesAjoutes: 0,
                   programmesAjoutes: 0, programmesGardes: 0,
                   exercicesAjoutes: 0, outilsAjoutes: 0,
-                  fichesAjoutees: 0, fichesGardees: 0 };
+                  fichesAjoutees: 0, fichesGardees: 0,
+                  peseesAjoutees: 0, peseesGardees: 0 };
 
     function parId(liste) {
       var m = {};
@@ -285,6 +298,29 @@
       mesFiches.push(f);
       if (A.m) nomsVus[A.m.slug(f.nom)] = true;
       bilan.fichesAjoutees += 1;
+    });
+
+    /* MES PESEES, MEME REGLE. Sans ce bloc, importer une sauvegarde
+       garderait les pesees d'ici et perdrait les siennes — la moitie que
+       `normaliser` ne rattrape pas, parce qu'elle ne garde que ce qui est
+       DEJA dans le carnet courant.
+
+       UNE PESEE PAR JOUR VAUT AUSSI A L'IMPORT : deux ids differents sur la
+       meme date feraient deux pesees le meme jour, et `poidsAuJour` en
+       prendrait une au hasard de l'ordre. Celle d'ici gagne. */
+    var mesPesees = Array.isArray(etat.pesees) ? etat.pesees : (etat.pesees = []);
+    var vuesPesees = parId(mesPesees);
+    var datesVues = {};
+    mesPesees.forEach(function (p) { if (p && p.date) datesVues[p.date] = true; });
+    (entrant.pesees || []).forEach(function (p) {
+      if (!p || !p.id) return;
+      if (vuesPesees[p.id] || datesVues[p.date]) {
+        bilan.peseesGardees = (bilan.peseesGardees || 0) + 1;
+        return;
+      }
+      mesPesees.push(p);
+      datesVues[p.date] = true;
+      bilan.peseesAjoutees = (bilan.peseesAjoutees || 0) + 1;
     });
 
     bilan.ecrit = ecrire();

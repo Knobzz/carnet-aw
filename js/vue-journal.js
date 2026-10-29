@@ -14,7 +14,10 @@
      ------------------------------------------------------------------ */
   function detailMuscu(se, surFin) {
     A.panneau.ouvrir(A.m.dateCourte(se.date), function (c, fermer) {
-      var v = A.m.volumeSeance(se);
+      /* LE POIDS DU JOUR DE CETTE SEANCE — c'est au Journal qu'on relit une
+         séance ancienne, donc là que la date sert vraiment. */
+      var pePdc = A.m.poidsAuJour(etat(), se.date);
+      var v = A.m.volumeSeance(se, pePdc ? pePdc.poids : null);
 
       var dureeAffichee = se.dureeMin != null ? se.dureeMin : A.m.dureeReelle(se);
       var mesuree = se.dureeMin == null && dureeAffichee != null;
@@ -23,10 +26,16 @@
             + (dureeAffichee != null ? ' · ' + dureeAffichee + ' min' + (mesuree ? ' (mesurée)' : '') : '')
             + (se.rpeGlobal ? ' · RPE ' + se.rpeGlobal : '') }));
 
-      c.appendChild(h('dl', { class: 'totaux' },
+      /* MEME GRAMMAIRE QUE L'ECRAN SEANCE : quatrième case seulement s'il y
+         a un chiffre, et la grille passe alors en 2×2 plutôt que d'écraser
+         les trois autres sur 320 px. */
+      var aPdcJ = v.tonnagePoidsCorps > 0;
+      c.appendChild(h('dl', { class: 'totaux' + (aPdcJ ? ' a-quatre' : '') },
         h('div', {}, h('dt', { text: 'Séries faites' }), h('dd', { class: 'chiffre', text: v.seriesFaites + ' / ' + v.series })),
         h('div', {}, h('dt', { text: 'Volume' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnage)) })),
-        h('div', { class: 'aw' }, h('dt', { text: 'dont AW' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnageAw)) }))));
+        h('div', { class: 'aw' }, h('dt', { text: 'dont AW' }), h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnageAw)) })),
+        aPdcJ ? h('div', { class: 'pdc' }, h('dt', { text: 'au poids du corps' }),
+          h('dd', { class: 'chiffre', text: A.m.fmt(Math.round(v.tonnagePoidsCorps)) })) : null));
       if (v.repsTotal || v.tempsSousTension) {
         var bouts = [];
         if (v.repsTotal) bouts.push(A.m.fmt(v.repsTotal) + ' reps au total');
@@ -57,18 +66,32 @@
             ex.aw ? h('span', { class: 'jeton', text: 'AW' }) : null)),
           btHisto));
         if (ex.consigne) bloc.appendChild(h('div', { class: 'consigne', text: ex.consigne }));
-        if ((ex.outils || []).length || (ex.structures || []).length) {
-          var m2 = h('div', { class: 'exo-meta' });
-          if (ex.cote) m2.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ex.cote) }));
-          if (ex.prise) m2.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(ex.prise).toLowerCase() }));
-          (ex.outils || []).forEach(function (o) {
-            m2.appendChild(h('span', { class: 'jeton jeton-outil', text: A.m.outilDit(ex, o) }));
-          });
-          if ((ex.structures || []).length) {
-            m2.appendChild(h('span', { text: ex.structures.map(A.m.nomStructure).join(' · ') }));
-          }
-          bloc.appendChild(m2);
+        /* LA RANGÉE META SE BÂTIT D'ABORD, ET NE S'AFFICHE QUE SI ELLE A
+           QUELQUE CHOSE À DIRE.
+
+           Elle était conditionnée à la présence d'un OUTIL ou d'une
+           STRUCTURE — donc un exercice qui portait seulement un côté ou une
+           prise n'en montrait aucun. Trouvé en cliquant dans le bac à sable
+           le 29/10, pas par un contrôle. */
+        var m2 = h('div', { class: 'exo-meta' });
+        if (ex.cote) m2.appendChild(h('span', { class: 'jeton jeton-cote', text: A.m.nomCote(ex.cote) }));
+        if (ex.prise) m2.appendChild(h('span', { class: 'jeton', text: 'Prise ' + A.m.nomPrise(ex.prise).toLowerCase() }));
+        /* LE POIDS DU CORPS DE CE JOUR-LÀ — et le Journal est l'endroit où
+           ça compte le plus, puisque c'est là qu'on relit une séance
+           ANCIENNE. La Séance en cours l'affichait déjà ; sans celui-ci,
+           c'était une moitié. Rien à dire quand aucune pesée n'est
+           antérieure : on n'extrapole pas vers l'arrière. */
+        if (A.m.typeCharge(ex.typeCharge).id === 'poids_corps') {
+          var pe = A.m.poidsAuJour(A.store.etat(), se.date);
+          if (pe) m2.appendChild(h('span', { text: 'Poids du corps ' + pe.poids + ' kg' }));
         }
+        (ex.outils || []).forEach(function (o) {
+          m2.appendChild(h('span', { class: 'jeton jeton-outil', text: A.m.outilDit(ex, o) }));
+        });
+        if ((ex.structures || []).length) {
+          m2.appendChild(h('span', { text: ex.structures.map(A.m.nomStructure).join(' · ') }));
+        }
+        if (m2.children.length) bloc.appendChild(m2);
 
         var lignes = h('div', { class: 'item-lignes', style: 'padding:0 12px 10px' });
         var n = 0;
