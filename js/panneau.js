@@ -421,10 +421,28 @@
           var corps = h('div', { class: 'carte-corps reglages-repli' });
           corps.hidden = !q;
           g.fiches.forEach(function (d) {
+            /* LE NOM, PUIS SES AUTRES ECRITURES — PAS SES MUSCLES.
+
+               MB, 29/10 : « pas besoin de mettre les muscles que ca
+               travaille » ; puis « tu peux mettres les noms connus a la
+               place, ca indiquera les variantes pour l'user ». Les muscles
+               arrivent une ligne plus bas, dans la fiche, des qu'on a
+               choisi. Reglages, lui, les garde : on y vient justement pour
+               savoir ce qu'une fiche porte.
+
+               TROIS AU PLUS, ET LE RESTE SE COMPTE. Mediane : 3 ecritures.
+               Mais le developpe militaire en porte VINGT — 599 caracteres,
+               huit lignes a 320 px pour une seule entree. 34 fiches sur 62
+               sont donc tronquees, et le nombre restant est ECRIT : une
+               liste qui s'arrete sans le dire se lit comme complete. */
             var b = h('button', { type: 'button', class: 'dico-choix' });
             b.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
-            b.appendChild(h('div', { class: 'item-resume',
-              text: (d.muscles || []).map(A.m.nomCourtMuscle).join(', ') }));
+            var au = d.aussi || [];
+            if (au.length) {
+              b.appendChild(h('div', { class: 'item-resume',
+                text: au.slice(0, 3).join(' · ')
+                    + (au.length > 3 ? ' · +' + (au.length - 3) + ' autres' : '') }));
+            }
             b.addEventListener('click', function () { choisirFiche(d.nom); });
             corps.appendChild(b);
           });

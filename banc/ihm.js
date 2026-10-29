@@ -3267,6 +3267,118 @@
      que la LISTE est la bonne. Ici on mesure que l'ÉCRAN la rend, que la
      frappe la filtre, et qu'un résultat vide se DIT au lieu de disparaître.
      ================================================================ */
+  /* ================================================================
+     PARCOURIR LE DICTIONNAIRE DEPUIS L'AJOUT D'EXERCICE
+
+     MB, 29/10 : « A, le bouton » — puis, sur ce que montre chaque ligne :
+     « pas besoin de mettre les muscles que ca travaille », et « tu peux
+     mettres les noms connus a la place, ca indiquera les variantes pour
+     l'user ».
+     ================================================================ */
+  bloc('Parcourir le dictionnaire à l’ajout', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+
+    /* ON REFERME CE QU'ON OUVRE. Ce bloc ouvre un panneau ; le laisser
+       ouvert fait lire MA fiche aux blocs suivants — c'est la fuite deja
+       decrite plus haut dans ce fichier, et elle ne se voit QU'A la chute.
+       Payee une seconde fois le 29/10 : « Mon equipement, au doigt » et
+       « Ce que le carnet a lu » sont tombes sur mon panneau reste ouvert. */
+    function refermerTout() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+    }
+    var e = fen.App.store.etat();
+    e.exercices.length = 0;
+    e.seances.length = 0;
+    var se = fen.App.m.seanceMuscu(null);
+    e.seances.push(se);
+    e.seanceEnCoursId = se.id;
+    fen.App.vues.seance.rendre(vue);
+
+    return attendre(200).then(function () {
+      var bt = Array.prototype.filter.call(doc.querySelectorAll('button'),
+        function (b) { return /Ajouter un exercice/.test(b.textContent); })[0];
+      v.vrai(!!bt, 'la séance offre d’ajouter un exercice');
+      if (!bt) { refermerTout(); return; }
+      bt.click();
+      return attendre(220).then(function () {
+        var parc = Array.prototype.filter.call(doc.querySelectorAll('button'),
+          function (b) { return /Parcourir le dictionnaire/.test(b.textContent); })[0];
+        v.vrai(!!parc, 'le panneau porte le bouton « Parcourir le dictionnaire »');
+        if (!parc) { refermerTout(); return; }
+        /* FERME AU DEPART : rien ne change pour qui tape, et le panneau ne
+           s'allonge pas pour ceux qui n'en ont pas besoin. */
+        v.egal(doc.querySelectorAll('.dico-groupes').length, 0,
+               'et il est FERMÉ au départ — les groupes n’existent pas encore '
+             + 'dans la page');
+        var r = parc.getBoundingClientRect();
+        v.vrai(r.height >= 40, 'il reste visable : ' + Math.round(r.height) + ' px');
+
+        parc.click();
+        return attendre(160).then(function () {
+          var cats = Array.prototype.slice.call(doc.querySelectorAll('.dico-groupes .equip-cat'));
+          v.egal(cats.length, fen.App.m.GROUPES_DICO.length,
+                 'ouvert, il montre les six groupes');
+          v.egal(Array.prototype.map.call(
+                   doc.querySelectorAll('.dico-groupes .equip-cat b'),
+                   function (b) { return b.textContent; }).join(' / '),
+                 'Épaules / Dos / Pectoraux / Biceps / Triceps / Avant-bras',
+                 'les six de MB, dans son ordre');
+
+          var bic = cats.filter(function (b) { return /Biceps/.test(b.textContent); })[0];
+          bic.click();
+          return attendre(160).then(function () {
+            var lignes = Array.prototype.slice.call(
+              bic.parentElement.querySelectorAll('.dico-choix'));
+            v.vrai(lignes.length > 0, 'un groupe ouvert montre ses mouvements');
+
+            /* CE QUE CHAQUE LIGNE DIT : le nom, puis les AUTRES ECRITURES.
+               Pas les muscles — c'est la demande de MB. */
+            var ligne = lignes.filter(function (b) {
+              return /Curl biceps/.test(b.textContent);
+            })[0];
+            v.vrai(!!ligne, '« Curl biceps » est dans le groupe Biceps');
+            if (!ligne) { refermerTout(); return; }
+            var t = ligne.textContent;
+            v.vrai(t.indexOf('Curl haltères') >= 0,
+                   'la ligne montre ses autres écritures : ' + t.slice(0, 70));
+            v.egal(t.indexOf('Brachio-radial'), -1,
+                   'et PAS ses muscles — MB : « pas besoin de mettre les '
+                 + 'muscles que ça travaille »');
+            v.vrai(/\+\d+ autres/.test(t),
+                   'au-delà de trois, le RESTE SE COMPTE : une liste qui '
+                 + 's’arrête sans le dire se lit comme complète');
+
+            /* PRENDRE UN MOUVEMENT remplit le nom, referme le dictionnaire,
+               et n'ouvre PAS la liste de suggestions par-dessus. */
+            ligne.click();
+            return attendre(200).then(function () {
+              var champ = Array.prototype.filter.call(doc.querySelectorAll('input.champ'),
+                function (i) { return /Curl marteau/.test(i.placeholder || ''); })[0];
+              v.egal(champ && champ.value, 'Curl biceps',
+                     'le prendre pose son nom dans le champ');
+              v.egal(doc.querySelectorAll('.dico-groupes').length, 0,
+                     'et referme le dictionnaire');
+              v.egal(Array.prototype.filter.call(doc.querySelectorAll('.auto-liste'),
+                function (l) { return !l.hidden; }).length, 0,
+                     'sans ouvrir la liste de suggestions par-dessus — elle '
+                   + 'proposait ce qu’on venait de choisir');
+              /* LE PANNEAU EST EMPILE A COTE DE LA VUE, pas dedans : on lit
+                 le document, sinon on mesure un écran qu'on ne regarde pas. */
+              var txt = doc.body.textContent;
+              v.vrai(txt.indexOf('Biceps brachial') >= 0,
+                     'et les MUSCLES arrivent, eux, dans la fiche');
+              refermerTout();
+            });
+          });
+        });
+      });
+    });
+  });
+
   bloc('Le dictionnaire dans Réglages', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
