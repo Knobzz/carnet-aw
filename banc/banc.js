@@ -2646,7 +2646,11 @@
        type perd ses mots, et le dernier tient une regle de LECTURE qu on
        pourrait casser sans la voir. */
     [['Iron Wrist', 5], ['Rolling Handle', 5], ['Wrist Wrench', 10],
-     ['Cone handle', 1], ['Eccentric Handle', 4],
+     /* CINQ DEPUIS LE 29/10, et plus un : les deux fabricants ecrivent
+        CUPPING et POIGNET, le type emprunte donc aux entrees « Cup hold »
+        et « Wrist curl ». Ce controle exigeait 1 — il avait raison de
+        tomber. */
+     ['Cone handle', 5], ['Eccentric Handle', 4],
      ['Soft & Slippery Handle', 1], ['Thumb Belt', 5]
     ].forEach(function (x) {
       v.egal(A.m.musclesDeLOutil([x[0]]).length, x[1],
@@ -5438,8 +5442,9 @@
            '[prix] et l’autre cadre non plus');
 
     /* ---- L'ACCESSOIRE, LUI, PROPOSE ---- */
-    v.egal(pose('Titan Grip Multi-Tool', 'Kegel').join(','), 'flechisseurs_doigts',
-           'le Kégel choisi propose les fléchisseurs des doigts');
+    v.egal(pose('Titan Grip Multi-Tool', 'Kegel').length, 5,
+           'le Kégel choisi propose les CINQ du cupping — il n’en proposait '
+         + 'qu’un avant que les deux fiches de fabricant soient lues');
     v.egal(pose('Titan Grip Multi-Tool', 'Zylinder L').length, 5,
            'et « Zylinder L » les cinq de la prise épaisse — alors que son '
          + 'nom SEUL est interdit comme outil, « Pronator Zylinder » étant '
@@ -5515,10 +5520,13 @@
     v.egal(pose('Armwrestling Buddies', 'King’s Cup · Vis au centre').length, 5,
            '[prix] un TROU, lui, ne porte pas de muscles : la base garde la '
          + 'main. Il tient des deux côtés — ce qui bouge, c’est le cône');
-    v.egal(A.m.musclesDeLOutil(['Golden Grip Cone Handle']).join(','),
-           'flechisseurs_doigts',
-           '[prix] et sans orientation choisie, le cône garde ce qu’il '
-         + 'proposait : les deux sens ont la main en commun');
+    v.egal(A.m.musclesDeLOutil(['Golden Grip Cone Handle']).length, 5,
+           'sans orientation choisie, le cône propose ce que les DEUX '
+         + 'fabricants nomment : le cupping et le poignet. Il n’en proposait '
+         + 'qu’UN avant le 29/10');
+    v.vrai(A.m.musclesDeLOutil(['Golden Grip Cone Handle']).indexOf('fcr') >= 0,
+           'et c’est bien la face de la FLEXION — « Train cupping, wrist '
+         + 'flexion and hand control », dit Golden Grip');
 
     /* ---- CE QUI RESTE MUET, ET POURQUOI ---- */
     v.egal(pose('Titan Grip Multi-Tool', 'Wrist Pro').length, 0,

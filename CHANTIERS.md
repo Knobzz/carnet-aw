@@ -160,7 +160,7 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    réglages : *partie large vers les doigts* → le **dessus** (extenseurs),
    *vers le poignet* → le **dessous** (fléchisseurs). Les deux ne partagent
    que les fléchisseurs des doigts — dans les deux sens, c'est la main qui
-   tient. Sans orientation choisie, il garde ce qu'il proposait.
+   tient.
 
    **LE SENS EST VALIDÉ**, par MB le 29/10, **gravures sous les yeux** : il
    avait demandé à les voir — « je ne vois pas juste avec les noms
@@ -170,10 +170,40 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    montage — mais un bras de fer l'a regardé et l'a reconnu. Un prochain
    passage qui voudrait inverser rouvre une décision **prise**.
 
-   **ET LA DETTE D'ORIGINE RESTE, plus petite** : la fiche Golden Grip du
-   Cone Handle nomme aussi une **tension côté auriculaire** et de la
-   **supination**, que ni l'une ni l'autre orientation ne porte. L'ajouter
-   toucherait le type `cone` entier, donc aussi Mithril et Titangrip.
+   **ET LA DETTE D'ORIGINE EST SOLDÉE en 1.66.0 — mais l'énoncé de la
+   dette était FAUX, et c'est ça qu'il faut retenir.** Je l'avais écrite
+   à deux endroits : « sa fiche Golden Grip nomme une cup profonde, une
+   tension côté auriculaire et de la supination. Trois choses, un
+   muscle. » Les deux pages ont été **lues** le 29/10 — celle de Golden
+   Grip et celle de Mithril. **Aucune des deux ne dit ça.** La page de
+   Golden Grip ne donne même que des **dimensions** (« Diameter: 6cm (top)
+   to 3cm (bottom) »). J'avais déduit ces trois effets de la **forme du
+   produit**, et je les avais écrits comme une citation. C'est le même
+   défaut que la fausse phrase sur les vingt-et-un accessoires, que MB
+   avait attrapée deux jours plus tôt : **mesurer la déclaration, pas
+   l'effet** — ici, inventer la déclaration.
+
+   **CE QUE LES DEUX FABRICANTS DISENT, EUX** : Golden Grip, « Train
+   **cupping, wrist flexion** and hand control […] made for targeted
+   forearm work », et sa page est titrée « Cone Handle for Armwrestling
+   **Cup** Training ». Mithril, sous *What It Trains* : « Grip strength,
+   **cupping, wrist control**, pronation, finger containment, and forearm
+   stability. » Commun aux deux, et c'est le critère de ce carnet — deux
+   sites indépendants : **le cupping et le poignet**. Le type `cone`
+   emprunte donc désormais aux entrées **Cup hold** et **Wrist curl** :
+   cinq muscles au lieu d'un, et **dérivés** plutôt que recopiés.
+
+   **ET MITHRIL CONFIRME MB MOT POUR MOT**, sous *How It Works* : « The
+   **changing diameter** creates **different leverage for the fingers**
+   along the cone. The athlete can **alter hand position** to emphasize a
+   smaller controlled grip or a larger thick-grip section. » MB avait dit
+   la même chose en une ligne, sans avoir lu la page.
+
+   **CE QUE ÇA APPREND, EN REVANCHE, SUR LE SENS DE MONTAGE** : les cinq
+   muscles du cupping sont **exactement** ceux de l'orientation *large vers
+   le poignet*. Les deux fabricants ne décrivent donc qu'**UN** des deux
+   sens — celui de la cup. L'autre reste un raisonnement, validé par MB
+   gravures sous les yeux, et aucune source ne le contredit.
 
 ## 2. Les variantes, plutôt qu'un nom par engin
 
@@ -308,9 +338,6 @@ a trois lecteurs (Réglages, la séance, le Journal).
 
 Petites, nommées, et qui ne demandent qu'une décision.
 
-- **Le Cone Handle** propose un seul muscle (`flechisseurs_doigts`) là où sa
-  fiche Golden Grip nomme une cup profonde, une tension côté auriculaire et de
-  la supination. Signalé, pas traité.
 - **La date de la séance de récup** : MB a eu une séance mal datée le 28/10,
   et le chemin par lequel c'est arrivé reste **inexpliqué**. Le champ Date du
   Journal permet de réparer ; la cause n'est pas trouvée.

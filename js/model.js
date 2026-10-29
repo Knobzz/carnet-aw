@@ -2869,11 +2869,27 @@
        Un prochain passage qui voudrait inverser rouvre une decision
        PRISE ; il ne comble pas un trou.
 
-       SANS ORIENTATION CHOISIE, le cone garde ce qu'il proposait : les
-       flechisseurs des doigts, communs aux deux sens — c'est la main qui
-       tient, dans les deux cas. */
+       SANS ORIENTATION CHOISIE, il propose ce que les DEUX fabricants
+       nomment — le cupping et le poignet.
+
+       CE QUI A CHANGE LE 29/10, APRES LECTURE DES DEUX PAGES : il ne
+       proposait qu'UN muscle. Golden Grip ecrit « Train CUPPING, WRIST
+       FLEXION and HAND CONTROL » et titre sa page « Cone Handle for
+       Armwrestling CUP Training ». Mithril ecrit, sous « What It
+       Trains » : « Grip strength, CUPPING, WRIST CONTROL, pronation,
+       finger containment, and forearm stability ». Commun aux deux : le
+       CUPPING et le POIGNET — et c'est le critere de ce fichier, deux
+       sites independants.
+
+       D'OU LES ENTREES plutot qu'une liste a lui : le carnet a deja ces
+       deux gestes, et le jour ou l'un gagne un muscle, le cone le gagne.
+
+       ET MITHRIL CONFIRME MB MOT POUR MOT, sous « How It Works » : « The
+       changing diameter creates DIFFERENT LEVERAGE FOR THE FINGERS along
+       the cone. The athlete can ALTER HAND POSITION to emphasize a
+       smaller controlled grip or a larger thick-grip section. » */
     { mots: ['cone', 'conic', 'kegel'],
-      muscles: ['flechisseurs_doigts'],
+      entrees: ['Cup hold', 'Wrist curl'],
       reglages: ORIENTATIONS_CONE },
 
     /* L'axe de charge n'est pas au centre de la main : le poignet resiste
