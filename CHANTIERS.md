@@ -11,6 +11,48 @@ posé le 23/10 — les mouvements d'abord, les équipements bien après.
 
 ---
 
+## 0. Finir le dictionnaire — C'EST LE CHANTIER EN COURS
+
+**L'ordre de MB, 2026-10-23** : les mouvements d'abord, les équipements
+« dans un second temps beaucoup plus tardif ». Rien de ce qui suit ne
+commence tant que celui-ci n'est pas fini.
+
+**Six lots livrés, 58 fiches** : le poignet et l'avant-bras (8), la main et
+le grip (5), les exercices de table (3), les épaules et le dos (17), les
+fléchisseurs du coude (9), les épaules (12, le 29/10).
+
+**CE QUI RESTE, MESURÉ LE 2026-10-29**, après le lot des épaules, sur les
+noms réels des pages de docteur-fitness :
+
+| famille | noms | ne rend RIEN | un seul muscle |
+|---|---|---|---|
+| Triceps | 38 | 7 | **17** |
+| Dorsaux | 77 | **21** | 1 |
+| Pectoraux | 51 | **14** | 4 |
+| Biceps | 34 | 7 | 2 |
+
+**L'ORDRE RECOMMANDÉ, et pourquoi :**
+
+1. **Les triceps.** Le pire ratio — 24 noms sur 38 mal servis, dont **17 qui
+   rendent « Triceps » tout seul** alors que la fiche `Extension triceps`
+   en porte deux. Une réponse maigre se corrige moins bien qu'une absence :
+   on ne corrige pas ce qui a répondu.
+2. **Les dorsaux.** 21 noms muets, et cohérents entre eux — les pull-overs,
+   le soulevé de terre, le muscle-up, les tractions assistées.
+3. **Les pectoraux.** 14 muets, surtout des variantes d'engin.
+4. **Les biceps.** 7 muets seulement : le lot 5 a déjà fait le gros.
+
+**CE QU'UN LOT COÛTE VRAIMENT** — leçon du lot des épaules : il a fallu faire
+entrer **quatre muscles** avant de pouvoir écrire une seule fiche, parce que
+la rotation externe n'avait aucun moteur à nommer. Vérifier que le carnet a
+les muscles AVANT de promettre un lot.
+
+**LE RITUEL, inchangé** : je liste et je source (citation mot pour mot +
+lien) dans `revue/catalogue.js`, MB lit la planche `revue/index.html` où les
+noms sont **modifiables**, il valide, et seulement ensuite on livre.
+
+---
+
 ## 1. Les équipements spécifiques au bras de fer
 
 **Quand** : après les lots de mouvements. Ordre posé par MB le 2026-10-23,
@@ -119,3 +161,12 @@ Petites, nommées, et qui ne demandent qu'une décision.
   utilisable (voir le lot des épaules) : l'angulaire n'est du domaine public
   qu'aux États-Unis, et aucune planche Gray isolant le dentelé n'a été
   trouvée.
+  Conséquence : le **haussement d'épaules** propose la moitié de ce qu'il
+  travaille, et sa fiche le dit.
+- **L'élévation latérale ne porte qu'un muscle.** Le supra-épineux amorce
+  l'abduction et sa citation Kenhub le dit — mais l'ajouter le 29/10 aurait
+  été une attribution que MB n'avait pas vue sur la planche. À reprendre avec
+  les autres fiches déjà livrées.
+- **Les rangs sont RAISONNÉS, pas mesurés** : 43 sur 43 pour le lot des
+  épaules. Aucune EMG ne dit qui mène un face pull. La planche l'écrit, et
+  c'est le seul endroit où l'œil de MB vaut mieux que la mesure.
