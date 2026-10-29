@@ -5410,6 +5410,103 @@
   });
 
   /* ==================================================================
+     LE LOT 8 — LES DORSAUX
+
+     MB, 29/10 : « Prepare les dorsaux », puis « Onze suffisent », puis
+     « Je valide. Il me semble que le rowing etait deja present, attention
+     au doublon a chaque fois ^^ ».
+
+     CE QUI A DECIDE DU LOT n'est pas le nombre de noms muets (21 sur 77)
+     mais le carnet : son dos ne compte que TROIS muscles. Neuf noms
+     butaient sur les erecteurs du rachis, absents, et MB a choisi de ne pas
+     les faire entrer.
+     ================================================================== */
+  bloc('Le lot 8 — les dorsaux', function (v) {
+    function mus(n) { return A.m.musclesDuNom(n).slice().sort().join(','); }
+    function fiche(n) {
+      return A.m.ficheDictionnaire(n, { exercices: [], dictionnaire: [] });
+    }
+
+    /* ---- LES QUATRE FICHES SONT LIVREES ---- */
+    var ATTENDU = { 'Pull-over': 4, 'Muscle-up': 7, 'Montée à la corde': 6,
+                    'Rétraction des omoplates': 2 };
+    var manquent = [], faux = [];
+    Object.keys(ATTENDU).forEach(function (nom) {
+      var f = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === nom; })[0];
+      if (!f) { manquent.push(nom); return; }
+      if ((f.muscles || []).length !== ATTENDU[nom]) {
+        faux.push(nom + ' : ' + (f.muscles || []).length);
+      }
+    });
+    v.egal(manquent.join(' · '), '',
+           'les QUATRE fiches du lot 8 sont au dictionnaire');
+    v.egal(faux.join(' · '), '',
+           'et chacune porte le nombre de muscles annoncé. ATTENTION : vide '
+         + 'donc vert si les fiches MANQUENT ; c’est le contrôle du dessus '
+         + 'qui garde ce cas-là');
+
+    /* ---- LE ROWING N'EST PAS UNE FICHE NEUVE ----
+       MB : « attention au doublon a chaque fois ». Il gagne deux ecritures
+       et DEUX MUSCLES, il ne se dedouble pas. */
+    v.egal(A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Rowing';
+    }).length, 1, '[prix] « Rowing » n’existe qu’UNE fois au dictionnaire. '
+         + 'C’est la garde de MB — « attention au doublon à chaque fois » — '
+         + 'et elle DOIT tenir avant comme après : le lot ajoute à cette '
+         + 'fiche, il n’en ouvre pas une seconde');
+    v.vrai(mus('Seal row avec haltères').indexOf('rhomboides') >= 0,
+           '« Seal row avec haltères » mène au rowing — il ne rendait RIEN');
+    v.egal((fiche('Renegade row') || {}).nom, 'Rowing',
+           'et « Renegade row » aussi');
+
+    /* LA CORRECTION QUE LE LOT APPORTE : un rowing RETRACTE l'omoplate, et
+       la fiche decrivait la traction du bras sans elle. */
+    var row = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === 'Rowing'; })[0];
+    v.vrai((row.muscles || []).indexOf('rhomboides') >= 0
+        && (row.muscles || []).indexOf('trapeze') >= 0,
+           'le rowing porte enfin les RHOMBOÏDES et le TRAPÈZE : il rétracte '
+         + 'l’omoplate, et c’est leur action propre');
+    var tv = A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Tirage vertical';
+    })[0];
+    v.egal((tv.muscles || []).indexOf('rhomboides'), -1,
+           '[prix] et le TIRAGE VERTICAL ne les porte PAS — il ne rétracte '
+         + 'pas, c’est ce qui sépare les deux fiches. Il tient des deux '
+         + 'côtés : ce qui bouge, c’est le rowing');
+
+    /* ---- CE QUE LE CARNET REND MAINTENANT ---- */
+    v.egal(mus('Pull-over avec haltère'), 'grand_dorsal,grand_pectoral,grand_rond,triceps',
+           'un pull-over nommé par son engin répond — les six ne rendaient RIEN');
+    v.egal(mus('Rope climb'), 'biceps,brachial,brachio_radial,flechisseurs_doigts,grand_dorsal,grand_rond',
+           'la montée à la corde porte les FLÉCHISSEURS DES DOIGTS : c’est '
+         + 'une traction où le grip est la limite');
+    v.egal(mus('Rétraction scapulaire'), 'rhomboides,trapeze',
+           'la rétraction des omoplates n’en demande que DEUX : le bras ne '
+         + 'bouge pas');
+
+    /* ---- LES TROIS ECRITURES RESTEES DEHORS ----
+       Leurs mots disent la TRACTION, et le lecteur de noms leur rendait ses
+       sept muscles. Les livrer masquerait le defaut sans le regler. */
+    [['Traction scapulaire', 'Rétraction des omoplates'],
+     ['Scap pull-up', 'Rétraction des omoplates'],
+     ['Traction en muscle-up', 'Muscle-up']
+    ].forEach(function (p) {
+      v.egal((fiche(p[0]) || {}).nom, undefined,
+             '[temoin] « ' + p[0] + ' » n’est à AUCUNE fiche, et doit le '
+           + 'rester : ses mots disent la TRACTION. Il tient des deux '
+           + 'côtés — c’est une écriture refusée, pas oubliée');
+    });
+    v.egal(((A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Muscle-up';
+    })[0] || {}).aussi || []).length, 0,
+           '« Muscle-up » n’a AUCUNE autre écriture : « Muscle up » sans '
+         + '(vide donc vert si la fiche manque — le contrôle de présence '
+         + 'garde ce cas) '
+         + 'trait d’union rend le même slug, la fiche se proposait '
+         + 'elle-même deux fois');
+  });
+
+  /* ==================================================================
      LE LOT 7 — LES TRICEPS
 
      MB, 29/10 : « Le lot de 7 triceps était validé. Ce sont toutes des

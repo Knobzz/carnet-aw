@@ -1852,11 +1852,24 @@
     {
       id: 'muscle-up',
       nom: 'Muscle-up',
-      /* « Traction en muscle-up » EST SORTIE : le mot « traction » lui fait
-         rendre la liste entiere de la traction, trapeze et brachio-radial
-         compris, que cette fiche ne revendique pas. Meme motif qu'au lot 4
-         pour « Traction pronation ». */
-      aussi: ['Muscle up'],
+      /* AUCUNE AUTRE ECRITURE, et les deux candidates sont ecartees pour
+         deux raisons differentes — c'est le banc qui a trouve la
+         seconde, apres la validation de MB. */
+      aussi: [],
+      aussiEcartees: [
+        ['Traction en muscle-up',
+         'le mot « traction » lui fait rendre les sept muscles de la '
+         + 'traction, trapèze et brachio-radial compris, que cette fiche '
+         + 'ne revendique pas — même motif qu’au lot 4 pour « Traction '
+         + 'pronation »'],
+      ],
+      /* « MUSCLE UP » N'EST PAS ECARTEE, et la garde du banc a refuse que je
+         l'ecrive ainsi : elle EST en service — pas comme ecriture, comme le
+         NOM de la fiche a une ponctuation pres. Le slug retire le trait
+         d'union, donc taper « Muscle up » mene bien ici. La lister comme
+         ecartee aurait fait croire a MB qu'elle ne marche pas. C'est le
+         defaut jumeau que cette garde surveille, et elle a mordu sur son
+         auteur. */
       geste: 'Une traction qui ne s’arrête pas au menton : le buste passe '
            + 'au-dessus de la barre et le geste finit en poussée.',
       muscles: [

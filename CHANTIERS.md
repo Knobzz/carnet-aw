@@ -17,10 +17,11 @@ posé le 23/10 — les mouvements d'abord, les équipements bien après.
 « dans un second temps beaucoup plus tardif ». Rien de ce qui suit ne
 commence tant que celui-ci n'est pas fini.
 
-**Sept lots livrés, 62 fiches** : le poignet et l'avant-bras (8), la main et
+**Huit lots livrés, 66 fiches** : le poignet et l'avant-bras (8), la main et
 le grip (5), les exercices de table (3), les épaules et le dos (17), les
-fléchisseurs du coude (9), les épaules (12), les triceps (4, le 29/10 — plus
-quatre écritures aux dips et quatre transférées d'« Extension triceps »).
+fléchisseurs du coude (9), les épaules (12), les triceps (4), les dorsaux
+(4, le 29/10 — plus deux écritures au Rowing, qui retrouve au passage les
+rhomboïdes et le trapèze qu'il n'avait pas).
 
 **CE QUI RESTE, MESURÉ LE 2026-10-29**, après le lot des épaules, sur les
 noms réels des pages de docteur-fitness :
@@ -36,9 +37,12 @@ noms réels des pages de docteur-fitness :
 
 1. ~~**Les triceps.**~~ **LIVRÉS le 29/10.** C'était le pire ratio — 24 noms
    sur 38 mal servis, dont 17 qui rendaient « Triceps » tout seul.
-2. **Les dorsaux — PROPOSÉ le 29/10, attend la validation de MB.** 21 noms muets, et cohérents entre eux — les pull-overs,
+2. ~~**Les dorsaux.**~~ **LIVRÉS le 29/10**, onze noms sur vingt et un — MB :
+   « Onze suffisent ». Les neuf autres attendent les érecteurs du rachis. 21 noms muets, et cohérents entre eux — les pull-overs,
    le soulevé de terre, le muscle-up, les tractions assistées.
-3. **Les pectoraux.** 14 muets, surtout des variantes d'engin.
+3. **Les pectoraux — C'EST LE PROCHAIN.** 14 muets, surtout des variantes
+   d'engin. Ils porteront aussi les écritures de *Dips prise large*, qui
+   attendent leur page.
 4. **Les biceps.** 7 muets seulement : le lot 5 a déjà fait le gros.
 
 **CE QU'UN LOT COÛTE VRAIMENT** — leçon du lot des épaules : il a fallu faire

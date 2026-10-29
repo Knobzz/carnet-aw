@@ -1611,10 +1611,71 @@
       aussi: ['Traction', 'Traction pronée'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
                 'biceps', 'brachial', 'brachio_radial'] },
+    /* ---------- LES DORSAUX (lot 8) ----------
+
+       Validé par MB le 2026-10-29. Mesure qui a ouvert le lot, sur les 77
+       noms de la page « exercices dos » : VINGT ET UN ne proposaient rien.
+
+       CE N'EST PAS LE NOMBRE DE NOMS QUI A DÉCIDÉ DU LOT, c'est le carnet :
+       son dos ne compte que TROIS muscles. Cinq noms étaient faisables tels
+       quels, six avec un trou écrit, NEUF butaient sur les érecteurs du
+       rachis — absents — et un sortait du périmètre (bas du corps). MB :
+       « Onze suffisent ». Les neuf restent dus, nommés dans CHANTIERS.md.
+
+       ONZE NOMS, QUATRE FICHES : les six pull-overs n'en font qu'une, règle
+       du lot 4 — l'engin change le nom, pas les muscles. Aucun muscle neuf.
+
+       LE ROWING N'EST PAS UNE FICHE NEUVE, et MB l'a redit en validant :
+       « attention au doublon à chaque fois ». Il gagne deux écritures et
+       DEUX MUSCLES qui lui manquaient. */
     { nom: 'Rowing', groupe: 'dos',
+      /* LES RHOMBOÏDES ET LE TRAPÈZE SONT UNE CORRECTION, pas un ajout du
+         lot : un rowing RÉTRACTE l'omoplate, et c'est leur action propre —
+         « draws scapula medially », « Draws scapula superomedially ». La
+         fiche décrivait la traction du bras sans la rétraction qui la rend
+         possible. Le tirage VERTICAL, lui, ne rétracte pas : il garde ses
+         quatre, et c'est ce qui les sépare. */
       aussi: ['Tirage horizontal', 'Rowing barre', 'Rowing haltère',
-              'Rowing buste penché'],
-      muscles: ['grand_dorsal', 'grand_rond', 'biceps', 'brachial'] },
+              'Rowing buste penché', 'Seal row avec haltères',
+              'Renegade row'],
+      muscles: ['grand_dorsal', 'grand_rond', 'trapeze', 'rhomboides',
+                'biceps', 'brachial'] },
+    /* SIX NOMS DE LA PAGE, UNE SEULE FICHE. Et il lui manque le DENTELÉ
+       ANTÉRIEUR — le muscle que tout le monde associe au pull-over : le
+       carnet ne l'a pas, aucune planche Gray ne l'isole, et c'est une dette
+       inscrite, pas un oubli. */
+    { nom: 'Pull-over', groupe: 'dos',
+      aussi: ['Pull-over avec barre', 'Pull-over décliné à la barre',
+              'Pull-over avec deux haltères', 'Pull-over avec haltère',
+              'Pull-over à la poulie', 'Pull-over assis à la machine',
+              'Pullover'],
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'triceps'] },
+    /* DEUX GESTES EN UN : une traction PUIS une poussée. Sa liste est celle
+       du pull up plus celle des dips. « Traction en muscle-up » est restée
+       DEHORS : le mot « traction » lui fait rendre sept muscles que cette
+       fiche ne revendique pas. */
+    /* PAS D'AUTRE ECRITURE, et c'est mesure : « Muscle up » sans trait
+       d'union rend le MEME slug que « Muscle-up » — la fiche se proposait
+       elle-meme deux fois, comme « Y-raise » au lot 6. Aucune autre
+       orthographe ne survit a ce test. */
+    { nom: 'Muscle-up', groupe: 'dos',
+      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'deltoide',
+                'biceps', 'brachial', 'triceps'] },
+    /* UNE TRACTION OÙ LE GRIP EST LA LIMITE — celui-là intéresse le bras de
+       fer. */
+    { nom: 'Montée à la corde', groupe: 'dos',
+      aussi: ['Rope climb', 'Grimper de corde', 'Montée de corde'],
+      muscles: ['grand_dorsal', 'grand_rond', 'biceps', 'brachial',
+                'flechisseurs_doigts', 'brachio_radial'] },
+    /* DEUX MUSCLES, ET C'EST TOUT : le bras ne bouge pas. Il isole la
+       rétraction que tous les tirages font sans qu'on y pense. « Scap
+       pull-up » et « Traction scapulaire » sont restées dehors — leurs mots
+       disent la TRACTION, et le lecteur de noms leur rendait ses sept
+       muscles pour un geste qui n'en demande que deux. */
+    { nom: 'Rétraction des omoplates', groupe: 'dos',
+      aussi: ['Rétraction scapulaire', 'Scapular retraction',
+              'Rétraction des omoplates assis à la machine'],
+      muscles: ['trapeze', 'rhomboides'] },
     { nom: 'Tirage vertical', groupe: 'dos',
       aussi: ['Lat pulldown', 'Tirage poulie haute', 'Tirage nuque'],
       muscles: ['grand_dorsal', 'grand_rond', 'biceps', 'brachial'] },
