@@ -36,7 +36,7 @@ noms réels des pages de docteur-fitness :
 
 1. ~~**Les triceps.**~~ **LIVRÉS le 29/10.** C'était le pire ratio — 24 noms
    sur 38 mal servis, dont 17 qui rendaient « Triceps » tout seul.
-2. **Les dorsaux — C'EST LE PROCHAIN.** 21 noms muets, et cohérents entre eux — les pull-overs,
+2. **Les dorsaux — PROPOSÉ le 29/10, attend la validation de MB.** 21 noms muets, et cohérents entre eux — les pull-overs,
    le soulevé de terre, le muscle-up, les tractions assistées.
 3. **Les pectoraux.** 14 muets, surtout des variantes d'engin.
 4. **Les biceps.** 7 muets seulement : le lot 5 a déjà fait le gros.
@@ -245,6 +245,18 @@ Petites, nommées, et qui ne demandent qu'une décision.
   60°, et le brachio-radial est plus actif en PRONATION à 90° et 120°. Si
   une mesure de la traction partielle paraît un jour, les rangs se
   rediscutent.
+- **NEUF NOMS DE DOS ATTENDENT LES ÉRECTEURS DU RACHIS.** Mesuré le 29/10 sur
+  les 77 noms de la page des dorsaux : 21 ne proposent rien, et neuf d'entre
+  eux — Soulevé de terre (×2), Extension lombaire (×2), Extensions lombaires
+  sur swiss ball, Superman, Bird dog, Planche inversée, Front lever — butent
+  sur un muscle que le carnet n'a pas. MB a tranché : « Onze suffisent ». Le
+  lot 8 couvre les onze autres ; ces neuf restent dus. Le jour où on les
+  voudra, il faudra d'abord trouver une planche Gray qui ISOLE les érecteurs
+  — le même obstacle que le dentelé antérieur, et il n'a pas été cherché.
+  (Sled pull, le vingt et unième, est hors périmètre : bas du corps.)
+- **Le pull-over propose la moitié de ce qu'il travaille**, et sa fiche le
+  dit : le DENTELÉ ANTÉRIEUR, le muscle que tout le monde y associe, n'a pas
+  de planche utilisable. Même dette que le haussement d'épaules.
 - **Les rangs sont RAISONNÉS, pas mesurés** : 43 sur 43 pour le lot des
   épaules. Aucune EMG ne dit qui mène un face pull. La planche l'écrit, et
   c'est le seul endroit où l'œil de MB vaut mieux que la mesure.

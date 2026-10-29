@@ -1766,16 +1766,168 @@
     {
       id: 'rowing',
       nom: 'Rowing',
+      /* DEUX ÉCRITURES ET DEUX MUSCLES, AU LOT 8.
+
+         Les écritures sont « Seal row avec haltères » et « Renegade row » :
+         deux des vingt et un noms muets de la page des dorsaux. Ce sont des
+         rowings — le banc est horizontal pour l'un, le corps en planche
+         pour l'autre, mais le geste du bras est le même.
+
+         LES DEUX MUSCLES SONT UNE CORRECTION, et personne ne l'avait vue :
+         cette fiche ne portait ni RHOMBOÏDES ni TRAPÈZE. Or un rowing
+         RÉTRACTE l'omoplate, et c'est leur action propre. Elle décrivait
+         donc la traction du bras sans la rétraction qui la rend possible.
+         « Tirage vertical », lui, ne rétracte pas : il reste tel quel, et
+         c'est volontaire — la différence est là. */
       aussi: ['Tirage horizontal', 'Rowing barre', 'Rowing haltère',
-              'Rowing buste penché'],
+              'Rowing buste penché', 'Seal row avec haltères',
+              'Renegade row'],
       geste: 'Buste penché, la charge est tirée vers le ventre, coudes le '
            + 'long du corps.',
       muscles: [
         m('grand_dorsal', 'moteur', S.ld, C.ld),
         m('grand_rond', 'moteur', S.tm, C.tm),
+        m('rhomboides', 'moteur', S.rhom, C.rhom),
+        m('trapeze', 'moteur', S.trap, C.trap_desc),
         m('biceps', 'moteur', S.bic, C.bic),
         m('brachial', 'moteur', S.bra, C.bra)
-      ]
+      ],
+      note: 'LES RHOMBOÏDES ET LE TRAPÈZE ENTRENT, et c’est une correction '
+          + 'de la fiche, pas un ajout du lot : un rowing RÉTRACTE '
+          + 'l’omoplate, les deux citations le disent mot pour mot, et la '
+          + 'fiche décrivait la traction du bras sans elle. Le tirage '
+          + 'VERTICAL, lui, ne rétracte pas — il garde ses quatre.'
+    },
+    /* ================= LOT 8 : LES DORSAUX =================
+
+       MB, 29/10 : « Prepare les dorsaux », puis « Onze suffisent ».
+
+       LA MESURE, sur les 77 noms de la page « exercices dos » : VINGT ET UN
+       ne proposent rien. Mais le dos du carnet ne compte que TROIS muscles,
+       et c'est lui qui decide du lot :
+
+         5 noms faisables tels quels
+         6 noms faisables avec un trou ECRIT (le dentele anterieur manque)
+         9 noms bloques sur les ERECTEURS DU RACHIS, absents du carnet
+         1 nom hors perimetre (Sled pull, bas du corps)
+
+       MB a choisi de ne pas faire entrer les erecteurs. Les neuf restent
+       dus, et CHANTIERS.md le dit. AUCUN MUSCLE NEUF ici.
+
+       ONZE NOMS, QUATRE FICHES : les six pull-overs sont UNE fiche — la
+       regle du lot 4, l'engin change le nom et pas les muscles — et deux
+       noms rejoignent « Rowing ». ================= */
+    {
+      id: 'pull-over',
+      nom: 'Pull-over',
+      /* SIX NOMS DE LA PAGE, UNE SEULE FICHE : barre, halteres, poulie,
+         machine, decline. C'est la regle posee au lot 4 et mesuree alors :
+         l'engin change le nom, pas les muscles. */
+      aussi: ['Pull-over avec barre', 'Pull-over décliné à la barre',
+              'Pull-over avec deux haltères', 'Pull-over avec haltère',
+              'Pull-over à la poulie', 'Pull-over assis à la machine',
+              'Pullover'],
+      geste: 'Allongé, bras tendus au-dessus de la tête : ils reviennent '
+           + 'au-dessus de la poitrine en restant tendus.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_pectoral', 'moteur', S.pm, C.pm),
+        m('triceps', 'aide', S.tri, C.tri),
+        m('grand_rond', 'aide', S.tm, C.tm)
+      ],
+      note: 'IL MANQUE LE DENTELÉ ANTÉRIEUR, et je le dis plutôt que de le '
+          + 'taire : c’est le muscle que tout le monde associe au '
+          + 'pull-over, et le carnet ne l’a pas. Il n’a pas de planche Gray '
+          + 'utilisable — cherché, aucune ne l’isole — et c’est une dette '
+          + 'déjà inscrite dans CHANTIERS.md, pas un oubli de ce lot. '
+          + '— POURQUOI LE DORSAL ET LE PECTORAL MÈNENT TOUS DEUX : le '
+          + 'geste est une ADDUCTION du bras depuis au-dessus de la tête, '
+          + 'et les deux citations la nomment — « Arm adduction » chez l’un, '
+          + '« Arm adduction » chez l’autre. Aucune mesure ne départage '
+          + 'leurs parts, et inventer un ordre serait une précision que le '
+          + 'carnet n’a pas. — LE TRICEPS EST EN AIDE : sa longue portion '
+          + 'traverse l’épaule et étend le bras, mais le coude reste tendu '
+          + 'tout du long, donc il ne produit pas le geste.'
+    },
+    {
+      id: 'muscle-up',
+      nom: 'Muscle-up',
+      /* « Traction en muscle-up » EST SORTIE : le mot « traction » lui fait
+         rendre la liste entiere de la traction, trapeze et brachio-radial
+         compris, que cette fiche ne revendique pas. Meme motif qu'au lot 4
+         pour « Traction pronation ». */
+      aussi: ['Muscle up'],
+      geste: 'Une traction qui ne s’arrête pas au menton : le buste passe '
+           + 'au-dessus de la barre et le geste finit en poussée.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('grand_pectoral', 'aide', S.pm, C.pm),
+        m('triceps', 'moteur', S.tri, C.tri),
+        m('deltoide', 'aide', S.delt, C.delt)
+      ],
+      note: 'DEUX GESTES EN UN, et c’est pour ça qu’il a sa fiche : une '
+          + 'traction PUIS une poussée. Sa liste est celle de « Pull up » '
+          + 'plus celle des dips — le triceps y MÈNE, parce que la seconde '
+          + 'moitié est une extension du coude contre tout le poids du '
+          + 'corps. Aucun des noms du carnet ne le couvrait : il ne '
+          + 'proposait RIEN.'
+    },
+    {
+      id: 'montee-corde',
+      nom: 'Montée à la corde',
+      aussi: ['Rope climb', 'Grimper de corde', 'Montée de corde'],
+      geste: 'On monte le long d’une corde, bras après bras, tout le poids '
+           + 'du corps tenu par les mains.',
+      muscles: [
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('brachio_radial', 'aide', S.brr, C.brr),
+        m('flechisseurs_doigts', 'tient', S.fds, C.fds)
+      ],
+      note: 'CELUI-LÀ INTÉRESSE LE BRAS DE FER, et c’est pour ça qu’il '
+          + 'entre : c’est une traction où le GRIP est la limite. Les '
+          + 'fléchisseurs des doigts portent le rang « tient » — ils ne '
+          + 'produisent pas la montée, ils empêchent de lâcher, et le '
+          + 'carnet a un mot pour ça depuis le lot 2. — Le brachio-radial '
+          + 'est en aide : la prise est semi-pronée sur une corde, et sa '
+          + 'citation précise « when semi pronated ».'
+    },
+    {
+      id: 'retraction-omoplates',
+      nom: 'Rétraction des omoplates',
+      /* « Scap pull-up » et « Traction scapulaire » SONT SORTIES, pour la
+         meme raison : leurs mots disent la TRACTION, et le lecteur de noms
+         leur rend ses sept muscles — alors que ce geste n'en demande que
+         DEUX. Les livrer masquerait le defaut sans le regler : l'ecriture
+         exacte passerait par la fiche, mais « traction scapulaire a la
+         barre » retomberait sur la traction. */
+      aussi: ['Rétraction scapulaire', 'Scapular retraction',
+              'Rétraction des omoplates assis à la machine'],
+      aussiEcartees: [
+        ['Scap pull-up',
+         'le mot « pull-up » lui fait rendre les sept muscles de la '
+         + 'traction, pour un geste qui n’en demande que deux'],
+        ['Traction scapulaire', 'même motif : le mot « traction » décide à '
+         + 'la place du geste']
+      ],
+      geste: 'Bras tendus, SEULES les omoplates bougent : elles se '
+           + 'rapprochent l’une de l’autre, puis se relâchent.',
+      muscles: [
+        m('rhomboides', 'moteur', S.rhom, C.rhom),
+        m('trapeze', 'moteur', S.trap, C.trap_desc)
+      ],
+      note: 'DEUX MUSCLES, ET C’EST TOUT — le geste n’en demande pas '
+          + 'd’autres, et c’est ce qui le rend utile : il isole la '
+          + 'rétraction que tous les tirages font sans qu’on y pense. Le '
+          + 'bras ne bouge PAS, donc ni biceps ni dorsal. Les deux '
+          + 'citations nomment exactement ce geste : « draws scapula '
+          + 'medially » pour le trapèze transverse, « Draws scapula '
+          + 'superomedially » pour les rhomboïdes.'
     },
     {
       id: 'tirage-vertical',
@@ -2336,8 +2488,8 @@
   );
 
   exports.CATALOGUE = {
-    lot: 7,
-    titre: 'Les triceps',
+    lot: 8,
+    titre: 'Les dorsaux',
     RANGS: RANGS,
     MOUVEMENTS: MOUVEMENTS
   };
