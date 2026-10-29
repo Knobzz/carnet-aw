@@ -2655,6 +2655,27 @@
     { nom: 'Cone Handle', comme: 'cone', positions: TROUS_BUDDIES }
   ];
 
+  /* LES DEUX SENS DE MONTAGE D'UN CONE.
+
+     Ils portent leurs MUSCLES en propre, et c'est une troisieme forme apres
+     `muscles` et `entrees` : aucun type existant ne correspond a « le
+     dessus de l'avant-bras », donc il n'y a rien a emprunter.
+
+     LE RAISONNEMENT EST SUR CHAQUE LIGNE, parce qu'il n'est pas mesure. */
+  var ORIENTATIONS_CONE = [
+    /* La main doit s'OUVRIR pour envelopper le gros bout, et le poignet
+       part en extension pour garder le contact. Le DESSUS travaille. */
+    { nom: 'Partie large vers les doigts',
+      muscles: ['ecrl', 'ecrb', 'ecu', 'extenseurs_doigts',
+                'flechisseurs_doigts'] },
+    /* Les doigts se referment sur la partie fine et doivent empecher la
+       main de glisser vers le gros bout — ce que ce fichier ecrivait deja
+       du cone. Le DESSOUS travaille. */
+    { nom: 'Partie large vers le poignet',
+      muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
+                'long_flechisseur_pouce'] }
+  ];
+
   var AUFSATZ_MULTITOOL = [
     { nom: 'Zylinder S', comme: 'fat grip' },
     { nom: 'Zylinder M', comme: 'fat grip' },
@@ -2827,9 +2848,28 @@
 
     /* Le diametre change sur la longueur : la main glisse vers le gros
        bout si elle ne tient pas. RAISONNE — l'etude de Krings mesure le
-       MANCHON, pas le cone, et je ne lui fais pas dire plus. */
+       MANCHON, pas le cone, et je ne lui fais pas dire plus.
+
+       DEUX EFFETS, PAS UN, et c'est MB qui l'a dit le 29/10 : « en fonction
+       de la largeur en haut ou en bas, ca travaille soit en haut ou en
+       bas » — de l'AVANT-BRAS, a ma question. Le cone ne proposait qu'un
+       seul muscle pour les deux sens confondus.
+
+       LES DEUX FACES EXISTENT DEJA : ce sont deux groupes du Suivi,
+       `avant_bras_av` (le dessous, flechisseurs) et `avant_bras_ar` (le
+       dessus, extenseurs). On ne cree rien, on choisit.
+
+       QUEL SENS VA AVEC QUELLE FACE : RAISONNE, et aucune source ne le dit.
+       Les fiches des quatre fabricants decrivent la FORME du cone, jamais
+       son sens de montage. Le raisonnement est ecrit sur chaque orientation,
+       et MB peut l'inverser d'un mot.
+
+       SANS ORIENTATION CHOISIE, le cone garde ce qu'il proposait : les
+       flechisseurs des doigts, communs aux deux sens — c'est la main qui
+       tient, dans les deux cas. */
     { mots: ['cone', 'conic', 'kegel'],
-      muscles: ['flechisseurs_doigts'] },
+      muscles: ['flechisseurs_doigts'],
+      reglages: ORIENTATIONS_CONE },
 
     /* L'axe de charge n'est pas au centre de la main : le poignet resiste
        a une torsion permanente. RAISONNE. */
@@ -4291,7 +4331,33 @@
     typesDeLOutil(nomOutil).forEach(function (k) {
       (k.reglages || []).forEach(function (r) {
         if (typeof r === 'string') return;
-        if (slug(nomDuReglageType(r)) !== cible || !r.comme) return;
+        if (slug(nomDuReglageType(r)) !== cible) return;
+        /* UN REGLAGE PEUT PORTER SES PROPRES MUSCLES, et c'est la troisieme
+           forme : les deux orientations du cone ne correspondent a aucun
+           type existant, donc elles n'ont rien a emprunter. */
+        if ((r.muscles || []).length) {
+          r.muscles.forEach(function (id) { ids.push(id); });
+          return;
+        }
+        if (!r.comme) return;
+        /* LE SUFFIXE D'ABORD, s'il nomme un reglage du type emprunte.
+           Mesure : « Cone Handle · Partie large vers les doigts »
+           retombait a UN muscle, la base etant lue et le suffixe
+           ignore — or c'est le cas PRINCIPAL, un cone se monte sur un
+           cadre. Les trous des Buddies ne portent pas de muscles :
+           pour eux la base garde la main, comme avant. */
+        var suffixe = slug(positionDuReglage(nomReglage) || '');
+        if (suffixe) {
+          var vu = 0;
+          typesDeLOutil(r.comme).forEach(function (t2) {
+            (t2.reglages || []).forEach(function (r2) {
+              if (typeof r2 === 'string') return;
+              if (slug(nomDuReglageType(r2)) !== suffixe) return;
+              (r2.muscles || []).forEach(function (id) { ids.push(id); vu = 1; });
+            });
+          });
+          if (vu) return;
+        }
         /* ON LIT `comme` COMME UN NOM D'OUTIL, donc par TOUS les types que
            ses mots touchent — pas par un seul type de cle egale.
 

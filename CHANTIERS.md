@@ -152,20 +152,25 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    **Aucune table ajoutée**, et un contrôle garde que les deux chemins
    s'accordent — c'est lui qui a trouvé que le Toproll Counter empruntait
    au toproll alors que sa citation fonde l'ANTI-toproll.
-4. **LA SEULE CHOSE QUI RESTE : la dette du Cone Handle.** Il propose UN
-   muscle (fléchisseurs des doigts) là où sa fiche Golden Grip nomme une
-   cup profonde, une tension côté auriculaire et de la supination — trois
-   choses, un muscle. **À trancher avec MB**, parce que l'élargir toucherait
-   le type `cone` ENTIER : donc aussi les cônes de Mithril et de Titangrip,
-   qui ne disent pas la même chose.
+4. ~~**La dette du Cone Handle.**~~ **TRAITÉE en 1.65.0, par où MB ne
+   l'attendait pas.** Il a dit : « en fonction de la largeur en haut ou en
+   bas, ça travaille soit en haut ou en bas » — de **l'avant-bras**, à ma
+   question. Le cône n'a donc pas UN effet mais DEUX, et c'est son
+   ORIENTATION qui tranche, pas sa marque. Il porte maintenant deux
+   réglages : *partie large vers les doigts* → le **dessus** (extenseurs),
+   *vers le poignet* → le **dessous** (fléchisseurs). Les deux ne partagent
+   que les fléchisseurs des doigts — dans les deux sens, c'est la main qui
+   tient. Sans orientation choisie, il garde ce qu'il proposait.
 
-   **ET MB AJOUTE UNE PRÉCISION, le 29/10** : « en fonction de la largeur en
-   haut ou en bas, ça travaille soit en haut ou en bas ». Le cône n'aurait
-   donc pas UN effet mais DEUX, selon son orientation — ce qui en fait un
-   candidat à des **réglages**, comme les positions de mousqueton.
-   **Ce qu'il faut savoir avant d'écrire quoi que ce soit** : « en haut »
-   et « en bas » désignent quoi — l'avant-bras, la main, la partie large du
-   cône ? Je ne l'invente pas.
+   **CE QUI RESTE RAISONNÉ, ET C'EST ÉCRIT SUR CHAQUE ORIENTATION** : quel
+   sens va avec quelle face. Aucune fiche de fabricant ne décrit le sens
+   de montage — les quatre décrivent la forme. MB peut les inverser d'un
+   mot.
+
+   **ET LA DETTE D'ORIGINE RESTE, plus petite** : la fiche Golden Grip du
+   Cone Handle nomme aussi une **tension côté auriculaire** et de la
+   **supination**, que ni l'une ni l'autre orientation ne porte. L'ajouter
+   toucherait le type `cone` entier, donc aussi Mithril et Titangrip.
 
 ## 2. Les variantes, plutôt qu'un nom par engin
 

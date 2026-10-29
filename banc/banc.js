@@ -5478,6 +5478,48 @@
          + 'que le Toproll Counter empruntait au toproll alors que sa '
          + 'citation fonde l’ANTI-toproll');
 
+    /* ---- LE CONE A DEUX SENS, ET DEUX FACES ----
+
+       MB, 29/10 : « en fonction de la largeur en haut ou en bas, ca
+       travaille soit en haut ou en bas » — de l'AVANT-BRAS, a ma question.
+       Le cone ne proposait qu'UN muscle pour les deux sens confondus.
+
+       QUEL SENS VA AVEC QUELLE FACE EST RAISONNE, pas mesure : aucune fiche
+       de fabricant ne decrit le sens de montage. Ce qui se mesure ici,
+       c'est que les deux sens donnent DEUX faces differentes. */
+    v.egal(A.m.reglagesProposes(null, 'Golden Grip Cone Handle').join(' / '),
+           'Partie large vers les doigts / Partie large vers le poignet',
+           'le cône propose ses DEUX sens de montage');
+
+    var doigts = pose('Golden Grip Cone Handle', 'Partie large vers les doigts');
+    var poignet = pose('Golden Grip Cone Handle', 'Partie large vers le poignet');
+    v.vrai(doigts.indexOf('ecrl') >= 0 && doigts.indexOf('extenseurs_doigts') >= 0,
+           'large vers les DOIGTS travaille le DESSUS de l’avant-bras');
+    v.vrai(poignet.indexOf('fcr') >= 0 && poignet.indexOf('fcu') >= 0,
+           'large vers le POIGNET travaille le DESSOUS');
+    v.egal(doigts.filter(function (id) {
+      return poignet.indexOf(id) >= 0;
+    }).join(','), 'flechisseurs_doigts',
+           'et les deux ne partagent QUE les fléchisseurs des doigts : dans '
+         + 'les deux sens, c’est la main qui tient');
+
+    /* MONTE SUR UN CADRE, ET C'EST LE CAS PRINCIPAL : un cone se monte, il
+       ne se tient pas nu. Le suffixe doit etre lu. */
+    v.egal(pose('Armwrestling Buddies',
+                'Cone Handle · Partie large vers les doigts').length, 5,
+           'monté sur un cadre, son orientation compte toujours — elle '
+         + 'retombait à UN muscle, la base lue et le suffixe ignoré');
+    v.egal(pose('Titan Grip Multi-Tool',
+                'Kégel'.replace('é', 'e') + ' · Partie large vers le poignet').length, 5,
+           'et le Kégel du Multi-Tool est un cône, donc il les porte aussi');
+    v.egal(pose('Armwrestling Buddies', 'King’s Cup · Vis au centre').length, 5,
+           '[prix] un TROU, lui, ne porte pas de muscles : la base garde la '
+         + 'main. Il tient des deux côtés — ce qui bouge, c’est le cône');
+    v.egal(A.m.musclesDeLOutil(['Golden Grip Cone Handle']).join(','),
+           'flechisseurs_doigts',
+           '[prix] et sans orientation choisie, le cône garde ce qu’il '
+         + 'proposait : les deux sens ont la main en commun');
+
     /* ---- CE QUI RESTE MUET, ET POURQUOI ---- */
     v.egal(pose('Titan Grip Multi-Tool', 'Wrist Pro').length, 0,
            '[temoin] « Wrist Pro » ne propose rien, et doit le rester : son '
