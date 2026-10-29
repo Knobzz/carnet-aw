@@ -5352,6 +5352,61 @@
          + 'comparaisons ci-dessus seraient vraies pour deux listes vides');
     v.vrai(f('triceps').indexOf('Barre au front') >= 0,
            'et le lot 7 s’y trouve : « triceps » mène à la barre au front');
+
+    /* ---- SIX GROUPES, ET UN SEUL PAR MOUVEMENT ----
+
+       MB, 29/10 : « tu as le même exo dans plusieurs catégories, un curl
+       marteau mets l'accent sur le biceps + brachio, par conséquent, on le
+       retrouve uniquement dans Biceps, le muscle le plus travaillé prime.
+       [...] On reste simple : Epaules / Dos / Pectoraux / Biceps / Triceps /
+       Avant bras. Là ya trop. » */
+    /* LA PRESENCE D'ABORD, sinon l'appel leve et le `try` du banc emporte
+       tout le bloc — on ne lirait qu'« une erreur », jamais ce qui manque. */
+    if (!A.m.GROUPES_DICO || typeof A.m.fichesParGroupe !== 'function'
+        || typeof A.m.nomGroupeDico !== 'function') {
+      v.vrai(false, 'le modèle expose `GROUPES_DICO`, `fichesParGroupe` et '
+                  + '`nomGroupeDico` — sans elles, le dictionnaire ne se '
+                  + 'range pas');
+      return;
+    }
+    v.egal(A.m.GROUPES_DICO.map(function (g) { return g.nom; }).join(' / '),
+           'Épaules / Dos / Pectoraux / Biceps / Triceps / Avant-bras',
+           'les six groupes sont ceux de MB, dans son ordre');
+
+    /* CHAQUE FICHE EN PORTE UN, et un seul. C'est la garde qui empechera un
+       lot futur de livrer une fiche sans groupe : elle serait INTROUVABLE
+       en parcourant, sans que rien ne le dise. */
+    var sansGroupe = [], inconnu = [];
+    var ids = A.m.GROUPES_DICO.map(function (g) { return g.id; });
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      if (!d.groupe) { sansGroupe.push(d.nom); return; }
+      if (ids.indexOf(d.groupe) < 0) inconnu.push(d.nom + ' → ' + d.groupe);
+    });
+    v.egal(sansGroupe.join(' · '), '',
+           'chaque fiche porte son groupe — sans lui elle serait '
+         + 'INTROUVABLE en parcourant, en silence');
+    v.egal(inconnu.join(' · '), '',
+           'et chacun est l’un des six');
+
+    /* LE TOTAL EGALE LE NOMBRE DE FICHES : c'est la mesure du « un seul
+       groupe ». Avant la correction il valait 159 pour 62 fiches. */
+    var parG = A.m.fichesParGroupe(etat, '');
+    var total = parG.reduce(function (n, g) { return n + g.fiches.length; }, 0);
+    v.egal(total, A.m.DICTIONNAIRE.length,
+           'les ' + A.m.DICTIONNAIRE.length + ' fiches font ' + total
+         + ' entrées, pas une de plus');
+    v.egal(A.m.fichesParGroupe(etat, '').filter(function (g) {
+      return !g.fiches.length;
+    }).length, 0, 'et aucun des six n’est vide');
+
+    /* L'EXEMPLE DE MB, mot pour mot. */
+    v.egal((A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Hammer curl';
+    })[0] || {}).groupe, 'biceps',
+           'le hammer curl est dans BICEPS — c’est son exemple');
+    v.egal(A.m.nomGroupeDico('avant_bras'), 'Avant-bras',
+           'et un identifiant rend son nom lisible');
+    v.egal(A.m.nomGroupeDico('poulet'), null, 'un groupe inconnu n’en a pas');
   });
 
   /* ==================================================================

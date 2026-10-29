@@ -1024,9 +1024,9 @@
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
       text: nbFiches + ' mouvements, ' + nbEcritures + ' façons de les écrire. '
           + 'Une fiche remplit les MUSCLES d’un exercice, rien d’autre : ni '
-          + 'la charge, ni la prise, ni le côté. Fenêtre de lecture en '
-          + 'attendant la version feuilletable, avec les groupes de muscles '
-          + 'et les images, dans « Ajouter un exercice ».' }));
+          + 'la charge, ni la prise, ni le côté. Les voici par groupe de '
+          + 'muscles, repliés. Ils se choisissent aussi depuis « Ajouter '
+          + 'un exercice », par le bouton « Parcourir le dictionnaire ».' }));
 
     var chercheDico = h('input', { type: 'text', class: 'champ',
                                    placeholder: 'Chercher : curl poulie, cable, épaules…',
@@ -1076,12 +1076,13 @@
       /* LE COMPTE DIT LES DEUX NOMBRES, parce qu'ils diffèrent : un
          mouvement travaille 2,6 groupes en moyenne, donc il paraît dans
          plusieurs. Ne montrer que le second ferait croire à des doublons. */
-      var lignes = groupes.reduce(function (n, g) { return n + g.fiches.length; }, 0);
+      /* UN MOUVEMENT, UN GROUPE — celui de ce qu'il travaille le plus.
+         MB, 29/10 : « le muscle le plus travaillé prime ». */
       compteDico.textContent = (q
         ? trouvees + ' mouvement' + (trouvees > 1 ? 's' : '') + ' sur ' + nbFiches
         : nbFiches + ' mouvements')
-        + ', ' + lignes + ' entrées : un mouvement paraît dans CHAQUE groupe '
-        + 'qu’il travaille. Touche un groupe pour l’ouvrir.';
+        + ', chacun dans le groupe de ce qu’il travaille le plus. '
+        + 'Touche un groupe pour l’ouvrir.';
 
       groupes.forEach(function (g) {
         if (!g.fiches.length) return;   /* un groupe vide ne s'affiche pas */

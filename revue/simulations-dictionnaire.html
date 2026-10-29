@@ -60,6 +60,15 @@
      comprend « curl poulie », « cable curl » ou « pronation sangle ». Tape,
      ouvre un groupe, choisis un mouvement : le nom choisi s’affiche en bas de
      l’écran, comme il remplirait le champ.</p>
+  <p><b>MB a choisi A</b>, le 29/10 : « A, le bouton ». C'est ce qui est
+     livré dans « Ajouter un exercice ». Cette page reste comme trace de ce
+     qui a été comparé — B et C n'ont jamais été écrits ailleurs qu'ici.</p>
+  <p><b>Le classement a changé depuis.</b> MB, le même jour : « un curl
+     marteau mets l'accent sur le biceps + brachio, par conséquent, on le
+     retrouve uniquement dans Biceps [...] On reste simple : Epaules / Dos /
+     Pectoraux / Biceps / Triceps / Avant bras. » Les écrans ci-dessous
+     montrent donc SIX groupes et un seul par mouvement, là où la première
+     version en montrait huit et un mouvement dans plusieurs.</p>
   <p id="mesureHaut" class="mesure"></p>
 </div>
 
@@ -91,8 +100,8 @@
   document.getElementById('mesureHaut').textContent =
     m.DICTIONNAIRE.length + ' mouvements · ' + lignes + ' entrées dans '
     + groupesTous.filter(function (g) { return g.fiches.length; }).length
-    + ' groupes — un mouvement paraît dans CHAQUE groupe qu’il travaille ('
-    + (lignes / m.DICTIONNAIRE.length).toFixed(1) + ' en moyenne).';
+    + ' groupes — un mouvement, UN groupe : celui de ce qu’il travaille '
+    + 'le plus.';
 
   function el(tag, cls, txt) {
     var n = document.createElement(tag);

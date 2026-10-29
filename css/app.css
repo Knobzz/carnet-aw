@@ -420,6 +420,14 @@ select.champ { appearance: none; background-image: none; }
    texte (« 20 × 12 »), en prend une part et demie — les champs de saisie,
    eux, ne contiennent que « 17,5 » ou « 45 ». Le banc d'interface mesure
    qu'aucun ne tombe sous 40 px. */
+/* UN MOUVEMENT QU'ON PREND, dans le panneau d'exercice : toute la ligne est
+   la cible, et elle tient les 44 px du banc. */
+.dico-choix { display: block; width: 100%; text-align: left; background: none;
+  border: 0; border-top: 1px solid var(--trait); color: var(--texte);
+  font: inherit; padding: 9px 0; cursor: pointer; min-height: var(--tap); }
+.dico-choix:first-child { border-top: 0; }
+.dico-choix:hover, .dico-choix:focus-visible { background: var(--fond-3); }
+
 /* UNE FICHE DU DICTIONNAIRE, dans son groupe replie. Un trait entre elles :
    sans separation, trente fiches ouvertes font un mur de texte. */
 .dico-mvt { padding: 8px 0; border-top: 1px solid var(--trait); }

@@ -113,10 +113,22 @@ dictionnaire existant soit consultable **pour le moment** dans "réglages" ».
 Elle liste les 62 fiches avec leurs muscles et leurs écritures, et sa
 recherche est **celle de l'écran d'ajout**, pas une seconde.
 
-**CE QU'ELLE N'EST PAS**, et c'est tout ce chantier : elle n'a ni **groupes de
-muscles** ni **images par exercice**, et elle est dans Réglages au lieu
-d'être dans *Ajouter un exercice ▸ Nom de l'exercice*, où MB la veut à
-terme.
+**DEUX TIERS SONT FAITS DEPUIS LA 1.59.0.** Le dictionnaire est **classé par
+groupe de muscles**, replié, et il se **parcourt depuis « Ajouter un
+exercice »** par le bouton « Parcourir le dictionnaire » — rendu A, choisi
+par MB le 29/10 parmi trois simulations (`revue/simulations-dictionnaire.html`).
+
+**SIX GROUPES, SES MOTS** : Épaules / Dos / Pectoraux / Biceps / Triceps /
+Avant-bras. Un mouvement n'en a QU'UN — « le muscle le plus travaillé
+prime ». Le groupe est **écrit sur chaque fiche** : le déduire des muscles
+ne marche pas, 30 fiches sur 62 ont des moteurs dans plusieurs groupes.
+Trente ont été **tranchées à la main**, et restent discutables — le
+haussement d'épaules va dans **Dos**, parce que son seul moteur est le
+trapèze.
+
+**CE QUI MANQUE ENCORE, et c'est tout ce qui reste de ce chantier** : les
+**images par exercice**. Zéro fiche sur 62 en porte une, et les GIF de
+docteur-fitness ne sont pas réutilisables (voir le piège ci-dessus).
 
 **Ce qui existe déjà** : 37 images de muscles (`icones/muscle-*.png`), chaque
 muscle porte son champ `image`, les huit groupes existent

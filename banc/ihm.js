@@ -3300,27 +3300,36 @@
          que ces groupes soit réduit de base afin de ne pas prendre trop de
          place. On classe par groupe de muscles (Biceps, Triceps etc etc) ».
          Les groupes sont ceux du Suivi : ce sont ses mots. */
-      v.egal(groupes(), fen.App.m.REGIONS_MUSCLE.length,
-             'les ' + fen.App.m.REGIONS_MUSCLE.length + ' groupes de muscles '
-           + 'sont là, et ce sont ceux du Suivi');
+      v.egal(groupes(), fen.App.m.GROUPES_DICO.length,
+             'les ' + fen.App.m.GROUPES_DICO.length + ' groupes sont là');
       var noms = Array.prototype.map.call(zone().querySelectorAll('.equip-cat b'),
         function (b) { return b.textContent; });
-      v.egal(noms.join(' · '),
-             fen.App.m.REGIONS_MUSCLE.map(function (r) { return r.nom; }).join(' · '),
-             'dans l’ordre du Suivi, et sous les mêmes noms : ' + noms.join(' · '));
+      /* MB, 29/10 : « On reste simple : Epaules / Dos / Pectoraux / Biceps /
+         Triceps / Avant bras. Là ya trop. » Ses six mots, dans son ordre. */
+      v.egal(noms.join(' / '),
+             'Épaules / Dos / Pectoraux / Biceps / Triceps / Avant-bras',
+             'ce sont SES six, dans son ordre : ' + noms.join(' / '));
       v.egal(ouverts(), 0,
              'et tous REPLIÉS au départ — c’est la demande, « ne pas prendre '
            + 'trop de place »');
 
-      /* UN MOUVEMENT PARAIT DANS CHAQUE GROUPE QU'IL TRAVAILLE. Le total
-         des lignes dépasse donc le nombre de fiches, et le dire évite de
-         lire des doublons là où il y a un classement. */
+      /* UN MOUVEMENT, UN SEUL GROUPE. MB, 29/10 : « tu as le même exo dans
+         plusieurs catégories [...] on le retrouve uniquement dans Biceps, le
+         muscle le plus travaillé prime ». Le total des lignes ÉGALE donc le
+         nombre de fiches — avant cette correction il valait 159 pour 62. */
       var toutes = mouvements();
-      v.vrai(toutes > fen.App.m.DICTIONNAIRE.length,
+      v.egal(toutes, fen.App.m.DICTIONNAIRE.length,
              'les ' + fen.App.m.DICTIONNAIRE.length + ' fiches font ' + toutes
-           + ' lignes : un mouvement paraît dans chaque groupe qu’il travaille');
-      v.vrai(vue.textContent.indexOf('CHAQUE groupe') >= 0,
-             'et l’écran le DIT, sans quoi ça se lirait comme des doublons');
+           + ' lignes : chacune dans UN groupe');
+      var noms2 = Array.prototype.map.call(zone().querySelectorAll('.dico-mvt .remarque-titre'),
+        function (x) { return x.textContent; });
+      var vus = {}, deuxFois = [];
+      noms2.forEach(function (n) {
+        vus[n] = (vus[n] || 0) + 1;
+        if (vus[n] === 2) deuxFois.push(n);
+      });
+      v.egal(deuxFois.join(' · '), '',
+             'et aucun nom ne paraît deux fois dans la liste');
 
       champ.value = 'curl poulie';
       champ.dispatchEvent(new fen.Event('input', { bubbles: true }));

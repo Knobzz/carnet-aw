@@ -319,7 +319,16 @@
           x.jetons = j;
           return x;
         });
-      }, function (it) {
+      }, prendre);
+
+      /* CE QU'ON FAIT D'UN EXERCICE CHOISI, PAR QUELQUE CHEMIN QUE CE SOIT.
+
+         Extrait le 29/10 : la liste de suggestions et le bouton « Parcourir
+         le dictionnaire » mènent tous deux ici. Écrire un second
+         remplissage à côté aurait donné deux comportements pour un même
+         geste — le défaut déjà payé sur les colonnes, puis sur la
+         recherche. */
+      function prendre(it) {
         /* Une entrée du dictionnaire ne remplit QUE les muscles — décision
            de MB, 2026-10-23. Le type de charge, le côté, la prise et les
            outils restent ce qu'ils étaient : on ne décide rien à sa place,
@@ -348,7 +357,99 @@
         if (selForces) rafraichirForces();
         rafraichirOutils();
         rafraichirStructures();
+      }
+
+      /* ---------- PARCOURIR LE DICTIONNAIRE ----------
+
+         MB, 29/10, après avoir vu trois rendus simulés : « A, le bouton ».
+
+         RIEN NE CHANGE POUR QUI TAPE. Le bouton est fermé au départ et
+         n'occupe qu'une ligne ; les huit groupes n'existent dans la page
+         que s'il est ouvert. Un panneau déjà long ne s'allonge pas pour
+         ceux qui n'en ont pas besoin. */
+      var zoneDico = h('div');
+      var dicoOuvert = false;
+      var btDico = h('button', { type: 'button', class: 'bt bt-doux',
+                                 style: 'width:100%',
+                                 'aria-expanded': 'false' });
+
+      function libelleDico() {
+        btDico.textContent = (dicoOuvert ? 'Masquer le dictionnaire ▴'
+                                         : 'Parcourir le dictionnaire ▾');
+        btDico.setAttribute('aria-expanded', dicoOuvert ? 'true' : 'false');
+      }
+
+      function choisirFiche(nom) {
+        var f = A.m.ficheDictionnaire(nom, etat());
+        champNom.value = nom;
+        /* PAS DE `input` EMIS ICI. L'autocomplétion écoute cet événement :
+           elle se déployait par-dessus le dictionnaire pour proposer ce
+           qu'on venait de choisir. Ce qui doit rester commun aux deux
+           chemins, c'est `prendre(it)` — le remplissage — et il l'est. */
+        if (surChangementForces) surChangementForces();
+        if (f) prendre(f);
+        dicoOuvert = false;
+        libelleDico();
+        rendreDico();
+      }
+
+      function rendreDico() {
+        A.ui.vider(zoneDico);
+        if (!dicoOuvert) return;
+        var q = champNom.value.trim();
+        var groupes = A.m.fichesParGroupe(etat(), q);
+        var lignes = groupes.reduce(function (n, g) { return n + g.fiches.length; }, 0);
+        if (!lignes) {
+          zoneDico.appendChild(h('div', { class: 'item-resume',
+            text: 'Aucun mouvement ne correspond à « ' + q + ' ».' }));
+          return;
+        }
+        zoneDico.appendChild(h('div', { class: 'item-resume',
+          style: 'margin:6px 2px',
+          text: (q ? lignes + ' mouvement(s) pour « ' + q + ' »'
+                   : A.m.DICTIONNAIRE.length + ' mouvements')
+              + ' — chacun dans le groupe de ce qu’il travaille le plus. '
+              + 'Touche-en un pour le prendre : il ne remplit que les '
+              + 'muscles.' }));
+        groupes.forEach(function (g) {
+          if (!g.fiches.length) return;
+          var compte = h('span', { class: 'equip-compte', text: String(g.fiches.length) });
+          var chevron = h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '▾' });
+          var entete = h('button', { type: 'button', class: 'equip-cat',
+                                     'aria-expanded': q ? 'true' : 'false' },
+            h('b', { text: g.nom }), compte, chevron);
+          var corps = h('div', { class: 'carte-corps reglages-repli' });
+          corps.hidden = !q;
+          g.fiches.forEach(function (d) {
+            var b = h('button', { type: 'button', class: 'dico-choix' });
+            b.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
+            b.appendChild(h('div', { class: 'item-resume',
+              text: (d.muscles || []).map(A.m.nomCourtMuscle).join(', ') }));
+            b.addEventListener('click', function () { choisirFiche(d.nom); });
+            corps.appendChild(b);
+          });
+          entete.addEventListener('click', function () {
+            var o = entete.getAttribute('aria-expanded') === 'true';
+            entete.setAttribute('aria-expanded', o ? 'false' : 'true');
+            corps.hidden = o;
+          });
+          zoneDico.appendChild(h('div', { class: 'carte dico-groupes' }, entete, corps));
+        });
+      }
+
+      btDico.addEventListener('click', function () {
+        dicoOuvert = !dicoOuvert;
+        libelleDico();
+        rendreDico();
       });
+      /* TAPER FILTRE CE QUI EST OUVERT, et n'ouvre rien tout seul : le
+         bouton reste la seule porte. */
+      champNom.addEventListener('input', function () {
+        if (dicoOuvert) rendreDico();
+      });
+      libelleDico();
+      gNom.appendChild(btDico);
+      gNom.appendChild(zoneDico);
 
       btAw.addEventListener('click', function () {
         exo.aw = !exo.aw;
