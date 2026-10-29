@@ -5756,6 +5756,13 @@
   /* ================================================================
      6. La ligne de série à 1, 2 et 3 colonnes, à 320 px
 
+     LA RÈGLE, POSÉE PAR MB LE 29/10 : « Tout exercice a la possibilité
+     d'avoir les 3 = reps charge et durée. » Ce n'est donc plus une question
+     ouverte : les trois colonnes ensemble sont un cas que l'app DOIT tenir,
+     et ce bloc est l'endroit où on le vérifie. Une fiche du dictionnaire
+     PROPOSE ses colonnes, elle ne les impose pas — ajouter Reps à « Dead
+     hang » rend bien `charge, reps, durée`, et le tonnage repart.
+
      C'est la mesure qui décide si trois colonnes de saisie sont tenables :
      avec PRÉCÉDENT, ce sont quatre colonnes souples à se partager la largeur.
      Un champ sous 40 px ne se lit plus et ne se vise plus.
