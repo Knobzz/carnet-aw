@@ -460,6 +460,17 @@ a trois lecteurs (Réglages, la séance, le Journal).
 
 Petites, nommées, et qui ne demandent qu'une décision.
 
+- **L'HEURE LOCALE CONTRE L'HEURE UTC — trouvé à 00h01 le 30/10**, par le
+  banc, sans qu'un seul fichier de l'app ait été touché : il est passé de
+  **1576/1576 à 1574/1576** au passage de minuit. `aujourdHui()` rend une date
+  **locale** (`2026-10-30`), `toISOString()` un horodatage **UTC**
+  (`2026-10-29T23:01Z`). Le classement des suggestions compare ces deux
+  chaînes : entre minuit et 01h00 en hiver (**deux heures en été**), une date
+  seule passe **devant** un outil dont on vient de se servir. Les deux
+  contrôles qui tombent le disent exactement : « attendu "Repris", obtenu
+  "Ancien" ». **Ce n'est pas qu'un défaut de banc** : l'ordre des suggestions
+  est faux dans le produit pendant cette fenêtre. Mesuré, pas corrigé — MB
+  dormait et rien ne devait être poussé.
 - **La date de la séance de récup** : MB a eu une séance mal datée le 28/10,
   et le chemin par lequel c'est arrivé reste **inexpliqué**. Le champ Date du
   Journal permet de réparer ; la cause n'est pas trouvée.
