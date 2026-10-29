@@ -1245,7 +1245,12 @@
        Mesuré en vérifiant le correctif du doublon : 152 doublons tombent,
        et les 2 qui restent sont celui-là. */
     { nom: 'Wrist curl',
-      aussi: ['Flexion du poignet', 'Cupping'],
+      /* LES ENGINS, ajoutes le 29/10 : ils ne changent que le nom. */
+      aussi: ['Flexion du poignet', 'Cupping',
+              'Wrist curl à la poulie', 'Cable wrist curl',
+              'Wrist curl à la barre', 'Barbell wrist curl',
+              'Wrist curl avec haltères', 'Dumbbell wrist curl',
+              'Flexion du poignet à la poulie'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl côté pouce',
@@ -1257,7 +1262,11 @@
       muscles: ['long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl inversé',
-      aussi: ['Reverse wrist curl', 'Extension du poignet'],
+      aussi: ['Reverse wrist curl', 'Extension du poignet',
+              'Wrist curl inversé à la poulie', 'Reverse cable wrist curl',
+              'Wrist curl inversé à la barre',
+              'Wrist curl inversé avec haltères',
+              'Extension du poignet à la poulie'],
       muscles: ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
                 'extenseurs_doigts'] },
     { nom: 'Rising',
@@ -1297,7 +1306,9 @@
               'Cable pronation'],
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination',
-      aussi: ['Supination à la clé'],
+      aussi: ['Supination à la clé', 'Supination à la poulie',
+              'Supination avec haltère', 'Supination avec élastique',
+              'Cable supination'],
       muscles: ['biceps', 'supinateur'] },
 
     /* LOT 2 — la main et le grip, validé le 2026-10-23.
@@ -1330,7 +1341,9 @@
                 'extenseurs_pouce', 'extenseur_index', 'court_abducteur_pouce',
                 'abducteur_auriculaire', 'lombricaux'] },
     { nom: 'Finger curl',
-      aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts'],
+      aussi: ['Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts',
+              'Finger curl à la barre', 'Finger curl à la poulie',
+              'Barbell finger curl'],
       muscles: ['flechisseurs_doigts', 'court_flechisseur_auriculaire'] },
     /* Pendu à la barre ou marche du fermier : on tient, on ne répète pas. */
     { nom: 'Dead hang', colonnes: ['charge', 'duree'],
@@ -1365,7 +1378,8 @@
        pas des reps — et c'est ce qui la fait compter comme tenue dans le
        régime du Suivi. */
     { nom: 'Cup hold', colonnes: ['charge', 'duree'],
-      aussi: ['Tenue en cup', 'Tenue de poignet fermé'],
+      aussi: ['Tenue en cup', 'Tenue de poignet fermé',
+              'Cup hold à la poulie', 'Cup hold avec haltère'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
 
@@ -1443,10 +1457,13 @@
               'Drag curl', 'Curl 21', 'Bayesian curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl concentré',
-      aussi: ['Concentration curl', 'Curl concentration'],
+      aussi: ['Concentration curl', 'Curl concentration',
+              'Curl concentré à la poulie', 'Curl concentré avec élastique'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Preacher curl',
-      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre'],
+      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre',
+              'Curl au pupitre à la barre EZ', 'Curl au pupitre à la poulie',
+              'Curl au pupitre à la machine'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Hammer curl',
       aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères'],
@@ -1458,7 +1475,8 @@
               'Curl inversé à la poulie', 'Reverse cable curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial', 'ecrl', 'ecrb'] },
     { nom: 'Curl Zottman',
-      aussi: ['Zottman curl'],
+      aussi: ['Zottman curl', 'Curl Zottman avec haltères',
+              'Zottman curl haltères'],
       muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
                 'brachio_radial', 'supinateur'] },
     /* Le LARRATT CURL est une tenue ISOMETRIQUE, faite au bout des preacher
@@ -3508,6 +3526,24 @@
      Ce slug n'est jamais une identite : il ne sert qu'a poser une question. */
   function slugSerre(nom) { return slug(nom).replace(/ /g, ''); }
 
+  /* LE SLUG DE RECHERCHE : chaque mot perd son « s » final.
+
+     La recherche compare par SOUS-CHAINE. Le singulier etant contenu dans
+     le pluriel, taper « epaule » trouvait « haussement d'epaules » — mais
+     « epaules » ne trouvait jamais une fiche qui n'a que le singulier.
+     Mesure du 29/10 : 368 cas, et ZERO ou une forme mene a une autre fiche.
+
+     LES DEUX COTES PASSENT PAR ICI, la requete comme l'ecriture : une
+     normalisation appliquee d'un seul cote ne compare plus la meme chose.
+
+     CE QUE CA OUVRE, compte avant d'ecrire : sur tous les mots au pluriel
+     du dictionnaire, UN SEUL elargit notablement — « halteres », de 9 a 13
+     resultats. Le « s » final porte rarement du sens dans un nom
+     d'exercice, et jamais assez pour separer deux fiches. */
+  function slugCherche(nom) {
+    return slug(nom).replace(/s(?= |$)/g, '');
+  }
+
   /* Un outil du catalogue dont le nom ne differe que par des espaces, et qui
      porte des reglages. Repond a la panne silencieuse : on declare un reglage
      sur une entree, l'exercice porte l'autre, et la rangee reste vide sans
@@ -4072,7 +4108,9 @@
          principal passe devant, puisqu'il est le premier de la liste. */
       var meilleur = -1, gagnante = null;
       ecritures.forEach(function (e) {
-        var p = slug(e).indexOf(q);
+        /* `slugCherche` DES DEUX COTES — voir sa définition : c'est ce qui
+           fait que « epaules » retrouve une fiche écrite au singulier. */
+        var p = slugCherche(e).indexOf(q);
         if (p < 0) return;
         if (meilleur < 0 || p < meilleur) { meilleur = p; gagnante = e; }
       });
@@ -4094,13 +4132,16 @@
      Classement, de chaque cote : commence par la saisie d'abord, puis le
      plus recemment vu. */
   function suggestions(etat, saisie, limite) {
-    var q = slug(saisie);
+    /* LA MEME REGLE DES DEUX COTES DE LA LISTE : mes exercices et le
+       dictionnaire. Les traiter differemment ferait apparaitre une fiche
+       et disparaitre mon propre exercice pour la meme frappe. */
+    var q = slugCherche(saisie);
     var n = limite || 8;
     var l = parRecence(etat.exercices);
     if (!q) return l.slice(0, n);
     var debut = [], dedans = [];
     for (var i = 0; i < l.length; i++) {
-      var p = l[i].slug.indexOf(q);
+      var p = slugCherche(l[i].nom).indexOf(q);
       if (p === 0) debut.push(l[i]);
       else if (p > 0) dedans.push(l[i]);
     }

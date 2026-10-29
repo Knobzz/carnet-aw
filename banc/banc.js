@@ -5155,6 +5155,71 @@
            'et ils sont rangés dans les dorsaux, qui en tiennent donc trois');
   });
 
+  /* ==================================================================
+     LA RECHERCHE TOLERE LE PLURIEL
+
+     MB, 29/10 : « je constate certains exo ou epaules et epaule se
+     cotoyent, tout doit etre ecrit pareil pour que les recommandations
+     apparaissent je pense ».
+
+     SON OBSERVATION ETAIT JUSTE, SA CAUSE NON — mesure faite avant de
+     toucher au code : les recommandations ne lisent PAS les noms connus.
+     Les lacunes lisent `d.muscles`, « Ton accent » lit le nom principal.
+     Ce que l'orthographe touche, c'est la RECHERCHE.
+     ================================================================== */
+  bloc('La recherche tolère le pluriel', function (v) {
+    var e = A.store.vide();
+    function fiches(q) {
+      var o = {};
+      (A.m.suggestions(e, q, 60) || []).forEach(function (x) {
+        var f = A.m.ficheLivree(x.nom) || A.m.ficheLivree(x.entree || '');
+        if (f) o[f.nom] = 1;
+      });
+      return o;
+    }
+
+    /* ---- LE SENS QUI MARCHAIT DEJA, garde pour qu'il continue ---- */
+    v.vrai(!!fiches('epaule')['Haussement d’épaules'],
+           '[temoin] le SINGULIER trouvait déjà le pluriel — c’est une '
+         + 'sous-chaîne, et ce contrôle tient des deux côtés');
+
+    /* ---- CELUI QUI NE MARCHAIT PAS ---- */
+    v.vrai(!!fiches('curls')['Wrist curl'],
+           '« curls » retrouve « Wrist curl » : le pluriel ne trouvait '
+         + 'JAMAIS une fiche écrite au singulier');
+    v.vrai(!!fiches('poignets')['Wrist curl'],
+           'et « poignets » aussi');
+    v.vrai(!!fiches('rotations externes')['Rotation externe d’épaule'],
+           'y compris sur plusieurs mots à la fois');
+
+    /* ---- LA MESURE COMPLETE, sur tout le dictionnaire ----
+       368 cas avant, et le controle les tient tous d'un coup : recopier
+       368 alias aurait ete 368 occasions de se tromper. */
+    var rates = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      var mots = {};
+      [d.nom].concat(d.aussi || []).forEach(function (n) {
+        A.m.slug(n).split(' ').forEach(function (x) { if (x.length > 3) mots[x] = 1; });
+      });
+      Object.keys(mots).forEach(function (x) {
+        if (/s$/.test(x)) return;
+        if (!fiches(x + 's')[d.nom]) rates.push(d.nom + ' / ' + x + 's');
+      });
+    });
+    v.egal(rates.length, 0,
+           'et sur TOUT le dictionnaire, plus un seul pluriel ne manque sa '
+         + 'fiche — 368 cas avant (ratés : ' + (rates.slice(0, 4).join(' · ')
+         + (rates.length > 4 ? ' …' : '') || 'aucun') + ')');
+
+    /* ---- LA BORNE : on n'a pas ouvert la recherche a tout ---- */
+    v.egal(Object.keys(fiches('zzzz')).length, 0,
+           'une saisie qui ne correspond à rien ne rend toujours rien');
+    v.vrai(Object.keys(fiches('curl')).length < A.m.DICTIONNAIRE.length,
+           '[temoin] et « curl » ne rend PAS tout le dictionnaire : la '
+         + 'tolérance porte sur le « s » final, pas sur la comparaison '
+         + 'entière');
+  });
+
   bloc('Mouvements', function (v) {
     v.egal(A.m.FORCES.length, 6, 'six mouvements sont proposés');
     var ids = A.m.FORCES.map(function (f) { return f.id; });
