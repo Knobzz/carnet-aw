@@ -420,6 +420,11 @@ select.champ { appearance: none; background-image: none; }
    texte (« 20 × 12 »), en prend une part et demie — les champs de saisie,
    eux, ne contiennent que « 17,5 » ou « 45 ». Le banc d'interface mesure
    qu'aucun ne tombe sous 40 px. */
+/* UNE FICHE DU DICTIONNAIRE, dans son groupe replie. Un trait entre elles :
+   sans separation, trente fiches ouvertes font un mur de texte. */
+.dico-mvt { padding: 8px 0; border-top: 1px solid var(--trait); }
+.dico-mvt:first-child { padding-top: 0; border-top: 0; }
+
 .serie-entete,
 .serie {
   display: grid;

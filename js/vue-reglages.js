@@ -1032,43 +1032,69 @@
                                    placeholder: 'Chercher : curl poulie, cable, épaules…',
                                    'aria-label': 'Chercher dans le dictionnaire' });
     hote.appendChild(chercheDico);
-    var listeDico = h('div', { style: 'margin-top:10px' });
-    var compteDico = h('div', { class: 'item-resume', style: 'margin:8px 2px 0' });
-    hote.appendChild(listeDico);
+    var compteDico = h('div', { class: 'item-resume', style: 'margin:8px 2px 2px' });
+    /* LA LISTE SE NOMME : un contrôle d'écran doit pouvoir distinguer ces
+       groupes-ci de ceux du catalogue et de l'équipement, qui portent les
+       mêmes classes. */
+    var listeDico = h('div', { class: 'dico-groupes' });
     hote.appendChild(compteDico);
+    hote.appendChild(listeDico);
+
+    /* UNE FICHE, EN TROIS LIGNES. Pas une `.carte` : elle vit DANS le bloc
+       repliable de son groupe, qui en est déjà une. */
+    function ligneFiche(d) {
+      var bloc = h('div', { class: 'dico-mvt' });
+      bloc.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
+      var mus = h('div', { class: 'item-resume' });
+      mus.appendChild(h('b', { text: 'Muscles : ' }));
+      mus.appendChild(document.createTextNode(
+        (d.muscles || []).length
+          ? d.muscles.map(A.m.nomCourtMuscle).join(', ')
+          : 'aucun — cette fiche ne remplit rien'));
+      bloc.appendChild(mus);
+      if ((d.aussi || []).length) {
+        var au = h('div', { class: 'item-resume', style: 'margin-top:4px' });
+        au.appendChild(h('b', { text: 'Aussi écrit : ' }));
+        au.appendChild(document.createTextNode(d.aussi.join(' · ')));
+        bloc.appendChild(au);
+      }
+      return bloc;
+    }
 
     function rendreDico() {
       A.ui.vider(listeDico);
       var q = chercheDico.value.trim();
-      var l = A.m.fichesDuDictionnaire(e, q);
+      var groupes = A.m.fichesParGroupe(e, q);
+      var trouvees = A.m.fichesDuDictionnaire(e, q).length;
+
       /* UN RÉSULTAT VIDE SE DIT. Une liste qui disparaît sans un mot se lit
          comme une panne, pas comme « rien ne correspond ». */
-      if (!l.length) {
+      if (!trouvees) {
         compteDico.textContent = 'Aucun mouvement ne correspond à « ' + q + ' ».';
         return;
       }
-      compteDico.textContent = q
-        ? l.length + ' mouvement' + (l.length > 1 ? 's' : '') + ' sur ' + nbFiches + '.'
-        : 'Dans l’ordre du dictionnaire, par famille.';
-      l.forEach(function (d) {
-        var carte = h('div', { class: 'carte' });
-        var corps = h('div', { class: 'carte-corps' });
-        corps.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
-        var mus = h('div', { class: 'item-resume' });
-        mus.appendChild(h('b', { text: 'Muscles : ' }));
-        mus.appendChild(document.createTextNode(
-          (d.muscles || []).length
-            ? d.muscles.map(A.m.nomCourtMuscle).join(', ')
-            : 'aucun — cette fiche ne remplit rien'));
-        corps.appendChild(mus);
-        if ((d.aussi || []).length) {
-          var au = h('div', { class: 'item-resume', style: 'margin-top:4px' });
-          au.appendChild(h('b', { text: 'Aussi écrit : ' }));
-          au.appendChild(document.createTextNode(d.aussi.join(' · ')));
-          corps.appendChild(au);
+      /* LE COMPTE DIT LES DEUX NOMBRES, parce qu'ils diffèrent : un
+         mouvement travaille 2,6 groupes en moyenne, donc il paraît dans
+         plusieurs. Ne montrer que le second ferait croire à des doublons. */
+      var lignes = groupes.reduce(function (n, g) { return n + g.fiches.length; }, 0);
+      compteDico.textContent = (q
+        ? trouvees + ' mouvement' + (trouvees > 1 ? 's' : '') + ' sur ' + nbFiches
+        : nbFiches + ' mouvements')
+        + ', ' + lignes + ' entrées : un mouvement paraît dans CHAQUE groupe '
+        + 'qu’il travaille. Touche un groupe pour l’ouvrir.';
+
+      groupes.forEach(function (g) {
+        if (!g.fiches.length) return;   /* un groupe vide ne s'affiche pas */
+        var b = blocRepliable(g.nom, g.fiches.length);
+        g.fiches.forEach(function (d) { b.corps.appendChild(ligneFiche(d)); });
+        /* REPLIÉ AU DÉPART — c'est la demande. Mais une RECHERCHE ouvre :
+           chercher puis devoir ouvrir huit groupes pour voir le résultat
+           serait un filtre qui cache ce qu'il a trouvé. */
+        if (q) {
+          b.corps.hidden = false;
+          b.carte.querySelector('.equip-cat').setAttribute('aria-expanded', 'true');
         }
-        carte.appendChild(corps);
-        listeDico.appendChild(carte);
+        listeDico.appendChild(b.carte);
       });
     }
     chercheDico.addEventListener('input', rendreDico);

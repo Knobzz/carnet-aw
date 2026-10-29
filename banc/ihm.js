@@ -3285,29 +3285,59 @@
       v.vrai(!!champ, 'et elle porte un champ de recherche');
       if (!champ) return;
 
-      function fiches() {
-        /* Les cartes de CETTE section seulement : on part du champ et on
-           lit ses frères suivants, sans quoi on compterait celles des
-           autres sections. */
-        var apres = champ.nextElementSibling;
-        return apres ? apres.querySelectorAll('.carte').length : 0;
+      /* LA SECTION SEULE : on part du champ et on lit ses frères suivants,
+         sans quoi on compterait les cartes des autres sections. */
+      function zone() { return champ.nextElementSibling.nextElementSibling; }
+      function groupes() { return zone().querySelectorAll('.equip-cat').length; }
+      function mouvements() { return zone().querySelectorAll('.dico-mvt').length; }
+      function ouverts() {
+        return Array.prototype.filter.call(
+          zone().querySelectorAll('.reglages-repli'),
+          function (c) { return c.getBoundingClientRect().height > 0; }).length;
       }
-      var toutes = fiches();
-      v.egal(toutes, fen.App.m.DICTIONNAIRE.length,
-             'sans frappe, les ' + fen.App.m.DICTIONNAIRE.length
-           + ' fiches sont là — il y en a ' + toutes);
+
+      /* MB, 29/10 : « je veux que les mouvements soient classés par groupes,
+         que ces groupes soit réduit de base afin de ne pas prendre trop de
+         place. On classe par groupe de muscles (Biceps, Triceps etc etc) ».
+         Les groupes sont ceux du Suivi : ce sont ses mots. */
+      v.egal(groupes(), fen.App.m.REGIONS_MUSCLE.length,
+             'les ' + fen.App.m.REGIONS_MUSCLE.length + ' groupes de muscles '
+           + 'sont là, et ce sont ceux du Suivi');
+      var noms = Array.prototype.map.call(zone().querySelectorAll('.equip-cat b'),
+        function (b) { return b.textContent; });
+      v.egal(noms.join(' · '),
+             fen.App.m.REGIONS_MUSCLE.map(function (r) { return r.nom; }).join(' · '),
+             'dans l’ordre du Suivi, et sous les mêmes noms : ' + noms.join(' · '));
+      v.egal(ouverts(), 0,
+             'et tous REPLIÉS au départ — c’est la demande, « ne pas prendre '
+           + 'trop de place »');
+
+      /* UN MOUVEMENT PARAIT DANS CHAQUE GROUPE QU'IL TRAVAILLE. Le total
+         des lignes dépasse donc le nombre de fiches, et le dire évite de
+         lire des doublons là où il y a un classement. */
+      var toutes = mouvements();
+      v.vrai(toutes > fen.App.m.DICTIONNAIRE.length,
+             'les ' + fen.App.m.DICTIONNAIRE.length + ' fiches font ' + toutes
+           + ' lignes : un mouvement paraît dans chaque groupe qu’il travaille');
+      v.vrai(vue.textContent.indexOf('CHAQUE groupe') >= 0,
+             'et l’écran le DIT, sans quoi ça se lirait comme des doublons');
 
       champ.value = 'curl poulie';
       champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
-      var filtrees = fiches();
+      var filtrees = mouvements();
       v.vrai(filtrees > 0 && filtrees < toutes,
              '« curl poulie » en filtre une partie : ' + filtrees + ' sur ' + toutes);
+      /* CHERCHER OUVRE. Un filtre qui laisse tout replié cache ce qu'il a
+         trouvé : il faudrait ouvrir huit groupes pour voir le résultat. */
+      v.vrai(ouverts() > 0,
+             'et la recherche OUVRE les groupes où elle a trouvé');
 
       /* UN RESULTAT VIDE SE DIT. Une liste qui disparaît sans un mot se lit
          comme une panne, pas comme « rien ne correspond ». */
       champ.value = 'poulet';
       champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
-      v.egal(fiches(), 0, 'un mot inconnu ne rend aucune fiche');
+      v.egal(mouvements(), 0, 'un mot inconnu ne rend aucune fiche');
+      v.egal(groupes(), 0, 'ni aucun groupe — un groupe vide ne s’affiche pas');
       var txt = vue.textContent;
       v.vrai(txt.indexOf('Aucun mouvement ne correspond') >= 0,
              'et l’écran le DIT, au lieu de laisser un vide muet');
@@ -3315,7 +3345,8 @@
       /* Et la frappe se défait. */
       champ.value = '';
       champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
-      v.egal(fiches(), toutes, 'effacer la frappe rend la liste entière');
+      v.egal(mouvements(), toutes, 'effacer la frappe rend la liste entière');
+      v.egal(ouverts(), 0, 'et la referme');
     });
   });
 
@@ -3333,8 +3364,17 @@
     fen.App.vues.reglages.rendre(vue);
 
     return attendre(200).then(function () {
-      var entetes = Array.prototype.slice.call(vue.querySelectorAll('.equip-cat'));
-      var corps = Array.prototype.slice.call(vue.querySelectorAll('.reglages-repli'));
+      /* LE CATALOGUE ET L'EQUIPEMENT SEULS. Depuis le 29/10, Réglages porte
+         aussi les huit groupes de muscles du dictionnaire, à la demande de
+         MB, et ils portent les mêmes classes. Compter toute la page ferait
+         tomber ce bloc sur un écran juste — c'est la deuxième fois
+         aujourd'hui qu'un contrôle de Réglages mesure la page là où il parle
+         d'une section. */
+      function horsDico(n) { return !n.closest('.dico-groupes'); }
+      var entetes = Array.prototype.filter.call(
+        vue.querySelectorAll('.equip-cat'), horsDico);
+      var corps = Array.prototype.filter.call(
+        vue.querySelectorAll('.reglages-repli'), horsDico);
       v.egal(entetes.length, 3,
              'le catalogue et les deux catégories d’outils ont leur en-tête');
       v.egal(corps.length, 3, 'et leur bloc repliable');

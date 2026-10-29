@@ -4360,6 +4360,42 @@
     return sortie;
   }
 
+  /* LE DICTIONNAIRE RANGÉ PAR GROUPE DE MUSCLES.
+
+     MB, 29/10 : « je veux que les mouvements soient classés par groupes
+     [...] On classe par groupe de muscles (Biceps, Triceps etc etc) ».
+
+     LES GROUPES SONT CEUX DU SUIVI, `REGIONS_MUSCLE` : ce sont exactement
+     les mots qu'il emploie. En écrire une seconde liste ici donnerait deux
+     vocabulaires pour une même idée, et l'un périmerait.
+
+     UN MOUVEMENT PARAÎT DANS PLUSIEURS GROUPES, et c'est juste : un curl
+     travaille le biceps ET les fléchisseurs. Mesure du 29/10 : 2,6 groupes
+     par mouvement en moyenne, 5 au maximum — les 62 fiches font 159 lignes.
+
+     POURQUOI PAS UN SEUL GROUPE : il faudrait un muscle PRINCIPAL, et une
+     fiche livrée n'en porte pas — elle ne garde que des identifiants, sans
+     rang. Prendre le premier serait une invention : « Dips prise serrée »
+     commence par le deltoïde, alors que le moteur est le triceps.
+
+     LE GROUPE SE DÉRIVE DES MUSCLES, jamais d'une liste écrite à côté —
+     même discipline que `musclesDeLaRegion`. */
+  function fichesParGroupe(etat, saisie) {
+    var l = fichesDuDictionnaire(etat, saisie);
+    return REGIONS_MUSCLE.map(function (r) {
+      return {
+        id: r.id,
+        nom: r.nom,
+        fiches: l.filter(function (d) {
+          return (d.muscles || []).some(function (id) {
+            var m = muscle(id);
+            return m && m.groupe === r.id;
+          });
+        })
+      };
+    });
+  }
+
   /* Suggestions pour l'autocomplétion. MES EXERCICES D'ABORD, puis le
      dictionnaire — decision de MB du 2026-10-23. L'ordre n'est pas un
      detail : ce que MB a ecrit lui-meme passe toujours devant une entree
@@ -6610,6 +6646,7 @@
     auDictionnaire: auDictionnaire, ficheDictionnaire: ficheDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
     fichesDuDictionnaire: fichesDuDictionnaire,
+    fichesParGroupe: fichesParGroupe,
     motsCherche: motsCherche, familleEngin: familleEngin,
     placeParMots: placeParMots,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,

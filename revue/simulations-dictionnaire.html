@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations — choisir son exercice dans le dictionnaire</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .intro { max-width: 1180px; margin: 0 auto 16px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .intro p { margin: 4px 0; color: var(--texte-2); font-size: .92rem; }
+  .intro b { color: var(--texte); }
+  .rangee { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+            max-width: 1180px; margin: 0 auto; }
+  .sim { width: 340px; flex: 0 0 340px; }
+  .sim > h2 { font-size: 1rem; margin: 0 0 2px; }
+  .sim > .pourquoi { font-size: .82rem; color: var(--texte-2); margin: 0 0 8px;
+                     min-height: 92px; }
+  .ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+           background: var(--fond-2); padding: 12px; width: 320px;
+           box-sizing: border-box; max-height: 560px; overflow-y: auto; }
+  .cout { font-size: .8rem; color: var(--texte-2); margin-top: 8px;
+          border-top: 1px solid var(--trait); padding-top: 6px; }
+  .cout b { color: var(--texte); }
+  .mesure { font-size: .78rem; color: var(--laiton); margin-top: 6px;
+            font-variant-numeric: tabular-nums; }
+  .etiq { font-size: .78rem; color: var(--texte-2); margin: 10px 0 3px;
+          text-transform: uppercase; letter-spacing: .04em; }
+  .sug { border: 1px solid var(--trait); border-radius: var(--r-s);
+         margin-top: 6px; overflow: hidden; }
+  .sug button { display: block; width: 100%; text-align: left; background: none;
+                border: 0; border-top: 1px solid var(--trait); color: var(--texte);
+                font: inherit; padding: 9px 10px; cursor: pointer; }
+  .sug button:first-child { border-top: 0; }
+  .sug button:hover { background: var(--fond-3); }
+  .sug .jeton { font-size: .72rem; color: var(--laiton);
+                border: 1px solid var(--laiton); border-radius: 999px;
+                padding: 1px 6px; margin-left: 6px; }
+  .simOnglets { display: flex; gap: 6px; margin-bottom: 8px; }
+  .simOnglets .puce { flex: 1; }
+  .choisi { margin-top: 10px; font-size: .84rem; color: var(--bleu-vif);
+            min-height: 20px; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Choisir son exercice dans le dictionnaire — trois rendus, cliquables</h1>
+  <p>MB, 29/10 : « Ne serait-il pas d’ailleurs intéressant d’intégrer cela
+     directement dans la sélection de l’exercice, afin de pouvoir voir tout ce
+     qui est présent dans le dictionnaire, et qu’on puisse choisir son exo
+     comme on le souhaite. Il faudra avoir un encart pour la recherche afin de
+     mieux cibler. »</p>
+  <p><b>Tout réagit, et tout est VRAI.</b> Chaque écran fait 320 px — la
+     largeur la plus dure — avec le vrai CSS de l’app, le vrai dictionnaire
+     (<span id="nbFiches">…</span> mouvements) et la vraie recherche, celle qui
+     comprend « curl poulie », « cable curl » ou « pronation sangle ». Tape,
+     ouvre un groupe, choisis un mouvement : le nom choisi s’affiche en bas de
+     l’écran, comme il remplirait le champ.</p>
+  <p id="mesureHaut" class="mesure"></p>
+</div>
+
+<div class="rangee" id="rangee"></div>
+
+<script>
+  /* LE BAC A SABLE : store.js choisit une autre cle de stockage quand ce
+     drapeau est pose. Cette page ne touche jamais au carnet. */
+  window.__BAC_A_SABLE = true;
+</script>
+<script>
+(function () {
+  var t = '?t=' + Date.now();
+  ['js/store.js', 'js/model.js'].forEach(function (f) {
+    document.write('<scr' + 'ipt src="' + f + t + '"></scr' + 'ipt>');
+  });
+})();
+</script>
+<script>
+(function () {
+  var A = window.App;
+  var m = A.m;
+  var etat = { exercices: [], dictionnaire: [], seances: [], sparrings: [] };
+
+  document.getElementById('nbFiches').textContent = m.DICTIONNAIRE.length;
+
+  var groupesTous = m.fichesParGroupe(etat, '');
+  var lignes = groupesTous.reduce(function (n, g) { return n + g.fiches.length; }, 0);
+  document.getElementById('mesureHaut').textContent =
+    m.DICTIONNAIRE.length + ' mouvements · ' + lignes + ' entrées dans '
+    + groupesTous.filter(function (g) { return g.fiches.length; }).length
+    + ' groupes — un mouvement paraît dans CHAQUE groupe qu’il travaille ('
+    + (lignes / m.DICTIONNAIRE.length).toFixed(1) + ' en moyenne).';
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+
+  /* ------------------------------------------------------------------
+     LES MORCEAUX COMMUNS AUX TROIS RENDUS
+
+     Un seul code pour la liste et pour les groupes : si les trois rendus
+     dessinaient chacun le leur, on comparerait trois dessins au lieu de
+     comparer trois PLACEMENTS.
+     ------------------------------------------------------------------ */
+
+  function champNom(surFrappe, placeholder) {
+    var i = el('input');
+    i.type = 'text';
+    i.className = 'champ';
+    i.placeholder = placeholder || 'Curl marteau fat grip';
+    i.addEventListener('input', function () { surFrappe(i.value.trim()); });
+    return i;
+  }
+
+  /* La liste de suggestions telle que l'app la rend AUJOURD'HUI : elle ne
+     change dans aucun des trois rendus. */
+  function suggestions(q, choisir) {
+    var boite = el('div', 'sug');
+    if (!q) return boite;
+    var l = m.suggestions(etat, q, 8) || [];
+    if (!l.length) {
+      boite.appendChild(el('div', 'item-resume',
+        'Rien au dictionnaire pour « ' + q + ' » — ce sera un exercice à toi.'));
+      return boite;
+    }
+    l.forEach(function (x) {
+      var b = el('button');
+      b.type = 'button';
+      b.appendChild(el('b', null, x.nom));
+      if (x.duDictionnaire) {
+        b.appendChild(el('span', 'jeton', 'dictionnaire'));
+        if (x.entree && x.entree !== x.nom) {
+          b.appendChild(el('span', 'jeton', '→ ' + x.entree));
+        }
+      }
+      var mus = el('div', 'item-resume',
+        (x.muscles || []).map(m.nomCourtMuscle).join(', ') || 'aucun muscle');
+      b.appendChild(mus);
+      b.addEventListener('click', function () { choisir(x.nom); });
+      boite.appendChild(b);
+    });
+    return boite;
+  }
+
+  /* Les huit groupes, repliés, avec leur compte lisible fermé. */
+  function groupes(q, choisir, ouvrir) {
+    var hote = el('div');
+    var gs = m.fichesParGroupe(etat, q);
+    var vide = true;
+    gs.forEach(function (g) {
+      if (!g.fiches.length) return;
+      vide = false;
+      var carte = el('div', 'carte');
+      var entete = el('button', 'equip-cat');
+      entete.type = 'button';
+      entete.setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+      entete.appendChild(el('b', null, g.nom));
+      entete.appendChild(el('span', 'equip-compte', String(g.fiches.length)));
+      entete.appendChild(el('span', 'equip-chevron', '▾'));
+      var corps = el('div', 'carte-corps reglages-repli');
+      corps.hidden = !ouvrir;
+      g.fiches.forEach(function (d) {
+        var b = el('button', 'dico-choix');
+        b.type = 'button';
+        b.style.cssText = 'display:block;width:100%;text-align:left;background:none;'
+                        + 'border:0;border-top:1px solid var(--trait);color:var(--texte);'
+                        + 'font:inherit;padding:8px 0;cursor:pointer';
+        b.appendChild(el('div', 'remarque-titre', d.nom));
+        b.appendChild(el('div', 'item-resume',
+          (d.muscles || []).map(m.nomCourtMuscle).join(', ')));
+        b.addEventListener('click', function () { choisir(d.nom); });
+        corps.appendChild(b);
+      });
+      entete.addEventListener('click', function () {
+        var o = entete.getAttribute('aria-expanded') === 'true';
+        entete.setAttribute('aria-expanded', o ? 'false' : 'true');
+        corps.hidden = o;
+      });
+      carte.appendChild(entete);
+      carte.appendChild(corps);
+      hote.appendChild(carte);
+    });
+    if (vide) {
+      hote.appendChild(el('div', 'item-resume',
+        'Aucun mouvement ne correspond à « ' + q + ' ».'));
+    }
+    return hote;
+  }
+
+  /* ------------------------------------------------------------------
+     LES TROIS RENDUS
+     ------------------------------------------------------------------ */
+
+  function cadre(titre, pourquoi, cout, monter) {
+    var sim = el('div', 'sim');
+    sim.appendChild(el('h2', null, titre));
+    sim.appendChild(el('p', 'pourquoi', pourquoi));
+    var ecran = el('div', 'ecran');
+    var choisi = el('div', 'choisi', 'Rien de choisi.');
+    monter(ecran, function (nom) {
+      choisi.textContent = 'Choisi : ' + nom;
+    });
+    ecran.appendChild(choisi);
+    sim.appendChild(ecran);
+    var c = el('div', 'cout');
+    c.appendChild(el('b', null, 'Ce que ça coûte : '));
+    c.appendChild(document.createTextNode(cout));
+    sim.appendChild(c);
+    var mes = el('div', 'mesure');
+    mes.textContent = 'Hauteur à l’ouverture : ' + '…';
+    sim.appendChild(mes);
+    setTimeout(function () {
+      mes.textContent = 'Hauteur du panneau à l’ouverture : '
+        + Math.round(ecran.scrollHeight) + ' px.';
+    }, 30);
+    return sim;
+  }
+
+  var rangee = document.getElementById('rangee');
+
+  /* ---- A : le champ seul, et un bouton pour parcourir ---- */
+  rangee.appendChild(cadre(
+    'A — Le champ d’abord, parcourir sur demande',
+    'Rien ne change pour qui tape : le champ et ses suggestions sont ceux '
+  + 'd’aujourd’hui. Un bouton ouvre le dictionnaire par groupes, replié, '
+  + 'juste en dessous. Celui qui sait ce qu’il veut ne voit rien de neuf ; '
+  + 'celui qui cherche a une porte.',
+    'un appui de plus pour parcourir. Et le bouton doit se remarquer, '
+  + 'sinon personne ne saura que le dictionnaire est là.',
+    function (ecran, choisir) {
+      ecran.appendChild(el('div', 'etiq', 'Nom de l’exercice'));
+      var zoneSug = el('div');
+      var zoneGrp = el('div');
+      var ouvert = false;
+      var bt = el('button', 'bt bt-doux', 'Parcourir le dictionnaire ▾');
+      bt.type = 'button';
+      bt.style.cssText = 'width:100%;margin-top:8px';
+      function maj(q) {
+        zoneSug.innerHTML = '';
+        zoneSug.appendChild(suggestions(q, choisir));
+        zoneGrp.innerHTML = '';
+        if (ouvert) zoneGrp.appendChild(groupes(q, choisir, !!q));
+      }
+      var champ = champNom(maj);
+      bt.addEventListener('click', function () {
+        ouvert = !ouvert;
+        bt.textContent = ouvert ? 'Masquer le dictionnaire ▴'
+                                : 'Parcourir le dictionnaire ▾';
+        maj(champ.value.trim());
+      });
+      ecran.appendChild(champ);
+      ecran.appendChild(zoneSug);
+      ecran.appendChild(bt);
+      ecran.appendChild(zoneGrp);
+    }));
+
+  /* ---- B : les groupes toujours là, sous le champ ---- */
+  rangee.appendChild(cadre(
+    'B — Le dictionnaire toujours visible, replié',
+    'Les huit groupes sont là dès l’ouverture du panneau, fermés. Le champ '
+  + 'les filtre et les ouvre. On voit tout de suite qu’un dictionnaire '
+  + 'existe, sans avoir à le chercher.',
+    'huit cartes de plus dans un panneau déjà long — le type de charge, les '
+  + 'colonnes et l’équipement descendent d’autant. Et quand on tape, la '
+  + 'liste de suggestions ET les groupes disent la même chose deux fois.',
+    function (ecran, choisir) {
+      ecran.appendChild(el('div', 'etiq', 'Nom de l’exercice'));
+      var zoneSug = el('div');
+      var zoneGrp = el('div');
+      function maj(q) {
+        zoneSug.innerHTML = '';
+        zoneSug.appendChild(suggestions(q, choisir));
+        zoneGrp.innerHTML = '';
+        zoneGrp.appendChild(groupes(q, choisir, !!q));
+      }
+      ecran.appendChild(champNom(maj));
+      ecran.appendChild(zoneSug);
+      ecran.appendChild(el('div', 'etiq', 'Ou parcourir par groupe'));
+      ecran.appendChild(zoneGrp);
+      maj('');
+    }));
+
+  /* ---- C : deux onglets ---- */
+  rangee.appendChild(cadre(
+    'C — Deux onglets : Taper / Parcourir',
+    'Le panneau choisit un mode. « Taper » est l’écran d’aujourd’hui, mot '
+  + 'pour mot. « Parcourir » donne le champ de recherche ET les huit '
+  + 'groupes, sans la liste de suggestions — une seule façon de lire à la '
+  + 'fois, jamais deux.',
+    'un mode à choisir avant de commencer, et un état de plus à retenir : '
+  + 'si l’app rouvre sur « Parcourir », celui qui voulait taper doit '
+  + 'revenir. C’est le seul des trois qui change ce qu’on voit en arrivant.',
+    function (ecran, choisir) {
+      var mode = 'taper';
+      var simOnglets = el('div', 'simOnglets');
+      var zone = el('div');
+      var champ = null;
+      function maj() {
+        zone.innerHTML = '';
+        var q = champ ? champ.value.trim() : '';
+        if (mode === 'taper') {
+          zone.appendChild(el('div', 'etiq', 'Nom de l’exercice'));
+          champ = champNom(function () { maj(); });
+          champ.value = q;
+          zone.appendChild(champ);
+          zone.appendChild(suggestions(q, choisir));
+        } else {
+          zone.appendChild(el('div', 'etiq', 'Chercher dans le dictionnaire'));
+          champ = champNom(function () { maj(); }, 'curl poulie, cable, épaules…');
+          champ.value = q;
+          zone.appendChild(champ);
+          zone.appendChild(groupes(q, choisir, !!q));
+        }
+        /* On rend le curseur a l'utilisateur : sans ca, taper une lettre
+           ferait perdre le focus a chaque frappe. */
+        if (champ && document.activeElement !== champ && q) {
+          champ.focus();
+          champ.setSelectionRange(q.length, q.length);
+        }
+      }
+      [['taper', 'Taper'], ['parcourir', 'Parcourir']].forEach(function (p) {
+        var b = el('button', 'puce', p[1]);
+        b.type = 'button';
+        b.setAttribute('aria-pressed', mode === p[0] ? 'true' : 'false');
+        b.addEventListener('click', function () {
+          mode = p[0];
+          Array.prototype.forEach.call(simOnglets.children, function (n, i) {
+            n.setAttribute('aria-pressed', ['taper', 'parcourir'][i] === mode ? 'true' : 'false');
+          });
+          maj();
+        });
+        simOnglets.appendChild(b);
+      });
+      ecran.appendChild(simOnglets);
+      ecran.appendChild(zone);
+      maj();
+    }));
+})();
+</script>
+</body>
+</html>
