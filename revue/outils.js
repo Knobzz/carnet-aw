@@ -34,6 +34,17 @@
          + 'l’entrée du dictionnaire, déjà sourcée, et rien n’est ajouté',
       lien: null
     },
+    muet: {
+      qui: 'LE FABRICANT NE DIT RIEN — page produit lue, aucun texte : un '
+         + 'prix, un numéro d’article, un stock. Le trou est à la source, '
+         + 'pas dans ce carnet',
+      lien: null
+    },
+    cadre: {
+      qui: 'LE CADRE NE TRAVAILLE RIEN — c’est l’accessoire monté dessus '
+         + 'qui décide, et ses réglages le portent',
+      lien: null
+    },
     riennedit: {
       qui: 'TROIS études qui ne vont pas dans le même sens — c’est la '
          + 'source, et elle dit de ne RIEN conclure',
@@ -357,6 +368,100 @@
           + 'poignée de tirage, pas une corde. Le quatrième contrôle a '
           + 'attrapé le second ; le premier, c’est l’ouverture de la page '
           + 'qui l’a dit.'
+    },
+    {
+      cle: 'anti toproll',
+      nom: 'Poignée anti-toproll',
+      liens: [{ texte: 'Mithril — Anti-Toproll V3',
+                url: 'https://mithrilarmwrestling.com/products/anti-toproll-v3' },
+              { texte: 'Mithril — Eccentric Round Anti-Toproll',
+                url: 'https://mithrilarmwrestling.com/products/eccentric-round-anti-toproll' },
+              { texte: 'Mithril — catégorie Toproll Training',
+                url: 'https://mithrilarmwrestling.com/collections/toproll-training' },
+              { texte: 'Titangrip — Multi-Tool, accessoire Toproll Counter',
+                url: 'https://titangrip.de/multi-tool' }],
+      source: S.geste,
+      cite: null,
+      note: 'RÉSISTER À UN TOPROLL N’EST PAS EN FAIRE UN — question de MB le '
+          + '28/10 : « l’anti-toproll, me semble t’il, tiens sur de la '
+          + 'technique toproll, à confirmer ». CONFIRMÉ, et par la seule '
+          + 'source qui range ses produits PAR BUT : Mithril trie son '
+          + 'catalogue en « Shop by Training Goal », et ses CINQ poignées '
+          + 'anti-toproll sont toutes sous « Toproll Training », AUCUNE '
+          + 'sous « Hook Training ». — CE TYPE NE REMPLACE DONC RIEN : une '
+          + 'poignée anti-toproll reste un toproll, et gagne en plus ce que '
+          + 'les trois fabricants nomment. — LES DOIGTS ET LA FLEXION, DITS '
+          + 'TROIS FOIS : Golden Grip, « elite finger strength, which can '
+          + 'be used to contain your opponent’s hand during an armwrestling '
+          + 'match » ; Titangrip, « gezielte Belastungsübertragung auf die '
+          + 'Finger und das Handgelenk » ; Mithril V1, « Wrist flexion, '
+          + 'pronation, finger containment, grip stability, and defensive '
+          + 'hand control ». D’où l’entrée « Wrist curl », DÉRIVÉE du '
+          + 'dictionnaire et non recopiée : le jour où la flexion du '
+          + 'poignet gagne un muscle, l’anti-toproll le gagne aussi. — LES '
+          + 'DEUX EXTENSEURS RESTENT PROPOSÉS, et aucun fabricant ne les '
+          + 'nomme ici : ils viennent du toproll, par l’appartenance que MB '
+          + 'demandait de confirmer. C’est dit plutôt que masqué.'
+    },
+    {
+      cle: 'multi tool',
+      nom: 'Multi-Tool (cadre)',
+      liens: [{ texte: 'Titangrip — Multi-Tool et ses accessoires',
+                url: 'https://titangrip.de/multi-tool' },
+              { texte: 'Titangrip — Multi-Tool Rahmen (le cadre seul)',
+                url: 'https://titangrip.de/produkt/multi-tool-rahmen' }],
+      source: S.cadre,
+      cite: null,
+      note: 'LE CADRE, ET RIEN QUE LE CADRE. Un Multi-Tool nu ne travaille '
+          + 'RIEN : c’est l’accessoire monté dessus qui décide, et c’est '
+          + 'pourquoi il n’a ni muscles ni entrée. MB, 28/10 : « c’est une '
+          + 'poignée métallique où tu peux mettre différentes poignées '
+          + 'd’armwrestling dessus ». — SES NEUF ACCESSOIRES, et ce qu’ils '
+          + 'proposent AUJOURD’HUI, mesuré nom par nom : Zylinder S, M, L, '
+          + 'XL mènent à la PRISE ÉPAISSE (il faut écrire « Aufsatz '
+          + 'Zylinder L » — « Zylinder » seul est interdit exprès, car '
+          + '« Pronator Zylinder » est un autre produit) ; Exzentrisch mène '
+          + 'à la pronation et la supination ; Kegel aux fléchisseurs des '
+          + 'doigts ; Toproll Counter aux neuf muscles de l’anti-toproll. '
+          + 'Sept sur neuf répondent donc déjà par leur nom de marque. — '
+          + 'LES DEUX QUI RESTENT MUETS, et le trou n’est PAS dans ce '
+          + 'carnet : « Aufsatz Wrist Pro Gelb » et « Aufsatz Multi Hand '
+          + 'Grip Gelb » n’ont AUCUNE description chez Titangrip. Ni sur la '
+          + 'page du Multi-Tool, ni sur leur propre fiche produit, lues le '
+          + '29/10 : un prix, un numéro d’article, un stock, et rien '
+          + 'd’autre. Leur donner des muscles serait les déduire de la '
+          + 'forme du produit — c’est précisément ce que ce fichier '
+          + 'interdit. Ils restent muets tant que le fabricant se tait.'
+    },
+    {
+      cle: 'armwrestling buddies',
+      nom: 'Armwrestling Buddies (cadre)',
+      liens: [{ texte: 'Golden Grip — Armwrestling Buddies',
+                url: 'https://www.goldengrip.com/products/armwrestling-buddies' },
+              { texte: 'Golden Grip — Cone Handle',
+                url: 'https://www.goldengrip.com/products/cone-handle' },
+              { texte: 'Golden Grip — King’s Cup',
+                url: 'https://www.goldengrip.com/products/kings-cup' }],
+      source: S.cadre,
+      cite: null,
+      note: 'L’AUTRE CADRE, celui de Golden Grip, et le même principe : nu, '
+          + 'il ne travaille rien. — CE N’EST PAS UNE MARQUE, et c’est ce '
+          + 'qui m’a fait chercher à côté le 29/10 : « Armwrestling '
+          + 'Buddies » est un PRODUIT de Golden Grip, le catalogue des '
+          + 'marques du modèle le dit déjà. Cherché comme marque '
+          + 'indépendante, il n’a évidemment pas de site. — SES SIX '
+          + 'ACCESSOIRES RÉPONDENT TOUS par leur nom, mesuré : Offset '
+          + 'Cylinder Handle mène à la prise épaisse, Anti-Toproll Handle '
+          + '(avec ou sans sangle) aux neuf muscles de l’anti-toproll, '
+          + 'Eccentric Grip Handle à la pronation et la supination, King’s '
+          + 'Cup aux cinq de la cup, Cone Handle aux fléchisseurs des '
+          + 'doigts. — UNE DETTE RESTE, et elle est inscrite dans '
+          + 'CHANTIERS.md : le CONE HANDLE ne propose qu’UN muscle, là où '
+          + 'sa fiche Golden Grip nomme une cup profonde, une tension côté '
+          + 'auriculaire et de la supination. Trois choses, un muscle. À '
+          + 'reprendre avec MB, parce que l’élargir toucherait le type '
+          + '`cone` entier — donc aussi les cônes de Mithril et de '
+          + 'Titangrip.'
     },
     {
       cle: 'thumb',

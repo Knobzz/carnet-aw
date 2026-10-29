@@ -110,9 +110,12 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
 
 **CE QUI RESTE, ET LA PLANCHE LE DIT EN ROUGE :**
 
-1. **Trois types livrés SANS fiche de revue** : `anti toproll`, `multi tool`,
-   `armwrestling buddies`. Ils sont dans le modèle sans être passés par le
-   rituel — c'est le même défaut que les 59 écritures de catalogue du 29/10.
+1. ~~**Trois types livrés SANS fiche de revue.**~~ **ÉCRITES le 29/10**, et la
+   planche d'équipement est verte : « chaque type livré a sa fiche de
+   revue ». Deux étaient de la pure TRANSCRIPTION — le modèle portait déjà
+   tout le raisonnement de l'anti-toproll, avec ses trois citations de
+   fabricants. Le travail était fait, il n'était pas là où la planche le
+   cherche.
 2. **DEUX accessoires muets, pas vingt et un.** J'avais écrit le contraire
    ici même, et MB l'a relevé : « l'équipement est déjà ajouté par marque
    [...] les équipements par marques indiquent déjà les muscles en plus
@@ -125,16 +128,27 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    | proposent déjà par leur nom de marque | **10** |
    | positions de mousqueton, pas des accessoires | 6 |
    | Zylinder S/M/L/XL : « Aufsatz Zylinder L » rend ses 5 muscles | 4 |
-   | **vrais trous : Wrist Pro, Multi Hand Grip** | **2** |
+   | ~~vrais trous : Wrist Pro, Multi Hand Grip~~ → **le fabricant se tait** | 2 |
 
    Le nom court « Zylinder L » seul est interdit **exprès** : « Pronator
    Zylinder » est un autre produit Titangrip, et le code l'écrit.
 
    **C'est le piège que la règle nomme** : mesurer l'EFFET, jamais la
    DÉCLARATION. J'ai lu la table et conclu ; il fallait appeler la fonction.
-3. La dette du **Cone Handle** : il propose UN muscle (fléchisseurs des
-   doigts) là où sa fiche Golden Grip nomme une cup profonde, une tension
-   côté auriculaire et de la supination.
+
+   **ET LES DEUX DERNIERS TROUS SE FERMENT PAR UNE RÉPONSE NÉGATIVE**, le
+   29/10 : « Aufsatz Wrist Pro Gelb » et « Aufsatz Multi Hand Grip Gelb »
+   n'ont **aucune description** chez Titangrip. Ni sur la page du
+   Multi-Tool, ni sur leur propre fiche produit : un prix, un numéro
+   d'article, un stock. **Le trou est à la source**, et leur donner des
+   muscles serait les déduire de la forme du produit. Ils restent muets
+   tant que le fabricant se tait — c'est écrit dans leur fiche de revue.
+3. **LA SEULE CHOSE QUI RESTE : la dette du Cone Handle.** Il propose UN
+   muscle (fléchisseurs des doigts) là où sa fiche Golden Grip nomme une
+   cup profonde, une tension côté auriculaire et de la supination — trois
+   choses, un muscle. **À trancher avec MB**, parce que l'élargir toucherait
+   le type `cone` ENTIER : donc aussi les cônes de Mithril et de Titangrip,
+   qui ne disent pas la même chose.
 
 ## 2. Les variantes, plutôt qu'un nom par engin
 
