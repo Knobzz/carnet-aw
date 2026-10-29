@@ -17,9 +17,10 @@ posé le 23/10 — les mouvements d'abord, les équipements bien après.
 « dans un second temps beaucoup plus tardif ». Rien de ce qui suit ne
 commence tant que celui-ci n'est pas fini.
 
-**Six lots livrés, 58 fiches** : le poignet et l'avant-bras (8), la main et
+**Sept lots livrés, 62 fiches** : le poignet et l'avant-bras (8), la main et
 le grip (5), les exercices de table (3), les épaules et le dos (17), les
-fléchisseurs du coude (9), les épaules (12, le 29/10).
+fléchisseurs du coude (9), les épaules (12), les triceps (4, le 29/10 — plus
+quatre écritures aux dips et quatre transférées d'« Extension triceps »).
 
 **CE QUI RESTE, MESURÉ LE 2026-10-29**, après le lot des épaules, sur les
 noms réels des pages de docteur-fitness :
@@ -33,11 +34,9 @@ noms réels des pages de docteur-fitness :
 
 **L'ORDRE RECOMMANDÉ, et pourquoi :**
 
-1. **Les triceps.** Le pire ratio — 24 noms sur 38 mal servis, dont **17 qui
-   rendent « Triceps » tout seul** alors que la fiche `Extension triceps`
-   en porte deux. Une réponse maigre se corrige moins bien qu'une absence :
-   on ne corrige pas ce qui a répondu.
-2. **Les dorsaux.** 21 noms muets, et cohérents entre eux — les pull-overs,
+1. ~~**Les triceps.**~~ **LIVRÉS le 29/10.** C'était le pire ratio — 24 noms
+   sur 38 mal servis, dont 17 qui rendaient « Triceps » tout seul.
+2. **Les dorsaux — C'EST LE PROCHAIN.** 21 noms muets, et cohérents entre eux — les pull-overs,
    le soulevé de terre, le muscle-up, les tractions assistées.
 3. **Les pectoraux.** 14 muets, surtout des variantes d'engin.
 4. **Les biceps.** 7 muets seulement : le lot 5 a déjà fait le gros.
@@ -107,6 +106,17 @@ recherche n'y touche pas.
 
 **Quand** : « plus tard, quand le dictionnaire sera déjà bien rempli »
 (MB, 2026-10-29).
+
+**UNE FENÊTRE DE LECTURE EXISTE DÉJÀ, depuis la 1.57.0** : *Réglages ▸ Le
+dictionnaire du carnet*, demandée par MB le 29/10 — « j'aimerai aussi que le
+dictionnaire existant soit consultable **pour le moment** dans "réglages" ».
+Elle liste les 62 fiches avec leurs muscles et leurs écritures, et sa
+recherche est **celle de l'écran d'ajout**, pas une seconde.
+
+**CE QU'ELLE N'EST PAS**, et c'est tout ce chantier : elle n'a ni **groupes de
+muscles** ni **images par exercice**, et elle est dans Réglages au lieu
+d'être dans *Ajouter un exercice ▸ Nom de l'exercice*, où MB la veut à
+terme.
 
 **Ce qui existe déjà** : 37 images de muscles (`icones/muscle-*.png`), chaque
 muscle porte son champ `image`, les huit groupes existent
@@ -206,6 +216,17 @@ Petites, nommées, et qui ne demandent qu'une décision.
   latérale en 1.54.0, les 28 variantes d'engin en 1.55.0) n'ont touché que
   le dictionnaire. La garde empêche que ça recommence, elle ne dispense pas
   d'écrire dans les deux.
+- **Les quatre tractions partielles sont entrées au catalogue le 29/10**, et
+  la planche ne compte plus aucun muscle sans source : 254 muscles, 243
+  cités mot pour mot, 11 déduits, **0 sans source**. Aucune recherche n'a été
+  nécessaire — chacun de ces 26 muscles était déjà cité 8 à 19 fois sur la
+  version pleine du même geste. CE QUI RESTE DÛ : leurs 26 rangs sont
+  **raisonnés**, repris de la version pleine, et la recherche du 29/10 n'a
+  trouvé **aucune étude EMG de la traction partielle**. Ce qui existe mesure
+  l'ANGLE du coude, pas la traction : biceps et brachio-radial culminent à
+  60°, et le brachio-radial est plus actif en PRONATION à 90° et 120°. Si
+  une mesure de la traction partielle paraît un jour, les rangs se
+  rediscutent.
 - **Les rangs sont RAISONNÉS, pas mesurés** : 43 sur 43 pour le lot des
   épaules. Aucune EMG ne dit qui mène un face pull. La planche l'écrit, et
   c'est le seul endroit où l'œil de MB vaut mieux que la mesure.

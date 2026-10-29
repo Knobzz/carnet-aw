@@ -1589,6 +1589,133 @@
           + 'LARGEUR restent chez « Traction » : la revue écrit que la '
           + 'largeur n’est pas soutenue par les données.'
     },
+    /* ---------- LES QUATRE TRACTIONS PARTIELLES ----------
+
+       MB, 28/10 : « il me faut 4 fiches pour la partial, partial chin up,
+       partial pull up, partial close grip et partial wide grip ». Elles
+       sont entrées au dictionnaire ce jour-là, SANS passer par ici — d'où
+       les 26 muscles que la planche comptait sans source. Aucune recherche
+       n'a été nécessaire : chacun était déjà cité 8 à 19 fois sur la
+       version pleine du même geste.
+
+       LA LISTE EST CELLE DE LA VERSION PLEINE, muscle pour muscle et rang
+       pour rang. C'est le choix du 28/10, et la recherche du 29/10 ne l'a
+       pas démenti : aucune étude EMG de la traction partielle n'existe. */
+    {
+      id: 'traction-partielle',
+      nom: 'Traction partielle',
+      aussi: ['Partial pull up', 'Traction partielle pronée',
+              'Partial traction'],
+      aussiEcartees: [
+        ['Partial pullup',
+         'colle les deux mots : le lecteur de noms cherche « pull up » '
+         + 'comme DEUX mots et ne trouve rien']
+      ],
+      geste: 'Suspendu à la barre PAUME VERS L’AVANT, le corps monte et '
+           + 'redescend sans aller au bout de la course.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique }),
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('trapeze', 'aide', S.trap, C.trap, null,
+          { source: S.tractions2017, cite: C.dickie_trapeze }),
+        m('biceps', 'aide', S.bic, C.bic, null,
+          { source: S.revueLD2026, cite: C.chin_biceps }),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('brachio_radial', 'aide', S.brr, C.brr, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique })
+      ],
+      note: 'DÉJÀ LIVRÉE, elle rejoint le catalogue pour y porter ses '
+          + 'sources : la planche comptait ses sept muscles « sans source » '
+          + 'alors que chacun est cité sur « Pull up ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
+          + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'L’IMPRESSION DE MB, ET CE QUE LA MESURE EN DIT. Lui : « j’ai l’impression que l’accent sur les muscles de l’avant-bras est plus fort ». AUCUNE étude EMG de la traction partielle n’existe — cherché quatre fois le 29/10. Ce qui existe mesure l’ANGLE du coude : biceps et brachio-radial culminent à 60°, et le brachio-radial est PLUS actif en PRONATION à 90° et 120° qu’en neutre ou en supination. Son impression tient donc, mais par la PRONATION tenue dans cette bande d’angle, pas par la partialité. Deux autres études tempèrent : l’une ne trouve l’effet de l’angle qu’en excentrique, l’autre aucun effet sur le rapport EMG/force.'
+    },
+    {
+      id: 'traction-partielle-supinee',
+      nom: 'Traction partielle supinée',
+      aussi: ['Partial chin up', 'Chin up partiel'],
+      geste: 'Le même geste PAUME VERS SOI, sans aller au bout de la course.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique }),
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'moteur', S.bic, C.bic, null,
+          { source: S.revueLD2026, cite: C.chin_biceps }),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('brachio_radial', 'aide', S.brr, C.brr, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique })
+      ],
+      note: 'La liste et les rangs de « Chin up » : le BICEPS y MÈNE au lieu '
+          + 'd’aider, et c’est ce qui sépare la supination de la pronation. '
+          + '— ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. ' + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. '
+          + 'EN SUPINATION, le brachio-radial monte continûment de 30° à '
+          + '120° au lieu de culminer à 60° — c’est l’autre moitié de la '
+          + 'mesure citée sur « Traction partielle ».'
+    },
+    {
+      id: 'traction-partielle-serree',
+      nom: 'Traction partielle prise serrée',
+      /* « CLOSE GRIP » EST PRIS PAR LE DEVELOPPE COUCHE, et la mesure est
+         sans appel : « Partial close grip » rend grand_pectoral, DELTOIDE
+         et TRICEPS — un developpe, pas une traction. */
+      aussi: ['Traction partielle neutre', 'Partial neutral grip pull up'],
+      aussiEcartees: [
+        ['Partial close grip pull up',
+         '« close grip » est pris par le développé couché : le nom rend '
+         + 'pectoral, deltoïde et triceps — un développé, pas une traction'],
+        ['Partial close grip', 'même piège, en pire : rien n’y dit la traction']
+      ],
+      geste: 'Le même geste MAINS RAPPROCHÉES, paumes face à face, sans '
+           + 'aller au bout de la course.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique }),
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('biceps', 'aide', S.bic, C.bic, null,
+          { source: S.revueLD2026, cite: C.chin_biceps }),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('brachio_radial', 'aide', S.brr, C.brr, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique })
+      ],
+      note: 'La liste et les rangs de « Traction prise serrée ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
+          + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'SANS TRAPÈZE, comme sa version pleine : la seule '
+          + 'différence mesurée de la prise LARGE porte sur le trapèze '
+          + 'moyen, que le carnet n’a pas — c’est la prise serrée qui n’en '
+          + 'porte pas, et la large qui en porte un.'
+    },
+    {
+      id: 'traction-partielle-large',
+      nom: 'Traction partielle prise large',
+      aussi: ['Partial wide grip pull up', 'Traction partielle large'],
+      aussiEcartees: [
+        ['Partial wide grip',
+         'seul, il ne dit rien au lecteur de noms ; avec « pull up » il dit '
+         + 'juste — on garde celle qui parle']
+      ],
+      geste: 'Le même geste MAINS ÉCARTÉES, sans aller au bout de la course.',
+      muscles: [
+        m('grand_pectoral', 'aide', S.pm, C.pm, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique }),
+        m('grand_dorsal', 'moteur', S.ld, C.ld),
+        m('grand_rond', 'moteur', S.tm, C.tm),
+        m('trapeze', 'aide', S.trap, C.trap, null,
+          { source: S.tractions2017, cite: C.dickie_trapeze }),
+        m('biceps', 'aide', S.bic, C.bic, null,
+          { source: S.revueLD2026, cite: C.chin_biceps }),
+        m('brachial', 'moteur', S.bra, C.bra),
+        m('brachio_radial', 'aide', S.brr, C.brr, null,
+          { source: S.tractions2017, cite: C.dickie_concentrique })
+      ],
+      note: 'La liste et les rangs de « Traction prise large ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
+          + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'LE TRAPÈZE EST CE QUI LA SÉPARE de la prise serrée, et '
+          + 'c’est la SEULE différence que Dickie 2017 trouve à la largeur : '
+          + '« a wide pronated grip was reported to produce significantly '
+          + 'greater middle trapezius EMG amplitude ». Le carnet n’a qu’un '
+          + 'trapèze unique, sans ses faisceaux.'
+    },
     {
       id: 'pompes',
       nom: 'Pompes',
@@ -1702,13 +1829,21 @@
          « Extension au-dessus de la tete » a ete proposee au lot 4 et jamais
          livree : elle decrit la meme position que « Extension nuque », qui
          part au lot 7. */
-      aussi: ['Pushdown', 'Barre au front', 'Extension à la poulie',
-              'Skull crusher', 'Extension nuque', 'Kickback',
-              'Triceps poulie', 'Extension haltère', 'Triceps corde'],
+      /* LE TRANSFERT EST FAIT (lot 7 livré le 29/10) : les quatre écritures
+         sont parties chez leurs fiches, et cette entrée enregistre ce qui
+         LUI RESTE. Le `reprend` des trois fiches neuves dit d'où leur nom
+         vient. */
+      aussi: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
+              'Extension haltère', 'Triceps corde'],
       aussiEcartees: [
         ['Extension au-dessus de la tête',
-         'même position que « Extension nuque », qui part au lot 7 chez '
-         + '« Extension verticale des triceps »']
+         'même position que « Extension nuque », partie au lot 7 chez '
+         + '« Extension verticale des triceps »'],
+        ['Barre au front', 'transférée au lot 7 à sa propre fiche'],
+        ['Skull crusher', 'transférée au lot 7 chez « Barre au front »'],
+        ['Extension nuque',
+         'transférée au lot 7 chez « Extension verticale des triceps »'],
+        ['Kickback', 'transférée au lot 7 à sa propre fiche']
       ],
       apres: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
               'Extension haltère', 'Triceps corde'],

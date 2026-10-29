@@ -3111,7 +3111,11 @@
          le temps. */
       v.egal(titres.join(' · '),
              'Thème · En salle · Mon poids · Exercices connus · Équipement · '
-           + 'Mon dictionnaire · Sauvegarde · '
+           /* « LE DICTIONNAIRE DU CARNET » S'INSERE ICI le 29/10, a la
+              demande de MB, juste AVANT « Mon dictionnaire » : le livre
+              d'abord, le sien ensuite — c'est l'ordre dans lequel une
+              fiche se cherche. */
+           + 'Le dictionnaire du carnet · Mon dictionnaire · Sauvegarde · '
            + 'État du stockage · Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
 
@@ -3253,6 +3257,68 @@
      `hidden` se fait battre par un `display`, et ca s'est deja paye ici sur
      le filtre de l'equipement — on mesure donc le rectangle.
      ================================================================ */
+  /* ================================================================
+     LE DICTIONNAIRE SE CONSULTE DANS REGLAGES
+
+     MB, 29/10 : « j'aimerai aussi que le dictionnaire existant soit
+     consultable pour le moment dans "réglages" ».
+
+     Le modèle a déjà son bloc (« Le dictionnaire se consulte ») : il mesure
+     que la LISTE est la bonne. Ici on mesure que l'ÉCRAN la rend, que la
+     frappe la filtre, et qu'un résultat vide se DIT au lieu de disparaître.
+     ================================================================ */
+  bloc('Le dictionnaire dans Réglages', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var vue = doc.getElementById('vue');
+    var e = fen.App.store.etat();
+    e.exercices.length = 0;
+    fen.App.vues.reglages.rendre(vue);
+
+    return attendre(200).then(function () {
+      var titres = Array.prototype.map.call(vue.querySelectorAll('.sous-titre'),
+        function (x) { return x.textContent; });
+      v.vrai(titres.indexOf('Le dictionnaire du carnet') >= 0,
+             'la section est dans Réglages : ' + titres.join(' · '));
+
+      var champ = Array.prototype.slice.call(vue.querySelectorAll('input'))
+        .filter(function (i) { return /Chercher/.test(i.placeholder || ''); })[0];
+      v.vrai(!!champ, 'et elle porte un champ de recherche');
+      if (!champ) return;
+
+      function fiches() {
+        /* Les cartes de CETTE section seulement : on part du champ et on
+           lit ses frères suivants, sans quoi on compterait celles des
+           autres sections. */
+        var apres = champ.nextElementSibling;
+        return apres ? apres.querySelectorAll('.carte').length : 0;
+      }
+      var toutes = fiches();
+      v.egal(toutes, fen.App.m.DICTIONNAIRE.length,
+             'sans frappe, les ' + fen.App.m.DICTIONNAIRE.length
+           + ' fiches sont là — il y en a ' + toutes);
+
+      champ.value = 'curl poulie';
+      champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      var filtrees = fiches();
+      v.vrai(filtrees > 0 && filtrees < toutes,
+             '« curl poulie » en filtre une partie : ' + filtrees + ' sur ' + toutes);
+
+      /* UN RESULTAT VIDE SE DIT. Une liste qui disparaît sans un mot se lit
+         comme une panne, pas comme « rien ne correspond ». */
+      champ.value = 'poulet';
+      champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.egal(fiches(), 0, 'un mot inconnu ne rend aucune fiche');
+      var txt = vue.textContent;
+      v.vrai(txt.indexOf('Aucun mouvement ne correspond') >= 0,
+             'et l’écran le DIT, au lieu de laisser un vide muet');
+
+      /* Et la frappe se défait. */
+      champ.value = '';
+      champ.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.egal(fiches(), toutes, 'effacer la frappe rend la liste entière');
+    });
+  });
+
   bloc('Les Réglages se replient', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');
@@ -3367,7 +3433,18 @@
       if (cat.getAttribute('aria-expanded') !== 'true') cat.click();
 
       return attendre(160).then(function () {
-        var t = vue.innerText;
+        /* LE BLOC DU CATALOGUE SEUL, PAS LA PAGE. Ce qu'a dit MB —
+           « seuls mes exos créés de ma main doivent être visibles » —
+           porte sur le CATALOGUE. Depuis le 29/10, Réglages porte
+           aussi une section qui LISTE le dictionnaire, à sa demande :
+           chercher dans tout le texte de la page ferait tomber ce
+           contrôle sur un écran juste. */
+        var blocCat = cat.nextElementSibling;
+        var t = blocCat ? blocCat.innerText : '';
+        v.vrai(t.length > 0,
+               '[temoin] le bloc du catalogue porte du texte — sans '
+             + 'quoi les trois mesures ci-dessous seraient vraies pour '
+             + 'rien');
         v.vrai(t.indexOf('Mon exo maison') >= 0 && t.indexOf('Curl bizarre') >= 0,
                'les deux noms à lui sont listés');
         v.egal(t.indexOf('Wrist curl'), -1,
@@ -3375,6 +3452,8 @@
         v.egal(t.indexOf('Traction\n'), -1,
                'une ÉCRITURE du dictionnaire non plus — « Traction » est '
              + 'une écriture de « Pull up »');
+        /* La phrase de comptage est SOUS le bloc : on reprend la page. */
+        t = vue.innerText;
         v.vrai(t.indexOf('3 noms du dictionnaire sont mémorisés') >= 0,
                'et le carnet DIT combien il en garde sans les montrer — '
              + 'une liste qui maigrit sans raison inquiète');

@@ -1432,9 +1432,17 @@
       aussi: ['Dips pectoraux', 'Dips buste penché', 'Chest dips',
               'Dips pecs'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
+    /* LES QUATRE DERNIERES SONT DU LOT 7. Critère de MB, posé en refusant
+       « Dips aux barres parallèles » : c'est l'INCLINAISON qui décide, pas
+       l'engin. Un nom n'entre que si son appareil n'autorise QU'UN penché —
+       sur un banc, les mains derrière soi, on ne peut pas se pencher en
+       avant. Les anneaux, une machine d'assistance ou un élastique
+       autorisent les deux : cinq écritures sont donc restées dehors, et le
+       catalogue dit laquelle pour quelle raison. */
     { nom: 'Dips prise serrée',
       aussi: ['Dips triceps', 'Dips buste droit', 'Triceps dips',
-              'Dips verticaux'],
+              'Dips verticaux', 'Dips entre deux bancs', 'Dips sur banc',
+              'Dips sur une chaise', 'Bench dips'],
       muscles: ['deltoide', 'triceps', 'ancone'] },
     { nom: 'Pompes',
       aussi: ['Push up', 'Pompe', 'Push ups', 'Pompes diamant',
@@ -1716,10 +1724,70 @@
     { nom: 'Croix de fer',
       aussi: ['Iron cross', 'Croix de fer avec haltères'],
       muscles: ['deltoide', 'supra_epineux'] },
+    /* ---------- LES TRICEPS (lot 7) ----------
+
+       Validé par MB le 2026-10-29 : « Le lot de 7 triceps était validé. Ce
+       sont toutes des variantes, c'est acceptable. »
+
+       MESURE QUI A OUVERT LE LOT, sur les 38 noms de la page « exercices
+       triceps » : SEPT ne proposaient rien, DIX-SEPT rendaient « Triceps »
+       tout seul alors que cette fiche en porte deux, et « Tate press »
+       rendait « Pectoral » — faux, parce que le carnet y lit « press ».
+
+       AUCUN MUSCLE NEUF : le triceps et l'anconé étaient déjà au carnet,
+       avec leurs planches. Ce lot n'a coûté que des noms.
+
+       CINQ GESTES, UNE SEULE LISTE, ET C'EST ASSUMÉ. Le carnet n'a qu'une
+       entrée « triceps », sans ses trois chefs : la différence entre un
+       pushdown, une barre au front et une extension verticale porte sur le
+       CHEF LONG, qu'il ne distingue pas. MB l'accepte comme variantes —
+       même traitement qu'au lot 5 pour le hammer, le preacher et le
+       concentré.
+
+       QUATRE ÉCRITURES ONT QUITTÉ CETTE FICHE pour les leurs : « Barre au
+       front » et « Skull crusher » vers Barre au front, « Extension
+       nuque » vers Extension verticale, « Kickback » vers Kickback. Les
+       laisser des deux côtés ferait deux fiches pour un nom, et
+       `ficheDictionnaire` prend la PREMIÈRE de la table. */
     { nom: 'Extension triceps',
-      aussi: ['Pushdown', 'Barre au front', 'Extension à la poulie',
-              'Skull crusher', 'Extension nuque', 'Kickback',
-              'Triceps poulie', 'Extension haltère', 'Triceps corde'],
+      aussi: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
+              'Extension haltère', 'Triceps corde'],
+      muscles: ['triceps', 'ancone'] },
+    { nom: 'Barre au front',
+      aussi: ['Skull crusher', 'Barre front', 'Barre au front à la barre EZ',
+              'Extensions des triceps couché avec haltères',
+              'Extensions des triceps décliné avec haltères',
+              'Extensions des triceps incliné avec haltères',
+              'Extension des triceps couché avec élastique',
+              'Extensions des triceps incliné à la barre guidée',
+              'Lying triceps extension'],
+      muscles: ['triceps', 'ancone'] },
+    /* C'est la position qui étire le plus le CHEF LONG, le seul des trois
+       qui traverse l'épaule. Le carnet ne le distingue pas : c'est écrit
+       sur la planche, pas simulé dans les muscles. */
+    { nom: 'Extension verticale des triceps',
+      aussi: ['Extension nuque', 'Overhead triceps extension',
+              'Extension verticale', 'Extensions verticales',
+              'Extension verticale assis à la barre',
+              'Extensions verticales à deux mains avec haltère',
+              'Extensions verticales d’un bras avec haltère',
+              'Extension verticale à la poulie basse',
+              'Extensions verticales à la poulie haute',
+              'Extensions des triceps assis avec haltère',
+              'Extension des triceps au-dessus de la tête avec élastique',
+              'Extension verticale des triceps avec élastique'],
+      muscles: ['triceps', 'ancone'] },
+    { nom: 'Kickback',
+      aussi: ['Kickback triceps', 'Extension arrière', 'Triceps kickback',
+              'Kickback alterné assis', 'Kickback debout avec haltères',
+              'Extensions concentrées des triceps à la poulie',
+              'Extension horizontale à la poulie'],
+      muscles: ['triceps', 'ancone'] },
+    /* ABSENT, ET PIRE QU'ABSENT : le carnet rendait « Pectoral » sur ce
+       nom, parce qu'il y lit « press ». Une réponse fausse coûte plus cher
+       qu'une absence. */
+    { nom: 'Tate press',
+      aussi: ['Tate press à un bras avec haltère', 'Extension coudes ouverts'],
       muscles: ['triceps', 'ancone'] },
     { nom: 'Side pressure à la poulie',
       aussi: ['Presse de côté', 'Side pressure'],
@@ -4265,6 +4333,33 @@
     });
   }
 
+  /* LE DICTIONNAIRE LIVRE, POUR LE CONSULTER.
+
+     MB, 29/10 : « j'aimerai aussi que le dictionnaire existant soit
+     consultable pour le moment dans "réglages" ».
+
+     ELLE PASSE PAR LA MÊME RECHERCHE QUE L'ÉCRAN D'AJOUT, et c'est le
+     point : taper « cable curl » ou « curl poulie » doit donner ICI ce que
+     ça donne LÀ. Un second mécanisme de recherche divergerait au premier
+     correctif.
+
+     SANS SAISIE, l'ordre est celui du dictionnaire — l'ordre de LECTURE,
+     par famille. Avec une saisie, c'est celui de la recherche, le mieux
+     placé devant : les deux ordres disent quelque chose de différent, et
+     aucun ne remplace l'autre. */
+  function fichesDuDictionnaire(etat, saisie) {
+    var q = slugCherche(saisie || '');
+    if (!q) return DICTIONNAIRE.slice();
+    var vus = {}, sortie = [];
+    suggestionsDictionnaire(q, [], etat || {}).forEach(function (x) {
+      var nom = x.entree || x.nom;
+      if (vus[nom]) return;
+      vus[nom] = 1;
+      DICTIONNAIRE.forEach(function (d) { if (d.nom === nom) sortie.push(d); });
+    });
+    return sortie;
+  }
+
   /* Suggestions pour l'autocomplétion. MES EXERCICES D'ABORD, puis le
      dictionnaire — decision de MB du 2026-10-23. L'ordre n'est pas un
      detail : ce que MB a ecrit lui-meme passe toujours devant une entree
@@ -6514,6 +6609,7 @@
     trancherConflit: trancherConflit,
     auDictionnaire: auDictionnaire, ficheDictionnaire: ficheDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
+    fichesDuDictionnaire: fichesDuDictionnaire,
     motsCherche: motsCherche, familleEngin: familleEngin,
     placeParMots: placeParMots,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,

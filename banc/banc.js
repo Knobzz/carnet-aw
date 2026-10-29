@@ -5312,6 +5312,152 @@
   });
 
   /* ==================================================================
+     LE DICTIONNAIRE SE CONSULTE
+
+     MB, 29/10 : « j'aimerai aussi que le dictionnaire existant soit
+     consultable pour le moment dans "réglages" ».
+
+     LE POINT QUI COMPTE : c'est LA MÊME recherche que l'écran d'ajout. Un
+     second mécanisme divergerait au premier correctif, et personne ne s'en
+     apercevrait avant que les deux écrans ne répondent différemment à la
+     même frappe.
+     ================================================================== */
+  bloc('Le dictionnaire se consulte', function (v) {
+    var etat = { exercices: [], dictionnaire: [], seances: [], sparrings: [] };
+    function f(q) {
+      return A.m.fichesDuDictionnaire(etat, q).map(function (d) { return d.nom; });
+    }
+
+    v.egal(f('').length, A.m.DICTIONNAIRE.length,
+           'sans saisie, toutes les fiches, dans l’ordre du dictionnaire');
+    v.egal(f('')[0], A.m.DICTIONNAIRE[0].nom,
+           'et vraiment dans CET ordre — celui de la lecture, par famille');
+    v.egal(f('poulet').length, 0,
+           'un mot que personne n’a écrit ne rend rien');
+
+    /* LA MEME RECHERCHE QUE L'ECRAN D'AJOUT, et c'est mesuré nom par nom,
+       pas affirmé : si les deux divergent un jour, ce contrôle tombe. */
+    ['curl poulie', 'cable curl', 'pronation sangle', 'wrist curl poulie',
+     'lateral raise cable', 'triceps', 'epaules'].forEach(function (q) {
+      var ici = f(q);
+      var la = (A.m.suggestions(etat, q, 200) || [])
+        .map(function (x) { return x.entree || x.nom; })
+        .filter(function (n, i, l) { return l.indexOf(n) === i; });
+      v.egal(ici.join('|'), la.join('|'),
+             '« ' + q + ' » rend la MÊME chose ici et à l’ajout d’exercice');
+    });
+
+    v.vrai(f('curl poulie').length > 0,
+           '[temoin] « curl poulie » rend quelque chose — sans quoi les '
+         + 'comparaisons ci-dessus seraient vraies pour deux listes vides');
+    v.vrai(f('triceps').indexOf('Barre au front') >= 0,
+           'et le lot 7 s’y trouve : « triceps » mène à la barre au front');
+  });
+
+  /* ==================================================================
+     LE LOT 7 — LES TRICEPS
+
+     MB, 29/10 : « Le lot de 7 triceps était validé. Ce sont toutes des
+     variantes, c'est acceptable. »
+
+     MESURE QUI A OUVERT LE LOT, sur les 38 noms de la page des triceps :
+     SEPT ne proposaient rien, DIX-SEPT rendaient « Triceps » tout seul
+     alors que la fiche en porte deux, et « Tate press » rendait
+     « Pectoral » — faux, parce que le carnet y lit « press ».
+
+     LA PARTIE QUI PEUT CASSER, C'EST LE TRANSFERT. « Barre au front »,
+     « Skull crusher », « Extension nuque » et « Kickback » appartenaient à
+     « Extension triceps ». Les laisser des deux côtés ferait deux fiches
+     pour un nom, et `ficheDictionnaire` prend la PREMIÈRE de la table : le
+     choix serait silencieux.
+     ================================================================== */
+  bloc('Le lot 7 — les triceps', function (v) {
+    function mus(n) { return A.m.musclesDuNom(n).slice().sort().join(','); }
+    function fiche(n) {
+      return A.m.ficheDictionnaire(n, { exercices: [], dictionnaire: [] });
+    }
+
+    /* ---- LES QUATRE FICHES SONT LIVREES ----
+       La leçon du lot 6 : rien ne tombait quand ses douze fiches étaient
+       absentes, parce que les invariants ne lisent que les fiches
+       PRÉSENTES. On les nomme donc une par une. */
+    var ATTENDU = {
+      'Barre au front': 2, 'Extension verticale des triceps': 2,
+      'Kickback': 2, 'Tate press': 2
+    };
+    var manquent = [], faux = [];
+    Object.keys(ATTENDU).forEach(function (nom) {
+      var f = A.m.DICTIONNAIRE.filter(function (d) { return d.nom === nom; })[0];
+      if (!f) { manquent.push(nom); return; }
+      if ((f.muscles || []).length !== ATTENDU[nom]) {
+        faux.push(nom + ' : ' + (f.muscles || []).length);
+      }
+    });
+    v.egal(manquent.join(' · '), '',
+           'les QUATRE fiches du lot 7 sont au dictionnaire');
+    v.egal(faux.join(' · '), '',
+           'et chacune porte les deux muscles que la planche annonçait. '
+         + 'ATTENTION : vide — donc vert — si les fiches MANQUENT ; c’est le '
+         + 'contrôle du dessus qui garde ce cas-là');
+
+    /* ---- LE TRANSFERT A EU LIEU DES DEUX COTES ----
+       Un nom transféré doit mener à SA fiche, et avoir quitté l'ancienne.
+       Mesurer l'un sans l'autre laisserait passer le doublon. */
+    [['Barre au front', 'Barre au front'],
+     ['Skull crusher', 'Barre au front'],
+     ['Extension nuque', 'Extension verticale des triceps'],
+     ['Kickback', 'Kickback']
+    ].forEach(function (p) {
+      var f = fiche(p[0]);
+      v.egal((f || {}).nom, p[1],
+             '« ' + p[0] + ' » mène à « ' + p[1] + ' »');
+    });
+    var et = A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Extension triceps';
+    })[0];
+    v.egal((et.aussi || []).join(' · '),
+           'Pushdown · Extension à la poulie · Triceps poulie · '
+         + 'Extension haltère · Triceps corde',
+           'et « Extension triceps » ne garde QUE ce qui lui reste — les '
+         + 'quatre transférées en sont parties');
+
+    /* ---- CE QUE LE CARNET REND MAINTENANT, ET QU'IL RENDAIT MAL ---- */
+    v.egal(mus('Tate press'), 'ancone,triceps',
+           '« Tate press » ne rend plus « Pectoral » : le carnet y lisait '
+         + '« press », et une réponse FAUSSE coûte plus cher qu’une absence');
+    v.egal(mus('Lying triceps extension'), 'ancone,triceps',
+           'un nom anglais de la barre au front répond, il ne rendait RIEN');
+    /* PAS « Kickback debout avec haltères » : il MARCHAIT déjà, le mot
+       « kickback » étant dans la table de lecture. Un contrôle qui tient
+       des deux côtés sans le dire ne prouve rien. Celles-ci rendaient
+       VRAIMENT rien. */
+    v.egal(mus('Extension arrière'), 'ancone,triceps',
+           '« Extension arrière » rend les triceps — il ne rendait RIEN');
+    v.egal(mus('Barre front'), 'ancone,triceps',
+           'et « Barre front » non plus ne rendait rien');
+    v.egal(mus('Tate press à un bras avec haltère'), 'ancone,triceps',
+           'la seconde écriture du Tate press rendait elle aussi « Pectoral »');
+    v.egal(mus('Extensions verticales à la poulie haute'), 'ancone,triceps',
+           'l’extension verticale également — cinq de ses écritures ne '
+         + 'proposaient RIEN');
+
+    /* ---- LES DIPS ----
+       « Bench dips » rendait le PECTORAL, parce que le moteur de lecture
+       voit le mot « bench ». La fiche le corrige. */
+    v.egal(mus('Bench dips'), 'ancone,deltoide,triceps',
+           '« Bench dips » rend les muscles de la prise serrée — il rendait '
+         + 'le PECTORAL, par le mot « bench »');
+    v.egal((fiche('Dips sur banc') || {}).nom, 'Dips prise serrée',
+           'et les dips sur banc mènent à la prise serrée : sur un banc, les '
+         + 'mains derrière soi, on ne peut pas se pencher en avant');
+    v.egal(fiche('Dips aux anneaux'), null,
+           '[temoin] « Dips aux anneaux » n’est à AUCUNE fiche, et doit le '
+         + 'rester : les anneaux autorisent les DEUX inclinaisons, donc le '
+         + 'nom ne dit pas laquelle. Il tient des deux côtés — c’est une '
+         + 'écriture qu’on a refusée, pas une qu’on a oubliée');
+  });
+
+  /* ==================================================================
      LA RECHERCHE CHERCHE DES MOTS, PAS UNE SOUS-CHAINE
 
      MB, 29/10 : « Et pronation à la sangle c'est du poulet ? Recheck stp,
@@ -5550,10 +5696,18 @@
       if (!f.reprend) return;
       var source = mvts.filter(function (x) { return x.nom === f.reprend.de; })[0];
       if (!source) { faux.push(f.nom + ' : « ' + f.reprend.de + ' » inconnue'); return; }
+      /* DEUX ETATS, ET LA GARDE CONNAIT LES DEUX. Avant la livraison, la
+         fiche source POSSEDE encore l'ecriture : le transfert est en
+         attente. Apres, elle la nomme ECARTEE avec sa raison : le transfert
+         est fait. Ce qui reste interdit, c'est un `reprend` qui ne
+         correspond a RIEN chez la source. */
+      var connu = [source.nom].concat(source.aussi || [])
+        .concat((source.aussiEcartees || []).map(function (x) { return x[0]; }))
+        .map(cle);
       (f.reprend.ecritures || []).forEach(function (e) {
-        var a = [source.nom].concat(source.aussi || []).map(cle);
-        if (a.indexOf(cle(e)) < 0) {
-          faux.push(f.nom + ' : « ' + e + ' » n’est pas à « ' + source.nom + ' »');
+        if (connu.indexOf(cle(e)) < 0) {
+          faux.push(f.nom + ' : « ' + e + ' » n’est ni à « ' + source.nom
+                    + ' » ni nommée écartée par elle');
         }
       });
     });

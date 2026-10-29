@@ -1002,6 +1002,78 @@
        voir meme rajouter un exo au dictionnaire ». Les fiches s'ecrivent
        dans la fiche d'exercice ; elles se relisent et se suppriment ici.
        ------------------------------------------------------------------ */
+    /* ---------- LE DICTIONNAIRE DU CARNET ----------
+
+       MB, 29/10 : « j'aimerai aussi que le dictionnaire existant soit
+       consultable pour le moment dans "réglages" en attendant que ce
+       dernier soit consultable en version finale dans "Ajouter un
+       exercice" ».
+
+       « POUR LE MOMENT » EST DE LUI, et la section le dit : c'est une
+       fenêtre pour LIRE, pas l'écran final. Les catégories de muscles et
+       les images par exercice sont le chantier 3 de CHANTIERS.md.
+
+       LA RECHERCHE EST CELLE DE L'ÉCRAN D'AJOUT, pas une seconde : taper
+       « curl poulie » doit donner ici ce que ça donne là. */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Le dictionnaire du carnet' }));
+
+    var nbFiches = A.m.DICTIONNAIRE.length;
+    var nbEcritures = A.m.DICTIONNAIRE.reduce(function (n, d) {
+      return n + 1 + (d.aussi || []).length;
+    }, 0);
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      text: nbFiches + ' mouvements, ' + nbEcritures + ' façons de les écrire. '
+          + 'Une fiche remplit les MUSCLES d’un exercice, rien d’autre : ni '
+          + 'la charge, ni la prise, ni le côté. Fenêtre de lecture en '
+          + 'attendant la version feuilletable, avec les groupes de muscles '
+          + 'et les images, dans « Ajouter un exercice ».' }));
+
+    var chercheDico = h('input', { type: 'text', class: 'champ',
+                                   placeholder: 'Chercher : curl poulie, cable, épaules…',
+                                   'aria-label': 'Chercher dans le dictionnaire' });
+    hote.appendChild(chercheDico);
+    var listeDico = h('div', { style: 'margin-top:10px' });
+    var compteDico = h('div', { class: 'item-resume', style: 'margin:8px 2px 0' });
+    hote.appendChild(listeDico);
+    hote.appendChild(compteDico);
+
+    function rendreDico() {
+      A.ui.vider(listeDico);
+      var q = chercheDico.value.trim();
+      var l = A.m.fichesDuDictionnaire(e, q);
+      /* UN RÉSULTAT VIDE SE DIT. Une liste qui disparaît sans un mot se lit
+         comme une panne, pas comme « rien ne correspond ». */
+      if (!l.length) {
+        compteDico.textContent = 'Aucun mouvement ne correspond à « ' + q + ' ».';
+        return;
+      }
+      compteDico.textContent = q
+        ? l.length + ' mouvement' + (l.length > 1 ? 's' : '') + ' sur ' + nbFiches + '.'
+        : 'Dans l’ordre du dictionnaire, par famille.';
+      l.forEach(function (d) {
+        var carte = h('div', { class: 'carte' });
+        var corps = h('div', { class: 'carte-corps' });
+        corps.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
+        var mus = h('div', { class: 'item-resume' });
+        mus.appendChild(h('b', { text: 'Muscles : ' }));
+        mus.appendChild(document.createTextNode(
+          (d.muscles || []).length
+            ? d.muscles.map(A.m.nomCourtMuscle).join(', ')
+            : 'aucun — cette fiche ne remplit rien'));
+        corps.appendChild(mus);
+        if ((d.aussi || []).length) {
+          var au = h('div', { class: 'item-resume', style: 'margin-top:4px' });
+          au.appendChild(h('b', { text: 'Aussi écrit : ' }));
+          au.appendChild(document.createTextNode(d.aussi.join(' · ')));
+          corps.appendChild(au);
+        }
+        carte.appendChild(corps);
+        listeDico.appendChild(carte);
+      });
+    }
+    chercheDico.addEventListener('input', rendreDico);
+    rendreDico();
+
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Mon dictionnaire' }));
     var fiches = A.m.dictionnairePerso(e);
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
