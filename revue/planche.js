@@ -436,6 +436,17 @@
       return { nom: d.nom, aussi: d.aussi || [], muscles: d.muscles,
                livre: true, ecartees: (f && f.aussiEcartees) || null };
     });
+    /* POUR RETROUVER LA LIGNE LIVREE D'UNE FICHE, et la REMPLACER plutot
+       que d'en ajouter une seconde. MB, 29/10 : « Ya deux fois Dips prise
+       serree dans les mouvements, DONC UN DOUBLON..... » Les deux lignes
+       partageaient aussi la cle `memoire[d.nom]` : renommer l'une ecrivait
+       dans l'autre. */
+    function rangDe(nom) {
+      for (var i = 0; i < lignes.length; i++) {
+        if (lignes[i].nom === nom) return i;
+      }
+      return -1;
+    }
     cat.MOUVEMENTS.forEach(function (f) {
       var livree = A.m.DICTIONNAIRE.filter(function (d) {
         return d.nom === f.nom;
@@ -451,12 +462,16 @@
         var a = livree.aussi || [];
         var enPlus = (f.aussi || []).filter(function (x) { return a.indexOf(x) < 0; });
         if (!enPlus.length) return;
-        lignes.push({ nom: f.nom, aussi: f.aussi || [],
+        var ou = rangDe(f.nom);
+        var ligne = { nom: f.nom, aussi: f.aussi || [],
                       muscles: livree.muscles,
                       livre: false, enPlus: enPlus,
                       ecartees: f.aussiEcartees || null,
                       reprend: f.reprend || null,
-                      ecarte: f.ecarte || null });
+                      ecarte: f.ecarte || null };
+        /* UNE SEULE LIGNE PAR MOUVEMENT : celle-ci EST la fiche livrée, vue
+           après le lot. Elle prend sa place au lieu de s'ajouter. */
+        if (ou >= 0) lignes[ou] = ligne; else lignes.push(ligne);
         return;
       }
       lignes.push({ nom: f.nom, aussi: f.aussi || [],
@@ -637,6 +652,28 @@
           + doubles.join(' · ')
         : 'aucun doublon : chaque nom n’est réclamé que par une entrée, et '
           + 'les transferts sont déclarés.'));
+
+    /* UN MOUVEMENT, UNE LIGNE, et c'est MB qui a trouvé le contraire :
+       « Ya deux fois Dips prise serrée dans les mouvements ». Le catalogue
+       était propre — c'est la planche qui construisait deux lignes pour une
+       fiche à la fois LIVRÉE et augmentée par le lot.
+
+       ZÉRO N'EST PAS ACQUIS : avant la correction, ce compteur valait UN.
+       Il porte sur les lignes RENDUES, pas sur le catalogue : c'est la
+       seule chose que le compteur voisin ne peut pas voir. */
+    var vusLigne = {}, deuxFois = [];
+    lignes.forEach(function (d) {
+      vusLigne[d.nom] = (vusLigne[d.nom] || 0) + 1;
+      if (vusLigne[d.nom] === 2) deuxFois.push(d.nom);
+    });
+    tete.appendChild(el('div',
+      'item-resume' + (deuxFois.length ? ' rouge' : ''),
+      deuxFois.length
+        ? deuxFois.length + ' MOUVEMENT(S) APPARAISSENT DEUX FOIS dans la '
+          + 'liste — et leurs deux lignes partagent la même mémoire de '
+          + 'renommage : ' + deuxFois.join(' · ')
+        : 'un mouvement, une ligne : aucun nom n’apparaît deux fois dans '
+          + 'la liste.'));
 
     /* Zéro n'est pas acquis : remets « Curl pronation » dans les écritures
        du curl inversé et ce bloc passe au rouge. */
