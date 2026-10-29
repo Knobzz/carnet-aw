@@ -1745,7 +1745,7 @@
       aussi: ['Reverse fly', 'Rear delt fly', 'Élévation latérale buste penché',
               'Bent over lateral raise', 'Oiseau assis sur un banc',
               'Oiseau à la poulie à 45°', 'Oiseau avec élastique',
-              'Oiseau inversé avec sangles de suspension', 'Écartés arrière',
+              'Écartés arrière',
               'Écartés arrière avec élastique', 'Pec deck inversé',
               'Reverse pec deck',
               'Extension horizontale des épaules avec élastique'],
@@ -1892,8 +1892,10 @@
     {
       id: 'handstand-push-up',
       nom: 'Handstand push-up',
-      aussi: ['HSPU', 'Pompes en équilibre', 'Pompes piquées', 'Pike push-up',
-              'Handstand push-up avec sangles de suspension'],
+      /* LES SANGLES SONT PARTIES, ici comme au dictionnaire : une garde
+         refuse qu'un nom de mouvement porte un equipement. Les deux
+         fichiers avaient derive, et c'est la planche qui l'a dit. */
+      aussi: ['HSPU', 'Pompes en équilibre', 'Pompes piquées', 'Pike push-up'],
       geste: 'En appui tête en bas contre un mur, les bras fléchissent puis '
            + 'poussent : un développé vertical au poids du corps.',
       muscles: [

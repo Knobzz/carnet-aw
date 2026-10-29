@@ -17,6 +17,29 @@
   'use strict';
 
   var A = window.App, cat = window.CATALOGUE;
+
+  /* ---- CE QUI A ETE TOUCHE LE 29 OCTOBRE ----
+
+     Calcule en comparant les champs `aussi` et `muscles` de chaque fiche
+     entre le commit 5b68a18 et HEAD, commentaires ignores. Une premiere
+     version comparait le texte brut et donnait un faux positif : « Tirage
+     vertical », a qui l'analyseur attribuait le commentaire ecrit apres lui.
+
+     AUCUNE FICHE DEJA LIVREE N'A VU SES MUSCLES CHANGER. Onze ont gagne des
+     ecritures, zero a change de muscles. */
+  var TOUCHEES = {
+    date: '29 octobre',
+    neuves: ['Haussement d’épaules', 'Élévation frontale', 'Oiseau',
+             'Face pull', 'Tirage menton', 'Rotation externe d’épaule',
+             'Rotation interne d’épaule', 'Rotation cubaine',
+             'Développé Arnold', 'Élévation en Y', 'Handstand push-up',
+             'Croix de fer'],
+    ecritures: ['Wrist curl', 'Wrist curl inversé', 'Déviation ulnaire',
+                'Supination', 'Finger curl', 'Cup hold',
+                'Développé militaire', 'Curl concentré', 'Preacher curl',
+                'Curl Zottman', 'Élévation latérale']
+  };
+  var TOUS_TOUCHES = TOUCHEES.neuves.concat(TOUCHEES.ecritures);
   var CLE = 'carnet-aw-revue';
 
   var el = function (t, c, x) {
@@ -339,14 +362,22 @@
                     livre: false, ecarte: f.ecarte || null });
     });
 
-    var montrerLivres = false;
-    try { montrerLivres = localStorage.getItem(CLE + '-livres') === 'oui'; }
-    catch (e) { montrerLivres = false; }
-    var masques = montrerLivres ? 0
+    var montrerLivres = false, montrerTouchees = false;
+    try {
+      montrerLivres = localStorage.getItem(CLE + '-livres') === 'oui';
+      montrerTouchees = localStorage.getItem(CLE + '-touchees') === 'oui';
+    } catch (e) { montrerLivres = false; montrerTouchees = false; }
+
+    /* TROIS MODES, ET LE TROISIEME EST NEUF : une fois livree, une fiche
+       quitte la planche. Pour relire ce qu'on vient de faire il fallait
+       rouvrir les 58 et chercher. Celui-ci n'ouvre QUE les touchees. */
+    var masques = (montrerLivres || montrerTouchees) ? 0
       : lignes.filter(function (d) { return d.livre; }).length;
-    var aLire = (montrerLivres ? lignes
-      : lignes.filter(function (d) { return !d.livre; }))
-      .filter(function (d) { return !d.ecarte; });
+    var aLire = montrerTouchees
+      ? lignes.filter(function (d) { return TOUS_TOUCHES.indexOf(d.nom) >= 0; })
+      : (montrerLivres ? lignes
+          : lignes.filter(function (d) { return !d.livre; }))
+        .filter(function (d) { return !d.ecarte; });
     var ecartes = lignes.filter(function (d) { return d.ecarte; }).length;
 
     aLire.forEach(function (d) {
@@ -479,7 +510,36 @@
       + 'jugement assumé, pas faute : ' + ecarts.slice(0, 4).join(' · ')
       + (ecarts.length > 4 ? ' … (+' + (ecarts.length - 4) + ')' : '')));
 
-    if (masques) {
+    /* LE BOUTON DIT CE QU'IL MONTRE, et le compte vient de la liste —
+       l'ecrire en dur mentirait des qu'elle bouge. */
+    if (montrerTouchees) {
+      tete.appendChild(el('p', 'item-resume',
+        TOUCHEES.neuves.length + ' fiche(s) NEUVE(S) et '
+        + TOUCHEES.ecritures.length + ' qui ont gagné des écritures, le '
+        + TOUCHEES.date + '. AUCUNE fiche déjà livrée n’a vu ses MUSCLES '
+        + 'changer : onze ont gagné des noms, zéro a changé de muscles.'));
+      var btSortir = el('button', 'bouton', 'Revenir à la revue');
+      btSortir.addEventListener('click', function () {
+        try { localStorage.removeItem(CLE + '-touchees'); } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btSortir);
+    } else {
+      var btTouchees = el('button', 'bouton',
+        'Voir les ' + TOUS_TOUCHES.length + ' fiches touchées le ' + TOUCHEES.date);
+      btTouchees.addEventListener('click', function () {
+        try {
+          localStorage.setItem(CLE + '-touchees', 'oui');
+          localStorage.removeItem(CLE + '-livres');
+        } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btTouchees);
+    }
+
+    if (montrerTouchees) {
+      /* on ne propose pas les deux autres modes en meme temps */
+    } else if (masques) {
       var btTout = el('button', 'bouton', 'Revoir les ' + masques + ' déjà validés');
       btTout.addEventListener('click', function () {
         try { localStorage.setItem(CLE + '-livres', 'oui'); } catch (e) {}
