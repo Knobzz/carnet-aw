@@ -22,6 +22,17 @@
          /* l'en-tête colle en haut : sans ça, viser un mouvement le cache */
          scroll-margin-top: 104px; }
   .mvt > header { padding: 12px 14px; border-bottom: 1px solid var(--trait); }
+  /* LE MODE COMPACT : les deux champs modifiables côte à côte, et des marges
+     réduites. Rien n'y est caché par du CSS — ce qui ne s'y affiche pas n'est
+     pas construit (voir `compact` dans planche.js). Une règle qui masquerait
+     laisserait 257 planches dans la page pour rien. */
+  .mvt.compact { margin-bottom: 8px; }
+  .mvt.compact > header { padding: 8px 10px; display: flex; flex-wrap: wrap;
+    gap: 8px 14px; align-items: flex-start; }
+  .mvt.compact > header > .ligne-champ { flex: 1 1 260px; margin: 0; }
+  .mvt.compact .geste { flex: 1 1 100%; margin: 0; opacity: .75;
+    font-size: .88rem; }
+  .mvt.compact .delta { padding: 6px 10px; }
   .mvt h2 { font-size: 1.05rem; margin: 0; }
   .aussi { font-size: .8rem; color: var(--texte-2); margin-top: 3px; }
   .geste { font-size: .88rem; margin-top: 7px; }

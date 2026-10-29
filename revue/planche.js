@@ -467,11 +467,14 @@
                     ecarte: f.ecarte || null });
     });
 
-    var montrerLivres = false, montrerTouchees = false;
+    var montrerLivres = false, montrerTouchees = false, compact = false;
     try {
       montrerLivres = localStorage.getItem(CLE + '-livres') === 'oui';
       montrerTouchees = localStorage.getItem(CLE + '-touchees') === 'oui';
+      compact = localStorage.getItem(CLE + '-compact') === 'oui';
     } catch (e) { montrerLivres = false; montrerTouchees = false; }
+    /* LE COMPACT MONTRE TOUT, par définition : c'est sa raison d'être. */
+    if (compact) { montrerLivres = true; montrerTouchees = false; }
 
     /* TROIS MODES, ET LE TROISIEME EST NEUF : une fois livree, une fiche
        quitte la planche. Pour relire ce qu'on vient de faire il fallait
@@ -487,7 +490,7 @@
 
     aLire.forEach(function (d) {
       var f = fiche(d.nom);
-      var bloc = el('div', 'mvt');
+      var bloc = el('div', 'mvt' + (compact ? ' compact' : ''));
 
       var h = el('header');
       var memo = memoire[d.nom] || {};
@@ -572,11 +575,14 @@
         if (e && (e.rang === 'moteur' || e.rang === 'aide')) {
           if (e.rangDit) rangsCites++; else rangsRaisonnes++;
         }
-        bloc.appendChild(rendreMuscle(id, e));
+        /* LA BOUCLE TOURNE MÊME EN COMPACT, seul l'affichage est sauté : les
+           compteurs de tête (« 257 muscles, 220 cités ») viennent d'ICI, et
+           les mettre à zéro annoncerait un dictionnaire sans source. */
+        if (!compact) bloc.appendChild(rendreMuscle(id, e));
       });
 
-      if (f && f.note) bloc.appendChild(el('div', 'note', f.note));
-      (f && f.aDecider || []).forEach(function (e) {
+      if (f && f.note && !compact) bloc.appendChild(el('div', 'note', f.note));
+      (f && !compact && f.aDecider || []).forEach(function (e) {
         if (d.muscles.indexOf(e.id) >= 0) return;   /* déjà tranché, déjà livré */
         var b = el('div', 'decider');
         b.appendChild(el('b', null, 'À décider : ' + (A.m.muscle(e.id) || {}).nom));
@@ -671,6 +677,8 @@
         location.reload();
       });
       tete.appendChild(btSortir);
+    } else if (compact) {
+      /* en compact, un seul bouton de sortie */
     } else {
       var btTouchees = el('button', 'bouton',
         'Voir les ' + TOUS_TOUCHES.length + ' fiches touchées le ' + TOUCHEES.date);
@@ -684,8 +692,41 @@
       tete.appendChild(btTouchees);
     }
 
-    if (montrerTouchees) {
-      /* on ne propose pas les deux autres modes en meme temps */
+    /* TOUT LE DICTIONNAIRE, EN LISTE. Le compte vient de `lignes`, jamais
+       d'un nombre écrit à la main : il mentirait au premier lot. */
+    if (compact) {
+      tete.appendChild(el('p', 'item-resume',
+        'Les ' + aLire.length + ' mouvements, SANS les blocs de muscle — '
+        + muscles + ' planches et citations sautées, qui faisaient 83 écrans. '
+        + 'Les noms et les autres écritures restent MODIFIABLES, et le '
+        + 'bouton « Copier les renommages » marche comme ailleurs. Pour '
+        + 'relire les sources d’un mouvement, reviens à la revue.'));
+      var btPlein = el('button', 'bouton', 'Revenir à la revue');
+      btPlein.addEventListener('click', function () {
+        try {
+          localStorage.removeItem(CLE + '-compact');
+          localStorage.removeItem(CLE + '-livres');
+        } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btPlein);
+    } else {
+      var btCompact = el('button', 'bouton',
+        'Voir TOUT le dictionnaire (' + lignes.filter(function (d) {
+          return !d.ecarte;
+        }).length + ' mouvements, en liste)');
+      btCompact.addEventListener('click', function () {
+        try {
+          localStorage.setItem(CLE + '-compact', 'oui');
+          localStorage.removeItem(CLE + '-touchees');
+        } catch (e) {}
+        location.reload();
+      });
+      tete.appendChild(btCompact);
+    }
+
+    if (compact || montrerTouchees) {
+      /* on ne propose pas les autres modes en meme temps */
     } else if (masques) {
       var btTout = el('button', 'bouton', 'Revoir les ' + masques + ' déjà validés');
       btTout.addEventListener('click', function () {
