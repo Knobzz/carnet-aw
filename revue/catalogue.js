@@ -923,16 +923,36 @@
     {
       id: 'curl',
       nom: 'Curl biceps',
+      /* SIX ECRITURES AU LOT 10, ET AUCUNE FICHE NEUVE : les noms muets de
+         la page des biceps appartiennent a des fiches QUI EXISTENT. Celle-ci
+         portait deja « Curl incline », « Spider curl » et « Drag curl » —
+         ouvrir « Curl spider » ou « Curl incline » aurait ete le doublon que
+         MB signale a chaque lot depuis le septieme. */
       aussi: ['Curl haltères', 'Curl barre', 'Curl barre EZ',
               'Curl EZ', 'Curl debout', 'Curl à la poulie', 'Cable curl',
               'Curl incliné', 'Incline curl', 'Spider curl', 'Curl araignée',
-              'Drag curl', 'Curl 21', 'Bayesian curl'],
+              'Drag curl', 'Curl 21', 'Bayesian curl',
+              'Curl spider', 'Curl haltère debout sur banc incliné',
+              'Curl haltère incliné avec rotation', 'Curl allongé à la poulie',
+              'Curl overhead avec élastique', 'Waiter curl'],
       geste: 'Le coude se plie, paume vers le haut, contre la charge.',
       muscles: [
         m('biceps', 'moteur', S.bic, C.bic),
         m('brachial', 'moteur', S.bra, C.bra),
         m('brachio_radial', 'aide', S.brr, C.brr)
       ],
+      note: 'LOT 10 : SIX ÉCRITURES, ZÉRO FICHE NEUVE. Les six noms muets de '
+          + 'la page des biceps sont des variantes de CE geste — le banc '
+          + 'incliné, le pupitre vertical de l’araignée, la poulie allongée, '
+          + 'le plateau du serveur. Le carnet n’a qu’une entrée « biceps », '
+          + 'sans ses deux chefs : leurs listes seraient identiques, et '
+          + 'ouvrir une fiche par variante n’aurait ajouté qu’un doublon. '
+          + '— CE QUE LA DIFFÉRENCE SERAIT, si le carnet avait les chefs : '
+          + 'bras DERRIÈRE le corps (banc incliné) étire la longue portion, '
+          + 'bras DEVANT (araignée, pupitre) la raccourcit. C’est écrit ici, '
+          + 'pas simulé dans les muscles — même traitement qu’aux lots 5 '
+          + 'et 7. — SLED PULL reste dehors : bas du corps, déjà écarté au '
+          + 'lot des dorsaux.',
       note: 'UNE ENTRÉE POUR QUINZE ÉCRITURES, et le nom nu « Curl » n’en '
           + 'fait PAS partie : renommé « Curl biceps » par MB le 26/10, ce '
           + 'qui met le nom d’accord avec un refus que le modèle porte depuis '
@@ -1003,7 +1023,12 @@
     {
       id: 'curl-marteau',
       nom: 'Hammer curl',
-      aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères'],
+      /* DEUX ECRITURES AU LOT 10 : elles ne rendaient que le
+         BRACHIO-RADIAL, le lecteur de noms y lisant « marteau » sans voir
+         le curl. */
+      aussi: ['Curl marteau', 'Curl prise neutre', 'Curl marteau haltères',
+              'Curl haltère prise marteau au pupitre',
+              'Curl en prise marteau avec élastique'],
       geste: 'Le coude se plie, pouce vers le haut, la paume regardant le '
            + 'corps.',
       muscles: [
@@ -2567,8 +2592,8 @@
   );
 
   exports.CATALOGUE = {
-    lot: 9,
-    titre: 'Les pectoraux',
+    lot: 10,
+    titre: 'Les biceps',
     RANGS: RANGS,
     MOUVEMENTS: MOUVEMENTS
   };
