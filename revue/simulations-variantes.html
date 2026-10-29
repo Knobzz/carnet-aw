@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulation — le nom tapé, ou le nom de base plus sa variante</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* TOUTES LES CLASSES DE CETTE PAGE SONT PREFIXEES `sim-`.
+     Le 29/10, une classe `onglets` de la simulation precedente est entree en
+     collision avec la barre d'onglets de l'app : deux ecrans de 320 px se
+     sont rendus a 1009. Trouve en MESURANT, pas en regardant. */
+  body { margin: 0; padding: 14px; background: var(--fond); color: var(--texte);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sim-intro { max-width: 1180px; margin: 0 auto 18px; }
+  .sim-intro h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .sim-intro p { margin: 5px 0; color: var(--texte-2); font-size: .92rem; }
+  .sim-intro b { color: var(--texte); }
+  .sim-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+              font-style: italic; }
+  .sim-bloc { max-width: 1180px; margin: 0 auto 30px; }
+  .sim-bloc > h2 { font-size: 1.05rem; margin: 0 0 3px;
+                   border-bottom: 1px solid var(--trait); padding-bottom: 5px; }
+  .sim-bloc > .sim-quoi { font-size: .88rem; color: var(--texte-2);
+                          margin: 6px 0 12px; }
+  .sim-rangee { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .sim-col { width: 340px; flex: 0 0 340px; }
+  .sim-col > h3 { font-size: .95rem; margin: 0 0 2px; }
+  .sim-col > h3 .sim-lettre { display: inline-block; width: 20px; height: 20px;
+        line-height: 20px; text-align: center; border-radius: 4px; margin-right: 6px;
+        font-size: .78rem; background: var(--fond-3); color: var(--texte-2); }
+  .sim-col.sim-reco > h3 .sim-lettre { background: var(--laiton); color: var(--fond); }
+  .sim-col > .sim-pourquoi { font-size: .82rem; color: var(--texte-2);
+                             margin: 0 0 8px; min-height: 58px; }
+  .sim-ecran { border: 1px solid var(--trait-fort); border-radius: 10px;
+               background: var(--fond-2); padding: 12px; width: 320px;
+               box-sizing: border-box; }
+  .sim-haut { font-size: .72rem; color: var(--texte-2); text-transform: uppercase;
+              letter-spacing: .05em; margin: 0 0 8px;
+              border-bottom: 1px solid var(--trait); padding-bottom: 5px; }
+  .sim-cout { font-size: .8rem; color: var(--texte-2); margin-top: 9px;
+              border-top: 1px solid var(--trait); padding-top: 6px; }
+  .sim-cout b { color: var(--texte); }
+  .sim-mesure { font-size: .79rem; color: var(--laiton); margin-top: 6px;
+                font-variant-numeric: tabular-nums; }
+  .sim-filtres { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+  .sim-filtres button { background: none; border: 1px solid var(--trait);
+        border-radius: 999px; color: var(--texte-2); font: inherit;
+        font-size: .76rem; padding: 2px 9px; cursor: pointer; }
+  .sim-filtres button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); }
+  .sim-eng { font-size: .72rem; color: var(--texte-2); margin-left: 6px;
+             border: 1px solid var(--trait); border-radius: 999px; padding: 0 6px;
+             white-space: nowrap; }
+  .sim-engs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 0 0; }
+  .sim-engs .sim-eng { margin-left: 0; }
+  .sim-vide { font-size: .82rem; color: var(--texte-2); padding: 8px 0; }
+  .sim-note { font-size: .82rem; color: var(--texte-2); margin-top: 10px;
+              max-width: 1180px; }
+  .sim-note b { color: var(--texte); }
+  .sim-clic { cursor: pointer; }
+  .sim-clic:hover { background: var(--fond-3); }
+  .sim-ouvert { color: var(--laiton); }
+</style>
+</head>
+<body>
+
+<div class="sim-intro">
+  <h1>Le nom tapé, ou le nom de base plus sa variante — sur cinq mouvements</h1>
+  <p class="sim-cite">MB, 29/10 : « je vois le même exo avec des variantes
+     (barbell, dumbell etc etc), je pense qu’il sera intéressant de prendre le
+     nom de l’exo de base, et ensuite avoir la possibilité de sélectionner
+     quelles variantes dans le menu de l’exo directement. »</p>
+  <p><b>Rien n’est dessiné.</b> Les deux colonnes de chaque bloc appellent les
+     <b>vraies fonctions du carnet</b> — <code>exercicesPratiques()</code> et
+     <code>historiqueExercice()</code> — sur deux jeux de séances identiques,
+     qui ne diffèrent que par la façon de nommer l’exercice. Le CSS est celui
+     de l’app, et chaque écran fait <b>320&nbsp;px</b>, la largeur la plus dure.</p>
+  <p><span id="simQuoi">…</span></p>
+</div>
+
+<div class="sim-bloc">
+  <h2>1 · Suivi ▸ Historique par exercice — la liste où tu choisis</h2>
+  <p class="sim-quoi">Le même carnet, les mêmes séances. C’est ici que la
+     différence se voit le plus : à gauche, un mouvement occupe autant de
+     lignes qu’il a d’engins.</p>
+  <div class="sim-rangee" id="simBloc1"></div>
+</div>
+
+<div class="sim-bloc">
+  <h2>2 · L’historique d’un mouvement — la progression</h2>
+  <p class="sim-quoi">Le Curl biceps, fait sur quatre engins. À gauche il faut
+     ouvrir quatre fiches, et chacune ne montre qu’un morceau de la pente ;
+     clique les noms pour voir ce que chacune contient.</p>
+  <div class="sim-rangee" id="simBloc2"></div>
+</div>
+
+<div class="sim-bloc">
+  <h2>3 · En séance — ce que tu lis pendant que tu t’entraînes</h2>
+  <p class="sim-quoi">L’écran qu’on habite, pas celui qu’on consulte. La
+     question est de savoir si l’engin doit tenir dans le nom ou à côté.</p>
+  <div class="sim-rangee" id="simBloc3"></div>
+</div>
+
+<p class="sim-note" id="simBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script>
+(function () {
+  'use strict';
+  var m = window.App.m, S = window.App.store;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  /* ================= LES DONNEES =================
+     Cinq mouvements, avec LEURS VRAIES ECRITURES D'ENGIN — celles que porte
+     le dictionnaire aujourd'hui, pas des noms inventes pour la demonstration.
+     Chaque ligne : [semaine, ecriture reellement presente dans `aussi`,
+     engin, charge, reps, series]. */
+  var SEANCES = [
+    // --- Curl biceps : 4 engins, 10 seances
+    [0, 'Curl barre',            'barre',    30, 10, 4], [1, 'Curl à la poulie',   'poulie',   25, 12, 3],
+    [1, 'Curl haltères',         'haltère',  12, 10, 4], [2, 'Curl barre',         'barre',    32, 10, 4],
+    [3, 'Curl à la poulie',      'poulie',   27, 12, 3], [4, 'Curl barre EZ',      'barre',    34,  9, 4],
+    [5, 'Curl haltères',         'haltère',  14, 10, 4], [6, 'Curl barre',         'barre',    35, 10, 4],
+    [7, 'Curl à la poulie',      'poulie',   30, 12, 3], [8, 'Curl barre',         'barre',    37,  9, 4],
+    // --- Ecarte : 4 engins
+    [0, 'Écartés couché avec haltères',      'haltère',  14, 12, 3],
+    [2, 'Écartés à la poulie vis-à-vis',     'poulie',   15, 12, 3],
+    [3, 'Écartés inclinés à la machine',     'machine',  35, 12, 3],
+    [5, 'Écartés couché avec haltères',      'haltère',  16, 12, 3],
+    [6, 'Écartés avec élastique',            'élastique', 0, 15, 3],
+    [8, 'Écartés à la poulie vis-à-vis',     'poulie',   17, 12, 3],
+    // --- Developpe militaire : 3 engins
+    [1, 'Développé épaules avec haltères',             'haltère',  18, 10, 4],
+    [3, 'Développé épaules à la machine',              'machine',  40, 10, 3],
+    [4, 'Développé épaules debout à la landmine',      'landmine', 25, 10, 3],
+    [6, 'Développé épaules avec haltères',             'haltère',  20, 10, 4],
+    [8, 'Développé épaules à la machine',              'machine',  45, 10, 3],
+    // --- Extension verticale des triceps : 3 engins
+    [0, 'Extension verticale à la poulie basse',           'poulie',  20, 12, 3],
+    [2, 'Extensions verticales à deux mains avec haltère', 'haltère', 16, 12, 3],
+    [4, 'Extension verticale assis à la barre',            'barre',   22, 10, 3],
+    [7, 'Extension verticale à la poulie basse',           'poulie',  24, 12, 3],
+    // --- Elevation laterale : 3 engins
+    [1, 'Élévations latérales à la poulie',                'poulie',   8, 15, 3],
+    [2, 'Élévations latérales inclinées avec haltère',     'haltère',  7, 15, 3],
+    [5, 'Élévations latérales à la machine',               'machine', 25, 15, 3],
+    [7, 'Élévations latérales à la poulie',                'poulie',  10, 15, 3]
+  ];
+
+  /* A quelle fiche du dictionnaire chaque ecriture appartient : LU dans le
+     modele, jamais devine. Si une ecriture n'etait pas reellement dans
+     `aussi`, la page le dirait en rouge plutot que de faire semblant. */
+  function ficheDe(ecriture) {
+    var fiches = m.fichesDuDictionnaire(S.vide(), '');
+    for (var i = 0; i < fiches.length; i++) {
+      if (fiches[i].nom === ecriture) return fiches[i].nom;
+      var a = fiches[i].aussi || [];
+      for (var j = 0; j < a.length; j++) if (a[j] === ecriture) return fiches[i].nom;
+    }
+    return null;
+  }
+
+  var MANQUANTES = [];
+  var BASE = {};
+  SEANCES.forEach(function (s) {
+    if (BASE[s[1]]) return;
+    var f = ficheDe(s[1]);
+    if (!f) MANQUANTES.push(s[1]);
+    BASE[s[1]] = f || s[1];
+  });
+
+  /* --- fabriquer les deux etats, a partir des MEMES seances --- */
+  function dateDeSemaine(sem) {
+    var d = new Date(2026, 7, 24);           // un lundi
+    d.setDate(d.getDate() + sem * 7);
+    var z = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  }
+
+  function fabriquer(avecVariantes) {
+    var etat = S.vide();
+    var parDate = {};
+    SEANCES.forEach(function (x, i) {
+      var sem = x[0], ecriture = x[1], engin = x[2], kg = x[3], reps = x[4], nb = x[5];
+      var date = dateDeSemaine(sem);
+      if (!parDate[date]) {
+        parDate[date] = { id: 'se' + sem + '-' + i, type: 'muscu', date: date,
+                          heure: date + 'T18:00:00.000Z', programmeNom: null,
+                          exercices: [] };
+        etat.seances.push(parDate[date]);
+      }
+      var nom = avecVariantes ? BASE[ecriture] : ecriture;
+      var ex = m.exerciceSeanceVierge({ nom: nom });
+      if (avecVariantes) ex.variante = engin;
+      ex.ordre = parDate[date].exercices.length;
+      ex.series = [];
+      for (var k = 0; k < nb; k++) {
+        var se = m.serieSeanceVierge({});
+        se.repsReel = String(reps);
+        se.chargeReel = String(kg);
+        se.faite = true;
+        ex.series.push(se);
+      }
+      parDate[date].exercices.push(ex);
+    });
+    return etat;
+  }
+
+  var ETAT_NOM = fabriquer(false);
+  var ETAT_VAR = fabriquer(true);
+
+  /* ================= BLOC 1 : la liste du suivi ================= */
+  function listeSuivi(etat, avecVariantes) {
+    var l = m.exercicesPratiques(etat);
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    l.forEach(function (x) {
+      var j = m.joursDepuis(x.derniere);
+      /* LES ENGINS VONT SOUS LE NOM, et c'est la mesure qui l'a impose : a
+         320 px, « Developpe militaire » suivi de quatre engins sur la meme
+         ligne tronquait le NOM — « Devel... » —, c'est-a-dire exactement ce
+         que cette colonne veut montrer. */
+      var bloc = h('div', { style: 'padding:7px 0' }, [
+        h('div', { class: 'item-ligne', style: 'align-items:center' }, [
+          h('b', { text: x.nom }),
+          h('span', { class: 'delai', 'data-zone': m.zoneDelai(j),
+                      text: j === 0 ? 'auj.' : (j === 1 ? 'hier' : j + ' j') })
+        ]),
+        avecVariantes ? h('div', { class: 'sim-engs' },
+          enginsDe(etat, x.slug).map(function (e) {
+            return h('span', { class: 'sim-eng', text: e });
+          })) : null
+      ]);
+      corps.appendChild(bloc);
+    });
+    carte.appendChild(corps);
+    return { noeud: carte, n: l.length };
+  }
+
+  function enginsDe(etat, slug) {
+    var vus = {}, ordre = [];
+    etat.seances.forEach(function (se) {
+      (se.exercices || []).forEach(function (ex) {
+        if (ex.slug !== slug || !ex.variante) return;
+        if (!vus[ex.variante]) { vus[ex.variante] = 1; ordre.push(ex.variante); }
+      });
+    });
+    return ordre;
+  }
+
+  function colonne(lettre, titre, pourquoi, ecranTitre, contenu, cout, mesure, reco) {
+    var col = h('div', { class: 'sim-col' + (reco ? ' sim-reco' : '') });
+    var t = h('h3', {}, [h('span', { class: 'sim-lettre', text: lettre })]);
+    t.appendChild(document.createTextNode(titre));
+    col.appendChild(t);
+    col.appendChild(h('p', { class: 'sim-pourquoi', text: pourquoi }));
+    var ec = h('div', { class: 'sim-ecran' }, [h('p', { class: 'sim-haut', text: ecranTitre })]);
+    ec.appendChild(contenu);
+    col.appendChild(ec);
+    col.appendChild(h('p', { class: 'sim-cout', html: cout }));
+    if (mesure) col.appendChild(h('p', { class: 'sim-mesure', text: mesure }));
+    return col;
+  }
+
+  var r1 = document.getElementById('simBloc1');
+  var a1 = listeSuivi(ETAT_NOM, false);
+  var b1 = listeSuivi(ETAT_VAR, true);
+  r1.appendChild(colonne('B', 'Garder le nom tapé',
+    'C’est le carnet d’aujourd’hui. Chaque façon d’écrire un mouvement devient '
+  + 'un exercice à part, avec sa propre progression.',
+    'Historique par exercice', a1.noeud,
+    '<b>Ce que ça donne :</b> ' + a1.n + ' lignes pour <b>5 mouvements</b>. '
+  + 'Rien à construire, rien ne bouge dans tes données.',
+    a1.n + ' entrées · ' + a1.n + ' progressions séparées'));
+  r1.appendChild(colonne('A', 'Nom de base · variante',
+    'Un mouvement, une ligne, et les engins pratiqués affichés à côté. '
+  + 'La progression est entière.',
+    'Historique par exercice', b1.noeud,
+    '<b>Ce que ça donne :</b> ' + b1.n + ' lignes pour <b>5 mouvements</b>. '
+  + 'Ce qu’il faut écrire : un champ sur l’exercice, et un menu pour le choisir.',
+    b1.n + ' entrées · ' + b1.n + ' progressions entières', true));
+
+  /* ================= BLOC 2 : l'historique d'un mouvement ================= */
+  /* La TROISIEME case porte le nombre d'engins : c'est le chiffre que ce
+     chantier decide, et le `dl.totaux` de l'app en attend trois. */
+  function totaux(lignes, nbEngins) {
+    return h('dl', { class: 'totaux' }, [
+      h('div', {}, [h('dt', { text: 'Séances' }),
+                    h('dd', { class: 'chiffre', text: String(lignes.length) })]),
+      h('div', {}, [h('dt', { text: 'Depuis' }),
+                    h('dd', { class: 'chiffre',
+                      text: lignes.length ? m.joursDepuis(lignes[lignes.length - 1].date) + ' j' : '—' })]),
+      h('div', { class: 'aw' }, [h('dt', { text: 'Engins' }),
+                    h('dd', { class: 'chiffre', text: String(nbEngins) })])
+    ]);
+  }
+
+  function pente(lignes) {
+    var tonnages = lignes.filter(function (l) { return l.tonnage != null; });
+    if (tonnages.length < 2) {
+      return h('p', { class: 'sim-vide',
+        text: 'Pas de pente : il faut au moins deux séances chiffrées, et '
+            + 'celle-ci n’en a que ' + tonnages.length + '.' });
+    }
+    var max = tonnages.reduce(function (a, l) { return Math.max(a, l.tonnage); }, 0) || 1;
+    var barres = h('div', { class: 'barres' });
+    tonnages.slice().reverse().forEach(function (l) {
+      barres.appendChild(h('div', { class: 'barre' }, [
+        h('span', { class: 'tab-num', text: m.dateCourte(l.date).replace(/ \d{4}$/, '') }),
+        h('div', { class: 'barre-piste' }, [
+          h('i', { class: 'gen', style: 'width:' + (l.tonnage / max * 100) + '%' })]),
+        h('span', { class: 'barre-val', text: m.fmt(Math.round(l.tonnage)) })
+      ]));
+    });
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    corps.appendChild(barres);
+    carte.appendChild(corps);
+    return carte;
+  }
+
+  // --- colonne B : quatre fiches a ouvrir separement
+  var ecritsCurl = [];
+  SEANCES.forEach(function (s) {
+    if (BASE[s[1]] !== 'Curl biceps') return;
+    if (ecritsCurl.indexOf(s[1]) < 0) ecritsCurl.push(s[1]);
+  });
+
+  var zoneB = h('div');
+  var choixB = h('div', { class: 'sim-filtres' });
+  var corpsB = h('div');
+  var ouvertB = ecritsCurl[0];
+  function rendreB() {
+    choixB.innerHTML = '';
+    ecritsCurl.forEach(function (e) {
+      var b = h('button', { type: 'button', text: e,
+                            'aria-pressed': e === ouvertB ? 'true' : 'false' });
+      b.addEventListener('click', function () { ouvertB = e; rendreB(); });
+      choixB.appendChild(b);
+    });
+    corpsB.innerHTML = '';
+    var lignes = m.historiqueExercice(ETAT_NOM, m.slug(ouvertB));
+    corpsB.appendChild(totaux(lignes, 1));
+    corpsB.appendChild(h('div', { class: 'sous-titre', text: 'Volume par séance' }));
+    corpsB.appendChild(pente(lignes));
+  }
+  zoneB.appendChild(choixB);
+  zoneB.appendChild(corpsB);
+  rendreB();
+
+  // --- colonne A : une fiche, filtrable par engin
+  var zoneA = h('div');
+  var filtresA = h('div', { class: 'sim-filtres' });
+  var corpsA = h('div');
+  var enginsCurl = enginsDe(ETAT_VAR, m.slug('Curl biceps'));
+  var filtreA = null;
+  function rendreA() {
+    filtresA.innerHTML = '';
+    [null].concat(enginsCurl).forEach(function (e) {
+      var b = h('button', { type: 'button', text: e === null ? 'tous les engins' : e,
+                            'aria-pressed': e === filtreA ? 'true' : 'false' });
+      b.addEventListener('click', function () { filtreA = e; rendreA(); });
+      filtresA.appendChild(b);
+    });
+    var etat = ETAT_VAR;
+    if (filtreA) {
+      /* le MEME etat, filtre : les series non concernees sortent, et le reste
+         passe par la meme fonction du carnet. */
+      etat = JSON.parse(JSON.stringify(ETAT_VAR));
+      etat.seances.forEach(function (se) {
+        se.exercices = (se.exercices || []).filter(function (ex) {
+          return ex.slug !== m.slug('Curl biceps') || ex.variante === filtreA;
+        });
+      });
+    }
+    var lignes = m.historiqueExercice(etat, m.slug('Curl biceps'));
+    corpsA.innerHTML = '';
+    corpsA.appendChild(totaux(lignes, filtreA ? 1 : enginsCurl.length));
+    corpsA.appendChild(h('div', { class: 'sous-titre', text: 'Volume par séance' }));
+    corpsA.appendChild(pente(lignes));
+  }
+  zoneA.appendChild(filtresA);
+  zoneA.appendChild(corpsA);
+  rendreA();
+
+  var nbB = m.historiqueExercice(ETAT_NOM, m.slug(ecritsCurl[0])).length;
+  var nbA = m.historiqueExercice(ETAT_VAR, m.slug('Curl biceps')).length;
+
+  var r2 = document.getElementById('simBloc2');
+  r2.appendChild(colonne('B', 'Garder le nom tapé',
+    'Quatre fiches pour un seul mouvement. Chaque bouton ouvre la sienne — '
+  + 'et aucune ne porte les dix séances.',
+    'Curl — quatre fiches', zoneB,
+    '<b>Ce que ça coûte :</b> la pente du curl est coupée en quatre. '
+  + 'La plus fournie en montre <b>' + nbB + '</b> sur <b>10</b>, et changer '
+  + 'd’engin remet un compteur à zéro.',
+    'la plus fournie : ' + nbB + ' séances sur 10'));
+  r2.appendChild(colonne('A', 'Nom de base · variante',
+    'Une seule fiche, qui porte tout. Les boutons filtrent par engin sans '
+  + 'rien perdre — clique « barre » pour ne voir que la barre.',
+    'Curl biceps', zoneA,
+    '<b>Ce que ça coûte :</b> rien dans tes données ; le filtre est en plus. '
+  + '<b>Ce que ça apporte :</b> les <b>' + nbA + '</b> séances dans une pente, '
+  + 'et chaque engin lisible à part.',
+    nbA + ' séances dans une seule pente', true));
+
+  /* ================= BLOC 3 : en seance ================= */
+  function ligneSeance(nom, engin) {
+    var carte = h('div', { class: 'carte' });
+    var corps = h('div', { class: 'carte-corps' });
+    corps.appendChild(h('div', { class: 'item-ligne', style: 'align-items:center' }, [
+      h('b', { text: nom }),
+      engin ? h('span', { class: 'sim-eng', text: engin }) : null
+    ]));
+    corps.appendChild(h('div', { class: 'item-resume',
+      text: '4 séries · 10 reps · 35 kg · repos 2 min' }));
+    carte.appendChild(corps);
+    return carte;
+  }
+
+  function pileSeance(avecVariantes) {
+    var d = h('div');
+    [['Curl biceps', 'Curl barre', 'barre'],
+     ['Écarté', 'Écartés à la poulie vis-à-vis', 'poulie'],
+     ['Développé militaire', 'Développé épaules debout à la landmine', 'landmine'],
+     ['Extension verticale des triceps', 'Extension verticale à la poulie basse', 'poulie'],
+     ['Élévation latérale', 'Élévations latérales inclinées avec haltère', 'haltère']
+    ].forEach(function (x) {
+      d.appendChild(avecVariantes ? ligneSeance(x[0], x[2]) : ligneSeance(x[1], null));
+    });
+    return d;
+  }
+
+  var r3 = document.getElementById('simBloc3');
+  r3.appendChild(colonne('B', 'Garder le nom tapé',
+    'Le nom complet, tel que tu l’as écrit. Il dit tout, mais il est long : '
+  + 'à 320 px, les plus longs passent sur deux lignes.',
+    'Séance du jour', pileSeance(false),
+    '<b>Ce que ça coûte :</b> rien à faire. <b>Ce que ça garde :</b> tes '
+  + 'séances passées s’affichent exactement comme aujourd’hui.',
+    'le plus long : « Extension verticale à la poulie basse », 38 signes'));
+  r3.appendChild(colonne('A', 'Nom de base · variante',
+    'Le mouvement, et l’engin en pastille. Plus court à lire d’un coup d’œil, '
+  + 'et c’est le même mot qui sert ensuite à filtrer.',
+    'Séance du jour', pileSeance(true),
+    '<b>Ce que ça coûte :</b> tes séances <b>déjà enregistrées</b> gardent '
+  + 'leur nom plein — elles ne se rangeront pas toutes seules. À décider : '
+  + 'on les rattache, ou on les laisse.',
+    'le plus long : « Extension verticale des triceps », 31 signes + pastille', true));
+
+  /* ================= le bilan, mesure ================= */
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+  var nEcr = 0, nFiches = 0;
+  /* CE QUE LA SIMULATION A FAIT APPARAITRE, et que je n'avais pas vu en
+     mesurant le chantier : quatre ecritures du curl ne donnent que TROIS
+     engins — « Curl barre EZ » et « Curl barre » se fondent. Alors on
+     compte, au lieu d'estimer. */
+  var NUANCE = /\bez\b|inclin|déclin|assis|debout|unilat|couch|haute|basse|vis-à-vis|genoux|\b45\b|\b90\b|pupitre|overhead|concentr|serré|prise/i;
+  var fondues = 0, synonymes = 0, groupesNuance = 0;
+  fiches.forEach(function (f) {
+    var n = 0, parEngin = {};
+    (f.aussi || []).forEach(function (e) {
+      var mots = m.motsCherche(e) || [], t = null;
+      mots.forEach(function (w) { var fa = m.familleEngin(w); if (fa) t = fa; });
+      if (t) { n++; (parEngin[t] = parEngin[t] || []).push(e); }
+    });
+    if (n) { nFiches++; nEcr += n; }
+    Object.keys(parEngin).forEach(function (k) {
+      var g = parEngin[k];
+      if (g.length < 2) return;
+      fondues += g.length - 1;
+      if (g.some(function (x) { return NUANCE.test(x); })) groupesNuance++;
+      else synonymes += g.length - 1;
+    });
+  });
+
+  document.getElementById('simQuoi').innerHTML =
+    'Les cinq mouvements sont pris dans le dictionnaire réel (<b>' + fiches.length
+    + '</b> fiches), et les ' + Object.keys(BASE).length + ' façons de les écrire '
+    + 'sont <b>toutes des écritures qui existent déjà</b> dans <code>aussi</code>'
+    + (MANQUANTES.length ? ' — sauf ' + MANQUANTES.length + ' : ' + MANQUANTES.join(', ')
+                         : ', vérifié au chargement de cette page')
+    + '.';
+
+  document.getElementById('simBilan').innerHTML =
+    '<b>Ce que la simulation ne montre pas, et qu’il faut savoir.</b> '
+    + 'Le dictionnaire porte <b>' + nEcr + ' écritures d’engin</b> sur <b>' + nFiches
+    + '</b> de ses ' + fiches.length + ' fiches : ces cinq mouvements sont un '
+    + 'échantillon, pas le total. Une quinzaine de ces écritures ne sont PAS des '
+    + 'variantes et ne devraient pas entrer dans le menu — « Bench press » est le '
+    + 'nom anglais, « Montée de corde » est le mouvement lui-même, « Poignée de '
+    + 'pronation » est l’outil qui EST le mouvement. Le champ nécessaire à '
+    + 'l’option A <b>survit déjà au disque</b> : mesuré le 29/10, le store '
+    + 'recopie les séances telles quelles. Aucune migration à payer.'
+    + '<br><br><b>ET LE VRAI PRIX DE L’OPTION A, que cette simulation a fait '
+    + 'apparaître :</b> le Curl a quatre écritures mais ne donne que <b>trois '
+    + 'engins</b> — « Curl barre EZ » et « Curl barre » se fondent. Mesuré sur '
+    + 'tout le dictionnaire : <b>' + fondues + ' écritures</b> se fondraient. '
+    + '<b>' + synonymes + '</b> sont de simples synonymes (« Cable wrist curl » '
+    + 'et « Wrist curl à la poulie » sont le même geste au même engin) et les '
+    + 'fondre est précisément le but. Mais <b>' + groupesNuance + ' groupes '
+    + 'portent une nuance que l’engin seul perdrait</b> : couché / incliné / '
+    + 'décliné, unilatéral, barre droite contre barre EZ, debout contre à '
+    + 'genoux. <b>L’engin ne suffit donc pas comme variante</b> — ou bien on '
+    + 'accepte de perdre ces nuances, ou bien une variante porte deux choses : '
+    + 'l’engin, et la position. C’est la vraie question que ce chantier pose, '
+    + 'et je ne l’avais pas vue avant de construire cette page.';
+})();
+</script>
+</body>
+</html>
