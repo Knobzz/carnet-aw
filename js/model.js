@@ -2662,7 +2662,12 @@
     { nom: 'Zylinder XL', comme: 'fat grip' },
     { nom: 'Exzentrisch', comme: 'eccentric' },
     { nom: 'Kegel', comme: 'cone' },
-    { nom: 'Toproll Counter', comme: 'toproll' },
+    /* `anti toproll`, PAS `toproll` : sa citation est l'une des TROIS qui
+       fondent le type anti-toproll, et elle est ecrite plus bas —
+       « gezielte Belastungsubertragung auf die Finger und das
+       Handgelenk ». Il empruntait a cote de sa propre source. Et l'ecart
+       se mesure : 6 muscles au lieu de 9. */
+    { nom: 'Toproll Counter', comme: 'anti toproll' },
     { nom: 'Wrist Pro' },
     { nom: 'Multi Hand Grip' }
   ];
@@ -4273,15 +4278,69 @@
     return m;
   }
 
+  /* LE TYPE QU'UN ACCESSOIRE DECLARE EMPRUNTER, et ses muscles.
+
+     On cherche l'accessoire dans les reglages que le TYPE de l'outil
+     propose, on lit son champ `comme`, et on rend les muscles de ce
+     type-la. La BASE suffit : « King's Cup · Vis au centre » emprunte ce
+     qu'emprunte « King's Cup ». */
+  function musclesDuTypeDeReglage(nomOutil, nomReglage) {
+    var cible = slug(baseDuReglage(nomReglage));
+    var ids = [];
+    if (!cible) return ids;
+    typesDeLOutil(nomOutil).forEach(function (k) {
+      (k.reglages || []).forEach(function (r) {
+        if (typeof r === 'string') return;
+        if (slug(nomDuReglageType(r)) !== cible || !r.comme) return;
+        /* ON LIT `comme` COMME UN NOM D'OUTIL, donc par TOUS les types que
+           ses mots touchent — pas par un seul type de cle egale.
+
+           C'est une regle ecrite au type anti-toproll : « CE TYPE NE
+           REMPLACE DONC RIEN [...] une poignee anti-toproll reste un
+           toproll, et gagne en plus ce que les trois fabricants nomment ».
+           Mesure : lue etroitement, « Anti-Toproll Handle » rendait 5
+           muscles au lieu de 9. */
+        musclesDeLOutil([r.comme]).forEach(function (id) { ids.push(id); });
+      });
+    });
+    return ids;
+  }
+
   /* Les muscles que les réglages retenus désignent — la quatrième source de
-     proposition, et la seule qui vienne de l'utilisateur ET de son matériel. */
+     proposition, et la seule qui vienne de l'utilisateur ET de son matériel.
+
+     LE RÉGLAGE EMPRUNTE LES MUSCLES DE SON PROPRE NOM, et c'est la demande
+     de MB du 29/10 : « les réglages pour le Multi-Tool et Armwrestling
+     Buddies seront ce qui va influencer les muscles, l'objet simple ne va
+     rien influencer, mais les réglages oui ».
+
+     LE DÉFAUT QU'ON FERME, mesuré : le MÊME accessoire donnait DEUX réponses
+     selon le chemin. L'outil « Multi-Tool » seul rendait 0 muscle (juste :
+     c'est un cadre), le réglage choisi « Kegel » rendait 0 muscle (FAUX),
+     et l'outil tapé « Kegel » en rendait 1.
+
+     AUCUNE TABLE N'EST AJOUTÉE, et c'est le point — MB : « est-ce
+     nécessaire d'en rajouter une couche ? ». Le nom de l'accessoire est
+     DÉJÀ reconnu par `OUTILS_CONNUS` : les deux chemins lisent désormais la
+     même table et ne peuvent plus diverger.
+
+     CE QUE MB A SAISI GARDE LA PRIORITÉ : s'il a posé des muscles sur un
+     réglage à lui, ce sont les siens qui jouent. Le carnet ne décide pas à
+     sa place — il comble, il ne remplace pas. */
   function musclesDesReglages(etat, exo) {
     var ids = [];
     (exo && exo.outils || []).forEach(function (o) {
       var nom = reglageDe(exo, o);
       if (!nom) return;
       var r = trouverReglage(etat, o, nom);
-      if (r) (r.muscles || []).forEach(function (x) { ids.push(x); });
+      var siens = (r && r.muscles) || [];
+      if (siens.length) { siens.forEach(function (x) { ids.push(x); }); return; }
+      /* RIEN DE SAISI : on lit le type que l'accessoire DECLARE emprunter.
+         La table le dit deja — `{ nom: 'Zylinder S', comme: 'fat grip' }` —
+         et le lire vaut mieux que le redeviner par le nom : « Zylinder »
+         seul est interdit comme nom d'outil, « Pronator Zylinder » etant un
+         autre produit. */
+      musclesDuTypeDeReglage(o, nom).forEach(function (x) { ids.push(x); });
     });
     return muscles({ muscles: ids });
   }

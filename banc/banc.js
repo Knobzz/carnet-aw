@@ -5410,6 +5410,100 @@
   });
 
   /* ==================================================================
+     L'ACCESSOIRE CHOISI PROPOSE SES MUSCLES
+
+     MB, 29/10 : « les reglages pour le Multi-Tool et Armwrestling Buddies
+     seront ce qui va influencer les muscles, l'objet simple ne va rien
+     influencer, mais les reglages oui. »
+
+     LE DEFAUT, MESURE AVANT CORRECTION : le MEME accessoire donnait DEUX
+     reponses selon le chemin. Multi-Tool seul 0 muscle (juste : un cadre),
+     reglage « Kegel » choisi 0 muscle (FAUX), outil tape « Kegel » 1.
+     ================================================================== */
+  bloc('L’accessoire choisi propose ses muscles', function (v) {
+    function pose(outil, reglage) {
+      var e = A.store.vide();
+      A.m.majCatalogueOutils(e, outil, 'Poignées AW');
+      var exo = { nom: 'Test', outils: [outil], reglages: {} };
+      exo.reglages[A.m.slug(outil)] = reglage;
+      return A.m.musclesDesReglages(e, exo) || [];
+    }
+
+    /* ---- LE CADRE NU NE PROPOSE RIEN ----
+       C'est la premiere moitie de la phrase de MB, et elle tenait deja. */
+    v.egal(A.m.musclesDeLOutil(['Titan Grip Multi-Tool']).length, 0,
+           '[prix] un Multi-Tool NU ne propose rien — « l’objet simple ne va '
+         + 'rien influencer ». Il tient des deux côtés');
+    v.egal(A.m.musclesDeLOutil(['Armwrestling Buddies']).length, 0,
+           '[prix] et l’autre cadre non plus');
+
+    /* ---- L'ACCESSOIRE, LUI, PROPOSE ---- */
+    v.egal(pose('Titan Grip Multi-Tool', 'Kegel').join(','), 'flechisseurs_doigts',
+           'le Kégel choisi propose les fléchisseurs des doigts');
+    v.egal(pose('Titan Grip Multi-Tool', 'Zylinder L').length, 5,
+           'et « Zylinder L » les cinq de la prise épaisse — alors que son '
+         + 'nom SEUL est interdit comme outil, « Pronator Zylinder » étant '
+         + 'un autre produit. C’est le champ `comme` qui le dit');
+    v.egal(pose('Armwrestling Buddies', 'King’s Cup').length, 5,
+           'la King’s Cup propose les cinq de la cup');
+    v.egal(pose('Armwrestling Buddies', 'King’s Cup · Vis au centre').length, 5,
+           'et le trou choisi ne lui fait rien perdre : c’est la BASE qui '
+         + 'emprunte');
+
+    /* ---- LES DEUX CHEMINS DISENT LA MEME CHOSE ----
+       C'est la garde contre la divergence : si un jour l'un change sans
+       l'autre, ce controle tombe. Les quatre Zylinder sont hors compte,
+       leur nom court etant interdit expres. */
+    var desaccords = [];
+    [['Titan Grip Multi-Tool', 'Exzentrisch'],
+     ['Titan Grip Multi-Tool', 'Kégel'.replace('é', 'e')],
+     ['Titan Grip Multi-Tool', 'Toproll Counter'],
+     ['Armwrestling Buddies', 'Offset Cylinder Handle'],
+     ['Armwrestling Buddies', 'Anti-Toproll Handle'],
+     ['Armwrestling Buddies', 'Anti-Toproll Handle with Strap'],
+     ['Armwrestling Buddies', 'Eccentric Grip Handle'],
+     ['Armwrestling Buddies', 'King’s Cup'],
+     ['Armwrestling Buddies', 'Cone Handle']
+    ].forEach(function (p) {
+      var parReglage = pose(p[0], p[1]).slice().sort().join(',');
+      var parNom = A.m.musclesDeLOutil([p[1]]).slice().sort().join(',');
+      if (parReglage !== parNom) {
+        desaccords.push(p[1] + ' : réglage ' + (parReglage.split(',').length)
+                        + ' / nom ' + (parNom.split(',').length));
+      }
+    });
+    v.egal(desaccords.join(' · '), '',
+           'choisir l’accessoire et TAPER son nom donnent la même chose — '
+         + 'c’est la garde contre la divergence, et c’est elle qui a trouvé '
+         + 'que le Toproll Counter empruntait au toproll alors que sa '
+         + 'citation fonde l’ANTI-toproll');
+
+    /* ---- CE QUI RESTE MUET, ET POURQUOI ---- */
+    v.egal(pose('Titan Grip Multi-Tool', 'Wrist Pro').length, 0,
+           '[temoin] « Wrist Pro » ne propose rien, et doit le rester : son '
+         + 'fabricant n’en dit RIEN — page produit lue le 29/10, un prix et '
+         + 'un numéro d’article. Le trou est à la source');
+    v.egal(pose('Titan Grip Multi-Tool', 'Multi Hand Grip').length, 0,
+           '[temoin] « Multi Hand Grip » non plus, même raison');
+    v.egal(pose('Titan Grip Iron Wrist', 'Mousqueton au centre').length, 0,
+           '[temoin] une POSITION de mousqueton ne propose rien : ce n’est '
+         + 'pas un accessoire, c’est un réglage de l’outil, et l’outil '
+         + 'propose déjà ses dix muscles');
+
+    /* ---- ET CE QUE MB A SAISI GARDE LA PRIORITE ---- */
+    var e = A.store.vide();
+    A.m.majCatalogueOutils(e, 'Titan Grip Multi-Tool', 'Poignées AW');
+    A.m.majReglageOutil(e, 'Titan Grip Multi-Tool', 'Kegel', ['biceps']);
+    var exo = { nom: 'Test', outils: ['Titan Grip Multi-Tool'], reglages: {} };
+    exo.reglages[A.m.slug('Titan Grip Multi-Tool')] = 'Kegel';
+    v.egal((A.m.musclesDesReglages(e, exo) || []).join(','), 'biceps',
+           '[prix] ce que MB a posé lui-même GAGNE sur ce que le carnet '
+         + 'propose — il comble, il ne remplace pas. Il tient des deux '
+         + 'côtés : c’est le chemin qui marchait déjà, et qui ne devait '
+         + 'pas bouger');
+  });
+
+  /* ==================================================================
      LE LOT 10 — LES BICEPS, ET AUCUNE FICHE NEUVE
 
      Mesure sur les 34 noms de la page : SEPT ne proposaient rien, deux ne
