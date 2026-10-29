@@ -5254,6 +5254,157 @@
   });
 
   /* ==================================================================
+     LA RECHERCHE CHERCHE DES MOTS, PAS UNE SOUS-CHAINE
+
+     MB, 29/10 : « Et pronation à la sangle c'est du poulet ? Recheck stp,
+     et fait la correction de la recherche du coup. Et si tu uniformise avec
+     poulie, évidemment qu'on uniformise pour l'anglais. »
+
+     MESURE AVANT CORRECTION, sur les 320 écritures du dictionnaire, par
+     `suggestions` — la fonction que l'écran appelle :
+
+       tapées sans les mots de liaison    122 perdues sur 320
+       un mot déplacé devant              308 perdues sur 320
+
+     C'EST LA TROISIÈME FOIS QUE MB LE PAIE. La fiche « Curl pronation à la
+     poulie » porte déjà son constat : « Pronation Curl a la poulie n'existe
+     pas j'ai l'impression » — elle existait. Le pluriel (1.55.0) était le
+     même défaut par un autre bord.
+
+     L'ENGIN NE DÉCIDE JAMAIS DU MOUVEMENT, donc il est OPTIONNEL dans une
+     frappe — mais seulement si un mot NON-engin est tapé ET trouvé, sinon
+     « poulie » rendrait le dictionnaire entier.
+     ================================================================== */
+  bloc('La recherche cherche des mots', function (v) {
+    var etat = { exercices: [], dictionnaire: [], seances: [], sparrings: [] };
+    function noms(q) {
+      return (A.m.suggestions(etat, q, 30) || [])
+        .map(function (x) { return x.entree || x.nom; });
+    }
+
+    /* --- LES FRAPPES QUI NE RENDAIENT RIEN ---
+       Chacune a été vérifiée VIDE sur la version d'avant. */
+    v.vrai(noms('pronation sangle').indexOf('Pronation') >= 0,
+           '« pronation sangle » mène à « Pronation » — l’engin ne décide '
+         + 'pas du mouvement, et c’est la question de MB : la sangle a '
+         + 'quitté les noms le 27/10, pas le vocabulaire');
+    v.vrai(noms('pronation strap').indexOf('Pronation') >= 0,
+           'et « pronation strap » aussi : les deux langues dans la même '
+         + 'famille');
+    v.vrai(noms('wrist curl poulie').indexOf('Wrist curl') >= 0,
+           '« wrist curl poulie » retrouve « Wrist curl à la poulie » — les '
+         + 'mots de liaison ne comptent plus');
+    v.vrai(noms('poulie wrist curl').indexOf('Wrist curl') >= 0,
+           'et l’ORDRE des mots ne compte plus non plus');
+    /* MB : « Pronation Curl a la poulie n’existe pas j’ai l’impression ».
+       « pronation curl » MARCHAIT déjà — parce que j’avais ajouté cette
+       écriture mot pour mot en 1.55.0. La frappe qui ne rendait rien est
+       celle où l’engin change de langue : le dictionnaire porte « Pronation
+       curl à la poulie », pas « pronation curl cable ». */
+    v.vrai(noms('pronation curl cable').indexOf('Curl pronation à la poulie') >= 0,
+           '« pronation curl cable » mène à sa fiche, écrite « à la poulie » '
+         + '— MB : « Pronation Curl a la poulie n’existe pas j’ai '
+         + 'l’impression »');
+    v.vrai(noms('lateral raise cable').indexOf('Élévation latérale') >= 0,
+           '« lateral raise cable » mène à « Élévation latérale » : anglais '
+         + 'ET engin dans la même frappe');
+    v.vrai(noms('shoulder press dumbbell').indexOf('Développé militaire') >= 0,
+           'et « shoulder press dumbbell » au développé militaire');
+    v.vrai(noms('curl dumbbell').length > 0,
+           '« curl dumbbell » rend quelque chose — il rendait RIEN');
+
+    /* --- CE QUE LA CORRECTION NE SUPPRIME PAS ---
+
+       LE PRIX, MESURÉ, ET IL EST PLACÉ ICI EXPRÈS : il ne dépend d’aucune
+       fonction neuve, donc il se LIT ENCORE à la chute. Les contrôles qui
+       appellent `familleEngin` viennent après, parce que sur la version
+       d’avant cet appel lève — et le `try` du banc entoure LE BLOC. */
+    var exactes = 0, devantLesMots = 0, total = 0, fautifs = [];
+    A.m.DICTIONNAIRE.forEach(function (d) {
+      [d.nom].concat(d.aussi || []).forEach(function (ec) {
+        total++;
+        var l = noms(ec), r = l.indexOf(d.nom);
+        if (r >= 0) exactes++;
+        /* PAS « EN PREMIER » : plusieurs fiches peuvent contenir la frappe
+           LITTERALEMENT, et « Traction » en touche huit. Ce qui doit tenir,
+           c'est que les littérales restent DEVANT les correspondances par
+           mots. On compte les littérales et on exige un rang dedans. */
+        var litterales = 0;
+        A.m.DICTIONNAIRE.forEach(function (x) {
+          if ([x.nom].concat(x.aussi || []).some(function (e) {
+            return A.m.slug(e).indexOf(A.m.slug(ec)) >= 0;
+          })) litterales++;
+        });
+        if (r >= 0 && r < litterales) devantLesMots++;
+        else if (fautifs.length < 4) fautifs.push(d.nom + ' ← « ' + ec + ' » rang ' + r + '/' + litterales);
+      });
+    });
+    v.egal(exactes, total,
+           '[prix] les ' + total + ' écritures tapées EXACTEMENT mènent '
+         + 'toutes à leur fiche. IL TIENT DES DEUX CÔTÉS, et c’est le but : '
+         + 'c’est le PRIX de la correction, il doit être NUL avant comme '
+         + 'après. Il tombe si le chemin littéral perd une frappe');
+    v.egal(devantLesMots, total,
+           '[prix] et toutes DEVANT les correspondances par mots : le '
+         + 'littéral garde son rang. Deux côtés, même raison que ci-dessus'
+         + (fautifs.length ? ' — ' + fautifs.join(' · ') : ''));
+    v.vrai(total > 300,
+           '[temoin] le dictionnaire porte plus de 300 écritures — sans quoi '
+         + 'les deux comptes ci-dessus seraient vrais pour rien. Il tient '
+         + 'des deux côtés : la correction ne touche pas le dictionnaire');
+
+    /* ET UN MOT D'ENGIN SEUL NE REND PAS TOUT. Sans cette garde, l’engin
+       optionnel ferait de « poulie » une frappe qui rend les 62 fiches. */
+    var p = noms('poulie');
+    v.vrai(p.length > 0 && p.length < A.m.DICTIONNAIRE.length,
+           '[prix] « poulie » seul ne rend que ce qui s’écrit avec, avant '
+         + 'comme après : sans cette garde l’engin optionnel rendrait tout '
+         + '— ' + p.length + ' sur ' + A.m.DICTIONNAIRE.length);
+    v.egal(noms('cable').length, p.length,
+           'et « cable » en rend exactement autant : c’est le même engin');
+
+    /* --- CE QUI SUIT APPELLE LES FONCTIONS NEUVES ---
+       Leur absence est un échec À ELLE SEULE, et nommé : sans cette garde,
+       l’appel lèverait et emporterait tout ce qui précède. */
+    if (typeof A.m.familleEngin !== 'function'
+        || typeof A.m.motsCherche !== 'function'
+        || typeof A.m.placeParMots !== 'function') {
+      v.vrai(false, 'le modèle expose `familleEngin`, `motsCherche` et '
+                  + '`placeParMots` — sans elles la recherche par mots '
+                  + 'n’existe pas');
+      return;
+    }
+
+    /* --- LES FAMILLES, DANS LES DEUX SENS ET DANS LES DEUX LANGUES --- */
+    [['poulie', 'cable'], ['poulie', 'pulley'], ['haltere', 'dumbbell'],
+     ['barre', 'barbell'], ['elastique', 'band'], ['sangle', 'strap'],
+     ['corde', 'rope'], ['banc', 'bench'], ['anneaux', 'ring']
+    ].forEach(function (p) {
+      v.egal(A.m.familleEngin(p[1]), A.m.familleEngin(p[0]),
+             '« ' + p[1] +' » et « ' + p[0] + ' » sont le même engin');
+    });
+    v.egal(A.m.familleEngin('curl'), null,
+           'et un GESTE n’est pas un engin : « curl » n’a pas de famille, '
+         + 'sans quoi il deviendrait optionnel et « curl » rendrait tout');
+
+    v.egal(A.m.placeParMots('Wrist curl', ['poulie']), -1,
+           'un mot d’engin SEUL ne peut pas suffire : sans mot dur, on '
+         + 'refuse');
+
+    /* --- LE DECOUPAGE EN MOTS --- */
+    v.egal(A.m.motsCherche('Wrist curl à la poulie').join('|'),
+           'wrist|curl|poulie',
+           'les mots de liaison tombent, l’engin est ramené à sa famille');
+    v.egal(A.m.motsCherche('Cable wrist curl').join('|'),
+           'poulie|wrist|curl',
+           'et « cable » rend le MÊME mot que « poulie » — c’est ce qui '
+         + 'uniformise les deux langues');
+    v.egal(A.m.motsCherche('Élévations latérales').join('|'),
+           'elevation|laterale',
+           'le pluriel tombe aussi, des deux côtés');
+  });
+
+  /* ==================================================================
      LE CATALOGUE DE REVUE NE PORTE PAS DE DOUBLON
 
      MB, 29/10 : « Dips prise serrée est déjà existant [...] Pareil pour

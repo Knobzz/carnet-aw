@@ -3544,6 +3544,121 @@
     return slug(nom).replace(/s(?= |$)/g, '');
   }
 
+  /* ------------------------------------------------------------------
+     CHERCHER DES MOTS, PAS UNE SOUS-CHAINE
+
+     MB, 29/10 : « fait la correction de la recherche du coup. Et si tu
+     uniformise avec poulie, évidemment qu'on uniformise pour l'anglais ».
+
+     MESURE sur les 320 écritures du dictionnaire, par `suggestions` — la
+     fonction que l'écran appelle : tapées sans les mots de liaison
+     (« wrist curl poulie » au lieu de « à la poulie »), 122 ne se
+     retrouvent plus ; un seul mot déplacé devant, 308 sur 320.
+
+     C'EST LA TROISIÈME FOIS. La fiche « Curl pronation à la poulie » porte
+     déjà le constat de MB : « Pronation Curl a la poulie n'existe pas j'ai
+     l'impression » — elle existait. Le pluriel (1.55.0) était le même
+     défaut par un autre bord.
+     ------------------------------------------------------------------ */
+
+  /* Les mots qui ne portent rien. Les deux langues, parce que le
+     dictionnaire mélange « à la poulie » et « cable wrist curl ». */
+  var MOTS_LIAISON = {
+    a: 1, la: 1, le: 1, les: 1, l: 1, de: 1, du: 1, des: 1, d: 1,
+    au: 1, aux: 1, avec: 1, en: 1, sur: 1, dan: 1, pour: 1, et: 1,
+    the: 1, with: 1, on: 1, at: 1, of: 1, to: 1, and: 1, in: 1
+  };
+
+  /* LES ENGINS, ET LES DEUX LANGUES DANS LA MÊME FAMILLE.
+
+     La clé est le mot tel que `slug` le rend, sans son « s » final ; la
+     valeur est le mot RETENU pour la famille. Une famille dit « c'est le
+     même appareil », jamais « c'est le même geste ».
+
+     LA SANGLE Y EST, bien qu'aucun mouvement ne s'écrive « à la sangle » —
+     décision de MB du 27/10, gardée par un contrôle. Elle y est pour être
+     COMPRISE quand il la tape, pas pour revenir au dictionnaire. */
+  var ENGINS = {
+    poulie: 'poulie', cable: 'poulie', pulley: 'poulie', cablee: 'poulie',
+    sangle: 'sangle', strap: 'sangle',
+    haltere: 'haltere', dumbbell: 'haltere', db: 'haltere',
+    barre: 'barre', barbell: 'barre', bar: 'barre', ez: 'barre',
+    elastique: 'elastique', band: 'elastique', elastic: 'elastique',
+    machine: 'machine', smith: 'machine', guidee: 'machine',
+    kettlebell: 'kettlebell', kettle: 'kettlebell', kb: 'kettlebell',
+    landmine: 'landmine',
+    corde: 'corde', rope: 'corde',
+    anneaux: 'anneaux', anneau: 'anneaux', ring: 'anneaux',
+    banc: 'banc', bench: 'banc',
+    poignee: 'poignee', handle: 'poignee',
+    plaque: 'plaque', plate: 'plaque',
+    chaise: 'chaise', chair: 'chaise'
+  };
+
+  function familleEngin(mot) {
+    return ENGINS[mot] || ENGINS[mot.replace(/s$/, '')] || null;
+  }
+
+  /* Un nom devient une liste de mots : liaisons retirées, pluriel retiré,
+     engin ramené à sa famille. Les DEUX côtés passent par ici — une
+     normalisation appliquée d'un seul côté ne compare plus la même chose. */
+  function motsCherche(txt) {
+    var out = [];
+    slug(txt).split(' ').forEach(function (m) {
+      if (!m || MOTS_LIAISON[m]) return;
+      out.push(familleEngin(m) || m.replace(/s$/, ''));
+    });
+    return out;
+  }
+
+  /* PLACE D'UNE ECRITURE POUR UNE SAISIE DECOUPEE EN MOTS.
+
+     Rend -1 si elle ne convient pas, sinon un score : plus petit, mieux
+     placé. Le score est la somme des positions des mots trouvés, donc une
+     écriture qui commence par ce qu'on tape passe devant.
+
+     L'ENGIN EST OPTIONNEL, et c'est la règle qui sort de la question de MB
+     (« et pronation à la sangle c'est du poulet ? ») : l'engin ne décide
+     jamais du mouvement — il change ce qu'on tient. Une saisie dont seuls
+     les mots d'engin manquent reste bonne, et passe derrière.
+
+     MAIS IL FAUT UN MOT DUR : taper « poulie » tout seul ne doit pas rendre
+     le dictionnaire entier. Sans mot non-engin trouvé, on refuse. */
+  function placeParMots(ecriture, qm) {
+    if (!qm.length) return -1;
+    var em = motsCherche(ecriture);
+    if (!em.length) return -1;
+
+    function cherche(liste) {
+      var pris = {}, score = 0;
+      var tous = liste.every(function (w) {
+        var i = -1, k;
+        for (k = 0; k < em.length; k++) {
+          if (!pris[k] && em[k].indexOf(w) === 0) { i = k; break; }
+        }
+        if (i < 0) {
+          for (k = 0; k < em.length; k++) {
+            if (!pris[k] && em[k].indexOf(w) >= 0) { i = k; break; }
+          }
+        }
+        if (i < 0) return false;
+        pris[i] = 1;
+        score += i;
+        return true;
+      });
+      return tous ? score : -1;
+    }
+
+    var complet = cherche(qm);
+    if (complet >= 0) return complet;
+
+    var durs = qm.filter(function (w) { return !familleEngin(w); });
+    if (!durs.length || durs.length === qm.length) return -1;
+    var sansEngin = cherche(durs);
+    /* +50 : toujours derrière une correspondance qui tient l'engin aussi. */
+    return sansEngin < 0 ? -1 : sansEngin + 50;
+  }
+
   /* Un outil du catalogue dont le nom ne differe que par des espaces, et qui
      porte des reglages. Repond a la panne silencieuse : on declare un reglage
      sur une entree, l'exercice porte l'autre, et la rangee reste vide sans
@@ -4093,7 +4208,8 @@
 
   function suggestionsDictionnaire(q, dejaVus, etat) {
     if (!q) return [];
-    var debut = [], dedans = [], vusIci = {};
+    var debut = [], dedans = [], parMots = [], vusIci = {};
+    var qm = motsCherche(q);
     fondsDictionnaire(etat).forEach(function (d) {
       /* UNE FICHE A MOI MASQUE SON HOMONYME LIVRE, sans quoi la liste en
          montrerait deux du meme nom et MB ne saurait pas laquelle il
@@ -4114,11 +4230,37 @@
         if (p < 0) return;
         if (meilleur < 0 || p < meilleur) { meilleur = p; gagnante = e; }
       });
+      /* LE TEST PAR MOTS NE S'OUVRE QUE SI LE LITTERAL N'A RIEN RENDU.
+
+         C'est ce qui rend le prix NUL : les frappes qui marchent
+         aujourd'hui gardent leur résultat ET leur classement. Celles qui ne
+         rendaient RIEN — 122 sur 320 — trouvent enfin. Le +1000 les range
+         derrière toute correspondance littérale. */
+      if (meilleur < 0) {
+        ecritures.forEach(function (e) {
+          var p = placeParMots(e, qm);
+          if (p < 0) return;
+          p += 1000;
+          if (meilleur < 0 || p < meilleur) { meilleur = p; gagnante = e; }
+        });
+      }
       if (meilleur < 0) return;
-      var ligne = { d: d, ecriture: gagnante };
-      if (meilleur === 0) debut.push(ligne); else dedans.push(ligne);
+      var ligne = { d: d, ecriture: gagnante, place: meilleur };
+      /* TROIS PANIERS, ET LE TROISIEME EST TRIE.
+
+         Les deux premiers sont les correspondances LITTERALES, dans leur
+         ordre d'avant : commence-par, puis contient. Le troisième tient les
+         correspondances par MOTS — celles qui ne rendaient RIEN — et il se
+         trie par place, sinon le score calculé ne servirait à rien :
+         « curl poulie » rendait les douze curls dans l'ordre du
+         dictionnaire, alors que « Curl rising à la poulie » porte vraiment
+         le mot tapé. */
+      if (meilleur >= 1000) parMots.push(ligne);
+      else if (meilleur === 0) debut.push(ligne);
+      else dedans.push(ligne);
     });
-    return debut.concat(dedans).map(function (l) {
+    parMots.sort(function (a, b) { return a.place - b.place; });
+    return debut.concat(dedans, parMots).map(function (l) {
       return entreeDictionnaire(l.d, l.ecriture);
     });
   }
@@ -4139,12 +4281,21 @@
     var n = limite || 8;
     var l = parRecence(etat.exercices);
     if (!q) return l.slice(0, n);
-    var debut = [], dedans = [];
+    var debut = [], dedans = [], parMots = [];
+    var qm = motsCherche(saisie);
     for (var i = 0; i < l.length; i++) {
       var p = slugCherche(l[i].nom).indexOf(q);
-      if (p === 0) debut.push(l[i]);
-      else if (p > 0) dedans.push(l[i]);
+      if (p === 0) { debut.push(l[i]); continue; }
+      if (p > 0) { dedans.push(l[i]); continue; }
+      /* MES EXERCICES SUIVENT LA MEME REGLE QUE LE DICTIONNAIRE : les
+         traiter différemment ferait apparaître une fiche et disparaître
+         mon propre exercice pour la même frappe. Et ils gardent le même
+         rang : derrière les correspondances littérales, triés par place. */
+      var pm = placeParMots(l[i].nom, qm);
+      if (pm >= 0) parMots.push({ x: l[i], place: pm });
     }
+    parMots.sort(function (a, b) { return a.place - b.place; });
+    dedans = dedans.concat(parMots.map(function (o) { return o.x; }));
     /* UN NOM QUI EST AU DICTIONNAIRE Y RESTE.
 
        MB, 28/10 : « quand je selectionne un exo dans le dico, ce dernier a
@@ -6335,6 +6486,8 @@
     trancherConflit: trancherConflit,
     auDictionnaire: auDictionnaire, ficheDictionnaire: ficheDictionnaire,
     suggestionsDictionnaire: suggestionsDictionnaire,
+    motsCherche: motsCherche, familleEngin: familleEngin,
+    placeParMots: placeParMots,
     CHAMPS_CONTEXTE: CHAMPS_CONTEXTE, LIEN_TICKETS: LIEN_TICKETS,
     URL_TICKET_MAX: URL_TICKET_MAX,
     REMARQUES_SURVEILLEES: REMARQUES_SURVEILLEES,
