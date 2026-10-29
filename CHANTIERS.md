@@ -84,10 +84,16 @@ manquait, c'est une phrase.
 
 ---
 
-## 1. Les équipements spécifiques au bras de fer
+## 1. Les équipements spécifiques au bras de fer — **CLOS le 2026-10-29**
 
 **Quand** : après les lots de mouvements. Ordre posé par MB le 2026-10-23,
 « dans un second temps beaucoup plus tardif ».
+
+**LES QUATRE POINTS SONT TRAITÉS** (1.64.0 → 1.66.0) : les trois fiches de
+revue manquantes sont écrites, les accessoires proposent leurs muscles
+quand on les CHOISIT et plus seulement quand on les tape, le cône a ses
+deux sens de montage validés par MB, et sa dette est soldée. Planche
+d'équipement verte : 20 types, 87 muscles, cinq gardes au vert.
 
 **MESURÉ LE 2026-10-29, à l'ouverture du chantier : il est déjà bâti aux
 trois quarts**, et ce fichier le décrivait comme s'il était vierge.
@@ -215,10 +221,28 @@ base**, et ensuite avoir la possibilité de **sélectionner quelles variantes
 dans le menu de l'exo directement**. Gros chantier à venir également. »
 
 **Ce que ça corrige.** Aujourd'hui les variantes d'engin vivent dans `aussi`,
-les autres écritures. « Développé militaire » absorbe douze façons d'écrire le
-même geste. Ça marche pour la RECHERCHE, mais ça ne garde **aucune trace de
-l'engin réellement utilisé** : l'historique ne saura jamais que la séance
-s'est faite à la poulie plutôt qu'aux haltères.
+les autres écritures. « Développé militaire » absorbe dix façons d'écrire le
+même geste. Ça marche pour la RECHERCHE.
+
+**CE PARAGRAPHE DISAIT ENSUITE UNE CHOSE FAUSSE**, écrite le 29/10 :
+« ça ne garde aucune trace de l'engin réellement utilisé : l'historique ne
+saura jamais que la séance s'est faite à la poulie ». **MESURÉ le 29/10,
+c'est l'inverse**, et la mesure tient en quatre séances fabriquées :
+
+| quatre séances du MÊME curl, écrites avec trois engins | ce que le carnet rend |
+|---|---|
+| « Curl à la poulie » (×2), « Curl barre », « Curl haltères » | **3 entrées** dans la liste de suivi |
+
+Le carnet **sait** l'engin : il stocke le nom saisi tel quel, parce qu'une
+entrée du dictionnaire « ne remplit QUE les muscles » (décision de MB du
+23/10, écrite dans `js/panneau.js`). Ce qu'il ne sait pas faire, c'est
+**regrouper** : la progression d'un même mouvement s'éclate en autant de
+courbes que de façons de l'écrire, et aucune ne porte l'historique entier.
+
+**C'est le défaut inverse de celui que j'avais écrit, et c'est le même
+travers que la dette du cône, posé le même jour** : une affirmation jetée au
+passage, dans une phrase dont le sujet était autre chose, que rien ne garde
+et que personne ne revérifie.
 
 **Conséquence sur les lots en cours** : les `aussi` qu'on écrit maintenant ne
 sont pas perdus, mais une partie deviendra des variantes le jour venu.
@@ -227,7 +251,8 @@ sont pas perdus, mais une partie deviendra des variantes le jour venu.
 (29/10, après la question de MB : « si c'est à la poulie, ya forcément le
 câble ou la sangle au final ? »).
 
-Les **122 écritures d'engin** du dictionnaire ne sont plus nécessaires pour
+Les **185 écritures d'engin** du dictionnaire — le chiffre de 122 datait
+d'avant les lots 7 à 10 — ne sont plus nécessaires pour
 *trouver* une fiche : « poulie », « cable », « pulley » et « sangle » sont
 désormais le même mot pour la recherche, et l'engin est optionnel dans une
 frappe. Mesuré : 122 frappes perdues sur 320 passent à zéro.
@@ -238,9 +263,42 @@ classement, pas de la capacité à trouver. **C'est à ce chantier de
 trancher**, et pas avant : le jour où l'engin devient une variante
 enregistrée, il sort de `aussi` par construction.
 
-**Ce que ça ne règle toujours pas** : l'historique ne garde toujours aucune
-trace de l'engin réellement utilisé. C'est le cœur de ce chantier, et la
-recherche n'y touche pas.
+**Ce que ça ne règle toujours pas** : le **regroupement**. C'est le cœur de
+ce chantier, et la recherche n'y touche pas.
+
+### Ce que ce chantier a déjà sous la main — mesuré le 2026-10-29
+
+| | |
+|---|---|
+| écritures portant un engin | **185**, sur **49** des 67 fiches |
+| la plus fournie | **Écarté**, 12 — puis Développé militaire et Curl biceps, 10 |
+| familles d'engin | poulie 55 · haltère 40 · barre 29 · élastique 22 · machine 14 · banc 9 · corde 6 · landmine 4 · kettlebell 3 · poignée 2 · chaise 1 |
+| un exercice de séance porte déjà | `outils: []` et `reglages: {}` |
+| les 11 engins sont-ils des **outils connus** ? | **aucun** — les 20 types d'`OUTILS_CONNUS` sont tous du matériel de bras de fer |
+
+**UN CHAMP NEUF SUR UN EXERCICE SURVIT AU DISQUE**, et c'est mesuré : le
+store recopie les séances telles quelles (`js/store.js`, « if
+(Array.isArray(brut.seances)) »). Un `variante: 'poulie'` posé à la main
+est relu intact. **Dans `reglages`, la même clé disparaît** — mesuré dans
+le même test. Ce chantier n'a donc pas de migration de stockage à payer,
+à condition de poser le champ sur l'exercice et non dans les réglages.
+
+**ET TOUTES LES ÉCRITURES D'ENGIN NE SONT PAS DES VARIANTES** — une
+quinzaine des 185 n'en sont pas, et les mélanger ferait un menu faux :
+
+- le **nom anglais** du mouvement (« Bench press », « Incline bench press ») ;
+- le **mouvement lui-même** (« Rope climb », « Montée de corde ») ;
+- l'**outil qui EST le mouvement** (« Poignée de pronation », « Poignée à ressort ») ;
+- un **support**, pas un engin de charge (« Dips sur une chaise », « Dips sur banc »).
+
+### Le prix de l'autre option, celle de retirer les engins de `aussi`
+
+**185 écritures partiraient, et 152 d'entre elles ne sont tenues par AUCUN
+banc** : 32 sont citées par le banc du modèle, 1 par celui de l'interface.
+Les 185 figurent toutes dans `revue/catalogue.js`, qui est leur **source de
+revue** et non une garde. Et le problème d'origine ne l'exige pas : garder
+trace de l'engin est une **addition**, pas une suppression. Cette option se
+décide donc pour elle-même, ou pas du tout.
 
 ## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images
 
