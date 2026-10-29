@@ -399,10 +399,26 @@
                livre: true };
     });
     cat.MOUVEMENTS.forEach(function (f) {
-      var deja = A.m.DICTIONNAIRE.filter(function (d) {
+      var livree = A.m.DICTIONNAIRE.filter(function (d) {
         return d.nom === f.nom;
-      }).length;
-      if (deja) return;
+      })[0];
+      /* UNE FICHE DEJA LIVREE QUI GAGNE DES ECRITURES DOIT SE VOIR.
+
+         On passait toute entree dont le nom est livre, et les ecritures
+         qu'un lot AJOUTE a une fiche existante devenaient invisibles. Arrive
+         trois fois — le developpe militaire et l'elevation laterale au lot
+         6, les dips au lot 7 — et chaque fois il a fallu le DIRE a MB au
+         lieu de le lui MONTRER. */
+      if (livree) {
+        var a = livree.aussi || [];
+        var enPlus = (f.aussi || []).filter(function (x) { return a.indexOf(x) < 0; });
+        if (!enPlus.length) return;
+        lignes.push({ nom: f.nom, aussi: f.aussi || [],
+                      muscles: livree.muscles,
+                      livre: false, enPlus: enPlus,
+                      ecarte: f.ecarte || null });
+        return;
+      }
       lignes.push({ nom: f.nom, aussi: f.aussi || [],
                     muscles: f.muscles.map(function (x) { return x.id; }),
                     livre: false, ecarte: f.ecarte || null });
@@ -456,7 +472,10 @@
       delta.appendChild(el('span',
         'et ' + (d.livre ? 'pareil' : 'change'),
         d.livre ? 'livré'
-                : (d.ecarte ? 'écarté → ' + d.ecarte : 'à ajouter')));
+                : (d.ecarte ? 'écarté → ' + d.ecarte
+                   : (d.enPlus ? '+' + d.enPlus.length + ' écriture(s) sur une '
+                                 + 'fiche déjà livrée'
+                      : 'à ajouter'))));
       /* UNE FICHE SANS MUSCLE LE DIT. Le lot 6 ne propose que des noms,
          donc ses entrees portent `muscles: []` : une pastille vide se
          lirait comme un defaut d'affichage, pas comme une intention. */
