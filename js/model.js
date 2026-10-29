@@ -85,6 +85,19 @@
      l'exercice : renommer le champ casserait les carnets deja saisis, et
      l'affichage seul avait besoin de changer. Ranges par axe — ce qui pousse,
      puis ce que fait la main. */
+  /* SIX MOUVEMENTS, ET RIEN DE PLUS SUR AUCUN. MB, 28/10 : « pour le side
+     pressure, il fait parti des memes categories que rising, pronation,
+     back pressure etc etc ».
+
+     J'avais pose sur la side pressure un champ `horsStyle` portant une
+     phrase — « une finition, pas un style : elle termine les matchs de hook
+     comme de toproll ». Il a vecu une heure. Deux raisons de le retirer :
+     MB ne veut pas d'une phrase la ou les autres n'ont qu'un chiffre, et un
+     champ qu'aucun ecran ne lit se croit vivant.
+
+     CE QUE LA PHRASE DISAIT RESTE SOURCE, dans le commentaire de STYLES_AW,
+     ou elle explique la TABLE — sa vraie place. VOA : « Side pressure […]
+     it finishes most hook matches and many toproll matches ». */
   var FORCES = [
     { id: 'rising',        nom: 'Rising' },
     { id: 'back_pressure', nom: 'Back pressure' },
@@ -544,16 +557,51 @@
                                                      'long_flechisseur_pouce'] },
     pronation:     { source: 'anatomie',   muscles: ['rond_pronateur', 'carre_pronateur'] },
     supination:    { source: 'anatomie',   muscles: ['supinateur', 'biceps'] },
-    /* Les quatre premiers viennent de l'etude EMG ; la main vient de Larratt,
-       qui decrit le POUCE COMME UN LEVIER et parle de monter « par les
-       doigts ». Les abducteurs du pouce restent dehors : ils l'ECARTENT, et
-       ce n'est pas le geste. */
+    /* TROIS SOURCES DANS UNE ENTREE, et il faut savoir laquelle dit quoi.
+
+       LES QUATRE PREMIERS viennent de l'etude EMG ; LA MAIN vient de
+       Larratt, qui decrit le POUCE COMME UN LEVIER et parle de monter
+       « par les doigts ». Les abducteurs du pouce restent dehors : ils
+       l'ECARTENT, et ce n'est pas le geste.
+
+       LES TROIS DERNIERS — ecrl, ecrb, fcr — ENTRENT LE 28/10, et ils
+       viennent de l'ANATOMIE. MB avait vu le trou le 23/10 : « la force
+       Rising ne contient aucun deviateur du poignet alors que le sport
+       appelle rising la deviation radiale ». Il avait raison, et les deux
+       sources le disent :
+
+         VOA  « Rising (riser) — LIFTING YOUR WRIST UP TOWARDS THE THUMB
+                SIDE to get on top of the hand. The base of the toproll. »
+         Kenhub « [ECRL et ECRB] Their main function is the extension and
+                ABDUCTION (RADIAL DEVIATION) of the wrist joint. » et
+                « [FCR] […] wrist flexion and wrist ABDUCTION (radial
+                deviation) […] in synergy with extensor carpi radialis
+                longus and brevis, a balanced hand abduction. »
+
+       `source` RESTE 'terrain', SON MAILLON LE PLUS FAIBLE. Les trois
+       derniers sont de l'anatomie, les huit autres non : une entree ne
+       porte qu'un niveau, et c'est le plus bas qui doit s'afficher. Meme
+       traitement que `back_pressure`, qui melange deja deux sources.
+
+       PAS DE SEPTIEME MOT POUR LE POSTING — MB, 28/10 : « ce n'est ni plus
+       ni moins que du rising ce que tu me decris, pas besoin d'un nouveau
+       mot a rajouter ». C'est ce que `MOTS_FORCE.rising` fait depuis
+       toujours en portant « rising », « riser » ET « posting » : sa
+       decision confirme ce choix.
+
+       IMPACT MESURE, plus etroit que ce que j'avais annonce a MB : un
+       exercice dont le mouvement est coche SANS nom porteur passe de 8 a
+       11 muscles proposes. Les regions ne bougent PAS — le brachio-radial
+       est deja dans l'avant-bras posterieur — et aucune remarque ne change.
+       J'avais ecrit le contraire ; la mesure m'a corrige. */
     rising:        { source: 'terrain',
-                     dit: 'Devon Larratt, et une étude EMG pour les quatre premiers',
+                     dit: 'Devon Larratt et une étude EMG pour les huit premiers, '
+                        + 'Kenhub pour les trois déviateurs radiaux',
                      lien: 'https://podcasts.happyscribe.com/the-joe-rogan-experience/2510-devon-larratt',
                      muscles: ['biceps', 'brachial', 'brachio_radial', 'deltoide',
                                'flechisseurs_doigts', 'long_flechisseur_pouce',
-                               'court_flechisseur_pouce', 'adducteur_pouce'] },
+                               'court_flechisseur_pouce', 'adducteur_pouce',
+                               'ecrl', 'ecrb', 'fcr'] },
     /* DEUX sources, et elles ne disent pas la meme chose. L'etude EMG nomme
        le grand pectoral en premier ; Voice of Armwrestling ne le nomme pas
        et ajoute le brachio-radial et le deltoide posterieur. On garde les
@@ -1154,8 +1202,32 @@
               'Cable rising', 'Rising à la poulie'],
       muscles: ['fcr', 'ecrl', 'ecrb'] },
     { nom: 'Déviation ulnaire',
-      aussi: ['Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation',
-              'Déviation ulnaire au cable'],
+      /* « CHOP » ENTRE LE 28/10 — MB : « on peut egalement un "Nom connu"
+         pour Deviation Ulnaire, on peut y mettre Chop etc ». C'est le mot
+         du bras de fer pour ce geste, et il en avait note l'absence le
+         23/10 : « la deviation ulnaire n'a pas de mot en bras de fer ».
+
+         VOA : « Chop / ulnar deviation — Bending the wrist down towards the
+         little-finger side. » C'est le SEUL autre nom qu'une source me
+         donne — je n'en invente pas d'autres pour remplir le « etc ».
+
+         LE MOT ETAIT LIBRE, verifie avant d'ecrire : absent de MOTS_FORCE,
+         des 20 types d'OUTILS_CONNUS, des 60 references de marque et de
+         toutes les ecritures. « Chop » ne lisait RIEN.
+
+         ET IL NE SERA PAS COMPTE DANS « Ton style », parce que la fiche
+         elle-meme ne lit aucun mouvement : il n'existe pas de force de
+         deviation ulnaire au carnet. MB a choisi le nom connu plutot que le
+         septieme mouvement que je proposais — c'est dit ici pour qu'on ne
+         le relise pas comme un oubli. */
+      /* « A LA POULIE » ET « CABLE CHOP » entrent le 28/10 — MB : « pour la
+         deviation ulnaire ou chop, je la fait generalement a la poulie, on
+         pourrait ptete rajouter Deviation ulnaire a la poulie et Cable
+         Chop ? ». La fiche portait deja « au cable » ; ces deux-la
+         manquaient. */
+      aussi: ['Chop', 'Cable Chop', 'Déviation cubitale',
+              'Inclinaison ulnaire', 'Ulnar deviation',
+              'Déviation ulnaire au cable', 'Déviation ulnaire à la poulie'],
       muscles: ['fcu', 'ecu'] },
     { nom: 'Pronation',
       aussi: ['Poignée de pronation', 'Pronation à la poulie',
@@ -1638,7 +1710,19 @@
              'vers le petit doigt', 'cote auriculaire', 'bord auriculaire',
              'accentue auriculaire', 'cote ulnaire', 'cote cubital',
              'deviation ulnaire', 'deviation cubitale', 'inclinaison ulnaire',
-             'flexion ulnaire', 'ulnar deviation'],
+             'flexion ulnaire', 'ulnar deviation',
+             /* « CHOP » ENTRE LE 28/10, ET IL ENTRE ICI — pas seulement au
+                dictionnaire. MB demandait un nom connu pour la deviation
+                ulnaire ; le poser dans `aussi` seul faisait tomber le
+                controle qui accorde chaque ecriture a son entree, parce que
+                la LECTURE ne connaissait pas le mot. C'est exactement la
+                divergence decrite juste au-dessus pour « serrage », et le
+                meme controle l'a reattrapee des la premiere execution.
+
+                SOURCE, et c'est elle qui autorise le raccord : VOA ecrit
+                les deux mots comme synonymes, « Chop / ulnar deviation —
+                Bending the wrist down towards the little-finger side ». */
+             'chop'],
       flechi: ['fcu'], tendu: ['ecu'] }
   ];
 

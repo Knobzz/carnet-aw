@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Banc de recette — Carnet AW</title>
 <link rel="icon" href="../icones/icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../css/app.css?v=1.50.0">
+<link rel="stylesheet" href="../css/app.css?v=1.51.0">
 <style>
   body { padding: 18px 12px 40px; }
   .bilan { position: sticky; top: 0; z-index: 5; padding: 12px 0 10px; background: var(--fond); border-bottom: 1px solid var(--trait); margin-bottom: 14px; }
@@ -57,7 +57,7 @@
    demode, mais c'est le seul moyen simple de garder l'ORDRE d'execution :
    store.js, puis model.js qui s'y appuie, puis les cas. */
 (function () {
-  var q = '?v=1.50.0';            // gouverne par outils/version.py
+  var q = '?v=1.51.0';            // gouverne par outils/version.py
   var t = '&t=' + Date.now();    // et jamais de cache, ici
   ['../js/store.js', '../js/model.js', 'banc.js'].forEach(function (f) {
     document.write('<scr' + 'ipt src="' + f + q + t + '"></scr' + 'ipt>');

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revue — lot 1, les deux questions restées ouvertes</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 16px 14px 60px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .page { max-width: 1060px; margin: 0 auto; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  .sous { color: var(--texte-2); font-size: .92rem; margin: 0 0 20px; }
+  h2 { font-size: 1.05rem; margin: 30px 0 4px; padding-top: 14px;
+       border-top: 2px solid var(--trait-fort); }
+  h3 { font-size: .95rem; margin: 18px 0 6px; }
+  p { margin: 0 0 10px; }
+  .dit { color: var(--texte-2); font-size: .88rem; }
+  .dit b { color: var(--texte); }
+  blockquote { margin: 8px 0 10px; padding: 8px 0 8px 11px;
+               border-left: 3px solid var(--trait-fort);
+               font-style: italic; color: var(--texte-2); font-size: .88rem; }
+  blockquote b { font-style: normal; color: var(--texte); }
+  .qui { font-size: .78rem; margin: -4px 0 12px 11px; }
+  .qui a { color: var(--bleu-vif); }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem;
+          margin: 4px 0 14px; }
+  th, td { text-align: left; padding: 6px 8px;
+           border-bottom: 1px solid var(--trait); vertical-align: top; }
+  th { color: var(--texte-2); font-weight: 550; font-size: .78rem; }
+  .oui { color: var(--laiton); font-weight: 600; }
+  .non { color: var(--tendon); font-weight: 600; }
+  .cadre { border: 1px solid var(--trait-fort); border-radius: 10px;
+           padding: 12px 14px; margin: 14px 0; }
+  .cadre-titre { font-weight: 650; margin-bottom: 6px; }
+  .prix { border-left: 4px solid var(--tendon); }
+  code { font-size: .85em; }
+
+  /* --- les planches de muscles, cote a cote --- */
+  .muscles { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .mus { width: 168px; }
+  .mus-img { display: block; width: 100%; height: auto; background: #fff;
+             border: 1px solid var(--trait-fort); border-radius: 8px; }
+  .mus-nom { font-size: .84rem; font-weight: 650; margin: 6px 0 1px; }
+  .mus-lat { font-size: .76rem; color: var(--texte-3); font-style: italic; }
+  .mus-aussi { font-size: .76rem; color: var(--texte-2); }
+
+  /* --- le rendu reel, a 320 px --- */
+  .ecrans { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+  .ecran { width: 320px; flex: 0 0 320px; }
+  .ecran-titre { font-size: .82rem; font-weight: 650; margin-bottom: 6px; }
+  .ecran-cadre { width: 320px; border: 1px solid var(--trait-fort);
+                 border-radius: 10px; background: var(--fond); padding: 10px;
+                 box-sizing: border-box; }
+  .mesure { font-size: .78rem; color: var(--laiton); margin-top: 8px;
+            font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Lot 1 — les deux questions restées ouvertes</h1>
+  <p class="sous">Tu les avais notées sur la planche du lot 1 le
+     <b>23 octobre</b>. Les deux ont maintenant une réponse sourcée.
+     <b>Rien n'est changé dans le carnet</b> : cette planche lit le vrai
+     <code>js/model.js</code>, et la simulation du bas appelle la
+     <b>vraie vue</b> <code>js/vue-suivi.js</code> — pas une maquette.</p>
+  <!-- LA DECISION EST PRISE : cette planche devient la trace de ce qui a
+       ete retenu, et de ce qui a ete ECARTE. Les tableaux ci-dessous lisent
+       le modele EN DIRECT, donc ils montrent desormais l'etat livre et plus
+       la proposition. -->
+  <div class="cadre" style="border-left:4px solid var(--laiton)">
+    <div class="cadre-titre">Décidé le 28 octobre</div>
+    <b>Retenu :</b> les trois déviateurs radiaux entrent dans le mouvement
+    <code>rising</code>. MB : « tu peux rajouter les muscles du "posting" en
+    effet ».<br>
+    <b>Retenu, mais autrement que proposé :</b> « Chop » devient un
+    <b>nom connu</b> de la fiche « Déviation ulnaire », et non un septième
+    mouvement. MB : « ce n'est ni plus ni moins que du rising ce que tu me
+    décris, pas besoin d'un nouveau mot à rajouter. Par contre on peut
+    également un "Nom connu" pour Déviation Ulnaire ».<br><br>
+    <b>Donc le chop n'est PAS compté dans « Ton style »</b> — c'est le prix du
+    choix, et il est assumé : il se trouve à la recherche et propose ses deux
+    muscles, mais aucune force de déviation ulnaire n'existe au carnet.<br><br>
+    <b>Et il a fallu une ligne de plus que prévu :</b> poser « Chop » dans les
+    écritures seul faisait <b>tomber</b> le contrôle qui accorde chaque
+    écriture à son entrée — la lecture ne connaissait pas le mot. Il est donc
+    aussi entré dans la table des côtés, ce que VOA autorise en écrivant
+    « Chop / ulnar deviation ». Les tableaux plus bas lisent le modèle en
+    direct : ils montrent l'état <b>livré</b>.
+  </div>
+  <div id="corps"></div>
+</div>
+
+<!-- LA CLE ISOLEE, AVANT store.js : cette planche rend la vraie vue, donc
+     elle charge le vrai store. Sans ce drapeau elle lirait et pourrait
+     ecrire le carnet REEL de MB. Elle ne sauve jamais, mais la garde est
+     posee quand meme. -->
+<script>window.__BAC_A_SABLE = 1;</script>
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/panneau.js"></script>
+<script src="js/vue-exercice.js"></script>
+<script src="js/vue-reglages.js"></script>
+<script src="js/vue-suivi.js"></script>
+<script>
+var A = window.App, m = A.m;
+var corps = document.getElementById('corps');
+
+/* CETTE PLANCHE LIT LE MODELE DU SITE. Ouverte contre une version qui n'a
+   pas ces fonctions, elle planterait sans rien dire. Elle le DIT. */
+var MANQUE = ['MUSCLES_PAR_MOUVEMENT', 'MOTS_FORCE', 'FORCES', 'forcesDuNom',
+              'nomCourtMuscle', 'imageDuMuscle', 'muscle', 'musclesProposes',
+              'repartitionStyles']
+  .filter(function (k) { return m[k] == null; });
+if (!A.vues || !A.vues.suivi) MANQUE.push('vues.suivi');
+
+function h(tag, attrs, html) {
+  var n = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+  if (html != null) n.innerHTML = html;
+  corps.appendChild(n);
+  return n;
+}
+function noms(ids) {
+  return (ids || []).map(function (id) { return m.nomCourtMuscle(id); }).join(' · ');
+}
+
+var DEV_RADIAUX = ['ecrl', 'ecrb', 'fcr'];
+var DEV_ULNAIRES = ['ecu', 'fcu'];
+
+if (MANQUE.length) {
+  h('div', { class: 'cadre prix' },
+    '<div class="cadre-titre">Cette planche ne peut pas se lire ici</div>'
+    + 'Le modèle chargé ne porte pas : <code>' + MANQUE.join('</code>, <code>')
+    + '</code>. Ouvre-la sur la version qu\'elle décrit.');
+} else {
+  bati();
+}
+
+/* ------------------------------------------------------------------
+   LES PLANCHES DE MUSCLES — MB, 28/10 : « il me faut les images des
+   muscles concernes pour le rising que tu veux ajouter et chop aussi ».
+   Ce sont les images DU CARNET (`icones/muscle-*.png`), lues par
+   `imageMuscle` : celles qu'il verra sur son telephone, pas d'autres.
+   ------------------------------------------------------------------ */
+function planches(ids, neufs) {
+  var d = h('div', { class: 'muscles' }, '');
+  ids.forEach(function (id) {
+    var mu = m.muscle(id) || {};
+    var img = m.imageDuMuscle(id);
+    var neuf = (neufs || []).indexOf(id) >= 0;
+    var c = document.createElement('div');
+    c.className = 'mus';
+    c.innerHTML = (img
+        ? '<img class="mus-img" src="' + img + '" alt="' + (mu.nom || id) + '">'
+        : '<div class="mus-img non" style="padding:20px;text-align:center">'
+          + 'aucune image</div>')
+      + '<div class="mus-nom">' + (mu.nom || id)
+      + (neuf ? ' <span class="oui">\u2190 entre le 28/10</span>' : '') + '</div>'
+      + '<div class="mus-lat">' + (mu.latin || '') + '</div>'
+      + (mu.aussi ? '<div class="mus-aussi">dit aussi « ' + mu.aussi + ' »</div>' : '');
+    d.appendChild(c);
+  });
+  return d;
+}
+
+function bati() {
+
+  /* ================= QUESTION 1 ================= */
+  h('h2', null, '1. Le rising et la déviation radiale');
+
+  h('p', { class: 'dit' },
+    '<b>Ce que tu avais noté le 23/10 :</b> « la force <i>Rising</i> du carnet '
+    + 'ne contient aucun déviateur du poignet alors que le sport appelle '
+    + '<i>rising</i> la déviation radiale ».');
+
+  h('div', { class: 'cadre' },
+    '<div class="cadre-titre">D\'abord : « le rising du carnet », c\'est QUATRE choses</div>'
+    + 'MB, 28/10 : « quand tu parles du rising du carnet, tu peux être plus '
+    + 'précis ? » Oui, et j\'ai été flou. Quatre objets portent ce nom, dans '
+    + 'quatre tables :<br><br>'
+    + '<b>1. la case</b> — <code>FORCES</code> : <code>{ id: \'rising\' }</code>, '
+    + 'l\'un des ' + m.FORCES.length + ' mouvements que tu coches sur un '
+    + 'exercice.<br>'
+    + '<b>2. les mots</b> — <code>MOTS_FORCE.rising</code> : « '
+    + (m.MOTS_FORCE.rising || []).join(' », « ') + ' », ceux qui font LIRE ce '
+    + 'mouvement dans un nom d\'exercice.<br>'
+    + '<b>3. les muscles du mouvement</b> — '
+    + '<code>MUSCLES_PAR_MOUVEMENT.rising</code> : ce que cocher la case '
+    + 'propose.<br>'
+    + '<b>4. la fiche « Rising »</b> du dictionnaire : un EXERCICE, avec ses '
+    + 'propres muscles et ses propres écritures.<br><br>'
+    + 'Et <code>STYLES_AW.toproll.forces</code> contient <code>rising</code> : '
+    + 'c\'est par là que 1 et 2 alimentent le compte du toproll dans « Ton '
+    + 'style ».<br><br>'
+    + 'Quand j\'écrivais « le mouvement », c\'était le <b>3</b>. Quand '
+    + 'j\'écrivais « la fiche », c\'était le <b>4</b>. Tout ce qui suit les '
+    + 'distingue.');
+
+  h('h3', null, 'Ce que dit le sport');
+  h('blockquote', null,
+    'Rising (riser) — <b>Lifting your wrist up towards the thumb side</b> to '
+    + 'get on top of the hand. The base of the toproll.');
+  h('div', { class: 'qui' },
+    '<a href="https://voaarmwrestling.com/blogs/training/armwrestling-terms-explained" '
+    + 'target="_blank" rel="noopener">Voice of Armwrestling — Armwrestling terms '
+    + 'explained</a>');
+  h('p', { class: 'dit' },
+    'Vers le pouce : c\'est la définition de la déviation radiale. '
+    + '<b>Ta remarque est confirmée par la source</b>, et par celle que le '
+    + 'carnet cite déjà pour les muscles du rising.');
+
+  h('h3', null, 'Ce que dit l\'anatomie');
+  h('blockquote', null,
+    '[Extensor carpi radialis longus et brevis] <b>Their main function is the '
+    + 'extension and abduction (radial deviation) of the wrist joint.</b>');
+  h('div', { class: 'qui' },
+    '<a href="https://www.kenhub.com/en/library/anatomy/radial-muscles-of-the-forearm" '
+    + 'target="_blank" rel="noopener">Kenhub — Radial muscles of the forearm</a>');
+  h('blockquote', null,
+    '[Flexor carpi radialis] Due to its oblique course […] it can <b>produce '
+    + 'the combined motion of wrist flexion and wrist abduction (radial '
+    + 'deviation)</b>. […] when it works in synergy with extensor carpi '
+    + 'radialis longus and brevis, [le résultat est] <b>a balanced hand '
+    + 'abduction</b>.');
+  h('div', { class: 'qui' },
+    '<a href="https://www.kenhub.com/en/library/anatomy/flexor-carpi-radialis-muscle" '
+    + 'target="_blank" rel="noopener">Kenhub — Flexor carpi radialis muscle</a>');
+
+  h('div', { class: 'cadre' },
+    '<div class="cadre-titre">« Posting », puisque le mot est dans le carnet</div>'
+    + '<code>MOTS_FORCE.rising</code> contient trois mots : « rising », '
+    + '« riser » et « posting ». Les deux sources le définissent, et elles ne '
+    + 's\'accordent pas sur son rapport au rising :<br><br>'
+    + '<b>VOA les distingue.</b> « Posting — <i>Holding your wrist and '
+    + 'knuckles high against pressure so your hand stays on top.</i> » Le '
+    + 'rising est le geste de <b>lever</b> vers le pouce ; le posting est le '
+    + 'fait de <b>tenir</b> la main en haut contre la pression.<br><br>'
+    + '<b>Toronto les confond.</b> « <i>Posting, or the "riser" — keeping '
+    + 'your knuckles and wrist above your opponent\'s and pressing upward, '
+    + 'closing down their elbow angle to set up an attack.</i> »<br><br>'
+    + 'Le carnet suit Toronto : les trois mots mènent au même mouvement. '
+    + '<b>Et je t\'avais écrit que le mouvement du carnet « code le '
+    + 'posting » : cette étiquette était de moi</b>, aucune source ne dit que '
+    + 'ces huit muscles sont le posting. Elle est retirée de cette planche — '
+    + 'plus bas, ils sont nommés par leur source.');
+
+  h('h3', null, 'Les onze muscles du rising, en images');
+  h('p', { class: 'dit' },
+    'MB : « j\'ai besoin de voir la planche des muscles pour le Rising ». Les '
+    + 'voici tous, dans l\'ordre où le mouvement les propose. Les <b>trois '
+    + 'derniers sont ceux qui viennent d\'entrer</b> — ce sont les planches du '
+    + 'carnet, celles que tu vois en touchant le nom d\'un muscle.');
+  planches(((m.MUSCLES_PAR_MOUVEMENT.rising || {}).muscles || []), DEV_RADIAUX);
+
+  h('h3', null, 'Ce que le carnet en fait aujourd\'hui — et là, j\'avais mal mesuré');
+  var r = m.MUSCLES_PAR_MOUVEMENT.rising || {};
+  var fiche = m.DICTIONNAIRE.filter(function (d) { return d.nom === 'Rising'; })[0] || {};
+  var dejaLa = DEV_RADIAUX.filter(function (id) {
+    return (r.muscles || []).indexOf(id) >= 0;
+  });
+  var dansLaFiche = DEV_RADIAUX.filter(function (id) {
+    return (fiche.muscles || []).indexOf(id) >= 0;
+  });
+
+  h('p', { class: 'dit' },
+    'Je t\'avais écrit que le rising ne portait aucun déviateur. C\'est vrai '
+    + 'du <b>mouvement</b>, et faux de la <b>fiche</b> : j\'avais comparé la '
+    + 'source à une seule des deux tables. Les voici toutes les deux.');
+
+  h('table', null,
+    '<tr><th>la table</th><th>ce qu\'elle porte</th>'
+    + '<th>les trois déviateurs</th></tr>'
+    + '<tr><td>fiche « Rising » du dictionnaire</td><td>' + noms(fiche.muscles)
+    + '</td><td class="' + (dansLaFiche.length === 3 ? 'oui' : 'non') + '">'
+    + (dansLaFiche.length === 3 ? 'les trois, et rien d\'autre'
+       : (noms(dansLaFiche) || 'aucun')) + '</td></tr>'
+    + '<tr><td>mouvement <code>rising</code> (' + (r.source || '?') + ')</td>'
+    + '<td>' + noms(r.muscles) + '</td>'
+    + '<td class="' + (dejaLa.length ? 'oui' : 'non') + '">'
+    + (dejaLa.length ? noms(dejaLa) : 'aucun des trois') + '</td></tr>');
+
+  h('div', { class: 'cadre prix' },
+    '<div class="cadre-titre">DEUX TABLES DÉCRIVENT DEUX GESTES SOUS LE MÊME NOM</div>'
+    + 'La fiche code la <b>déviation radiale</b> — c\'est le rising de VOA. Le '
+    + 'mouvement code <b>la traction et le maintien</b> : fléchisseurs du '
+    + 'coude, épaule, grip — les quatre premiers viennent de l\'étude EMG, la '
+    + 'main vient de Larratt. <b>Elles ne se recouvrent sur aucun '
+    + 'muscle.</b><br><br>'
+    + 'Et ça ne se voit pas, parce que les deux s\'additionnent dès que le nom '
+    + 'de l\'exercice porte le mot : « Rising à la poulie » propose déjà <b>'
+    + m.musclesProposes(['rising'], null, 'Rising à la poulie', [], []).muscles.length
+    + '</b> muscles. Le trou n\'apparaît que si tu coches le mouvement '
+    + '<b>sans</b> un nom qui le porte — là tu n\'as que <b>'
+    + m.musclesProposes(['rising'], null, '', [], []).muscles.length
+    + '</b> muscles, et pas un déviateur.');
+
+  h('div', { class: 'cadre' },
+    '<div class="cadre-titre">La question est donc celle-ci, et elle est à toi</div>'
+    + 'Le <code>rising</code> du carnet, c\'est <b>la déviation radiale</b> '
+    + '(VOA) ou <b>la traction et le maintien</b> (l\'étude EMG et Larratt) ? '
+    + 'Aujourd\'hui il est codé comme les deux, dans deux tables séparées qui '
+    + 'ne le disent nulle part.<br><br>'
+    + '<b>Ce que je recommande :</b> ajouter les trois déviateurs au '
+    + 'mouvement. VOA définit le rising comme le soulèvement du poignet vers '
+    + 'le pouce ; qui coche « rising » veut dire ce geste-là, et se retrouver '
+    + 'sans un seul déviateur est faux. Les huit autres restent — on n\'enlève '
+    + 'rien.<br><br>'
+    + '<b>Son prix :</b> l\'entrée mélangerait deux niveaux de source — '
+    + '« terrain » pour les huit, « anatomie » pour les trois. Elle n\'a qu\'un '
+    + 'champ <code>source</code>, donc elle resterait « terrain », son maillon '
+    + 'le plus faible, et le commentaire dirait quel muscle vient d\'où. '
+    + 'C\'est déjà comme ça que <code>back_pressure</code> gère ses deux '
+    + 'sources.');
+
+  h('h3', null, 'L\'impact sur l\'appli, mesuré');
+  h('p', { class: 'dit' },
+    'MB : « quel est l\'impact sur l\'appli ? » Je l\'avais annoncé plus large '
+    + 'qu\'il n\'est. Mesure sur un carnet d\'un seul exercice, mouvement '
+    + '<i>rising</i> coché, nom « Poulie 1 » qui ne porte aucun mot :');
+  h('table', null,
+    '<tr><th></th><th>aujourd\'hui</th><th>avec les trois déviateurs</th></tr>'
+    + '<tr><td>muscles pré-cochés, mouvement coché <b>sans</b> nom porteur</td>'
+    + '<td>8</td><td class="oui">11</td></tr>'
+    + '<tr><td>muscles pré-cochés, nom « Rising à la poulie »</td>'
+    + '<td>11</td><td>11 — inchangé</td></tr>'
+    + '<tr><td>régions touchées</td>'
+    + '<td>épaule · bras av. · avant-bras av. · <b>avant-bras ar.</b> · main</td>'
+    + '<td>les mêmes</td></tr>'
+    + '<tr><td>remarques déclenchées</td><td>pectoral, dominant</td>'
+    + '<td>les mêmes</td></tr>'
+    + '<tr><td>« Ton style »</td><td colspan="2">inchangé — le mouvement est '
+    + 'le même, seuls ses muscles bougent</td></tr>'
+    + '<tr><td>source de l\'entrée</td><td>terrain</td><td>terrain</td></tr>');
+
+  h('div', { class: 'cadre prix' },
+    '<div class="cadre-titre">Et je dois retirer ce que j\'avais écrit</div>'
+    + 'Je t\'avais annoncé qu\'un rising coché sans nom passerait, dans '
+    + 'l\'écran des régions, d\'« avant-bras antérieur » seul à antérieur '
+    + '<i>et</i> postérieur. <b>C\'est faux</b>, et la mesure le dit : le '
+    + '<b>brachio-radial</b> est déjà rangé dans l\'avant-bras '
+    + '<b>postérieur</b>, donc la région était déjà touchée. Rien ne bouge '
+    + 'côté régions, et la remarque « Aucun extenseur du poignet » ne '
+    + 's\'éteint pas non plus.<br><br>'
+    + '<b>L\'impact réel est donc étroit :</b> trois muscles de plus '
+    + 'pré-cochés, dans le seul cas où tu coches le mouvement sans que le nom '
+    + 'le porte. Rien d\'autre ne bouge. C\'est un changement à faible risque, '
+    + 'et c\'est plus honnête que ce que je t\'avais vendu.');
+
+  /* ================= QUESTION 2 ================= */
+  h('h2', null, '2. La déviation ulnaire a un mot de bras de fer : « chop »');
+
+  h('p', { class: 'dit' },
+    '<b>Ce que tu avais noté le 23/10 :</b> « la déviation ulnaire n\'a pas de '
+    + 'mot en bras de fer (côté salle, c\'est le levage de masse) ».');
+
+  h('blockquote', null,
+    '<b>Chop / ulnar deviation</b> — Bending the wrist down towards the '
+    + 'little-finger side.');
+  h('div', { class: 'qui' },
+    '<a href="https://voaarmwrestling.com/blogs/training/armwrestling-terms-explained" '
+    + 'target="_blank" rel="noopener">Voice of Armwrestling — Armwrestling terms '
+    + 'explained</a>');
+  h('p', { class: 'dit' },
+    '<b>Et tu l\'as confirmé le 28/10 : « le chop ne fait pas partie d\'une '
+    + 'technique quelconque comme le toproll ou le hook ».</b> La source va '
+    + 'dans le même sens — VOA le range sous « HAND AND WRIST MOVEMENTS », pas '
+    + 'sous « TECHNIQUES ». Il n\'est donc attribué à aucun style, comme la '
+    + 'side pressure depuis la 1.50.0.');
+
+  h('h3', null, 'Ce que dit l\'anatomie');
+  h('blockquote', null,
+    '[Extensor carpi ulnaris] […] <b>combined extension and adduction (ulnar '
+    + 'deviation) of the hand</b>. […] <b>synergistic action of flexor carpi '
+    + 'ulnaris and extensor carpi ulnaris</b> results in balanced […]');
+  h('div', { class: 'qui' },
+    '<a href="https://www.kenhub.com/en/library/anatomy/extensor-carpi-ulnaris-muscle" '
+    + 'target="_blank" rel="noopener">Kenhub — Extensor carpi ulnaris muscle</a>');
+
+  h('h3', null, 'Les deux muscles, en images');
+  planches(DEV_ULNAIRES);
+
+  h('h3', null, 'Ce que le carnet en fait aujourd\'hui');
+  var motsChop = JSON.stringify(m.MOTS_FORCE || {}).toLowerCase().indexOf('chop') >= 0;
+  var lit = m.forcesDuNom('Déviation ulnaire');
+  h('table', null,
+    '<tr><th>question</th><th>réponse mesurée</th></tr>'
+    + '<tr><td>un mouvement de déviation ulnaire dans <code>FORCES</code> ?</td>'
+    + '<td class="non">non — ' + m.FORCES.length + ' mouvements, aucun</td></tr>'
+    + '<tr><td>le mot « chop » quelque part ?</td>'
+    + '<td class="' + (motsChop ? 'oui' : 'non') + '">'
+    + (motsChop ? 'oui' : 'non, nulle part') + '</td></tr>'
+    + '<tr><td>« Déviation ulnaire » lit quel mouvement ?</td>'
+    + '<td class="non">' + (lit.length ? lit.join(', ') : 'aucun') + '</td></tr>'
+    + '<tr><td>les deux déviateurs ulnaires sont-ils au carnet ?</td>'
+    + '<td class="oui">' + noms(DEV_ULNAIRES) + '</td></tr>');
+
+  var fu = m.DICTIONNAIRE.filter(function (d) {
+    return d.nom === 'Déviation ulnaire';
+  })[0] || {};
+  h('div', { class: 'cadre prix' },
+    '<div class="cadre-titre">LE MÊME MOTIF QUE LE RISING, et il change ce que ça apporte</div>'
+    + 'La fiche « Déviation ulnaire » du dictionnaire porte déjà <b>'
+    + noms(fu.muscles) + '</b> — exactement les deux muscles que Kenhub '
+    + 'nomme. Donc les muscles sont <b>déjà bons</b> dès que le nom de ton '
+    + 'exercice les porte : « Déviation ulnaire » propose '
+    + m.musclesDuNom('Déviation ulnaire').length + ' muscles aujourd\'hui.'
+    + '<br><br>'
+    + '<b>Ce que le septième mouvement apporterait n\'est donc pas des '
+    + 'muscles — c\'est le COMPTAGE.</b> Ses séries entrent dans « Ton '
+    + 'style » (le total passe de 14 à 18 sur le décor du bas) et le chop '
+    + 'paraît sous les styles. Aujourd\'hui ces séries ne sont comptées nulle '
+    + 'part.');
+
+  h('div', { class: 'cadre' },
+    '<div class="cadre-titre">Ce que je propose</div>'
+    + 'Un <b>septième</b> mouvement, <code>chop</code>, avec ses deux muscles '
+    + 'd\'anatomie (' + noms(DEV_ULNAIRES) + '), ses mots de lecture — '
+    + '« chop », « déviation ulnaire », « déviation cubitale », « inclinaison '
+    + 'ulnaire », « ulnar deviation » — et <b>attribué à aucun style</b>.');
+
+  h('div', { class: 'cadre prix' },
+    '<div class="cadre-titre">Et son prix</div>'
+    + '<b>C\'est possible depuis la 1.50.0, et pas avant.</b> Un mouvement '
+    + 'porté par zéro style était jeté en silence par '
+    + '<code>repartitionStyles</code> — ni compté, ni mis à part. Le correctif '
+    + 'de ce soir le compte et le range dans « non attribuable ».<br><br>'
+    + '<b>Quatre fiches du dictionnaire changeraient de lecture</b> : '
+    + '« Déviation ulnaire », « Déviation cubitale », « Inclinaison ulnaire » '
+    + 'et « Ulnar deviation » n\'entrent aujourd\'hui dans aucun compte du '
+    + 'Suivi. Elles y entreraient.');
+
+  /* ================= LE RENDU FINAL ================= */
+  h('h2', null, 'Le rendu final, par la vraie vue');
+  h('p', { class: 'dit' },
+    'MB, 28/10 : « il me faudra voir une simulation du rendu final ». Ce ne '
+    + 'sont pas des maquettes : les deux écrans ci-dessous sont rendus par '
+    + '<code>A.vues.suivi.rendre()</code> — <b>la fonction même qui tourne sur '
+    + 'ton téléphone</b> —, sur le même décor, à 320 px. Celui de droite est '
+    + 'rendu après avoir appliqué les deux changements <b>en mémoire</b> : '
+    + 'rien n\'est écrit sur le disque.');
+
+  rendu();
+  ficheReelle();
+}
+
+/* ------------------------------------------------------------------
+   LA VRAIE FICHE D'EXERCICE, CLONEE
+
+   MB : « il me faut la simulation ». Les deux ecrans de Suivi ne montrent
+   RIEN de ce qui a ete livre : le changement porte sur les muscles
+   PRE-COCHES et sur la recherche, deux endroits que « Ton style » ne touche
+   pas. J'avais simule le mauvais ecran.
+
+   ON OUVRE LE VRAI PANNEAU, on CLONE son groupe « Muscles sollicites » dans
+   un cadre de 320 px, puis on referme. Le clone est inerte, mais c'est le
+   DOM que l'app produit — pas un dessin.
+   ------------------------------------------------------------------ */
+function ficheReelle() {
+  var titre = h('h2', null, 'La fiche d\'exercice, clonée depuis la vraie');
+  var intro = h('p', { class: 'dit' },
+    'Trois états, tous clonés du panneau que l\'app ouvre pour de vrai : le '
+    + 'sélecteur de muscles, le bouton « Proposer d\'après… » et la ligne '
+    + 'd\'aide, reflowés à 320 px.');
+  var boite = h('div', { class: 'ecrans' }, '');
+  var fin = h('p', { class: 'dit' }, '');
+
+  function groupeClone(titreGroupe) {
+    var pan = document.querySelector('.panneau');
+    if (!pan) return null;
+    var l = pan.querySelectorAll('.groupe > label');
+    for (var i = 0; i < l.length; i++) {
+      if (l[i].textContent === titreGroupe) return l[i].parentNode.cloneNode(true);
+    }
+    return null;
+  }
+  function fermer() {
+    Array.prototype.forEach.call(document.querySelectorAll('.panneau'), function (pa) {
+      var x = pa.querySelector('.panneau-entete .bt-icone');
+      if (x) x.click();
+    });
+  }
+  function cadre(nom, noeud, note) {
+    var col = document.createElement('div');
+    col.className = 'ecran';
+    col.innerHTML = '<div class="ecran-titre">' + nom + '</div>';
+    var c = document.createElement('div');
+    c.className = 'ecran-cadre';
+    if (noeud) c.appendChild(noeud);
+    else c.innerHTML = '<div class="non">le panneau ne s\'est pas ouvert</div>';
+    col.appendChild(c);
+    if (note) {
+      var n = document.createElement('div');
+      n.className = 'mesure';
+      n.textContent = note;
+      col.appendChild(n);
+    }
+    boite.appendChild(col);
+  }
+  function dors(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  (async function () {
+    /* ---- A et B : le mouvement « rising » coche, sans nom ---- */
+    var exo = m.exerciceProgramme({ nom: '', forces: ['rising'] });
+    A.panneau.editerExercice(exo, { titre: 'Essai' }, function () {});
+    await dors(200);
+
+    cadre('Mouvement « rising » coché, aucun nom', groupeClone('Muscles sollicités'),
+          'le bouton dit la source et le compte');
+
+    var pan = document.querySelector('.panneau');
+    var bt = pan && Array.prototype.filter.call(pan.querySelectorAll('button'),
+      function (b) { return b.textContent.indexOf('Proposer d’après') === 0; })[0];
+    if (bt) bt.click();
+    await dors(200);
+
+    cadre('Après avoir touché le bouton',
+          groupeClone('Muscles sollicités'),
+          m.muscles(exo).length + ' muscles cochés');
+    fermer();
+    await dors(150);
+
+    /* ---- C : la recherche « chop » ---- */
+    var exo2 = m.exerciceProgramme({ nom: '' });
+    A.panneau.editerExercice(exo2, { titre: 'Essai' }, function () {});
+    await dors(200);
+    var champ = document.querySelector('.panneau .champ');
+    if (champ) {
+      champ.value = 'chop';
+      champ.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    await dors(250);
+    var pan2 = document.querySelector('.panneau');
+    /* LA LISTE D'AUTOCOMPLETION n'a pas de classe stable : on prend le
+       conteneur du premier element qui affiche « Chop » et qui est peint. */
+    var cible = null;
+    if (pan2) {
+      Array.prototype.forEach.call(pan2.querySelectorAll('*'), function (x) {
+        if (cible || x.children.length) return;
+        if (!/^Chop/.test(x.textContent.trim())) return;
+        if (x.getBoundingClientRect().height <= 0) return;
+        cible = x.parentNode;
+      });
+    }
+    cadre('La recherche « chop »', cible ? cible.cloneNode(true) : null,
+          'proposé : ' + (m.musclesDuNom('Chop').map(m.nomCourtMuscle).join(' · ')
+                          || 'rien'));
+    fermer();
+
+    fin.innerHTML = '<b>Ce que les trois montrent.</b> Sans nom, cocher '
+      + '« rising » propose désormais <b>' + m.musclesProposes(['rising'], null, '', [], []).muscles.length
+      + '</b> muscles — c\'était huit, et aucun n\'était un déviateur du '
+      + 'poignet. Le bouton annonce sa source (« les compétiteurs », parce '
+      + 'que l\'entrée reste <code>terrain</code> : c\'est son maillon le plus '
+      + 'faible, même si les trois derniers viennent de l\'anatomie). Et '
+      + '« chop » trouve désormais la fiche « Déviation ulnaire », qui remplit '
+      + 'ses deux muscles.<br><br>'
+      + '<b>Ce qu\'ils ne montrent pas, et c\'est voulu :</b> le chop '
+      + 'n\'apparaît nulle part dans « Ton style ». C\'est le prix de ton '
+      + 'choix — un nom connu, pas un septième mouvement.';
+
+    /* LA CONSEQUENCE QUE JE N'AVAIS PAS VUE, et c'est le clone de la fiche
+       qui l'a montree : sa ligne d'aide nomme les INSERTIONS. Mesure des
+       deux etats — avant : une mediale, AUCUNE laterale ; apres : deux de
+       chaque cote. Et `chargeEpicondyle` compte les series par insertion,
+       donc le Suivi le dira. */
+    var ep = document.createElement('div');
+    ep.className = 'cadre prix';
+    ep.innerHTML = '<div class="cadre-titre">ET LA CONSÉQUENCE QUE JE N\'AVAIS '
+      + 'PAS VUE</div>'
+      + 'La ligne d\'aide du second cadre la dit : « 11 muscles. <b>Insertion '
+      + 'médiale</b> : Fléchisseur radial du carpe, Fléchisseurs des doigts. '
+      + '<b>Insertion latérale</b> : Long extenseur radial du carpe, Court '
+      + 'extenseur radial du carpe. »<br><br>'
+      + 'Avant, un rising déclarait <b>une</b> insertion médiale et '
+      + '<b>aucune</b> latérale. Maintenant il en déclare deux de chaque '
+      + 'côté.<br><br>'
+      + '<b>Et ce n\'est pas que de l\'affichage :</b> '
+      + '<code>chargeEpicondyle</code> compte les séries par insertion, et le '
+      + 'Suivi en tire une ligne — « Séries : N sur l\'insertion médiale, M '
+      + 'sur la latérale ». Un exercice de rising va donc nourrir le compte '
+      + '<b>latéral</b>, là où il ne nourrissait rien.<br><br>'
+      + 'C\'est juste — les extenseurs radiaux s\'insèrent sur l\'épicondyle '
+      + 'latéral, et un rising les charge. Mais c\'est la conséquence la plus '
+      + 'lourde du lot, <b>je ne l\'avais pas annoncée</b>, et je l\'ai trouvée '
+      + 'en clonant la fiche — pas en raisonnant.';
+    corps.appendChild(ep);
+  })();
+}
+
+/* ------------------------------------------------------------------
+   LE DECOR, puis les deux rendus
+
+   DEUX EXERCICES QUI PORTENT LE LOT : un rising, pour que ses muscles
+   bougent ; et une « Deviation ulnaire », qui ne compte NULLE PART
+   aujourd'hui et qui comptera comme chop. Deux autres pour que le bloc
+   ait de quoi se lire.
+   ------------------------------------------------------------------ */
+function rendu() {
+  var e = A.store.etat();
+
+  function serie() {
+    return { id: m.uid('s'), type: 'normale', faite: true, faiteA: null,
+             chargeCible: '', repsCible: '', dureeCible: '',
+             chargeReel: '20', repsReel: '10', dureeReel: '', rpe: null };
+  }
+  function exo(nom, n) {
+    var l = [];
+    for (var i = 0; i < n; i++) l.push(serie());
+    return { id: m.uid('e'), ordre: 0, nom: nom, slug: m.slug(nom), aw: true,
+             typeCharge: 'kg', colonnes: ['charge', 'reps'], muscles: [],
+             forces: [], structures: [], outils: [], reglages: {},
+             consigne: '', reposSecondes: 90, series: l };
+  }
+  function jourIl(n) {
+    var d = new Date(); d.setDate(d.getDate() - n);
+    var z = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  }
+
+  e.seances = [{
+    id: 'sim', type: 'muscu', date: jourIl(2), heure: '', note: '', douleurs: [],
+    exercices: [exo('Rising à la poulie', 5), exo('Déviation ulnaire', 4),
+                exo('Toproll à la poulie', 3), exo('Wrist curl', 6)]
+  }];
+
+  var boite = h('div', { class: 'ecrans' }, '');
+
+  function ecran(titre, note) {
+    var col = document.createElement('div');
+    col.className = 'ecran';
+    col.innerHTML = '<div class="ecran-titre">' + titre + '</div>';
+    var cadre = document.createElement('div');
+    cadre.className = 'ecran-cadre';
+    col.appendChild(cadre);
+    A.vues.suivi.rendre(cadre);
+    var n = document.createElement('div');
+    n.className = 'mesure';
+    n.textContent = note();
+    col.appendChild(n);
+    boite.appendChild(col);
+    return cadre;
+  }
+
+  /* ELLE MESURAIT LE MAUVAIS CHEMIN : l'UNION du nom et du mouvement vaut
+     11 avant comme apres, donc le changement ne s'y voyait pas. Le chemin
+     qui bouge est celui ou le mouvement est coche SANS nom porteur. */
+  function mesureStyle() {
+    var r = m.repartitionStyles(e, m.joursDeLaFenetre(12));
+    var seul = m.musclesProposes(['rising'], null, '', [], []).muscles.length;
+    var avecNom = m.musclesProposes(['rising'], null, 'Rising à la poulie',
+                                    [], []).muscles.length;
+    return 'rising coché seul : ' + seul + ' muscles · avec le nom : '
+         + avecNom + ' · non attribuable : '
+         + (Object.keys(r.partage).join(', ') || 'rien')
+         + ' · total ' + r.total + ' séries';
+  }
+
+  ecran('Ce qui est LIVRÉ — le rising dévie, « Chop » est un nom connu',
+        mesureStyle);
+
+  /* ---- ET CE QUI A ETE ECARTE, rendu quand meme ----
+
+     Le second ecran ne montre plus « la proposition » : la decision est
+     prise, et le rising dévie DEJA dans l'ecran de gauche. Ce qu'il montre
+     est l'option que MB a ECARTEE — le chop comme septieme mouvement. On la
+     rend pour qu'on voie ce a quoi on a renonce, et ce qu'il faudrait
+     rouvrir si on changeait d'avis.
+
+     Les tables sont exportees PAR REFERENCE : les muter ici change ce que
+     les clotures du modele lisent, sans toucher au disque. */
+  if (!m.FORCES.some(function (f) { return f.id === 'chop'; })) {
+    m.FORCES.push({ id: 'chop', nom: 'Chop' });
+  }
+  m.MOTS_FORCE.chop = ['chop', 'deviation ulnaire', 'deviation cubitale',
+                       'inclinaison ulnaire', 'ulnar deviation'];
+  m.MUSCLES_PAR_MOUVEMENT.chop = { source: 'anatomie', muscles: DEV_ULNAIRES };
+
+  ecran('ÉCARTÉ — le chop comme septième mouvement', mesureStyle);
+
+  h('p', { class: 'dit' },
+    '<b>Les deux mesures sous les écrans disent la différence.</b> À gauche, '
+    + 'l\'état livré : le rising propose onze muscles même coché seul, et '
+    + '« non attribuable : rien ». À droite, l\'option écartée : le chop y '
+    + 'paraîtrait sous les styles — « non attribuable : chop » — et les '
+    + '4 séries de « Déviation ulnaire » entreraient dans le compte, qui '
+    + 'passerait de 14 à 18.<br><br>'
+    + '<b>C\'est exactement le prix du choix de MB</b>, et il est visible ici : '
+    + '« Chop » se trouve à la recherche et propose ses deux muscles, mais '
+    + 'ses séries ne sont comptées nulle part dans « Ton style ». Si ce '
+    + 'chiffre finit par manquer, l\'écran de droite est ce qu\'il faudrait '
+    + 'livrer.');
+
+  /* ================= CE QUE JE NE SAIS PAS ================= */
+  h('h2', null, 'Ce que je ne sais pas, et que je ne comblerai pas');
+
+  h('p', { class: 'dit' },
+    '<b>Si le chop est un geste d\'attaque ou de défense.</b> VOA le définit et '
+    + 'ne dit pas à quoi il sert. Tu as tranché le point qui comptait — il '
+    + 'n\'appartient à aucune technique — et je ne vais pas plus loin que ça.');
+
+  h('p', { class: 'dit' },
+    '<b>Si les trois déviateurs radiaux appartiennent au rising DU SPORT ou '
+    + 'seulement au geste anatomique.</b> VOA dit que le rising lève le '
+    + 'poignet vers le pouce ; Kenhub dit quels muscles lèvent le poignet vers '
+    + 'le pouce. <b>Le raccord est de moi.</b> Il est mécanique, mais aucune '
+    + 'source ne mesure l\'EMG du rising en bras de fer — et c\'est exactement '
+    + 'le genre de raccord que j\'ai eu tort de faire ce matin sur les '
+    + 'pressions. L\'entrée resterait <code>terrain</code>, et l\'écran '
+    + 'continuerait d\'afficher « restent à vérifier ».');
+}
+</script>
+</body>
+</html>

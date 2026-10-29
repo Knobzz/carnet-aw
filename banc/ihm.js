@@ -976,27 +976,56 @@
              '[temoin] la carte porte quand même des barres — sinon « aucun '
            + 'intrus » serait vrai pour rien');
 
-      /* ---- ET LE CHIFFRE EST DANS LA CARTE, SOUS SA PROPRE BARRE ----
-
-         Ces deux contrôles exigeaient une ligne « mouvement partagé » hors
-         de la carte, écrite une heure plus tôt pour que le chiffre de la
-         side pressure ne disparaisse pas. MB a ensuite fait relire les
-         pressions : elle n'appartient plus qu'au press, donc son chiffre
-         est DANS la carte, sous la barre du press. La ligne n'a plus
-         d'objet, et ces contrôles non plus. */
       v.egal(libelles.slice().sort().join(' · '), 'Hook · Toproll',
              'la carte porte les DEUX styles lisibles, et pas le press : VOA '
            + 'dit qu’il décide qui FINIT, pas qui contrôle la main');
-      var finition = Array.prototype.filter.call(
-        doc.querySelectorAll('.item-resume'), function (x) {
-          return /une finition, pas un style/i.test(x.textContent);
-        });
-      v.egal(finition.length, 1,
-             'et la side pressure se compte HORS de la carte, nommée pour ce '
-           + 'qu’elle est — une finition');
-      v.vrai(finition.length === 1 && /\d/.test(finition[0].textContent),
-             'avec son nombre de séries : les perdre serait pire que ne pas '
-           + 'savoir les ranger');
+
+      /* ---- ET CELUI QU'AUCUN STYLE NE PORTE, DANS LA MEME GRAMMAIRE ----
+
+         MB, 28/10 : « pour le side pressure, il fait parti des mêmes
+         catégories que rising, pronation, back pressure etc etc ».
+
+         DEUX CONTROLES SONT MORTS ICI, et pour la bonne raison : ils
+         exigeaient la phrase « une finition, pas un style ». C'était MA
+         phrase, pas un effet — le jour où je l'ai réécrite, ils sont tombés
+         sur un produit juste, ce qui coûte plus cher qu'un vert de trop.
+
+         CE QUI LES REMPLACE MESURE LA GRAMMAIRE. « Même catégorie » a un
+         effet lisible : la ligne doit avoir la même FORME que « Toproll :
+         pronation 6 · rising 0 » — un libellé, puis des « mot N » séparés
+         par « · », et rien d'autre. L'expression régulière refuse le tiret,
+         la phrase et le point que portait la version d'avant. */
+      var resumes = Array.prototype.slice.call(doc.querySelectorAll('.item-resume'));
+      var hs = resumes.filter(function (x) {
+        return /^Hors style\s*:/.test(x.textContent.trim());
+      });
+      v.egal(hs.length, 1,
+             'une ligne « Hors style » et une seule : le mouvement qu’aucun '
+           + 'style ne porte garde son compte, sinon ces séries '
+           + 'n’apparaîtraient nulle part dans le Suivi');
+      var txtHS = hs.length ? hs[0].textContent.trim() : '(absente)';
+      v.vrai(/side pressure\s+\d/i.test(txtHS),
+             'elle nomme la side pressure avec son nombre de séries (lu : '
+           + txtHS + ')');
+      /* LA GRAMMAIRE, ET C'EST ELLE QUI PORTE LA DECISION DE MB. */
+      v.vrai(/^Hors style\s*:\s*[a-zà-ÿ' -]+\s\d+( · [a-zà-ÿ' -]+\s\d+)*$/
+               .test(txtHS),
+             'et elle n’a QUE la forme des lignes de détail — un libellé, '
+           + 'puis des « mouvement N ». Aucune phrase, aucun tiret, aucun '
+           + 'point : c’est ce que « même catégorie que rising » veut dire '
+           + 'à l’écran (lu : ' + txtHS + ')');
+      /* ---- ET ELLE EST RANGEE AVEC ELLES, DONC APRES ---- */
+      var details = resumes.filter(function (x) {
+        return /^(Toproll|Hook|Press)\s*:/.test(x.textContent.trim());
+      });
+      v.vrai(details.length > 0,
+             '[temoin] des lignes de détail par style sont rendues — sans '
+           + 'elles, « la ligne est après » serait vrai pour rien (lues : '
+           + details.length + ')');
+      v.vrai(hs.length === 1 && details.length > 0
+             && resumes.indexOf(hs[0]) > resumes.indexOf(details[details.length - 1]),
+             'et elle vient APRES elles : elle se range avec les lignes de '
+           + 'détail au lieu de les précéder d’un paragraphe');
 
       /* ---- LES TROIS BLOCS RETIRES NE SONT PLUS LA ---- */
       v.egal(doc.querySelectorAll('.appui-ligne').length, 0,
@@ -1865,6 +1894,115 @@
      chose. La rangée ne doit apparaître QUE si l'outil retenu a des réglages
      déclarés : une case vide de plus serait une case de plus à ignorer.
      ================================================================ */
+  /* ==================================================================
+     LE REPOS : SA PLACE, ET LE REPORT DES SECONDES
+
+     Retour d'un utilisateur de MB, 29/10 : « le temps de repos en seconde
+     est pas hyper adapté, ce serait bien si tu pouvais faire un côté où tu
+     choisis les minutes et l'autre les secondes ». MB : « il est tout en
+     bas, on va le placer après "Prise" et au dessus de "Type de charge" ».
+     ================================================================== */
+  bloc('Le repos, en minutes puis secondes', function (v, h) {
+    var fen = h.fen, doc = h.doc;
+    var exo = fen.App.m.exerciceSeanceVierge({ nom: 'Curl', typeCharge: 'kg' });
+    exo.reposSecondes = 135;
+
+    fen.App.panneau.editerExercice(exo, {}, function () {});
+
+    /* LA FICHE SE REFERME QUOI QU'IL ARRIVE — et c'est la chute qui l'a
+       appris. Ce bloc sort tôt quand le groupe « Repos » n'existe pas, ce
+       qui est exactement le cas sur la version d'avant ; la sortie sautait
+       la fermeture, la fiche restait ouverte, et les trois blocs suivants
+       lisaient MA fiche au lieu de la leur (un TypeError à la clé).
+
+       Une sortie anticipée dans un bloc qui a ouvert un panneau est une
+       fuite, et elle ne se voit QUE à la chute. Le `finally` referme tout
+       panneau ouvert, pas seulement celui qu'on croit avoir ouvert. */
+    function refermerTout() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+    }
+
+    return attendre(140).then(function () {
+      try { mesurer(); } finally { refermerTout(); }
+    });
+
+    function mesurer() {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+
+      /* ---- 1. LA PLACE, LUE DANS L'ORDRE DU DOM ----
+         Sur la version d'avant, « Repos (secondes) » venait après les
+         muscles et la consigne : ce contrôle tombe, et il doit tomber. */
+      var libelles = Array.prototype.map.call(pan.querySelectorAll('.groupe > label'),
+        function (l) { return l.textContent; }).filter(function (t) { return t; });
+      var iPrise = libelles.indexOf('Prise');
+      var iRepos = libelles.indexOf('Repos');
+      var iCharge = libelles.indexOf('Type de charge');
+      v.vrai(iPrise >= 0 && iCharge >= 0,
+             '[temoin] « Prise » et « Type de charge » sont bien dans la '
+           + 'fiche — sans eux, « le repos est entre les deux » serait vrai '
+           + 'pour rien (lus : ' + libelles.join(' | ') + ')');
+      v.vrai(iRepos > iPrise && iRepos < iCharge,
+             'le groupe « Repos » est APRÈS « Prise » et AVANT « Type de '
+           + 'charge » : il était le dernier avant les structures (positions '
+           + 'lues : prise ' + iPrise + ', repos ' + iRepos + ', charge '
+           + iCharge + ')');
+
+      var gr = null;
+      Array.prototype.forEach.call(pan.querySelectorAll('.groupe > label'), function (l) {
+        if (l.textContent === 'Repos') gr = l.parentNode;
+      });
+      v.vrai(!!gr, 'et le libellé ne dit plus « (secondes) » : il y a deux champs');
+      if (!gr) return;
+
+      var champs = gr.querySelectorAll('input[type="number"]');
+      v.egal(champs.length, 2, 'deux champs chiffrés : les minutes, puis les secondes');
+      if (champs.length !== 2) return;
+      var cMin = champs[0], cSec = champs[1];
+
+      /* ---- LE DECOUPAGE DE DEPART ---- */
+      v.egal(cMin.value + ' | ' + cSec.value, '2 | 15',
+             '135 s arrive découpé en 2 min 15 s — c’est ce que l’utilisateur '
+           + 'reprochait de devoir calculer de tête');
+      v.vrai(/135\s*s/.test(gr.textContent),
+             'et le total en secondes reste LISIBLE sous les deux champs : '
+           + 'c’est ce que le découpage enlève, et ce qui le lui rend');
+
+      /* ---- LA SAISIE COMPOSE UN SEUL NOMBRE ---- */
+      cMin.value = '1'; cSec.value = '45';
+      cMin.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.egal(exo.reposSecondes, 105,
+             '1 min 45 s s’enregistre en 105 secondes : la donnée reste des '
+           + 'secondes, donc rien à migrer');
+
+      /* ---- 2. L'ETAT QUE LA SAISIE NORMALE NE PRODUIT PAS ----
+         90 dans un champ borné à 59. Un navigateur ne l'empêche pas au
+         clavier, et c'est là qu'une garde neuve se casse. */
+      cMin.value = '0'; cSec.value = '90';
+      cSec.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.egal(exo.reposSecondes, 90,
+             '0 min 90 s donne DÉJÀ le bon total avant toute validation : '
+           + 'c’est pour ça que le report peut attendre le `change` sans '
+           + 'mentir entre-temps (un champ qui saute à la frappe est hostile)');
+      cSec.dispatchEvent(new fen.Event('change', { bubbles: true }));
+      v.egal(cMin.value + ' | ' + cSec.value, '1 | 30',
+             'et au `change` l’affichage se recompose en 1 min 30 s');
+      v.egal(exo.reposSecondes, 90,
+             'sans que le total bouge d’une seconde');
+
+      /* ---- ET LE VIDE N'EFFACE PAS LE REPOS EN SILENCE ---- */
+      cMin.value = ''; cSec.value = '';
+      cSec.dispatchEvent(new fen.Event('input', { bubbles: true }));
+      v.egal(exo.reposSecondes, 0,
+             'deux champs vides valent zéro, pas `NaN` : une durée illisible '
+           + 'lancerait un chronomètre qui ne s’arrête pas');
+    }
+  });
+
   bloc('Réglage de l’outil', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var e = fen.App.store.etat();
@@ -4388,14 +4526,20 @@
     v.egal(libStyles.indexOf('Press'), -1,
            'le PRESS n’est PAS une barre de style : il n’est pas sur l’axe '
          + 'des six mouvements (libellés : ' + libStyles.slice(0, 4).join(', ') + ')');
-    v.vrai(/décide qui FINIT, pas qui contrôle la main/.test(t),
-           'et l’écran DIT pourquoi, dans les mots de la source, au lieu de '
-         + 'laisser croire à un trou dans la table');
-    var lienVoa = Array.prototype.filter.call(vue.querySelectorAll('a'),
-      function (a) { return /voaarmwrestling/.test(a.getAttribute('href') || ''); });
-    v.vrai(lienVoa.length >= 1,
-           'avec le LIEN où on le vérifie — MB demandait des infos sourcées, '
-         + 'et une phrase sans lien ne l’est que dans le code');
+    /* ---- ET « TON STYLE » NE DIT PLUS RIEN DU PRESS ----
+
+       MB, 28/10 : « ce qui est ecrit me gene en fait… je me demande si on
+       ne devrait pas l'enlever presque ». La ligne est partie. Ces deux
+       controles exigeaient son texte et son lien ; ils gardent desormais
+       son ABSENCE. */
+    v.egal(/non lisible/i.test(t), false,
+           '« Ton style » ne dit plus rien du press : la ligne qui gênait MB '
+         + 'est partie');
+    v.egal(Array.prototype.filter.call(vue.querySelectorAll('a'),
+      function (a) { return /voaarmwrestling/.test(a.getAttribute('href') || ''); })
+      .length, 0,
+           'et son lien avec elle — une source qui ne soutient plus aucune '
+         + 'phrase n’a rien à faire à l’écran');
 
     /* L'ÉCART, qui est le fond de la demande. */
     v.vrai(t.indexOf('TOPROLL') >= 0 && t.indexOf('HOOK') >= 0
@@ -4437,6 +4581,18 @@
     v.vrai(ts.indexOf('Rien n’est deviné') >= 0,
            'et qu’il ne déduit RIEN : le style y est coché à la main');
     v.vrai(ts.indexOf('2 sparr.') >= 0, 'les deux sparrings en hook sont comptés');
+
+    /* ---- ET C'EST ICI QUE LE PRESS SE COMPTE ----
+
+       C'est le controle qui AUTORISE le retrait de sa ligne dans « Ton
+       style » : sans lui, MB perdrait le press du Suivi entier. Il tient
+       des deux cotes, et c'est tout son objet — il ne prouve pas ce lot, il
+       garde ce qui le rend acceptable. */
+    v.vrai(ts.indexOf('Press') >= 0,
+           '[temoin] le PRESS porte sa propre barre dans le sous-onglet '
+         + 'Sparring. Il tient avant comme après, et c’est lui qui rend '
+         + 'tenable le retrait de sa ligne dans « Ton style » : on ne le '
+         + 'fait pas disparaître du Suivi, on le laisse là où il se compte');
     v.vrai(ts.indexOf('10') >= 0 && ts.indexOf('35') >= 0,
            'rounds et minutes sont là, séparés');
     /* LE PRESS EST DECLARABLE depuis le 28/10 : ce bloc disait qu'il

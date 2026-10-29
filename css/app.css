@@ -243,6 +243,10 @@ a { color: var(--bleu); }
 .vide strong { display: block; color: var(--texte); font-size: 1.02rem; margin-bottom: 5px; font-weight: 650; }
 
 .rangee { display: flex; align-items: center; gap: 8px; }
+/* L'unite d'un champ chiffre, collee a lui. `flex: 0 0 auto` parce que
+   `.champ` fait 100 % de large : sans ca, le mot se comprime avant le
+   champ et « min » passe a la ligne. */
+.unite { flex: 0 0 auto; font-size: .8rem; color: var(--texte-2); }
 .rangee > .pousse { margin-left: auto; }
 .pile { display: flex; flex-direction: column; gap: 8px; }
 .enrobe { display: flex; flex-wrap: wrap; gap: 6px; }

@@ -3418,6 +3418,77 @@
          + 'côtés, et il garde le seul prix que le correctif accepte');
   });
 
+  /* ==================================================================
+     LE RISING GAGNE SES DEVIATEURS, ET « CHOP » EST UN NOM CONNU
+
+     MB, 28/10, apres lecture de la planche : « Tu peux rajouter les muscles
+     du "posting" en effet, mais ce n'est ni plus ni moins que du rising ce
+     que tu me decris, pas besoin d'un nouveau mot a rajouter. Par contre on
+     peut egalement un "Nom connu" pour Deviation Ulnaire, on peut y mettre
+     Chop etc »
+     ================================================================== */
+  bloc('Le rising devie, et le chop se nomme', function (v) {
+    function mus(nom) { return A.m.musclesDuNom(nom).join(','); }
+    var DEV = ['ecrl', 'ecrb', 'fcr'];
+
+    /* ---- 1. LES TROIS DEVIATEURS SONT DANS LE MOUVEMENT ----
+       MB l'avait vu le 23/10 : « la force Rising ne contient aucun deviateur
+       du poignet alors que le sport appelle rising la deviation radiale ».
+       VOA : « Rising (riser) — lifting your wrist up towards the THUMB
+       SIDE ». Kenhub nomme les trois qui font ce geste. */
+    var duMvt = ((A.m.MUSCLES_PAR_MOUVEMENT || {}).rising || {}).muscles || [];
+    v.egal(DEV.filter(function (id) { return duMvt.indexOf(id) < 0; }).join(' · '),
+           '',
+           'le mouvement RISING porte les trois déviateurs radiaux — sans '
+         + 'eux, cocher « rising » ne proposait pas un seul muscle du geste '
+         + 'que la source décrit');
+    v.egal(A.m.musclesProposes(['rising'], null, '', [], []).muscles.length, 11,
+           'et cocher le mouvement SEUL, sur un nom qui ne porte rien, '
+         + 'propose onze muscles au lieu de huit');
+
+    /* ---- ET LES REGIONS NE BOUGENT PAS, ce qui m'a corrige ----
+       J'avais annonce a MB qu'un rising coche sans nom passerait
+       d'« avant-bras anterieur » seul a anterieur ET posterieur. La mesure
+       dit non : le BRACHIO-RADIAL est deja range dans l'avant-bras
+       posterieur, donc la region etait deja touchee. */
+    v.egal((A.m.muscle('brachio_radial') || {}).groupe, 'avant_bras_ar',
+           '[temoin] le brachio-radial est DÉJÀ dans l’avant-bras postérieur. '
+         + 'Il tient des deux côtés, et c’est lui qui rend faux ce que '
+         + 'j’avais annoncé : les régions ne bougent pas');
+
+    /* ---- 2. « CHOP » SE LIT, ET IL DIT CE QUE SA FICHE DIT ----
+       Le poser dans `aussi` SEUL ne suffisait pas : le controle qui accorde
+       chaque ecriture a son entree est tombe, parce que la LECTURE ne
+       connaissait pas le mot. Il est donc entre dans la table des cotes.
+       VOA : « Chop / ulnar deviation ». */
+    var ficheU = A.m.DICTIONNAIRE.filter(function (d) {
+      return d.nom === 'Déviation ulnaire';
+    })[0] || {};
+    v.egal(mus('Chop'), (ficheU.muscles || []).join(','),
+           '« Chop » propose EXACTEMENT ce que « Déviation ulnaire » propose '
+         + '— le mot est entré dans la table de lecture, pas seulement au '
+         + 'dictionnaire');
+    v.egal(mus('Chop'), 'fcu,ecu',
+           'soit le fléchisseur et l’extenseur ulnaires, les deux que Kenhub '
+         + 'nomme pour ce geste');
+    v.egal(mus('Chop à la poulie'), 'fcu,ecu',
+           'et le mot se lit dans une phrase, pas seulement seul');
+    v.vrai((ficheU.aussi || []).indexOf('Chop') >= 0,
+           'il est aussi un NOM CONNU de la fiche, donc il se trouve à la '
+         + 'recherche — c’est ce que MB a demandé');
+
+    /* ---- LES DEUX BORNES ---- */
+    v.egal(mus('Chopper'), '',
+           '[temoin] « Chopper » ne propose RIEN : `motifDuMot` borne le mot. '
+         + 'Il tient des deux côtés, et sans cette borne n’importe quel nom '
+         + 'contenant ces lettres gagnerait deux muscles');
+    v.egal(A.m.forcesDuNom('Chop').join(','), '',
+           '[temoin] et le chop n’est PAS un mouvement : MB a choisi le nom '
+         + 'connu plutôt que le septième mouvement que je proposais. Il '
+         + 'tient des deux côtés, et il tombera le jour où quelqu’un ajoute '
+         + 'la force — ce qui est précisément quand il faudra en reparler');
+  });
+
   bloc('Sparring vierge', function (v) {
     var sp = A.m.seanceSparring();
     v.vrai(A.m.sparringVierge(sp),

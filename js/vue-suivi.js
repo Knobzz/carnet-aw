@@ -1343,22 +1343,23 @@
       f.appendChild(carte);
     });
 
-    /* ET CE QUI A ÉTÉ REGARDÉ SANS RIEN TROUVER.
+    /* « REGARDÉ, RIEN À DIRE » EST PARTIE LE 28/10 — MB : « je ne comprends
+       pas […] à quoi ça correspond ? Est-ce nécessaire ? »
 
-       C'est la moitié qui manquait à MB : il avait des remarques, donc
-       l'état vide ne s'affichait pas, donc rien ne lui disait que les
-       trois lacunes avaient été regardées. « Aucune lacune » est une
-       information ; un silence n'en est pas une.
+       ELLE ÉTAIT ILLISIBLE PAR CONSTRUCTION : elle réutilisait les phrases
+       de `REMARQUES_SURVEILLEES[].quoi`, qui sont écrites comme des
+       CONDITIONS — « des fléchisseurs chargés sans AUCUN extenseur du
+       poignet ». Juste dans l'état vide, à CONTRESENS derrière « rien à
+       dire » : on y lit un constat là où la ligne dit l'inverse.
 
-       DÉRIVÉ DES ids QUI ONT PARLÉ : le jour où une remarque s'ajoute,
-       elle apparaît ici sans qu'on touche à cette ligne. */
-    var dits = l.map(function (r) { return r.id; });
-    var propres = listeSurveillee(dits);
-    if (propres.length) {
-      f.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 0' },
-        h('b', { text: 'Regardé, rien à dire : ' }),
-        propres.join(', ') + '.'));
-    }
+       ET ELLE N'ÉTAIT PAS NÉCESSAIRE. Je l'avais ajoutée pour « je n'ai pas
+       également les lacunes et ce que je pourrai combler », mais cette
+       demande avait déjà ses deux réponses : l'état vide, qui nomme les
+       faits surveillés quand il n'y a rien du tout, et les exercices montés
+       dans l'en-tête des cartes. Celle-ci était mon ajout EN PLUS.
+
+       `listeSurveillee` reste : l'état vide s'en sert, et ses phrases y
+       sont à leur place. */
     return f;
   }
 
@@ -1509,38 +1510,6 @@
     carte.appendChild(corps);
     f.appendChild(carte);
 
-    /* ---- LE MOUVEMENT PARTAGÉ, HORS DE LA CARTE ----
-
-       MB, 28/10 : « je vois toujours Side Pressure 3 séries dans le même
-       encart que Toproll et Hook, ce n’est pas un style, ça n’a rien à
-       faire là. »
-
-       MA CORRECTION D'HIER AVAIT RÉPONDU À CÔTÉ : j'avais ajouté une ligne
-       d'explication AU-DESSUS de la barre. Il ne demandait pas une
-       explication — il demandait que la barre sorte de l'encart. Elle sort.
-
-       SON CHIFFRE RESTE, et c'est tout ce qui reste : sans lui, les séries
-       de side pressure n'apparaîtraient nulle part dans le Suivi. Les
-       porteurs sont dérivés de STYLES_AW, donc le jour où le press gagne
-       un mouvement à lui, cette ligne disparaît d'elle-même. */
-    /* DEUX CAS DE NON ATTRIBUABLE, et la ligne dit lequel : porté par
-       PLUSIEURS styles, ou par AUCUN. La side pressure est dans le second
-       depuis le 28/10 — VOA : « it finishes most hook matches and many
-       toproll matches ». Sans ce test, la ligne rendait « partagé par
-       le . » avec une liste de porteurs vide. */
-    Object.keys(r.partage).forEach(function (fid) {
-      var porteurs = A.m.STYLES_AW.filter(function (st) {
-        return st.forces.indexOf(fid) >= 0;
-      }).map(function (st) { return st.nom.toLowerCase(); });
-      f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
-        h('b', { text: A.m.nomForce(fid) + ' : ' }),
-        porteurs.length
-          ? r.partage[fid] + ' — mouvement partagé par le '
-            + porteurs.join(' et le ') + '.'
-          : r.partage[fid] + ' — une finition, pas un style : elle termine '
-            + 'les matchs de hook comme de toproll.'));
-    });
-
     /* LE DETAIL PAR MOUVEMENT, SOUS SON STYLE. Il remplace le bloc
        « Mouvements », retire le 28/10 : les six chiffres sont tous la, mais
        chacun sous le style auquel il appartient. On lit d'un coup l'ecart
@@ -1553,23 +1522,46 @@
         h('b', { text: x.style.nom + ' : ' }), dits.join(' · ')));
     });
 
-    /* ELLE RESTE, ET ELLE PORTE SA SOURCE. MB, 28/10 : « il me faut des
-       infos claires, sourcées et vérifiées pour les trois style ». La
-       raison n'est plus « sa seule mesure est partagée » — c'était vrai
-       d'une table que j'ai eu tort d'écrire. VOA dit l'axe :
-       « Toproll and hook decide who controls the hand. The press and side
-       pressure decide who finishes. »
+    /* ---- ET CEUX QU'AUCUN STYLE NE PORTE, DANS LA MÊME GRAMMAIRE ----
 
-       SANS ELLE, l'absence du press se lirait « tu ne presses jamais », ce
-       qui ne se déduit pas de la table. Une ligne, et son lien. */
-    lis.aveugles.forEach(function (x) {
+       MB, 28/10 : « pour le side pressure, il fait parti des mêmes
+       catégories que rising, pronation, back pressure etc etc ». Il corrige
+       mon cadrage, et il a raison : je la traitais comme un CAS — une ligne
+       à part, avec une phrase pour expliquer pourquoi elle était à part.
+       C'est un mouvement comme les cinq autres.
+
+       Elle se range donc AVEC les lignes de détail, après elles, dans leur
+       grammaire exacte : un libellé, puis des « mouvement N ». Ce qui la
+       distingue tient en deux mots — aucun style ne la porte — et non en
+       une phrase.
+
+       DEUX CAS SOUS UN SEUL LIBELLÉ : porté par plusieurs styles, ou par
+       aucun. Les deux veulent dire « ce compte ne désigne pas un style »,
+       et c'est tout ce que la ligne a besoin de dire. */
+    var horsStyle = Object.keys(r.partage);
+    if (horsStyle.length) {
       f.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0' },
-        h('b', { text: x.style.nom + ' : ' }),
-        'non lisible ici — il décide qui FINIT, pas qui contrôle la main. '
-      + 'Déclare-le sur tes sparrings. ',
-        h('a', { href: A.m.LIEN_VOA_PRESS, target: '_blank', rel: 'noopener',
-                 text: 'Voice of Armwrestling' })));
-    });
+        h('b', { text: 'Hors style : ' }),
+        horsStyle.map(function (fid) {
+          return A.m.nomForce(fid).toLowerCase() + ' ' + r.partage[fid];
+        }).join(' · ')));
+    }
+
+    /* LA LIGNE DU PRESS EST PARTIE LE 28/10 — MB : « ce qui est écrit me
+       gêne en fait… je me demande si on ne devrait pas l'enlever
+       presque ». Troisième fois qu'il demande moins de texte ici ; les deux
+       premières j'avais raccourci, cette fois la mesure dit qu'on peut
+       retirer.
+
+       CE QUI L'AUTORISE : le press n'est PAS invisible sans elle. Il porte
+       sa propre barre dans le sous-onglet SPARRING — « Press 1 sparr. », à
+       côté de Hook, Toproll et Mixte. On ne le fait donc pas disparaître du
+       Suivi, on le laisse là où il se compte vraiment.
+
+       `lis.aveugles` RESTE CALCULE et n'est plus affiché ici. Le jour où un
+       style aveugle apparaît pour une autre raison, il faudra décider quoi
+       en dire — et un contrôle du banc dit qu'il n'y en a qu'un
+       aujourd'hui, le press. */
 
 
     /* L’ÉCART ENTRE LES DEUX CÔTÉS, qui est le fond de la demande : ce

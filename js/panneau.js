@@ -378,6 +378,69 @@
       rafraichirPrise();
       c.appendChild(A.ui.groupe('Prise', boitePrise));
 
+      /* ---- LE REPOS, EN MINUTES PUIS EN SECONDES ----
+
+         Retour d'un utilisateur de MB, 29/10 : « le temps de repos en
+         seconde est pas hyper adapté, ce serait bien si tu pouvais faire un
+         côté où tu choisis les minutes et l'autre les secondes ».
+
+         IL ETAIT TOUT EN BAS, après les muscles et la consigne — après tout
+         ce qu'on ne remplit qu'une fois. Le repos, on le change souvent. MB
+         l'a placé ici, entre « Prise » et « Type de charge ».
+
+         `exo.reposSecondes` NE CHANGE PAS : la donnée reste des secondes.
+         Deux champs qui composent un seul nombre, donc aucune clé neuve et
+         rien à ajouter à `normaliser()` — c'est là qu'un banc vert cacherait
+         une valeur qui ne survit pas au rechargement.
+
+         LE REPORT SE FAIT AU `change`, PAS A LA FRAPPE. Taper « 90 » dans
+         les secondes passe par « 9 », et un champ qui saute sous les doigts
+         est hostile. Entre-temps le total est juste quand même : mn × 60 + 90
+         vaut le même nombre. On ne recompose l'affichage qu'une fois la
+         valeur validée. */
+      var reposTotal = exo.reposSecondes == null ? 120 : exo.reposSecondes;
+      var champMin = h('input', { class: 'champ', type: 'number', min: '0', step: '1',
+                                  inputmode: 'numeric',
+                                  value: Math.floor(reposTotal / 60) });
+      var champSec = h('input', { class: 'champ', type: 'number', min: '0', max: '59',
+                                  step: '5', inputmode: 'numeric',
+                                  value: reposTotal % 60 });
+      var aideRepos = h('div', { class: 'item-resume' });
+
+      function lireRepos() {
+        var mn = parseInt(champMin.value, 10);
+        var sc = parseInt(champSec.value, 10);
+        if (!isFinite(mn) || mn < 0) mn = 0;
+        if (!isFinite(sc) || sc < 0) sc = 0;
+        return mn * 60 + sc;
+      }
+      /* LE TOTAL RESTE LISIBLE : c'est ce que les deux champs enlèvent, et
+         c'est ce qui le leur rend. Rien ne devient invisible. */
+      function majRepos() {
+        exo.reposSecondes = lireRepos();
+        aideRepos.textContent = 'Lancé par le ✓ d’une série. Enregistré : '
+                              + exo.reposSecondes + ' s.';
+      }
+      champMin.addEventListener('input', majRepos);
+      champSec.addEventListener('input', majRepos);
+      /* ET AU `change`, ON RECOMPOSE : 0 min 90 s se réécrit 1 min 30 s. */
+      function recomposer() {
+        var t = lireRepos();
+        champMin.value = Math.floor(t / 60);
+        champSec.value = t % 60;
+        majRepos();
+      }
+      champMin.addEventListener('change', recomposer);
+      champSec.addEventListener('change', recomposer);
+      majRepos();
+
+      var rangeeRepos = h('div', { class: 'rangee' },
+        champMin, h('span', { class: 'unite', text: 'min' }),
+        champSec, h('span', { class: 'unite', text: 's' }));
+      var grRepos = A.ui.groupe('Repos', rangeeRepos);
+      grRepos.appendChild(aideRepos);
+      c.appendChild(grRepos);
+
       A.m.TYPES_CHARGE.forEach(function (t) {
         selCharge.appendChild(h('option', { value: t.id, text: t.nom }));
       });
@@ -1369,15 +1432,6 @@
       champConsigne.addEventListener('input', function () { exo.consigne = champConsigne.value; });
       c.appendChild(A.ui.groupe('Consigne d’exécution', champConsigne,
         'Tempo, tenue, prise. Affichée en clair pendant la séance.'));
-
-      var champRepos = h('input', { class: 'champ', type: 'number', min: '0', step: '15',
-                                    inputmode: 'numeric', value: exo.reposSecondes == null ? 120 : exo.reposSecondes });
-      champRepos.addEventListener('input', function () {
-        var n = parseInt(champRepos.value, 10);
-        exo.reposSecondes = isFinite(n) && n >= 0 ? n : 0;
-      });
-      c.appendChild(A.ui.groupe('Repos (secondes)', champRepos,
-        'Durée lancée par le ✓ d’une série.'));
 
       /* Les structures chargées, TOUT en bas — après le repos. Elles ne
          décrivent pas l'exercice : elles nomment ce qui ENCAISSE, dans le
