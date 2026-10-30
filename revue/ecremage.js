@@ -330,6 +330,216 @@
          + 'une serrée SUPINÉE tombent donc sous le même nom.' }
   ];
 
+
+  /* ============ CE QUE MB A TRANCHE, le 2026-10-30 au matin ============
+     Recopie de son rendu, cle = « fiche § ecriture ». Sa note quand il en a
+     mis une. Rien de tout cela n'est APPLIQUE : c'est l'etat de sa decision,
+     pas celui du carnet. */
+  var DECIDE = {
+    'Dead hang § Farmer walk': { d: 'Lui faire sa fiche' },
+    'Dead hang § Marche du fermier': { d: 'Sortir de cette fiche',
+      n: 'On supprime la traduction Marche du fermier.' },
+    'Rowing § Renegade row': { d: 'Lui faire sa fiche' },
+    'Curl biceps § Curl 21': { d: 'Sortir de cette fiche', n: 'On supprime Curl 21.' },
+    'Développé serré § Hex press': { d: '—',
+      n: 'On supprime Hex press, c’est à mon sens le même exercice que '
+       + 'Développé serré, toujours dans Pectoraux.' },
+    'Écarté § Svend press': { d: 'Lui faire sa fiche' },
+    'Handstand push-up § Pompes piquées': { d: '—',
+      n: 'On supprime l’exercice Handstand push up.' },
+    'Handstand push-up § Pike push-up': { d: '—',
+      n: 'On supprime l’exercice Handstand push up.' },
+    'Développé militaire § Behind the neck press': { d: 'En faire une variante' },
+    'Oiseau § Pec deck inversé': { d: 'En faire une variante' },
+    'Oiseau § Reverse pec deck': { d: 'Retirer' },
+    'Rotation externe d’épaule § Rotation externe coude au corps': { d: 'En faire une variante' },
+    'Rotation interne d’épaule § Rotation interne coude au corps': { d: 'En faire une variante' },
+    'Rotation cubaine § Cuban press': { d: 'En faire une variante' },
+    'Écarté § Écartés Hyght': { d: 'En faire une variante' },
+    'Écarté § Pec deck': { d: 'En faire une variante' },
+    'Écarté § Butterfly': { d: 'Retirer' },
+    'Pompes § Pompes diamant': { d: 'En faire une variante' },
+    'Pompes § Diamond push up': { d: 'Retirer' },
+    'Pompes § Wide push up': { d: 'En faire une variante' },
+    'Curl biceps § Spider curl': { d: 'En faire une variante' },
+    'Curl biceps § Drag curl': { d: 'En faire une variante' },
+    'Curl biceps § Bayesian curl': { d: 'En faire une variante' },
+    'Curl biceps § Waiter curl': { d: 'En faire une variante' },
+    'Traction prise serrée § Traction neutre': { d: 'Retirer' },
+    'Traction prise serrée § Traction prise neutre': { d: 'Retirer' },
+    'Traction prise serrée § Neutral grip pull up': { d: 'Retirer' },
+    'Traction partielle prise serrée § Traction partielle neutre': { d: 'Retirer' },
+    'Traction partielle prise serrée § Partial neutral grip pull up': { d: 'Retirer' },
+    'Élévation latérale § Élévations latérales': { d: 'Retirer' },
+    'Élévation latérale § Side lateral raise': { d: 'Retirer' },
+    'Élévation frontale § Élévations frontales': { d: 'Retirer' },
+    'Rotation cubaine § Rotations cubaines': { d: 'Retirer' },
+    'Rotation externe d’épaule § Rotation externe': { d: 'Retirer' },
+    'Rotation interne d’épaule § Rotation interne': { d: 'Retirer' },
+    'Rotation externe d’épaule § Rotateurs externes': { d: 'Retirer' },
+    'Rotation interne d’épaule § Rotateurs internes': { d: 'Retirer' },
+    'Oiseau § Rear delt fly': { d: 'Retirer' },
+    'Pompes § Pompe': { d: 'Retirer' },
+    'Pompes § Push ups': { d: 'Retirer' },
+    'Développé serré § Close grip': { d: 'Retirer' },
+    'Barre au front § Barre front': { d: 'Retirer' },
+    'Extension verticale des triceps § Extension verticale': { d: 'Retirer' },
+    'Extension verticale des triceps § Extensions verticales': { d: 'Retirer' },
+    'Kickback § Triceps kickback': { d: 'Garder',
+      n: 'On supprime juste Kickback pour le remplacer par Triceps kickback.' },
+    'Dips prise large § Dips pecs': { d: 'Retirer' },
+    'Dips prise large § Chest dips': { d: 'Retirer' },
+    'Dips prise serrée § Triceps dips': { d: 'Retirer' },
+    'Dips prise serrée § Dips verticaux': { d: 'Retirer' },
+    'Curl biceps § Curl spider': { d: 'Retirer' },
+    'Curl biceps § Curl araignée': { d: 'Retirer' },
+    'Curl concentré § Curl concentration': { d: 'Retirer' },
+    'Curl Zottman § Zottman curl': { d: 'Retirer' },
+    'Chin up § Chin ups': { d: 'Retirer' },
+    'Haussement d’épaules § Shrugs': { d: 'Retirer' },
+    'Haussement d’épaules § Haussements': { d: 'Retirer' },
+    'Traction partielle § Partial traction': { d: 'Retirer' },
+    'Gripper § Serrage': { d: '—', n: 'On supprime l’exercice Gripper du dictionnaire.' },
+    'Curl pronation à la poulie § Pronation curl à la poulie': { d: 'Retirer' },
+    'Curl Larratt § Tenue de coude': { d: 'Retirer' },
+    'Dead hang § Barre fixe en tenue': { d: 'Retirer' },
+    'Wrist curl côté pouce § Wrist curl accentué pouce': { d: 'Retirer' },
+    'Extenseurs à élastique § Ouverture des doigts': { d: 'Retirer' },
+    'Déviation ulnaire § Chop': { d: '—', n: 'Que faire ?' },
+    'Wrist curl § Cupping': { d: '—', n: 'Que faire ?' },
+    'Supination § Supination à la clé': { d: '—',
+      n: 'On supprime l’exercice Supination du dictionnaire.' },
+    'Développé militaire § Strict press': { d: '—', n: 'On garde développé militaire.' },
+    'Croix de fer § (la fiche entière)': { d: '—',
+      n: 'On supprime du dictionnaire l’exercice Croix de fer.' },
+    'Side pressure à la poulie § Side pressure': { d: '—',
+      n: 'Création de ma part, on laisse tel quel.' },
+    'Side pressure à la poulie § Presse de côté': { d: '—',
+      n: 'Création de ma part, on laisse tel quel.' },
+    'Back pressure à la poulie § Back pressure': { d: '—',
+      n: 'Création de ma part, on laisse tel quel.' },
+    'Curl rising à la poulie § (la fiche entière)': { d: '—',
+      n: 'Création de ma part, on laisse tel quel.' },
+    'Extension triceps § (le nom est générique)': { d: '—', n: 'Que faire ?' },
+    'Dips prise large § (le nom nomme le mauvais paramètre)': { d: '—',
+      n: 'Dips prise large impose implicitement une inclinaison du buste à mon sens.' },
+    'Curl Larratt § (six écritures pour une chose)': { d: '—',
+      n: 'On garde juste Curl Larratt, mais une explication succincte en dessous '
+       + 'serait appréciable. Propose-moi une explication avant de valider.' },
+    'Pull-over § (rangé sous DOS)': { d: '—',
+      n: 'Les deux se valent en effet, que ce soit rangé dans l’un ou l’autre ne '
+       + 'me dérange pas.' },
+    'Traction § (HUIT fiches de traction)': { d: '—',
+      n: 'On laisse tel quel, pour moi ce sont 8 tractions différentes.' },
+    'Traction prise serrée § (le nom, ou ses écritures)': { d: 'Laisser tel quel' },
+    '(les huit tractions) § (un défaut de structure)': { d: 'Laisser tel quel' }
+  };
+
+  /* ============ CE QUE L'ETUDE DE SES DECISIONS A OUVERT ============
+     Neuf points. Chacun porte ce qui a ete MESURE, et mon avis est donne
+     comme un avis. */
+  var OUVERTS = [
+    { id: 'supination', titre: 'Supination — la fiche, ou seulement l’écriture ?',
+      bloquant: true,
+      mesure: 'TROIS équipements pointent vers cette fiche par leurs entrées '
+            + '« Pronation, Supination » : le multispinner, l’IRON WRIST — celui '
+            + 'que tu possèdes — et l’Eccentric. Supprimer la fiche les casse, et '
+            + 'la planche d’équipement a une garde qui refuse exactement ça : '
+            + '« chaque entrée du dictionnaire citée par la table existe '
+            + 'vraiment ». — Mesuré aussi : sans la fiche, le moteur de mots rend '
+            + 'LES DEUX MÊMES muscles (biceps, supinateur). On ne perdrait donc '
+            + 'aucun muscle, seulement les trois renvois d’équipement.',
+      options: ['Retirer seulement « Supination à la clé »',
+                'Supprimer la fiche et rediriger les 3 outils',
+                'Supprimer la fiche et laisser les 3 outils sans entrée'],
+      reco: 'Ta note était posée sur la ligne « Supination à la clé ». Si tu '
+          + 'visais l’écriture, la première option ne coûte rien.' },
+
+    { id: 'hexpress', titre: 'Hex press — supprimé, ou gardé comme synonyme ?',
+      mesure: 'Tu écris « on supprime Hex press, c’est à mon sens le même exercice '
+            + 'que Développé serré ». Si c’est le même exercice, c’est un '
+            + 'SYNONYME — donc une écriture à garder, pas à supprimer. — Et '
+            + '« toujours dans Pectoraux » : mesuré, « Développé serré » est '
+            + 'aujourd’hui dans le groupe TRICEPS, avec grand pectoral + deltoïde '
+            + '+ triceps — exactement les muscles du Développé couché, qui lui est '
+            + 'dans PECTORAUX.',
+      options: ['Garder Hex press comme écriture',
+                'Supprimer Hex press',
+                'Et déplacer Développé serré dans Pectoraux',
+                'Et laisser Développé serré dans Triceps'],
+      reco: 'Les deux questions sont indépendantes : réponds aux deux. Ta règle '
+          + '« le muscle le plus travaillé prime » désigne le triceps pour un '
+          + 'développé serré — mais c’est toi qui l’appliques.' },
+
+    { id: 'kickback', titre: 'Kickback — le mot court reste-t-il ?',
+      mesure: 'Tu renommes la fiche en « Triceps kickback ». Elle porte déjà '
+            + '« Kickback triceps » et « Triceps kickback » comme écritures. Sans '
+            + '« Kickback » tout court, taper ce mot ne trouve plus rien de direct.',
+      options: ['Garder « Kickback » comme écriture', 'Le retirer aussi'],
+      reco: 'Le garder coûte une écriture et sauve une frappe évidente.' },
+
+    { id: 'hspu', titre: 'Handstand push-up — la fiche entière ?',
+      mesure: 'Ta note est posée sur deux lignes. La fiche part avec ses QUATRE '
+            + 'écritures : HSPU, Pompes en équilibre, Pompes piquées, Pike '
+            + 'push-up. — Mesuré : sans la fiche, le moteur de mots rend les TROIS '
+            + 'MÊMES muscles. Rien n’est perdu.',
+      options: ['Oui, la fiche entière', 'Non, seulement les deux « piquées »'],
+      reco: 'Je lis ta note comme « la fiche entière », mais je ne l’applique pas '
+          + 'sans ton mot.' },
+
+    { id: 'chop', titre: 'Chop — ce que je propose',
+      mesure: 'Aucune source externe ne le définit : ni Wikipédia, ni ArmProgress '
+            + '(66 exercices, aucune entrée « chop »), ni les sites de rééducation.',
+      options: ['Garder, et l’écrire comme mot maison', 'Retirer'],
+      reco: 'GARDER. Il ne coûte qu’une écriture et c’est ton mot pour ce geste. La '
+          + 'seule chose à faire est de l’écrire dans la fiche de revue — « mot '
+          + 'd’usage de MB, aucune source externe » — sans quoi un prochain passage '
+          + 'le prendra pour un terme établi.' },
+
+    { id: 'cupping', titre: 'Cupping — ce que je propose',
+      mesure: 'MESURE QUI TRANCHE : « Wrist curl » n’a pas de colonnes déclarées, '
+            + 'donc charge + reps. « Cup hold » est en CHARGE + DURÉE. Un cupping '
+            + 'se TIENT — or taper « cupping » te donne aujourd’hui une fiche en '
+            + 'répétitions.',
+      options: ['Déplacer « Cupping » vers Cup hold', 'Laisser sous Wrist curl'],
+      reco: 'LE DÉPLACER. C’est le même doublon que tu avais déjà payé avec '
+          + '« Tenue en cup ».' },
+
+    { id: 'exttriceps', titre: 'Extension triceps — ce que je propose',
+      mesure: 'LES DEUX FICHES SONT RÉELLEMENT DISTINCTES, c’est le nom qui ment. '
+            + '« Extension triceps » porte Pushdown, Extension à la poulie, Triceps '
+            + 'poulie, Triceps corde — bras LE LONG DU CORPS. « Extension verticale '
+            + 'des triceps » porte Extension nuque, Overhead — bras AU-DESSUS DE LA '
+            + 'TÊTE. Mêmes muscles (triceps, anconé), geste opposé.',
+      options: ['Renommer en « Extension triceps à la poulie »',
+                'Renommer en « Pushdown »', 'Laisser tel quel'],
+      reco: 'NE SUPPRIMER NI L’UNE NI L’AUTRE. Renommer la première suffit à lever '
+          + 'le chevauchement.' },
+
+    { id: 'larratt', titre: 'Curl Larratt — l’explication que tu demandes',
+      mesure: 'La source du carnet dit : « an arm wrestling strength exercise that '
+            + 'will build up major biceps ISOMETRIC strength » (chaîne Strength and '
+            + 'Physique, 9/12/2019), et la fiche note qu’il se fait en position de '
+            + 'pupitre. Les trois formulations ci-dessous ne disent rien que la '
+            + 'source ne porte pas.',
+      options: [
+        'Tenue isométrique : le coude reste plié sous la charge, sans bouger. (68 signes)',
+        'Tenue isométrique en position de pupitre : le coude reste plié sous la charge, sans bouger. Du nom de Devon Larratt. (117 signes)',
+        'Tenue isométrique du biceps, en position de pupitre : le coude reste plié sous la charge, sans bouger. Du nom de Devon Larratt, qui en a fait un exercice de bras de fer. (166 signes)'],
+      reco: 'LA DEUXIÈME : elle dit le geste, la position et l’origine, sans '
+          + 'affirmer ce que la source ne porte pas.' },
+
+    { id: 'fiches', titre: 'Les trois fiches à créer',
+      mesure: 'Tu demandes « lui faire sa fiche » pour FARMER WALK, RENEGADE ROW et '
+            + 'SVEND PRESS. Il leur faut des muscles sourcés, comme les 67 autres — '
+            + 'c’est un travail de recherche, et il n’est pas commencé. — Un prix à '
+            + 'connaître sur Farmer walk : le mot est encore reconnu par les listes '
+            + 'de mots-clés musculaires. Si sa fiche naît, les deux doivent '
+            + 's’accorder.',
+      options: ['Lance la recherche des trois', 'Plus tard'],
+      reco: 'Les trois d’un coup, une seule recherche bornée.' }
+  ];
+
   /* Une suppression se fait DEUX FOIS : les mêmes chaînes sont recopiées
      dans les listes de mots-clés musculaires du modèle, qui divergeraient
      sinon. C'est la note la plus opérationnelle des quatre rapports. */
@@ -338,5 +548,6 @@
   + 'dans les listes de mots-clés musculaires de `js/model.js`. Les oublier '
   + 'les ferait diverger.';
 
-  A.ecremage = { CAS: CAS, AVERTISSEMENT_SUPPRESSION: AVERTISSEMENT_SUPPRESSION };
+  A.ecremage = { CAS: CAS, DECIDE: DECIDE, OUVERTS: OUVERTS,
+                 AVERTISSEMENT_SUPPRESSION: AVERTISSEMENT_SUPPRESSION };
 })(window.App || (window.App = {}));

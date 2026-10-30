@@ -60,6 +60,33 @@
         border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
         font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
         box-sizing: border-box; }
+
+  /* --- ce qui reste a decider, en tete --- */
+  .ec-ouverts { max-width: 1100px; margin: 0 auto 26px; }
+  .ec-ouverts > h2 { font-size: 1.1rem; margin: 0 0 4px; color: var(--laiton); }
+  .ec-ouverts > p { font-size: .87rem; color: var(--texte-2); margin: 0 0 12px; }
+  .ec-ouv { border: 1px solid var(--laiton); border-radius: 10px;
+            background: color-mix(in srgb, var(--laiton) 6%, transparent);
+            padding: 11px 13px; margin-bottom: 11px; }
+  .ec-ouv.ec-bloquant { border-color: #e06c6c;
+            background: color-mix(in srgb, #e06c6c 7%, transparent); }
+  .ec-ouv.ec-repondu { border-color: var(--trait); background: var(--fond-2);
+            opacity: .72; }
+  .ec-ouv h3 { margin: 0 0 6px; font-size: .97rem; display: flex;
+               align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .ec-bloc-tag { font-size: .68rem; text-transform: uppercase;
+        letter-spacing: .05em; border: 1px solid #e06c6c; color: #e06c6c;
+        border-radius: 999px; padding: 1px 8px; }
+  .ec-ouv .ec-mesure { font-size: .86rem; margin: 0 0 7px; }
+  .ec-ouv .ec-reco { font-size: .85rem; margin: 0 0 8px; color: var(--laiton);
+        border-left: 2px solid var(--laiton); padding-left: 9px; }
+  .ec-titre2 { max-width: 1100px; margin: 26px auto 2px; font-size: 1.05rem;
+               border-top: 1px solid var(--trait); padding-top: 14px; }
+  .ec-sous2 { max-width: 1100px; margin: 0 auto 4px; font-size: .86rem;
+              color: var(--texte-2); }
+  .ec-mb { font-size: .78rem; color: var(--texte-2); margin-top: 6px; }
+  .ec-mb b { color: var(--laiton); }
+  .ec-mb i { font-style: italic; }
 </style>
 </head>
 <body>
@@ -81,6 +108,12 @@
      Marcolin 2015), Wikipédia, StrengthLog, Catalyst Athletics, puis des
      catalogues d’exercices.</p>
 </div>
+
+<div class="ec-ouverts" id="ecOuverts"></div>
+
+<h2 class="ec-titre2">Tes 79 décisions du 30/10</h2>
+<p class="ec-sous2">Elles sont déjà dedans — tu peux en changer une, elle se
+   marquera comme modifiée. Rien n’est appliqué au carnet.</p>
 
 <div class="ec-barre">
   <button type="button" class="ec-bt" id="ecTous">Tout</button>
@@ -141,6 +174,56 @@
   var filtre = 'tous';
   function idDe(c) { return c.fiche + ' § ' + c.ecr; }
 
+  /* ---- CE QUI RESTE À DÉCIDER, en tête : l'étude de ses 79 décisions a
+     ouvert neuf points. Chacun porte ce qui a été MESURÉ, et mon avis est
+     donné comme un avis — pas comme une conclusion. ---- */
+  function rendreOuverts() {
+    var z = document.getElementById('ecOuverts');
+    z.innerHTML = '';
+    var reste = (E.OUVERTS || []).filter(function (o) { return !choix['OUVERT § ' + o.id]; });
+    z.appendChild(h('h2', { text: 'Ce qui reste à décider — ' + reste.length
+      + ' sur ' + (E.OUVERTS || []).length }));
+    z.appendChild(h('p', { text: 'Nés de l’étude de tes 79 décisions : un blocage '
+      + 'mesuré, trois notes que je ne sais pas lire, les quatre questions que tu '
+      + 'me posais, et les trois fiches à créer.' }));
+
+    (E.OUVERTS || []).forEach(function (o) {
+      var id = 'OUVERT § ' + o.id;
+      var pris = choix[id];
+      var bloc = h('div', { class: 'ec-ouv'
+        + (o.bloquant && !pris ? ' ec-bloquant' : '') + (pris ? ' ec-repondu' : '') });
+      var t = h('h3', {}, [document.createTextNode(o.titre)]);
+      if (o.bloquant) t.appendChild(h('span', { class: 'ec-bloc-tag', text: 'bloquant' }));
+      bloc.appendChild(t);
+      bloc.appendChild(h('p', { class: 'ec-mesure', text: o.mesure }));
+      if (o.reco) bloc.appendChild(h('p', { class: 'ec-reco', text: 'Mon avis — ' + o.reco }));
+
+      var ch = h('div', { class: 'ec-choix' });
+      o.options.forEach(function (op) {
+        var b = h('button', { type: 'button', text: op,
+          'aria-pressed': (pris && pris.decision === op) ? 'true' : 'false' });
+        b.addEventListener('click', function () {
+          if (choix[id] && choix[id].decision === op) delete choix[id];
+          else choix[id] = { ouvert: o.titre, decision: op,
+                             note: (choix[id] || {}).note || '' };
+          garder(); rendreOuverts(); rendre();
+        });
+        ch.appendChild(b);
+      });
+      bloc.appendChild(ch);
+
+      var note = h('input', { class: 'ec-note', type: 'text',
+        placeholder: 'ta note (facultatif)…', value: (pris && pris.note) || '' });
+      note.addEventListener('input', function () {
+        choix[id] = choix[id] || { ouvert: o.titre, decision: '' };
+        choix[id].note = note.value;
+        garder(); majSortie();
+      });
+      bloc.appendChild(note);
+      z.appendChild(bloc);
+    });
+  }
+
   function rendre() {
     var z = document.getElementById('ecCorps');
     z.innerHTML = '';
@@ -160,6 +243,20 @@
       bloc.appendChild(h('p', { class: 'ec-dit', text: c.dit }));
       if (c.prix) bloc.appendChild(h('p', { class: 'ec-prix', text: c.prix }));
       if (c.src) bloc.appendChild(h('p', { class: 'ec-src', text: 'source : ' + c.src }));
+
+      /* CE QUE MB A DÉJÀ TRANCHÉ, le 30/10. Ce n'est pas un bouton : c'est
+         un rappel. S'il clique autre chose, la ligne se marque modifiée. */
+      var mb = (E.DECIDE || {})[id];
+      if (mb) {
+        var l = 'ta décision du 30/10 : ' + (mb.d && mb.d !== '—' ? mb.d : '(note seule)');
+        var p = h('p', { class: 'ec-mb' });
+        p.appendChild(h('b', { text: l }));
+        if (mb.n) p.appendChild(h('i', { text: '   « ' + mb.n + ' »' }));
+        if (pris && mb.d && pris.decision && pris.decision !== mb.d) {
+          p.appendChild(h('b', { text: '   — MODIFIÉE en « ' + pris.decision + ' »' }));
+        }
+        bloc.appendChild(p);
+      }
 
       var ch = h('div', { class: 'ec-choix' });
       OPTIONS[c.quoi].forEach(function (o) {
@@ -201,14 +298,35 @@
 
   function majSortie() {
     var l = [];
+    /* LES POINTS OUVERTS D'ABORD : ce sont eux qui débloquent la suite. */
+    var ouv = [];
+    (E.OUVERTS || []).forEach(function (o) {
+      var d = choix['OUVERT § ' + o.id];
+      if (!d) return;
+      ouv.push('- ' + o.titre + '  →  ' + (d.decision || '(note seule)')
+             + (d.note ? '   // ' + d.note : ''));
+    });
+    if (ouv.length) {
+      l.push('### CE QUI RESTE À DÉCIDER');
+      l = l.concat(ouv);
+      l.push('');
+    }
+    var chg = [];
     E.CAS.forEach(function (c) {
       var d = choix[idDe(c)];
       if (!d) return;
-      l.push('- ' + c.fiche + ' ▸ ' + c.ecr + '  →  ' + (d.decision || '(note seule)')
-           + (d.note ? '   // ' + d.note : ''));
+      var mb = (E.DECIDE || {})[idDe(c)];
+      var modifiee = mb && mb.d && d.decision && d.decision !== mb.d;
+      chg.push('- ' + c.fiche + ' ▸ ' + c.ecr + '  →  ' + (d.decision || '(note seule)')
+             + (modifiee ? '   [MODIFIÉE, c’était « ' + mb.d + ' »]' : '')
+             + (d.note ? '   // ' + d.note : ''));
     });
+    if (chg.length) {
+      l.push('### CE QUE J’AI CHANGÉ DANS MES 79');
+      l = l.concat(chg);
+    }
     document.getElementById('ecJson').value = l.length ? l.join('\n')
-      : 'Rien de tranché pour l’instant.';
+      : 'Rien de neuf pour l’instant — tes 79 décisions du 30/10 sont déjà en place.';
   }
 
   [['tous','ecTous'],['autre','ecAutre'],['variante','ecVariante'],
@@ -226,13 +344,14 @@
     document.getElementById('ecEtat').textContent = 'copié.';
   });
   document.getElementById('ecVider').addEventListener('click', function () {
-    choix = {}; garder(); rendre();
+    choix = {}; garder(); rendreOuverts(); rendre();
     document.getElementById('ecEtat').textContent = '';
   });
 
   document.getElementById('ecAvert').innerHTML =
     '<b>Avant toute suppression :</b> ' + E.AVERTISSEMENT_SUPPRESSION;
 
+  rendreOuverts();
   rendre();
 })(window.App);
 </script>
