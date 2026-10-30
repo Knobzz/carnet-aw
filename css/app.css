@@ -430,6 +430,10 @@ select.champ { appearance: none; background-image: none; }
 
 /* UNE FICHE DU DICTIONNAIRE, dans son groupe replie. Un trait entre elles :
    sans separation, trente fiches ouvertes font un mur de texte. */
+/* La precision d'une fiche : elle dit le GESTE, donc elle passe avant les
+   muscles et se lit comme une phrase, pas comme une etiquette. */
+.dico-dit { font-style: italic; margin-bottom: 4px; }
+
 .dico-mvt { padding: 8px 0; border-top: 1px solid var(--trait); }
 .dico-mvt:first-child { padding-top: 0; border-top: 0; }
 

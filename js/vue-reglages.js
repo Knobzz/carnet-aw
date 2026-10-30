@@ -1045,6 +1045,14 @@
     function ligneFiche(d) {
       var bloc = h('div', { class: 'dico-mvt' });
       bloc.appendChild(h('div', { class: 'remarque-titre', text: d.nom }));
+      /* LA PRÉCISION PASSE AVANT LES MUSCLES, parce qu'elle dit le GESTE —
+         MB, 30/10 : « une explication succincte en dessous serait
+         appréciable ». Une fiche sans précision n'affiche rien de plus :
+         le champ est l'exception, pas la règle. */
+      if (d.precision) {
+        bloc.appendChild(h('div', { class: 'item-resume dico-dit',
+                                    text: d.precision }));
+      }
       var mus = h('div', { class: 'item-resume' });
       mus.appendChild(h('b', { text: 'Muscles : ' }));
       mus.appendChild(document.createTextNode(

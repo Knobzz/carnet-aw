@@ -487,7 +487,7 @@
     {
       id: 'wrist-curl',
       nom: 'Wrist curl',
-      aussi: ['Flexion du poignet', 'Cupping', 'Wrist curl à la poulie',
+      aussi: ['Flexion du poignet', 'Wrist curl à la poulie',
               'Cable wrist curl', 'Wrist curl à la barre',
               'Barbell wrist curl', 'Wrist curl avec haltères',
               'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
@@ -887,7 +887,7 @@
     {
       id: 'tenue-cup',
       nom: 'Cup hold',
-      aussi: ['Tenue en cup', 'Tenue de poignet fermé',
+      aussi: ['Cupping', 'Tenue en cup', 'Tenue de poignet fermé',
               'Cup hold à la poulie', 'Cup hold avec haltère'],
       geste: 'Le poignet reste fermé sous la charge, sans bouger.',
       muscles: [

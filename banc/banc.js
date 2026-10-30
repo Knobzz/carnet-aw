@@ -3488,7 +3488,7 @@
        nom principal injoignable PAR CETTE REQUETE — mais pas par les
        lettres du nom principal. */
     v.vrai(A.m.suggestions(etatAvec('Triceps poulie'), 'extension', 8)
-            .some(function (x) { return x.nom === 'Extension triceps'; }),
+            .some(function (x) { return x.nom === 'Extension triceps à la poulie'; }),
            '[temoin] posséder « Triceps poulie » n’enterre pas « Extension '
          + 'triceps » : ses propres lettres le retrouvent. Il tient des deux '
          + 'côtés, et il garde le seul prix que le correctif accepte');
@@ -5093,8 +5093,9 @@
       'Haussement d’épaules': 2, 'Élévation frontale': 2, 'Oiseau': 5,
       'Face pull': 5, 'Tirage menton': 4, 'Rotation externe d’épaule': 3,
       'Rotation interne d’épaule': 5, 'Rotation cubaine': 6,
-      'Développé Arnold': 5, 'Élévation en Y': 3, 'Handstand push-up': 3,
-      'Croix de fer': 2
+      /* HANDSTAND PUSH-UP et CROIX DE FER sont parties le 30/10, decision
+         de MB : la table en compte donc DIX, et non plus douze. */
+      'Développé Arnold': 5, 'Élévation en Y': 3
     };
     var manquent = [], faux = [];
     Object.keys(ATTENDU).forEach(function (nom) {
@@ -5570,7 +5571,10 @@
     }
 
     /* ---- LES SIX NOMS MUETS MENENT AU CURL ---- */
-    ['Curl spider', 'Curl haltère debout sur banc incliné',
+    /* « Curl spider » est PARTI le 30/10 — trois ecritures disaient le
+       meme nom (Spider curl, Curl spider, Curl araignee) et MB n'en a
+       garde qu'une. On mesure donc celle qui reste. */
+    ['Spider curl', 'Curl haltère debout sur banc incliné',
      'Curl haltère incliné avec rotation', 'Curl allongé à la poulie',
      'Curl overhead avec élastique', 'Waiter curl'
     ].forEach(function (n) {
@@ -5592,7 +5596,7 @@
 
     /* ---- ET AUCUNE FICHE N'A ETE OUVERTE ----
        C'est l'autre moitie du lot, et celle que MB a nommee. */
-    ['Curl spider', 'Curl incliné', 'Waiter curl', 'Drag curl'
+    ['Spider curl', 'Curl incliné', 'Waiter curl', 'Drag curl'
     ].forEach(function (n) {
       v.egal(A.m.DICTIONNAIRE.filter(function (d) { return d.nom === n; }).length, 0,
              '[prix] « ' + n + ' » n’a PAS sa fiche — « Curl biceps » le porte '
@@ -5651,13 +5655,22 @@
     var muets = ['Écartés couché avec haltères', 'Écartés incliné avec haltères',
       'Écartés Hyght', 'Écartés à la poulie vis-à-vis', 'Pec deck',
       'Butterfly à la machine', 'Écartés avec élastique',
-      'Écartés unilatéraux à la landmine', 'Svend press'];
+      /* « SVEND PRESS » N'EST PLUS ICI depuis le 30/10 : la recherche a
+         montre que c'est un DEVELOPPE — les coudes s'etendent, alors que
+         l'ecarte garde l'angle du coude fixe. MB l'a sorti de cette fiche,
+         et il attend la sienne. Le controle juste en dessous mesure qu'il
+         ne mene plus nulle part, ce qui est l'etat VOULU. */
+      'Écartés unilatéraux à la landmine'];
     var ratees = muets.filter(function (n) {
       return (fiche(n) || {}).nom !== 'Écarté';
     });
     v.egal(ratees.join(' · '), '',
            'les noms de la page mènent tous à « Écarté » — ils ne rendaient '
          + 'RIEN, ou « Pectoral » tout seul');
+    v.egal((fiche('Svend press') || {}).nom, undefined,
+           '[prix] et « Svend press » ne mène plus nulle part, depuis que MB '
+         + 'l’a sorti de l’écarté le 30/10 : c’est un développé, et il '
+         + 'attend sa propre fiche. État VOULU, pas oublié');
 
     /* ---- LE DEVELOPPE SERRE N'EST PAS DEDOUBLE ----
        MB : « attention aux doublons ». Il gagne trois ecritures. */
@@ -5725,8 +5738,12 @@
          + 'fiche, il n’en ouvre pas une seconde');
     v.vrai(mus('Seal row avec haltères').indexOf('rhomboides') >= 0,
            '« Seal row avec haltères » mène au rowing — il ne rendait RIEN');
-    v.egal((fiche('Renegade row') || {}).nom, 'Rowing',
-           'et « Renegade row » aussi');
+    /* « RENEGADE ROW » N'EST PLUS SOUS « ROWING » depuis le 30/10 : planche
+       sur deux halteres, unilateral alterne, contre un hinge debout. MB l'a
+       sorti, et il attend sa fiche. */
+    v.egal((fiche('Renegade row') || {}).nom, undefined,
+           '[prix] « Renegade row » ne mène plus au rowing — c’est un autre '
+         + 'exercice, et il attend sa propre fiche. État VOULU');
 
     /* LA CORRECTION QUE LE LOT APPORTE : un rowing RETRACTE l'omoplate, et
        la fiche decrivait la traction du bras sans elle. */
@@ -5804,7 +5821,7 @@
        PRÉSENTES. On les nomme donc une par une. */
     var ATTENDU = {
       'Barre au front': 2, 'Extension verticale des triceps': 2,
-      'Kickback': 2, 'Tate press': 2
+      'Triceps kickback': 2, 'Tate press': 2
     };
     var manquent = [], faux = [];
     Object.keys(ATTENDU).forEach(function (nom) {
@@ -5827,20 +5844,31 @@
     [['Barre au front', 'Barre au front'],
      ['Skull crusher', 'Barre au front'],
      ['Extension nuque', 'Extension verticale des triceps'],
-     ['Kickback', 'Kickback']
+     /* « Kickback » tout court est parti le 30/10 — MB l'a voulu
+        remplace par « Triceps kickback ». Le mot court ne mene donc plus
+        directement a la fiche : ce controle mesure maintenant ce qui RESTE
+        vrai, l'ecriture complete. */
+     ['Kickback triceps', 'Triceps kickback']
     ].forEach(function (p) {
       var f = fiche(p[0]);
       v.egal((f || {}).nom, p[1],
              '« ' + p[0] + ' » mène à « ' + p[1] + ' »');
     });
+    /* LA GARDE AVANT LE NOM. Le 30/10, ce `[0]` a rendu `undefined` apres
+       le renommage de la fiche, et le `.aussi` qui suivait a leve un
+       TypeError qui a emporte TOUT LE BLOC — un bloc muet ne dit pas
+       qu'il est muet. */
     var et = A.m.DICTIONNAIRE.filter(function (d) {
-      return d.nom === 'Extension triceps';
+      return d.nom === 'Extension triceps à la poulie';
     })[0];
-    v.egal((et.aussi || []).join(' · '),
-           'Pushdown · Extension à la poulie · Triceps poulie · '
-         + 'Extension haltère · Triceps corde',
-           'et « Extension triceps » ne garde QUE ce qui lui reste — les '
-         + 'quatre transférées en sont parties');
+    v.vrai(!!et, '[temoin] la fiche des extensions à la poulie existe — sans '
+         + 'elle, tout ce bloc se tairait au lieu de tomber');
+    v.egal(((et || {}).aussi || []).join(' · '),
+           'Extension triceps · Pushdown · Extension à la poulie · '
+         + 'Triceps poulie · Extension haltère · Triceps corde',
+           'et la fiche ne garde QUE ce qui lui reste — les quatre '
+         + 'transférées en sont parties, et l’ancien nom « Extension '
+         + 'triceps » y est redevenu une écriture le 30/10');
 
     /* ---- CE QUE LE CARNET REND MAINTENANT, ET QU'IL RENDAIT MAL ---- */
     v.egal(mus('Tate press'), 'ancone,triceps',
@@ -5854,8 +5882,11 @@
        VRAIMENT rien. */
     v.egal(mus('Extension arrière'), 'ancone,triceps',
            '« Extension arrière » rend les triceps — il ne rendait RIEN');
-    v.egal(mus('Barre front'), 'ancone,triceps',
-           'et « Barre front » non plus ne rendait rien');
+    /* « Barre front » est PARTI le 30/10 : c'etait « Barre au front » sans
+       le « au ». Le nom complet, lui, repond toujours. */
+    v.egal(mus('Barre au front'), 'ancone,triceps',
+           'et « Barre au front » répond — c’est son écriture courte qui est '
+         + 'partie, pas la fiche');
     v.egal(mus('Tate press à un bras avec haltère'), 'ancone,triceps',
            'la seconde écriture du Tate press rendait elle aussi « Pectoral »');
     v.egal(mus('Extensions verticales à la poulie haute'), 'ancone,triceps',
