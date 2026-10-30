@@ -46,6 +46,21 @@
   .vc-marque { color: #e0b46c; font-size: .9em; }
   .vc-puce.vc-vire .vc-marque { color: #ffd9d9; }
   .vc-note { padding: 0 12px 10px; font-size: .8rem; color: #e0b46c; }
+  /* --- RENOMMER --- */
+  .vc-nom { background: none; border: 1px solid transparent; border-radius: 6px;
+            color: var(--texte); font: inherit; font-weight: 700;
+            font-size: .95rem; padding: 2px 7px; min-width: 180px; }
+  .vc-nom:hover { border-color: var(--trait); }
+  .vc-nom:focus { border-color: var(--laiton); outline: none;
+                  background: var(--fond); }
+  .vc-nom.vc-change { border-color: var(--laiton); color: var(--laiton); }
+  .vc-puce.vc-renomme { border-color: var(--laiton); color: var(--laiton);
+                        font-weight: 600; }
+  .vc-champ { background: var(--fond); border: 1px solid var(--laiton);
+              border-radius: 999px; color: var(--texte); font: inherit;
+              font-size: .82rem; padding: 3px 11px; min-width: 150px; }
+  .vc-avant { font-size: .78rem; color: var(--texte-2); }
+  .vc-mode { font-size: .8rem; color: var(--laiton); }
   .vc-sortie { max-width: 1180px; margin: 18px auto 0; }
   .vc-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
   .vc-sortie textarea { width: 100%; height: 200px; background: var(--fond-2);
@@ -88,6 +103,7 @@
   <button type="button" class="vc-bt" id="vcSusp">Seulement les suspectes</button>
   <button type="button" class="vc-bt" id="vcCoche">Ce que j’ai coché</button>
   <button type="button" class="vc-bt" id="vcToutSusp">Cocher toutes les suspectes</button>
+  <button type="button" class="vc-bt" id="vcRenommer">✎ Renommer les variantes</button>
   <span class="vc-compte" id="vcCompte"></span>
 </div>
 
@@ -123,9 +139,23 @@
     return e;
   }
 
-  var vires = {};
-  try { vires = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) { vires = {}; }
-  function garder() { try { localStorage.setItem(CLE, JSON.stringify(vires)); } catch (e) {} }
+  /* QUATRE REGISTRES, et un seul endroit où ils s'écrivent.
+     MB, 30/10 : « donne moi la possibilité de renommer l'exercice aussi »
+     puis « et de créer une variante également ». */
+  var D = { vires: {}, renommes: {}, fiches: {}, ajoutees: {} };
+  try {
+    var lu = JSON.parse(localStorage.getItem(CLE) || '{}') || {};
+    /* L'ANCIENNE FORME ÉTAIT UN SIMPLE DICTIONNAIRE de barrés : si on la
+       trouve, on la reprend au lieu de la jeter. */
+    if (lu.vires || lu.renommes || lu.fiches || lu.ajoutees) {
+      D.vires = lu.vires || {}; D.renommes = lu.renommes || {};
+      D.fiches = lu.fiches || {}; D.ajoutees = lu.ajoutees || {};
+    } else { D.vires = lu; }
+  } catch (e) {}
+  var vires = D.vires;
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(D)); } catch (e) {} }
+
+  var modeRenommer = false;
 
   /* ========== REPÉRER LES SUSPECTES ==========
      Deux écritures d'une MÊME fiche qui disent la même chose une fois les
@@ -201,33 +231,83 @@
       if (!visible(f)) return;
       nf++;
       var bloc = h('div', { class: 'vc-fiche' });
-      var reste = (f.aussi || []).filter(function (e) {
+      var ajout = D.ajoutees[f.nom] || [];
+      var toutes = (f.aussi || []).concat(ajout);
+      var reste = toutes.filter(function (e) {
         return !vires[f.nom + ' § ' + e];
       }).length;
-      var t = h('h2', {}, [document.createTextNode(f.nom)]);
-      t.appendChild(h('small', { text: reste + ' / ' + (f.aussi || []).length
+
+      /* LE NOM DE L'EXERCICE SE RENOMME, et c'est un champ, pas un bouton :
+         on tape dedans. Il se marque dès qu'il diffère de l'original. */
+      var t = h('h2', {});
+      var champNom = h('input', { class: 'vc-nom', type: 'text',
+        value: D.fiches[f.nom] || f.nom,
+        title: 'renomme l’exercice' });
+      if (D.fiches[f.nom] && D.fiches[f.nom] !== f.nom) {
+        champNom.className = 'vc-nom vc-change';
+      }
+      champNom.addEventListener('input', function () {
+        var v = champNom.value.trim();
+        if (!v || v === f.nom) delete D.fiches[f.nom];
+        else D.fiches[f.nom] = v;
+        champNom.className = D.fiches[f.nom] ? 'vc-nom vc-change' : 'vc-nom';
+        garder(); majSortie(); majCompte();
+      });
+      t.appendChild(champNom);
+      if (D.fiches[f.nom]) {
+        t.appendChild(h('span', { class: 'vc-avant', text: '← ' + f.nom }));
+      }
+      t.appendChild(h('small', { text: reste + ' / ' + toutes.length
                                + ' variante(s) gardée(s)' }));
       bloc.appendChild(t);
 
       var puces = h('div', { class: 'vc-puces' });
       var notes = [], vusNote = [];
-      (f.aussi || []).forEach(function (e) {
+      toutes.forEach(function (e) {
         var id = f.nom + ' § ' + e;
         var susp = SUSPECT[id];
+        var neuve = ajout.indexOf(e) >= 0;
+        var nouveauNom = D.renommes[id];
         var classes = ['vc-puce'];
         if (susp) classes.push('vc-suspect');
+        if (nouveauNom) classes.push('vc-renomme');
+        if (neuve) classes.push('vc-renomme');
         if (vires[id]) classes.push('vc-vire');
-        var b = h('button', { type: 'button', class: classes.join(' '),
-          title: susp ? 'dit la même chose que : ' + susp.join(', ')
-                      : 'clique pour la faire disparaître' });
-        b.appendChild(document.createTextNode(e));
-        if (susp) b.appendChild(h('span', { class: 'vc-marque', text: ' △' }));
-        b.addEventListener('click', function () {
-          if (vires[id]) delete vires[id];
-          else vires[id] = { fiche: f.nom, ecriture: e };
-          garder(); rendre();
-        });
-        puces.appendChild(b);
+
+        /* EN MODE RENOMMER, la puce devient un champ. C'est un MODE et non
+           un petit crayon par puce : il y en a 298, et 298 crayons de plus
+           seraient illisibles. */
+        if (modeRenommer && !vires[id]) {
+          var c = h('input', { class: 'vc-champ', type: 'text',
+            value: nouveauNom || e, title: 'était : ' + e });
+          c.addEventListener('input', function () {
+            var v = c.value.trim();
+            if (!v || v === e) delete D.renommes[id];
+            else D.renommes[id] = { fiche: f.nom, avant: e, apres: v };
+            garder(); majSortie(); majCompte();
+          });
+          puces.appendChild(c);
+        } else {
+          var b = h('button', { type: 'button', class: classes.join(' '),
+            title: (nouveauNom ? 'renommée, était « ' + e + ' » — ' : '')
+                 + (neuve ? 'ajoutée par toi — ' : '')
+                 + (susp ? 'dit la même chose que : ' + susp.join(', ')
+                         : 'clique pour la faire disparaître') });
+          b.appendChild(document.createTextNode(
+            nouveauNom ? nouveauNom.apres : e));
+          if (susp) b.appendChild(h('span', { class: 'vc-marque', text: ' △' }));
+          b.addEventListener('click', function () {
+            if (neuve) {
+              /* une variante ajoutée se RETIRE, elle ne se barre pas */
+              D.ajoutees[f.nom] = ajout.filter(function (x) { return x !== e; });
+              if (!D.ajoutees[f.nom].length) delete D.ajoutees[f.nom];
+            } else if (vires[id]) { delete vires[id]; }
+            else { vires[id] = { fiche: f.nom, ecriture: e }; }
+            garder(); rendre();
+          });
+          puces.appendChild(b);
+        }
+
         /* CHAQUE PAIRE UNE SEULE FOIS. La première version écrivait les
            deux sens — « A = B · B = A » — et la note doublait de longueur
            pour ne rien dire de plus. On indexe donc par le groupe, pas par
@@ -238,6 +318,35 @@
           notes.push('« ' + [e].concat(susp).join(' » = « ') + ' »');
         }
       });
+
+      /* AJOUTER UNE VARIANTE : un champ qui ne s'ouvre qu'au clic, pour ne
+         pas poser 61 champs vides dans la page. */
+      var plus = h('button', { class: 'vc-bt', type: 'button',
+                               text: '+ variante', style: 'font-size:.8rem' });
+      var zoneAjout = h('span');
+      plus.addEventListener('click', function () {
+        if (zoneAjout.firstChild) { zoneAjout.innerHTML = ''; return; }
+        var c = h('input', { class: 'vc-champ', type: 'text',
+                             placeholder: 'nom de la variante…' });
+        var ok = h('button', { class: 'vc-bt', type: 'button', text: 'Ajouter',
+                               style: 'font-size:.8rem' });
+        function ajouter() {
+          var v = c.value.trim();
+          if (!v) return;
+          if (toutes.indexOf(v) >= 0) { ok.textContent = 'déjà là'; return; }
+          D.ajoutees[f.nom] = (D.ajoutees[f.nom] || []).concat([v]);
+          garder(); rendre();
+        }
+        ok.addEventListener('click', ajouter);
+        c.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter') ajouter();
+        });
+        zoneAjout.appendChild(c);
+        zoneAjout.appendChild(ok);
+        c.focus();
+      });
+      puces.appendChild(plus);
+      puces.appendChild(zoneAjout);
       bloc.appendChild(puces);
       if (notes.length) {
         bloc.appendChild(h('div', { class: 'vc-note',
@@ -247,10 +356,7 @@
     });
     if (!nf) z.appendChild(h('p', { class: 'vc-compte', text: 'Rien ici.' }));
 
-    var n = Object.keys(vires).length;
-    var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
-    document.getElementById('vcCompte').innerHTML =
-      nf + ' mouvement(s) affiché(s) · <b>' + n + '</b> coché(e)s sur ' + tot;
+    majCompte(nf);
     [['tous','vcTous'],['susp','vcSusp'],['coche','vcCoche']].forEach(function (p) {
       document.getElementById(p[1]).setAttribute('aria-pressed',
         filtre === p[0] ? 'true' : 'false');
@@ -258,23 +364,75 @@
     majSortie();
   }
 
+  /* LE COMPTEUR A SA PROPRE FONCTION. Il etait calcule DANS le rendu, donc
+     il ne bougeait pas quand on tapait un nom — on renommait, et l'ecran
+     disait encore « 0 renommee ». Le rendu complet, lui, ne peut pas etre
+     rejoue a chaque frappe : il ferait perdre le focus du champ. */
+  var dernierNf = 0;
+  function majCompte(nf) {
+    if (typeof nf === 'number') dernierNf = nf;
+    var n = Object.keys(vires).length;
+    var nR = Object.keys(D.renommes).length + Object.keys(D.fiches).length;
+    var nA = 0; Object.keys(D.ajoutees).forEach(function (k) { nA += D.ajoutees[k].length; });
+    var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
+    document.getElementById('vcCompte').innerHTML =
+      dernierNf + ' mouvement(s) · <b>' + n + '</b> supprimée(s) sur ' + tot
+      + ' · <b>' + nR + '</b> renommée(s) · <b>' + nA + '</b> ajoutée(s)'
+      + (modeRenommer ? ' <span class="vc-mode">— mode RENOMMER : tape dans '
+                      + 'les champs</span>' : '');
+  }
+
+  /* LA SORTIE DIT LES TROIS GESTES SÉPARÉMENT. Les mélanger obligerait à
+     relire chaque ligne pour savoir ce qu'elle demande. */
   function majSortie() {
+    var l = [];
+
     var par = {};
     Object.keys(vires).forEach(function (k) {
       var d = vires[k];
       (par[d.fiche] = par[d.fiche] || []).push(d.ecriture);
     });
     var noms = Object.keys(par).sort();
-    if (!noms.length) {
-      document.getElementById('vcJson').value =
-        'Rien de coché. Clique une variante pour la faire disparaître.';
-      return;
+    if (noms.length) {
+      l.push('### À SUPPRIMER');
+      noms.forEach(function (n) {
+        l.push('- ' + n + ' : ' + par[n].map(function (e) {
+          return '« ' + e + ' »'; }).join(', '));
+      });
+      l.push('');
     }
-    var l = [];
-    noms.forEach(function (n) {
-      l.push('- ' + n + ' : ' + par[n].map(function (e) { return '« ' + e + ' »'; }).join(', '));
-    });
-    document.getElementById('vcJson').value = l.join('\n');
+
+    var rf = Object.keys(D.fiches).sort();
+    if (rf.length) {
+      l.push('### EXERCICES À RENOMMER');
+      rf.forEach(function (n) {
+        l.push('- « ' + n +' »  →  « ' + D.fiches[n] + ' »');
+      });
+      l.push('');
+    }
+
+    var rv = Object.keys(D.renommes);
+    if (rv.length) {
+      l.push('### VARIANTES À RENOMMER');
+      rv.forEach(function (k) {
+        var d = D.renommes[k];
+        l.push('- ' + d.fiche + ' : « ' + d.avant + ' »  →  « ' + d.apres + ' »');
+      });
+      l.push('');
+    }
+
+    var aj = Object.keys(D.ajoutees).sort();
+    if (aj.length) {
+      l.push('### VARIANTES À AJOUTER');
+      aj.forEach(function (n) {
+        l.push('- ' + n + ' : ' + D.ajoutees[n].map(function (e) {
+          return '« ' + e + ' »'; }).join(', '));
+      });
+    }
+
+    document.getElementById('vcJson').value = l.length ? l.join('\n')
+      : 'Rien pour l’instant. Clique une variante pour la supprimer, tape '
+      + 'dans un nom pour le renommer, ou « + variante » pour en créer une.';
   }
 
   document.getElementById('vcTous').addEventListener('click', function () { filtre='tous'; rendre(); });
@@ -305,8 +463,16 @@
     t.setAttribute('readonly', 'readonly');
     document.getElementById('vcEtat').textContent = 'copié.';
   });
+  document.getElementById('vcRenommer').addEventListener('click', function () {
+    modeRenommer = !modeRenommer;
+    document.getElementById('vcRenommer').setAttribute('aria-pressed',
+      modeRenommer ? 'true' : 'false');
+    rendre();
+  });
   document.getElementById('vcVider').addEventListener('click', function () {
-    vires = {}; garder(); rendre();
+    D.vires = {}; D.renommes = {}; D.fiches = {}; D.ajoutees = {};
+    vires = D.vires;
+    garder(); rendre();
     document.getElementById('vcEtat').textContent = '';
   });
 
