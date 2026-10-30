@@ -4529,11 +4529,15 @@
          + 'deviner ferait basculer des séries passées');
 
     var avec = fiches().filter(function (d) { return d.colonnes; });
-    v.egal(avec.length, 2,
-           'DEUX fiches seulement portent des colonnes, et les 44 autres '
+    /* TROIS depuis le 30/10 : « Farmer walk » a sa fiche, et un port de
+       charge se note en charge + durée comme les deux tenues. */
+    v.egal(avec.length, 3,
+           'TROIS fiches portent des colonnes, et les autres '
          + 'gardent le défaut');
     v.egal(avec.map(function (d) { return d.nom; }).sort().join(', '),
-           'Cup hold, Dead hang', 'et ce sont bien celles-là');
+           'Cup hold, Dead hang, Farmer walk',
+           'et ce sont bien celles-là — les deux tenues, plus le port de '
+         + 'charge arrivé le 30/10');
   });
 
   bloc('Ce que le carnet remarque', function (v) {
@@ -5669,8 +5673,10 @@
          + 'RIEN, ou « Pectoral » tout seul');
     v.egal((fiche('Svend press') || {}).nom, undefined,
            '[prix] et « Svend press » ne mène plus nulle part, depuis que MB '
-         + 'l’a sorti de l’écarté le 30/10 : c’est un développé, et il '
-         + 'attend sa propre fiche. État VOULU, pas oublié');
+         + 'l’a sorti de l’écarté le 30/10 : c’est un développé. ET IL N’AURA '
+         + 'PAS DE FICHE — aucune EMG n’existe, StrengthLog n’a même pas de '
+         + 'page, et MB a tranché « pas de fiche » plutôt que d’inventer des '
+         + 'muscles. État VOULU, pas oublié');
 
     /* ---- LE DEVELOPPE SERRE N'EST PAS DEDOUBLE ----
        MB : « attention aux doublons ». Il gagne trois ecritures. */
@@ -5743,7 +5749,9 @@
        sorti, et il attend sa fiche. */
     v.egal((fiche('Renegade row') || {}).nom, undefined,
            '[prix] « Renegade row » ne mène plus au rowing — c’est un autre '
-         + 'exercice, et il attend sa propre fiche. État VOULU');
+         + 'exercice. ET IL N’AURA PAS DE FICHE : PubMed rend ZERO résultat '
+         + 'sur ce nom, aucune EMG n’existe, et MB a tranché « pas de fiche ». '
+         + 'État VOULU');
 
     /* LA CORRECTION QUE LE LOT APPORTE : un rowing RETRACTE l'omoplate, et
        la fiche decrivait la traction du bras sans elle. */

@@ -1374,10 +1374,37 @@
       muscles: ['flechisseurs_doigts', 'court_flechisseur_auriculaire'] },
     /* Pendu à la barre ou marche du fermier : on tient, on ne répète pas. */
     { nom: 'Dead hang', groupe: 'avant_bras', colonnes: ['charge', 'duree'],
-      aussi: ['Tenue à la barre', 'Suspension',               ],
+      aussi: ['Tenue à la barre', 'Suspension'],
       muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
                 'court_flechisseur_pouce', 'adducteur_pouce',
                 'court_flechisseur_auriculaire', 'lombricaux'] },
+    /* SA PROPRE FICHE depuis le 2026-10-30, et c'est MB qui l'a demande :
+       « Farmer walk » etait range sous « Dead hang », alors que c'est un
+       port de charge EN MARCHANT — rien ne le rattache au suspendu sinon
+       la prise tenue.
+
+       CE QUE LE CARNET NE PEUT PAS PORTER, et il faut le savoir en lisant
+       cette liste : les muscles les MIEUX mesures de cet exercice sont ceux
+       du TRONC — multifide, longissimus, oblique externe, grand droit — et
+       le moyen fessier. Deux etudes relues les chiffrent (Decker 2026,
+       Ellestad 2024). Le carnet ne les connait pas : il s'arrete au haut du
+       corps. La fiche est donc INCOMPLETE par construction, et la dette est
+       inscrite dans CHANTIERS.md.
+
+       LES PALIERS, et ils sont inegaux : le TRAPEZE et le DELTOIDE viennent
+       d'une etude relue qui les chiffre (Decker 2026 : 32,4 et 11,9 %MVIC).
+       Les SIX AUTRES viennent d'un RESUME DE CONGRES unique (Hassan 2025),
+       qui mesure le membre superieur sans publier toutes ses valeurs. C'est
+       un palier plus faible que le reste du dictionnaire, et la fiche de
+       revue le dit. */
+    { nom: 'Farmer walk', groupe: 'avant_bras', colonnes: ['charge', 'duree'],
+      aussi: ['Marche du fermier', 'Farmers walk', 'Port de charge',
+              'Loaded carry'],
+      /* L'ORDRE EST CELUI DE LA TABLE MUSCLES, et c'est le banc qui me l'a
+         dit : « toutes les entrees suivent l'ordre de MUSCLES ». Ma
+         premiere liste partait de la main vers l'epaule. */
+      muscles: ['trapeze', 'deltoide', 'supra_epineux', 'biceps', 'triceps',
+                'fcr', 'fcu', 'flechisseurs_doigts', 'extenseurs_doigts'] },
 
     /* LOT 3 — les exercices de table, validé le 2026-10-23.
        MB : « lot 3 = les exercices qui entrainent les gestes de table. Les

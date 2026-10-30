@@ -460,6 +460,22 @@ a trois lecteurs (Réglages, la séance, le Journal).
 
 Petites, nommées, et qui ne demandent qu'une décision.
 
+- **LE FARMER WALK EST INCOMPLET PAR CONSTRUCTION, et il faut le savoir en
+  lisant sa fiche.** Les muscles les MIEUX mesurés de cet exercice sont ceux du
+  **tronc** — multifide, longissimus, oblique externe, grand droit — plus le
+  **moyen fessier**. Deux études relues les chiffrent (Decker 2026 ; Ellestad
+  2024). **Le carnet ne connaît aucun des cinq** : il s'arrête au haut du corps.
+  Sa fiche ne porte donc que les neuf muscles que le carnet sait nommer. — **Et
+  les paliers y sont inégaux** : le trapèze et le deltoïde viennent d'une étude
+  relue qui les chiffre (32,4 et 11,9 %MVIC) ; **les six autres d'un résumé de
+  congrès unique** (Hassan 2025), palier plus faible que le reste du
+  dictionnaire.
+- **RENEGADE ROW ET SVEND PRESS N'ONT PAS DE FICHE**, décision de MB le 30/10,
+  et la raison est qu'**aucune source ne les mesure**. PubMed rend **zéro
+  résultat** sur « renegade row » ; StrengthLog n'a même pas de page pour le
+  Svend press (404). Les deux noms ont quitté leurs fiches d'origine — ils ne
+  mènent donc plus nulle part, et c'est l'état **voulu**. Deux contrôles
+  `[prix]` du banc le gardent.
 - **L'HEURE LOCALE CONTRE L'HEURE UTC — trouvé à 00h01 le 30/10**, par le
   banc, sans qu'un seul fichier de l'app ait été touché : il est passé de
   **1576/1576 à 1574/1576** au passage de minuit. `aujourdHui()` rend une date
