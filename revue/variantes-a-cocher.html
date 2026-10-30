@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les variantes — cocher ce qui doit disparaître</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .vc-tete { max-width: 1180px; margin: 0 auto 14px; }
+  .vc-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .vc-tete p { margin: 5px 0; font-size: .9rem; color: var(--texte-2); }
+  .vc-tete b { color: var(--texte); }
+  .vc-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .vc-barre { max-width: 1180px; margin: 12px auto; display: flex;
+              flex-wrap: wrap; gap: 8px; align-items: center; }
+  .vc-bt { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .84rem; padding: 5px 12px; cursor: pointer; }
+  .vc-bt:hover { border-color: var(--laiton); color: var(--laiton); }
+  .vc-bt[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .vc-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .86rem; padding: 5px 10px; width: 190px; }
+  .vc-compte { font-size: .84rem; color: var(--texte-2); }
+  .vc-compte b { color: var(--laiton); }
+  .vc-corps { max-width: 1180px; margin: 0 auto; }
+  .vc-fiche { border: 1px solid var(--trait); border-radius: 10px;
+              background: var(--fond-2); margin-bottom: 10px; overflow: hidden; }
+  .vc-fiche > h2 { margin: 0; font-size: .95rem; padding: 8px 12px;
+                   background: var(--fond-3); display: flex; gap: 10px;
+                   align-items: baseline; }
+  .vc-fiche > h2 small { margin-left: auto; color: var(--texte-2);
+                         font-size: .78rem; font-weight: 400; }
+  .vc-puces { padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .vc-puce { background: var(--fond); border: 1px solid var(--trait);
+             border-radius: 999px; color: var(--texte); font: inherit;
+             font-size: .82rem; padding: 3px 11px; cursor: pointer; }
+  .vc-puce:hover { border-color: var(--laiton); }
+  .vc-puce.vc-suspect { border-color: #e0b46c; }
+  .vc-puce.vc-vire { background: #7a3b3b; border-color: #e06c6c;
+                     color: #ffd9d9; text-decoration: line-through; }
+  .vc-marque { color: #e0b46c; font-size: .9em; }
+  .vc-puce.vc-vire .vc-marque { color: #ffd9d9; }
+  .vc-note { padding: 0 12px 10px; font-size: .8rem; color: #e0b46c; }
+  .vc-sortie { max-width: 1180px; margin: 18px auto 0; }
+  .vc-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
+  .vc-sortie textarea { width: 100%; height: 200px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+  .vc-leg { font-size: .84rem; color: var(--texte-2); max-width: 1180px;
+            margin: 0 auto 10px; }
+  .vc-leg i { font-style: normal; border: 1px solid var(--trait);
+              border-radius: 999px; padding: 1px 8px; font-size: .8rem; }
+  .vc-leg i.vc-suspect { border-color: #e0b46c; }
+  .vc-leg i.vc-vire { background: #7a3b3b; border-color: #e06c6c;
+                      color: #ffd9d9; text-decoration: line-through; }
+</style>
+</head>
+<body>
+
+<div class="vc-tete">
+  <h1>Les variantes — coche ce qui doit disparaître</h1>
+  <p class="vc-cite">« Ya des choses qui ne vont pas, je vois des doublons
+     pour le même exo, qui sont considérés comme des variantes. Tu vas me
+     faire une simulation et je vais cocher tout ce qui doit disparaître qui
+     ne sont pas des variantes. »</p>
+  <p><b>Ce sont les écritures réelles du carnet</b>, celles qui s’affichent
+     en puces sous le nom quand tu prends une fiche. <b>Rien n’est appliqué
+     ici</b> : tu coches, tu copies, je supprime.</p>
+  <p id="vcQuoi"></p>
+</div>
+
+<p class="vc-leg">
+  <i>Curl barre</i> une variante, elle reste &nbsp;·&nbsp;
+  <i class="vc-suspect">Cable curl △</i> <b>suspecte</b> — une autre écriture
+  de la même fiche dit la même chose une fois traduite &nbsp;·&nbsp;
+  <i class="vc-vire">Curl EZ</i> cochée, elle disparaît.
+</p>
+
+<div class="vc-barre">
+  <input type="search" id="vcQ" placeholder="chercher un mouvement…">
+  <button type="button" class="vc-bt" id="vcTous">Tous</button>
+  <button type="button" class="vc-bt" id="vcSusp">Seulement les suspectes</button>
+  <button type="button" class="vc-bt" id="vcCoche">Ce que j’ai coché</button>
+  <button type="button" class="vc-bt" id="vcToutSusp">Cocher toutes les suspectes</button>
+  <span class="vc-compte" id="vcCompte"></span>
+</div>
+
+<div class="vc-corps" id="vcCorps"></div>
+
+<div class="vc-sortie">
+  <h2>Ce qui doit disparaître</h2>
+  <div class="vc-barre" style="margin-top:0">
+    <button type="button" class="vc-bt" id="vcCopier">Copier</button>
+    <button type="button" class="vc-bt" id="vcVider">Tout décocher</button>
+    <span class="vc-compte" id="vcEtat"></span>
+  </div>
+  <textarea id="vcJson" readonly></textarea>
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store;
+  var CLE = 'carnet-aw-variantes-a-virer';
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  var vires = {};
+  try { vires = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) { vires = {}; }
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(vires)); } catch (e) {} }
+
+  /* ========== REPÉRER LES SUSPECTES ==========
+     Deux écritures d'une MÊME fiche qui disent la même chose une fois les
+     mots traduits et remis dans l'ordre. « Curl à la poulie » et « Cable
+     curl » : même geste, deux langues.
+
+     CE N'EST QU'UN REPÈRE, et il en rate. « Curl barre EZ » contre « Curl
+     EZ » ne tombe pas dans le même panier, parce que l'un porte un mot de
+     plus. C'est pour ça que la page montre TOUT, et pas seulement ce que
+     cette règle attrape. */
+  var VIDES = { de:1,du:1,des:1,la:1,le:1,les:1,l:1,a:1,au:1,aux:1,en:1,
+                avec:1,sur:1,d:1,et:1,un:1,une:1,the:1,with:1,of:1,to:1,in:1,'':1 };
+  var TRAD = { cable:'poulie', pulley:'poulie', dumbbell:'haltere',
+               barbell:'barre', bar:'barre', band:'elastique',
+               incline:'incline', decline:'decline', seated:'assis',
+               standing:'debout', reverse:'inverse', close:'serre',
+               wide:'large', press:'developpe', row:'rowing',
+               raise:'elevation', hold:'tenue', shrug:'haussement',
+               pushdown:'extension', fly:'ecarte', neutral:'neutre',
+               overhead:'vertical', lying:'couche', machine:'machine' };
+  function sa(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function norm(t) {
+    return sa(t).replace(/[^a-z0-9]+/g, ' ').trim().split(' ')
+      .filter(function (w) { return w && !VIDES[w]; })
+      .map(function (w) { w = w.replace(/s$/, ''); return TRAD[w] || w; })
+      .sort().join(' ');
+  }
+
+  var fiches = m.fichesDuDictionnaire(S.vide(), '').filter(function (f) {
+    return (f.aussi || []).length > 0;
+  });
+
+  /* pour chaque fiche : les groupes d'écritures qui se ressemblent */
+  var SUSPECT = {};          // "fiche § écriture" -> l'autre écriture
+  fiches.forEach(function (f) {
+    var par = {};
+    (f.aussi || []).forEach(function (e) {
+      var k = norm(e);
+      (par[k] = par[k] || []).push(e);
+    });
+    Object.keys(par).forEach(function (k) {
+      if (par[k].length < 2) return;
+      par[k].forEach(function (e) {
+        SUSPECT[f.nom + ' § ' + e] = par[k].filter(function (x) { return x !== e; });
+      });
+    });
+  });
+
+  var filtre = 'tous', recherche = '';
+
+  function visible(f) {
+    if (recherche) {
+      var q = m.slug(recherche);
+      if (m.slug(f.nom).indexOf(q) < 0
+          && !(f.aussi || []).some(function (e) { return m.slug(e).indexOf(q) >= 0; })) {
+        return false;
+      }
+    }
+    if (filtre === 'susp') {
+      return (f.aussi || []).some(function (e) { return SUSPECT[f.nom + ' § ' + e]; });
+    }
+    if (filtre === 'coche') {
+      return (f.aussi || []).some(function (e) { return vires[f.nom + ' § ' + e]; });
+    }
+    return true;
+  }
+
+  function rendre() {
+    var z = document.getElementById('vcCorps');
+    z.innerHTML = '';
+    var nf = 0;
+    fiches.forEach(function (f) {
+      if (!visible(f)) return;
+      nf++;
+      var bloc = h('div', { class: 'vc-fiche' });
+      var reste = (f.aussi || []).filter(function (e) {
+        return !vires[f.nom + ' § ' + e];
+      }).length;
+      var t = h('h2', {}, [document.createTextNode(f.nom)]);
+      t.appendChild(h('small', { text: reste + ' / ' + (f.aussi || []).length
+                               + ' variante(s) gardée(s)' }));
+      bloc.appendChild(t);
+
+      var puces = h('div', { class: 'vc-puces' });
+      var notes = [], vusNote = [];
+      (f.aussi || []).forEach(function (e) {
+        var id = f.nom + ' § ' + e;
+        var susp = SUSPECT[id];
+        var classes = ['vc-puce'];
+        if (susp) classes.push('vc-suspect');
+        if (vires[id]) classes.push('vc-vire');
+        var b = h('button', { type: 'button', class: classes.join(' '),
+          title: susp ? 'dit la même chose que : ' + susp.join(', ')
+                      : 'clique pour la faire disparaître' });
+        b.appendChild(document.createTextNode(e));
+        if (susp) b.appendChild(h('span', { class: 'vc-marque', text: ' △' }));
+        b.addEventListener('click', function () {
+          if (vires[id]) delete vires[id];
+          else vires[id] = { fiche: f.nom, ecriture: e };
+          garder(); rendre();
+        });
+        puces.appendChild(b);
+        /* CHAQUE PAIRE UNE SEULE FOIS. La première version écrivait les
+           deux sens — « A = B · B = A » — et la note doublait de longueur
+           pour ne rien dire de plus. On indexe donc par le groupe, pas par
+           l'écriture. */
+        var cle = norm(e);
+        if (susp && vusNote.indexOf(cle) < 0) {
+          vusNote.push(cle);
+          notes.push('« ' + [e].concat(susp).join(' » = « ') + ' »');
+        }
+      });
+      bloc.appendChild(puces);
+      if (notes.length) {
+        bloc.appendChild(h('div', { class: 'vc-note',
+          text: '△ ' + notes.join('  ·  ') }));
+      }
+      z.appendChild(bloc);
+    });
+    if (!nf) z.appendChild(h('p', { class: 'vc-compte', text: 'Rien ici.' }));
+
+    var n = Object.keys(vires).length;
+    var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
+    document.getElementById('vcCompte').innerHTML =
+      nf + ' mouvement(s) affiché(s) · <b>' + n + '</b> coché(e)s sur ' + tot;
+    [['tous','vcTous'],['susp','vcSusp'],['coche','vcCoche']].forEach(function (p) {
+      document.getElementById(p[1]).setAttribute('aria-pressed',
+        filtre === p[0] ? 'true' : 'false');
+    });
+    majSortie();
+  }
+
+  function majSortie() {
+    var par = {};
+    Object.keys(vires).forEach(function (k) {
+      var d = vires[k];
+      (par[d.fiche] = par[d.fiche] || []).push(d.ecriture);
+    });
+    var noms = Object.keys(par).sort();
+    if (!noms.length) {
+      document.getElementById('vcJson').value =
+        'Rien de coché. Clique une variante pour la faire disparaître.';
+      return;
+    }
+    var l = [];
+    noms.forEach(function (n) {
+      l.push('- ' + n + ' : ' + par[n].map(function (e) { return '« ' + e + ' »'; }).join(', '));
+    });
+    document.getElementById('vcJson').value = l.join('\n');
+  }
+
+  document.getElementById('vcTous').addEventListener('click', function () { filtre='tous'; rendre(); });
+  document.getElementById('vcSusp').addEventListener('click', function () { filtre='susp'; rendre(); });
+  document.getElementById('vcCoche').addEventListener('click', function () { filtre='coche'; rendre(); });
+  document.getElementById('vcQ').addEventListener('input', function (e) {
+    recherche = e.target.value; rendre();
+  });
+  document.getElementById('vcToutSusp').addEventListener('click', function () {
+    /* On coche la SECONDE de chaque paire, pas les deux : sinon le geste
+       disparaîtrait tout entier. La première reste, et MB peut inverser. */
+    var vus = {};
+    fiches.forEach(function (f) {
+      (f.aussi || []).forEach(function (e) {
+        var id = f.nom + ' § ' + e;
+        if (!SUSPECT[id]) return;
+        var cle = f.nom + '|' + norm(e);
+        if (!vus[cle]) { vus[cle] = 1; return; }   // la première reste
+        vires[id] = { fiche: f.nom, ecriture: e };
+      });
+    });
+    garder(); rendre();
+  });
+  document.getElementById('vcCopier').addEventListener('click', function () {
+    var t = document.getElementById('vcJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('vcEtat').textContent = 'copié.';
+  });
+  document.getElementById('vcVider').addEventListener('click', function () {
+    vires = {}; garder(); rendre();
+    document.getElementById('vcEtat').textContent = '';
+  });
+
+  var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
+  var nSusp = Object.keys(SUSPECT).length;
+  document.getElementById('vcQuoi').innerHTML =
+    '<b>' + tot + ' écritures</b> sur <b>' + fiches.length + ' mouvements</b>. '
+    + '<b>' + nSusp + '</b> portent le repère △ : une autre écriture de la même '
+    + 'fiche dit la même chose une fois traduite. <b>Ce repère en rate</b> — '
+    + '« Curl barre EZ » contre « Curl EZ » lui échappe, parce que l’un porte '
+    + 'un mot de plus. C’est pour ça que tout est montré.';
+
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>
