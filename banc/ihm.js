@@ -3379,6 +3379,116 @@
     });
   });
 
+  bloc('Les variantes sous le nom', function (v, h) {
+    /* MB, 30/10, apres avoir essaye le carnet : « dans Curl Biceps, je vois
+       17 autres noms, comment les selectionner une fois que j'ai clique sur
+       Curl Biceps, c'est ca que je veux faire ».
+
+       CE BLOC N'EXISTAIT PAS quand la fonctionnalite a ete ecrite, et les
+       deux bancs sont restes VERTS — ils ne la mesuraient pas. */
+    var fen = h.fen, doc = h.doc;
+
+    function refermerTout() {
+      Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+        var x = p.querySelector('.panneau-entete .bt-icone');
+        if (x) x.click();
+      });
+    }
+    function champNom() {
+      return Array.prototype.filter.call(doc.querySelectorAll('input.champ'),
+        function (i) { return /Curl marteau/.test(i.placeholder || ''); })[0];
+    }
+    function puces() {
+      return Array.prototype.slice.call(doc.querySelectorAll('.dico-variante'));
+    }
+    function texte(b) { return b.textContent; }
+
+    var exo = fen.App.m.exerciceSeanceVierge({ nom: 'Curl biceps' });
+    fen.App.panneau.editerExercice(exo, { titre: 'Banc' }, function () {});
+
+    return attendre(260).then(function () {
+      var p = puces();
+      /* LE COMPTE EST LU DANS LE DICTIONNAIRE, pas ecrit en dur : le jour ou
+         une ecriture part, ce controle suit au lieu de mentir. */
+      var fiche = fen.App.m.ficheDictionnaire('Curl biceps', fen.App.store.etat());
+      var attendu = (fiche.aussi || []).length + 1;   // + « sans precision »
+      v.egal(p.length, attendu,
+             'une fiche prise montre ses écritures en puces : '
+           + (attendu - 1) + ' variantes, plus « sans précision »');
+      /* UNE GARDE AVANT D'INDEXER. Sans elle, ce bloc PLANTAIT sur la
+         version d'avant au lieu de tomber — « TypeError: Cannot read
+         properties of undefined » — et le plantage emportait les contrôles
+         suivants ET laissait un panneau ouvert, ce qui faisait tomber deux
+         blocs plus loin. Trouvé en jouant la chute, le 30/10. */
+      if (!p.length) {
+        v.vrai(false, 'aucune puce : le bloc des variantes ne s’affiche pas');
+        refermerTout();
+        return;
+      }
+      v.egal(texte(p[0]), 'sans précision',
+             'et « sans précision » vient EN PREMIER — sans lui, on ne '
+           + 'pourrait pas revenir au nom de base après avoir choisi');
+      v.egal(p[0].getAttribute('aria-pressed'), 'true',
+             'elle est marquée tant qu’on n’a rien choisi');
+      v.egal(champNom() && champNom().value, 'Curl biceps',
+             '[temoin] et le champ porte bien le nom de base');
+
+      /* L'EFFET, pas la presence : on CLIQUE, et on regarde le champ. */
+      var spider = p.filter(function (b) { return texte(b) === 'Spider curl'; })[0];
+      v.vrai(!!spider, '« Spider curl » est parmi les variantes — MB l’a gardé '
+           + 'le 30/10 comme variante, pas comme fiche à part');
+      if (!spider) { refermerTout(); return; }
+      spider.click();
+
+      return attendre(220).then(function () {
+        v.egal(champNom() && champNom().value, 'Spider curl',
+               'la cliquer ÉCRIT son nom dans le champ — rien d’autre n’est '
+             + 'stocké, l’historique se tient par le nom comme avant');
+        var m = puces().filter(function (b) {
+          return b.getAttribute('aria-pressed') === 'true';
+        });
+        v.egal(m.length && texte(m[0]), 'Spider curl',
+               'et c’est elle qui est marquée');
+        v.egal(puces().length, attendu,
+               '[temoin] les puces restent toutes là : on peut en changer');
+
+        var sans = puces().filter(function (b) {
+          return texte(b) === 'sans précision';
+        })[0];
+        sans.click();
+        return attendre(220).then(function () {
+          v.egal(champNom() && champNom().value, 'Curl biceps',
+                 '« sans précision » ramène au nom de base');
+          refermerTout();
+
+          /* LE PRIX DE L'ECREMAGE, et il se lit ici : « Curl Larratt » a
+             perdu ses six ecritures le 30/10, sur decision de MB. Sa fiche
+             n'a donc RIEN a proposer. */
+          var exo2 = fen.App.m.exerciceSeanceVierge({ nom: 'Curl Larratt' });
+          fen.App.panneau.editerExercice(exo2, { titre: 'Banc' }, function () {});
+          return attendre(260).then(function () {
+            v.egal(puces().length, 0,
+                   '[prix] « Curl Larratt » n’affiche AUCUNE variante : ses six '
+                 + 'écritures sont parties le 30/10, et une fiche sans '
+                 + 'écriture n’a rien à proposer');
+            refermerTout();
+
+            /* ET UN NOM QUE LE DICTIONNAIRE NE CONNAIT PAS n'affiche rien
+               non plus : le bloc ne doit pas s'inviter partout. */
+            var exo3 = fen.App.m.exerciceSeanceVierge({ nom: 'Tirage du menton zzz' });
+            fen.App.panneau.editerExercice(exo3, { titre: 'Banc' }, function () {});
+            return attendre(260).then(function () {
+              v.egal(puces().length, 0,
+                     'et un nom inconnu du dictionnaire n’en montre pas non '
+                   + 'plus — le bloc ne s’invite pas');
+              refermerTout();
+            });
+          });
+        });
+      });
+    });
+  });
+
   bloc('Le dictionnaire dans Réglages', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var vue = doc.getElementById('vue');

@@ -434,6 +434,18 @@ select.champ { appearance: none; background-image: none; }
    muscles et se lit comme une phrase, pas comme une etiquette. */
 .dico-dit { font-style: italic; margin-bottom: 4px; }
 
+/* LES VARIANTES SOUS LE NOM. Des pastilles, pas une liste : « Curl biceps »
+   en porte dix-sept, et dix-sept lignes repousseraient le reste du panneau
+   hors de l'ecran a 320 px. */
+.dico-variantes { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 2px 4px; }
+.dico-variante { background: var(--fond); border: 1px solid var(--trait);
+                 border-radius: 999px; color: var(--texte); font: inherit;
+                 font-size: .8rem; padding: 4px 11px; cursor: pointer; }
+.dico-variante:hover { border-color: var(--laiton); }
+.dico-variante[aria-pressed="true"] { background: var(--laiton);
+                 border-color: var(--laiton); color: var(--fond);
+                 font-weight: 600; }
+
 .dico-mvt { padding: 8px 0; border-top: 1px solid var(--trait); }
 .dico-mvt:first-child { padding-top: 0; border-top: 0; }
 

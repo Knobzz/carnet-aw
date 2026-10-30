@@ -379,7 +379,57 @@
         btDico.setAttribute('aria-expanded', dicoOuvert ? 'true' : 'false');
       }
 
-      function choisirFiche(nom) {
+      /* ---------- LES VARIANTES, SOUS LE NOM ----------
+
+         MB, 30/10, après avoir essayé le carnet : « dans Curl Biceps, je
+         vois 17 autres noms, comment les sélectionner une fois que j'ai
+         cliqué sur Curl Biceps, c'est ça que je veux faire ».
+
+         CE QUI RESTE DANS `aussi` EST BIEN DES VARIANTES, et c'est ce qui
+         rend ce bloc possible : l'écrémage du 30/10 a retiré les synonymes
+         et les traductions — « Curl spider », « Zottman curl », « Pompe ».
+         Ce qui demeure décrit un geste qui CHANGE : l'engin, la position,
+         la prise.
+
+         RIEN DE NEUF N'EST STOCKÉ. Cliquer une variante écrit son nom dans
+         le champ, exactement comme si on l'avait tapé — `ficheDictionnaire`
+         rend la même fiche pour une écriture que pour son nom de base, et
+         les muscles ne bougent pas. L'historique continue de se tenir par
+         le nom, comme avant. */
+      var zoneVariantes = h('div');
+      var ficheOuverte = null;      // le nom de BASE, pas l'écriture choisie
+
+      function rendreVariantes() {
+        A.ui.vider(zoneVariantes);
+        if (!ficheOuverte) return;
+        var f = A.m.ficheDictionnaire(ficheOuverte, etat());
+        var au = (f && f.aussi) || [];
+        if (!au.length) return;     // une fiche sans écriture n'affiche rien
+
+        var choisi = champNom.value.trim();
+        zoneVariantes.appendChild(h('div', { class: 'item-resume',
+          style: 'margin:8px 2px 4px',
+          text: au.length + ' variante(s) de « ' + ficheOuverte + ' » — '
+              + 'facultatif, le nom seul suffit.' }));
+
+        var puces = h('div', { class: 'dico-variantes' });
+        /* LE NOM DE BASE EST LE PREMIER CHOIX, et il est marqué quand il
+           est en place : sans lui, on ne saurait pas revenir en arrière
+           après avoir cliqué une variante. */
+        [ficheOuverte].concat(au).forEach(function (n) {
+          var b = h('button', { type: 'button', class: 'dico-variante',
+                                'aria-pressed': n === choisi ? 'true' : 'false',
+                                text: n === ficheOuverte ? 'sans précision' : n });
+          b.addEventListener('click', function () { poserNom(n); });
+          puces.appendChild(b);
+        });
+        zoneVariantes.appendChild(puces);
+      }
+
+      /* Le chemin commun : écrire un nom dans le champ et remplir avec lui.
+         `choisirFiche` l'appelle depuis le dictionnaire, les puces de
+         variantes aussi — ce qui garantit qu'ils remplissent pareil. */
+      function poserNom(nom) {
         var f = A.m.ficheDictionnaire(nom, etat());
         champNom.value = nom;
         /* PAS DE `input` EMIS ICI. L'autocomplétion écoute cet événement :
@@ -388,6 +438,17 @@
            chemins, c'est `prendre(it)` — le remplissage — et il l'est. */
         if (surChangementForces) surChangementForces();
         if (f) prendre(f);
+        /* `f.nom`, PAS `f.entree`. Mesure du 30/10 : `ficheDictionnaire`
+           rend la fiche BRUTE du dictionnaire — elle porte `nom`, `groupe`,
+           `aussi`, `muscles`, et AUCUN champ `entree`. J'avais pris le nom
+           de champ d'une autre fonction, celle qui compose une fiche pour
+           l'autocompletion. Le bloc ne s'affichait jamais. */
+        ficheOuverte = (f && f.nom) || nom;
+        rendreVariantes();
+      }
+
+      function choisirFiche(nom) {
+        poserNom(nom);
         dicoOuvert = false;
         libelleDico();
         rendreDico();
@@ -464,10 +525,26 @@
          bouton reste la seule porte. */
       champNom.addEventListener('input', function () {
         if (dicoOuvert) rendreDico();
+        /* CE QU'ON TAPE DÉCIDE AUSSI DES VARIANTES. Taper le nom d'une
+           fiche les ouvre sans passer par le dictionnaire ; taper autre
+           chose les referme, sans quoi elles resteraient à proposer les
+           variantes d'un mouvement qu'on a quitté. */
+        var f = A.m.ficheDictionnaire(champNom.value.trim(), etat());
+        var base = f && f.nom;
+        if (base !== ficheOuverte) { ficheOuverte = base || null; }
+        rendreVariantes();
       });
       libelleDico();
       gNom.appendChild(btDico);
+      gNom.appendChild(zoneVariantes);
       gNom.appendChild(zoneDico);
+      /* Le panneau peut s'ouvrir sur un exercice DÉJÀ nommé — quand on le
+         modifie. Ses variantes doivent être là d'emblée. */
+      (function () {
+        var f = A.m.ficheDictionnaire((champNom.value || '').trim(), etat());
+        ficheOuverte = (f && f.nom) || null;
+        rendreVariantes();
+      })();
 
       btAw.addEventListener('click', function () {
         exo.aw = !exo.aw;
