@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Essayer le carnet — démonstration</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { margin: 0; padding: 18px 16px 50px; background: var(--fond);
+         color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .de-boite { max-width: 720px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .de-boite > p { color: var(--texte-2); font-size: .92rem; margin: 6px 0; }
+  .de-boite b { color: var(--texte); }
+  .de-carte { border: 1px solid var(--trait); border-radius: 10px;
+              background: var(--fond-2); padding: 14px 16px; margin: 14px 0; }
+  .de-carte h2 { font-size: 1rem; margin: 0 0 6px; }
+  .de-carte p { font-size: .88rem; color: var(--texte-2); margin: 5px 0; }
+  .de-bt { display: inline-block; background: var(--fond-3);
+           border: 1px solid var(--trait); border-radius: 8px;
+           color: var(--texte); font: inherit; font-size: .95rem;
+           padding: 10px 18px; cursor: pointer; text-decoration: none;
+           margin: 6px 8px 0 0; }
+  .de-bt:hover { border-color: var(--laiton); color: var(--laiton); }
+  .de-bt.de-fort { border-color: var(--laiton); color: var(--laiton);
+                   font-weight: 600; }
+  .de-etat { font-size: .86rem; margin-top: 10px; min-height: 22px;
+             color: var(--laiton); }
+  .de-liens { font-size: .9rem; }
+  .de-liens li { margin-bottom: 7px; }
+  .de-liens a { color: var(--bleu-vif, #6ca8e0); }
+  .de-avert { border-left: 3px solid var(--laiton); padding-left: 10px;
+              font-size: .86rem; margin: 12px 0; }
+</style>
+</head>
+<body>
+<div class="de-boite">
+
+  <h1>Essayer le carnet</h1>
+  <p>Cette page sert à <b>manipuler l’app toi-même</b>, avec de quoi voir —
+     le carnet local est vide, et tes vraies données sont sur ton téléphone.
+     <b>Rien ici ne touche ton téléphone.</b></p>
+
+  <div class="de-carte">
+    <h2>1 · Charger le carnet de démonstration</h2>
+    <p>Six séances sur cinq semaines, prises dans le dictionnaire tel qu’il est
+       après l’écrémage : Wrist curl, Pronation, Curl Larratt, Toproll à la
+       poulie, Cup hold, <b>Farmer walk</b>, Supination, <b>Triceps kickback</b>,
+       Curl biceps, <b>Extension triceps à la poulie</b>, Hook à la poulie,
+       Dead hang.</p>
+    <p>Ce que tu avais dans ce navigateur est <b>mis de côté</b> et se remet
+       d’un clic.</p>
+    <button type="button" class="de-bt de-fort" id="deCharger">Charger la démonstration</button>
+    <button type="button" class="de-bt" id="deRendre">Remettre ce qu’il y avait</button>
+    <button type="button" class="de-bt" id="deVider">Vider complètement</button>
+    <div class="de-etat" id="deEtat"></div>
+  </div>
+
+  <div class="de-carte">
+    <h2>2 · Ouvrir l’app</h2>
+    <p class="de-avert"><b>Le bouton force d’abord le rechargement du code.</b>
+       La version n’a pas été montée — elle est restée en 1.66.0 — donc le
+       <code>?v=</code> est le même qu’avant les changements, et ton navigateur
+       servirait l’ancien sans ça.</p>
+    <button type="button" class="de-bt de-fort" id="deOuvrir">Ouvrir le carnet</button>
+    <div class="de-etat" id="deEtat2"></div>
+  </div>
+
+  <div class="de-carte">
+    <h2>Les autres pages</h2>
+    <ul class="de-liens">
+      <li><a href="revue/simulation-variantes-sous-le-nom.html">Les variantes sous le nom</a>
+          — l’écran que tu as décrit : le nom dans le champ, les variantes dessous.
+          <b>Pas encore dans l’app</b>, c’est une simulation.</li>
+      <li><a href="revue/ecremage.html">La planche d’écrémage</a> — tes 79 décisions
+          et les 9 points qu’elles ont ouverts.</li>
+      <li><a href="revue/equipement.html">La planche d’équipement</a> — les 20 types
+          et leurs sources.</li>
+      <li><a href="revue/index.html">La planche des mouvements</a> — le catalogue
+          de revue, muscle par muscle.</li>
+      <li><a href="banc/index.html">Le banc du modèle</a> ·
+          <a href="banc/ihm.html">le banc d’interface</a> — les deux doivent être verts.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store;
+  var CLE_GARDE = 'carnet-aw-avant-demo';
+
+  function dis(id, t) { document.getElementById(id).textContent = t; }
+
+  function jour(decale) {
+    var d = new Date(); d.setDate(d.getDate() - decale);
+    var z = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  }
+
+  /* LE CARNET DE DEMONSTRATION. Les noms viennent du dictionnaire REEL,
+     d'apres l'ecremage : « Triceps kickback » et « Extension triceps a la
+     poulie » portent leurs nouveaux noms, et « Farmer walk » sa fiche
+     neuve. Si l'un d'eux ne repondait plus, la page le dirait. */
+  var SEANCES = [
+    [1,  [['Wrist curl', 22, 12, 4], ['Pronation', 16, 10, 4],
+          ['Curl Larratt', 30, null, 3]]],
+    [4,  [['Toproll à la poulie', 35, 10, 4], ['Cup hold', 24, null, 4],
+          ['Farmer walk', 40, null, 3]]],
+    [8,  [['Wrist curl', 20, 12, 4], ['Supination', 14, 12, 3],
+          ['Triceps kickback', 12, 12, 3]]],
+    [12, [['Curl biceps', 32, 10, 4],
+          ['Extension triceps à la poulie', 28, 12, 3]]],
+    [16, [['Wrist curl', 20, 10, 4], ['Hook à la poulie', 30, 10, 4]]],
+    [22, [['Pronation', 14, 10, 4], ['Dead hang', 0, null, 3]]]
+  ];
+  var DUREES = { 'Curl Larratt': '30', 'Cup hold': '45',
+                 'Farmer walk': '60', 'Dead hang': '40' };
+
+  function fabriquer() {
+    var etat = S.vide();
+    var inconnus = [];
+    etat.seances = SEANCES.map(function (x, i) {
+      var s = m.seanceMuscu(null);
+      s.id = 'demo' + i;
+      s.date = jour(x[0]);
+      s.heure = jour(x[0]) + 'T18:00:00.000Z';
+      s.exercices = x[1].map(function (e, k) {
+        var nom = e[0];
+        var muscles = m.musclesDuNom(nom) || [];
+        if (!muscles.length) inconnus.push(nom);
+        var ex = m.exerciceSeanceVierge({ nom: nom });
+        ex.ordre = k;
+        ex.muscles = muscles;
+        if (DUREES[nom]) ex.colonnes = ['charge', 'duree'];
+        ex.series = [];
+        for (var j = 0; j < e[3]; j++) {
+          var se = m.serieSeanceVierge({});
+          se.chargeReel = String(e[1]);
+          if (DUREES[nom]) se.dureeReel = DUREES[nom];
+          else se.repsReel = String(e[2]);
+          se.faite = true;
+          ex.series.push(se);
+        }
+        return ex;
+      });
+      return s;
+    });
+    /* deux pesees, pour que le poids du corps ait de quoi se lire.
+       LE CHAMP EST `poids`, PAS `kg` — mesure par essai le 30/10 : avec
+       `kg`, le normaliseur les ecartait toutes les deux en silence, et la
+       page annoncait quand meme « charge ». */
+    etat.pesees = [{ id: 'p1', date: jour(30), poids: 80 },
+                   { id: 'p2', date: jour(9), poids: 78 }];
+    return { etat: etat, inconnus: inconnus };
+  }
+
+  document.getElementById('deCharger').addEventListener('click', function () {
+    try {
+      var avant = localStorage.getItem(S.CLE);
+      if (avant && !localStorage.getItem(CLE_GARDE)) {
+        localStorage.setItem(CLE_GARDE, avant);
+      }
+      var f = fabriquer();
+      /* `remplacer`, PAS `sauver`. Mesure du 30/10 : `sauver(immediat)` ne
+         prend pas un etat mais un BOOLEEN, et ecrit l'etat INTERNE du
+         module. Lui passer un objet le lisait comme « immediat » et
+         ecrivait un carnet vide — « Charge : 0 seances ». Ca avait
+         pourtant l'air de marcher plus tot dans la journee, parce que je
+         partais de `charger()` : l'objet rendu EST l'etat interne, et le
+         modifier en place suffisait. En partant de `vide()`, le lien
+         n'existe plus. */
+      S.remplacer(f.etat);
+      var relu = S.charger();
+      var n = 0;
+      (relu.seances || []).forEach(function (s) { n += (s.exercices || []).length; });
+      /* ON RELIT CE QU'ON VIENT D'ECRIRE, et on compare a ce qu'on voulait.
+         Le 30/10, les deux pesees etaient ecartees en silence par le
+         normaliseur — mauvais nom de champ — et cette page annoncait
+         « charge » sans broncher. Un ecart se dit. */
+      var msg = 'Chargé : ' + (relu.seances || []).length + ' séances, '
+              + n + ' exercices, ' + (relu.pesees || []).length + ' pesées.';
+      var manque = [];
+      if ((relu.seances || []).length !== f.etat.seances.length) {
+        manque.push((f.etat.seances.length - (relu.seances || []).length)
+                  + ' séance(s) perdue(s) à l’enregistrement');
+      }
+      if ((relu.pesees || []).length !== (f.etat.pesees || []).length) {
+        manque.push((f.etat.pesees.length - (relu.pesees || []).length)
+                  + ' pesée(s) perdue(s)');
+      }
+      if (manque.length) msg += '  ⚠ ' + manque.join(' · ') + ' — dis-le-moi.';
+      if (f.inconnus.length) {
+        msg += '  ⚠ ces noms ne rendent AUCUN muscle : '
+             + f.inconnus.join(', ') + ' — dis-le-moi, c’est un vrai défaut.';
+      }
+      dis('deEtat', msg);
+    } catch (e) {
+      dis('deEtat', 'Échec : ' + e.message);
+    }
+  });
+
+  document.getElementById('deRendre').addEventListener('click', function () {
+    var avant = localStorage.getItem(CLE_GARDE);
+    if (!avant) { dis('deEtat', 'Rien n’avait été mis de côté.'); return; }
+    localStorage.setItem(S.CLE, avant);
+    localStorage.removeItem(CLE_GARDE);
+    dis('deEtat', 'Remis en place.');
+  });
+
+  document.getElementById('deVider').addEventListener('click', function () {
+    localStorage.removeItem(S.CLE);
+    dis('deEtat', 'Vidé — le carnet est reparti de zéro.');
+  });
+
+  /* LE RECHARGEMENT FORCE, et c'est la raison d'etre du bouton. La version
+     n'a pas ete montee, donc le `?v=` est le meme qu'avant les changements
+     et le navigateur sert ce qu'il a en cache. On le force fichier par
+     fichier avant d'ouvrir. */
+  document.getElementById('deOuvrir').addEventListener('click', async function () {
+    dis('deEtat2', 'Rechargement du code…');
+    var v = '?v=1.66.0';
+    var fichiers = ['js/store.js', 'js/model.js', 'js/ui.js', 'js/panneau.js',
+      'js/vue-seance.js', 'js/vue-recup.js', 'js/vue-programmes.js',
+      'js/vue-sparring.js', 'js/vue-journal.js', 'js/vue-exercice.js',
+      'js/vue-suivi.js', 'js/vue-reglages.js', 'js/app.js', 'css/app.css'];
+    var rates = [];
+    for (var i = 0; i < fichiers.length; i++) {
+      try {
+        var r = await fetch(fichiers[i] + v, { cache: 'reload' });
+        if (!r.ok) rates.push(fichiers[i] + ' (' + r.status + ')');
+      } catch (e) { rates.push(fichiers[i]); }
+    }
+    if (rates.length) {
+      dis('deEtat2', 'Ces fichiers n’ont pas pu être rechargés : '
+                   + rates.join(', ') + ' — ouvre quand même, mais dis-le-moi.');
+    } else {
+      dis('deEtat2', fichiers.length + ' fichiers rechargés. Ouverture…');
+    }
+    setTimeout(function () { location.href = 'index.html'; }, 600);
+  });
+
+  /* un etat de depart lisible */
+  var deja = null;
+  try { deja = localStorage.getItem(S.CLE); } catch (e) {}
+  dis('deEtat', deja ? 'Ce navigateur a déjà un carnet.'
+                     : 'Ce navigateur n’a pas encore de carnet.');
+})(window.App);
+</script>
+</body>
+</html>
