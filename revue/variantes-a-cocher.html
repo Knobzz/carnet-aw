@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Les variantes — cocher ce qui doit disparaître</title>
+<title>Les variantes — ce qui reste, et ce qui part</title>
 <base href="../">
 <link rel="stylesheet" href="css/app.css">
 <style>
   body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
          font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .vc-tete { max-width: 1180px; margin: 0 auto 14px; }
+  .vc-tete { max-width: 1180px; margin: 0 auto 12px; }
   .vc-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
   .vc-tete p { margin: 5px 0; font-size: .9rem; color: var(--texte-2); }
   .vc-tete b { color: var(--texte); }
@@ -22,87 +22,84 @@
            font-size: .84rem; padding: 5px 12px; cursor: pointer; }
   .vc-bt:hover { border-color: var(--laiton); color: var(--laiton); }
   .vc-bt[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
-  .vc-barre input { background: var(--fond-2); border: 1px solid var(--trait);
-        border-radius: 6px; color: var(--texte); font: inherit;
-        font-size: .86rem; padding: 5px 10px; width: 190px; }
+  .vc-barre input[type=search] { background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 6px; color: var(--texte);
+        font: inherit; font-size: .86rem; padding: 5px 10px; width: 190px; }
   .vc-compte { font-size: .84rem; color: var(--texte-2); }
   .vc-compte b { color: var(--laiton); }
   .vc-corps { max-width: 1180px; margin: 0 auto; }
+
   .vc-fiche { border: 1px solid var(--trait); border-radius: 10px;
               background: var(--fond-2); margin-bottom: 10px; overflow: hidden; }
-  .vc-fiche > h2 { margin: 0; font-size: .95rem; padding: 8px 12px;
+  .vc-fiche > h2 { margin: 0; font-size: .95rem; padding: 7px 12px;
                    background: var(--fond-3); display: flex; gap: 10px;
-                   align-items: baseline; }
+                   align-items: center; flex-wrap: wrap; }
   .vc-fiche > h2 small { margin-left: auto; color: var(--texte-2);
                          font-size: .78rem; font-weight: 400; }
-  .vc-puces { padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .vc-nom { background: none; border: 1px solid transparent; border-radius: 6px;
+            color: var(--texte); font: inherit; font-weight: 700;
+            font-size: .95rem; padding: 2px 7px; min-width: 190px; }
+  .vc-nom:hover { border-color: var(--trait); }
+  .vc-nom:focus { border-color: var(--laiton); outline: none; background: var(--fond); }
+  .vc-nom.vc-change { border-color: var(--laiton); color: var(--laiton); }
+  .vc-avant { font-size: .76rem; color: var(--texte-2); }
+
+  .vc-puces { padding: 9px 12px; display: flex; flex-wrap: wrap; gap: 6px;
+              align-items: center; }
   .vc-puce { background: var(--fond); border: 1px solid var(--trait);
              border-radius: 999px; color: var(--texte); font: inherit;
              font-size: .82rem; padding: 3px 11px; cursor: pointer; }
   .vc-puce:hover { border-color: var(--laiton); }
-  .vc-puce.vc-suspect { border-color: #e0b46c; }
   .vc-puce.vc-vire { background: #7a3b3b; border-color: #e06c6c;
                      color: #ffd9d9; text-decoration: line-through; }
-  .vc-marque { color: #e0b46c; font-size: .9em; }
-  .vc-puce.vc-vire .vc-marque { color: #ffd9d9; }
-  .vc-note { padding: 0 12px 10px; font-size: .8rem; color: #e0b46c; }
-  /* --- RENOMMER --- */
-  .vc-nom { background: none; border: 1px solid transparent; border-radius: 6px;
-            color: var(--texte); font: inherit; font-weight: 700;
-            font-size: .95rem; padding: 2px 7px; min-width: 180px; }
-  .vc-nom:hover { border-color: var(--trait); }
-  .vc-nom:focus { border-color: var(--laiton); outline: none;
-                  background: var(--fond); }
-  .vc-nom.vc-change { border-color: var(--laiton); color: var(--laiton); }
+  .vc-puce.vc-neuve { border-color: #6cc08b; color: #6cc08b; }
   .vc-puce.vc-renomme { border-color: var(--laiton); color: var(--laiton);
                         font-weight: 600; }
   .vc-champ { background: var(--fond); border: 1px solid var(--laiton);
               border-radius: 999px; color: var(--texte); font: inherit;
               font-size: .82rem; padding: 3px 11px; min-width: 150px; }
-  .vc-avant { font-size: .78rem; color: var(--texte-2); }
-  .vc-mode { font-size: .8rem; color: var(--laiton); }
+  .vc-de { padding: 0 12px 9px; font-size: .78rem; color: var(--texte-2); }
+  .vc-de b { color: var(--texte); font-weight: 600; }
+
+  /* les noms qui ne sont PAS des variantes */
+  .vc-noms { padding: 8px 12px; border-top: 1px dashed var(--trait);
+             font-size: .8rem; color: var(--texte-2); }
+  .vc-noms i { font-style: normal; border: 1px dashed var(--trait);
+               border-radius: 999px; padding: 1px 8px; margin: 0 3px 3px 0;
+               display: inline-block; }
+  .vc-noms b { color: var(--texte); }
+
   .vc-sortie { max-width: 1180px; margin: 18px auto 0; }
   .vc-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
   .vc-sortie textarea { width: 100%; height: 200px; background: var(--fond-2);
         border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
         font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
         box-sizing: border-box; }
-  .vc-leg { font-size: .84rem; color: var(--texte-2); max-width: 1180px;
-            margin: 0 auto 10px; }
-  .vc-leg i { font-style: normal; border: 1px solid var(--trait);
-              border-radius: 999px; padding: 1px 8px; font-size: .8rem; }
-  .vc-leg i.vc-suspect { border-color: #e0b46c; }
-  .vc-leg i.vc-vire { background: #7a3b3b; border-color: #e06c6c;
-                      color: #ffd9d9; text-decoration: line-through; }
+  .vc-mode { color: var(--laiton); }
 </style>
 </head>
 <body>
 
 <div class="vc-tete">
-  <h1>Les variantes — coche ce qui doit disparaître</h1>
-  <p class="vc-cite">« Ya des choses qui ne vont pas, je vois des doublons
-     pour le même exo, qui sont considérés comme des variantes. Tu vas me
-     faire une simulation et je vais cocher tout ce qui doit disparaître qui
-     ne sont pas des variantes. »</p>
-  <p><b>Ce sont les écritures réelles du carnet</b>, celles qui s’affichent
-     en puces sous le nom quand tu prends une fiche. <b>Rien n’est appliqué
-     ici</b> : tu coches, tu copies, je supprime.</p>
+  <h1>Les variantes — ce qui reste, et ce qui part</h1>
+  <p class="vc-cite">« Tu m’expliques le mouvement de base du développé
+     épaules ? Tu le fais avec quoi ? Les mains vides ? »</p>
+  <p><b>Tu avais raison, et ça a tout changé.</b> Un développé épaules se fait
+     avec une barre, des haltères, une machine, un kettlebell, un élastique ou
+     une landmine — jamais à mains vides. Donc « Développé épaules » tout court
+     n’est pas une variante : c’est <b>un autre nom de la fiche</b>.</p>
+  <p>Cette page applique la règle : <b>une variante apporte un engin ou une
+     position</b>. Le reste descend en bas de chaque bloc, en pointillés — ces
+     noms servent toujours à la <b>recherche</b>, ils ne s’affichent simplement
+     plus dans le menu.</p>
   <p id="vcQuoi"></p>
 </div>
-
-<p class="vc-leg">
-  <i>Curl barre</i> une variante, elle reste &nbsp;·&nbsp;
-  <i class="vc-suspect">Cable curl △</i> <b>suspecte</b> — une autre écriture
-  de la même fiche dit la même chose une fois traduite &nbsp;·&nbsp;
-  <i class="vc-vire">Curl EZ</i> cochée, elle disparaît.
-</p>
 
 <div class="vc-barre">
   <input type="search" id="vcQ" placeholder="chercher un mouvement…">
   <button type="button" class="vc-bt" id="vcTous">Tous</button>
-  <button type="button" class="vc-bt" id="vcSusp">Seulement les suspectes</button>
-  <button type="button" class="vc-bt" id="vcCoche">Ce que j’ai coché</button>
-  <button type="button" class="vc-bt" id="vcToutSusp">Cocher toutes les suspectes</button>
+  <button type="button" class="vc-bt" id="vcFondues">Celles qui ont fondu</button>
+  <button type="button" class="vc-bt" id="vcTouche">Ce que j’ai touché</button>
   <button type="button" class="vc-bt" id="vcRenommer">✎ Renommer les variantes</button>
   <span class="vc-compte" id="vcCompte"></span>
 </div>
@@ -110,10 +107,10 @@
 <div class="vc-corps" id="vcCorps"></div>
 
 <div class="vc-sortie">
-  <h2>Ce qui doit disparaître</h2>
+  <h2>Ce que je dois appliquer</h2>
   <div class="vc-barre" style="margin-top:0">
     <button type="button" class="vc-bt" id="vcCopier">Copier</button>
-    <button type="button" class="vc-bt" id="vcVider">Tout décocher</button>
+    <button type="button" class="vc-bt" id="vcVider">Tout annuler</button>
     <span class="vc-compte" id="vcEtat"></span>
   </div>
   <textarea id="vcJson" readonly></textarea>
@@ -121,11 +118,12 @@
 
 <script src="js/store.js"></script>
 <script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
 <script>
 (function (A) {
   'use strict';
-  var m = A.m, S = A.store;
-  var CLE = 'carnet-aw-variantes-a-virer';
+  var m = A.m, S = A.store, V = A.variantes;
+  var CLE = 'carnet-aw-variantes-v2';
 
   function h(tag, attrs, kids) {
     var e = document.createElement(tag);
@@ -139,72 +137,42 @@
     return e;
   }
 
-  /* QUATRE REGISTRES, et un seul endroit où ils s'écrivent.
-     MB, 30/10 : « donne moi la possibilité de renommer l'exercice aussi »
-     puis « et de créer une variante également ». */
   var D = { vires: {}, renommes: {}, fiches: {}, ajoutees: {} };
   try {
     var lu = JSON.parse(localStorage.getItem(CLE) || '{}') || {};
-    /* L'ANCIENNE FORME ÉTAIT UN SIMPLE DICTIONNAIRE de barrés : si on la
-       trouve, on la reprend au lieu de la jeter. */
-    if (lu.vires || lu.renommes || lu.fiches || lu.ajoutees) {
-      D.vires = lu.vires || {}; D.renommes = lu.renommes || {};
-      D.fiches = lu.fiches || {}; D.ajoutees = lu.ajoutees || {};
-    } else { D.vires = lu; }
+    ['vires', 'renommes', 'fiches', 'ajoutees'].forEach(function (k) {
+      if (lu[k]) D[k] = lu[k];
+    });
   } catch (e) {}
-  var vires = D.vires;
   function garder() { try { localStorage.setItem(CLE, JSON.stringify(D)); } catch (e) {} }
 
-  var modeRenommer = false;
+  var modeRenommer = false, filtre = 'tous', recherche = '';
 
-  /* ========== REPÉRER LES SUSPECTES ==========
-     Deux écritures d'une MÊME fiche qui disent la même chose une fois les
-     mots traduits et remis dans l'ordre. « Curl à la poulie » et « Cable
-     curl » : même geste, deux langues.
+  /* ========== CE QUE L'ÉCRAN MONTRERAIT VRAIMENT ==========
+     `variantesDe` groupe par (engin, position). Deux conséquences, et ce
+     sont exactement les deux problèmes que MB a signalés :
 
-     CE N'EST QU'UN REPÈRE, et il en rate. « Curl barre EZ » contre « Curl
-     EZ » ne tombe pas dans le même panier, parce que l'un porte un mot de
-     plus. C'est pour ça que la page montre TOUT, et pas seulement ce que
-     cette règle attrape. */
-  var VIDES = { de:1,du:1,des:1,la:1,le:1,les:1,l:1,a:1,au:1,aux:1,en:1,
-                avec:1,sur:1,d:1,et:1,un:1,une:1,the:1,with:1,of:1,to:1,in:1,'':1 };
-  var TRAD = { cable:'poulie', pulley:'poulie', dumbbell:'haltere',
-               barbell:'barre', bar:'barre', band:'elastique',
-               incline:'incline', decline:'decline', seated:'assis',
-               standing:'debout', reverse:'inverse', close:'serre',
-               wide:'large', press:'developpe', row:'rowing',
-               raise:'elevation', hold:'tenue', shrug:'haussement',
-               pushdown:'extension', fly:'ecarte', neutral:'neutre',
-               overhead:'vertical', lying:'couche', machine:'machine' };
-  function sa(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
-  function norm(t) {
-    return sa(t).replace(/[^a-z0-9]+/g, ' ').trim().split(' ')
-      .filter(function (w) { return w && !VIDES[w]; })
-      .map(function (w) { w = w.replace(/s$/, ''); return TRAD[w] || w; })
-      .sort().join(' ');
+     1. UN NOM QUI N'APPORTE RIEN N'EST PAS UNE VARIANTE. « Développé
+        épaules », « Shoulder press » sortent du menu — on ne fait pas un
+        développé à mains vides, donc ce ne sont pas des façons de le faire,
+        ce sont des façons de le NOMMER.
+     2. DEUX ÉCRITURES DU MÊME COUPLE FUSIONNENT. « Curl à la poulie » et
+        « Cable curl » tombent dans la même case : le doublon disparaît
+        sans que personne n'ait à le cocher. */
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+
+  function etat(f) {
+    var vars = V.variantesDe(f).slice();
+    (D.ajoutees[f.nom] || []).forEach(function (t) {
+      vars.push({ texte: t, ecritures: [], neuve: true });
+    });
+    var retenues = {};
+    vars.forEach(function (v) {
+      (v.ecritures || []).forEach(function (e) { retenues[e] = 1; });
+    });
+    var noms = (f.aussi || []).filter(function (e) { return !retenues[e]; });
+    return { vars: vars, noms: noms };
   }
-
-  var fiches = m.fichesDuDictionnaire(S.vide(), '').filter(function (f) {
-    return (f.aussi || []).length > 0;
-  });
-
-  /* pour chaque fiche : les groupes d'écritures qui se ressemblent */
-  var SUSPECT = {};          // "fiche § écriture" -> l'autre écriture
-  fiches.forEach(function (f) {
-    var par = {};
-    (f.aussi || []).forEach(function (e) {
-      var k = norm(e);
-      (par[k] = par[k] || []).push(e);
-    });
-    Object.keys(par).forEach(function (k) {
-      if (par[k].length < 2) return;
-      par[k].forEach(function (e) {
-        SUSPECT[f.nom + ' § ' + e] = par[k].filter(function (x) { return x !== e; });
-      });
-    });
-  });
-
-  var filtre = 'tous', recherche = '';
 
   function visible(f) {
     if (recherche) {
@@ -214,11 +182,15 @@
         return false;
       }
     }
-    if (filtre === 'susp') {
-      return (f.aussi || []).some(function (e) { return SUSPECT[f.nom + ' § ' + e]; });
+    var e = etat(f);
+    if (filtre === 'fondues') {
+      return e.vars.some(function (v) { return (v.ecritures || []).length > 1; });
     }
-    if (filtre === 'coche') {
-      return (f.aussi || []).some(function (e) { return vires[f.nom + ' § ' + e]; });
+    if (filtre === 'touche') {
+      if (D.fiches[f.nom] || (D.ajoutees[f.nom] || []).length) return true;
+      return e.vars.some(function (v) {
+        return D.vires[f.nom + ' § ' + v.texte] || D.renommes[f.nom + ' § ' + v.texte];
+      });
     }
     return true;
   }
@@ -230,187 +202,162 @@
     fiches.forEach(function (f) {
       if (!visible(f)) return;
       nf++;
+      var e = etat(f);
       var bloc = h('div', { class: 'vc-fiche' });
-      var ajout = D.ajoutees[f.nom] || [];
-      var toutes = (f.aussi || []).concat(ajout);
-      var reste = toutes.filter(function (e) {
-        return !vires[f.nom + ' § ' + e];
-      }).length;
 
-      /* LE NOM DE L'EXERCICE SE RENOMME, et c'est un champ, pas un bouton :
-         on tape dedans. Il se marque dès qu'il diffère de l'original. */
+      /* --- le nom de l'exercice, renommable --- */
       var t = h('h2', {});
-      var champNom = h('input', { class: 'vc-nom', type: 'text',
-        value: D.fiches[f.nom] || f.nom,
-        title: 'renomme l’exercice' });
-      if (D.fiches[f.nom] && D.fiches[f.nom] !== f.nom) {
-        champNom.className = 'vc-nom vc-change';
-      }
-      champNom.addEventListener('input', function () {
-        var v = champNom.value.trim();
-        if (!v || v === f.nom) delete D.fiches[f.nom];
-        else D.fiches[f.nom] = v;
-        champNom.className = D.fiches[f.nom] ? 'vc-nom vc-change' : 'vc-nom';
+      var cn = h('input', { class: 'vc-nom', type: 'text',
+                            value: D.fiches[f.nom] || f.nom,
+                            title: 'renomme l’exercice' });
+      if (D.fiches[f.nom]) cn.className = 'vc-nom vc-change';
+      cn.addEventListener('input', function () {
+        var v = cn.value.trim();
+        if (!v || v === f.nom) delete D.fiches[f.nom]; else D.fiches[f.nom] = v;
+        cn.className = D.fiches[f.nom] ? 'vc-nom vc-change' : 'vc-nom';
         garder(); majSortie(); majCompte();
       });
-      t.appendChild(champNom);
-      if (D.fiches[f.nom]) {
-        t.appendChild(h('span', { class: 'vc-avant', text: '← ' + f.nom }));
-      }
-      t.appendChild(h('small', { text: reste + ' / ' + toutes.length
-                               + ' variante(s) gardée(s)' }));
+      t.appendChild(cn);
+      if (D.fiches[f.nom]) t.appendChild(h('span', { class: 'vc-avant', text: '← ' + f.nom }));
+      var gardees = e.vars.filter(function (v) {
+        return !D.vires[f.nom + ' § ' + v.texte];
+      }).length;
+      t.appendChild(h('small', { text: gardees + ' variante(s) · ' + e.noms.length
+                               + ' autre(s) nom(s)' }));
       bloc.appendChild(t);
 
+      /* --- les variantes --- */
       var puces = h('div', { class: 'vc-puces' });
-      var notes = [], vusNote = [];
-      toutes.forEach(function (e) {
-        var id = f.nom + ' § ' + e;
-        var susp = SUSPECT[id];
-        var neuve = ajout.indexOf(e) >= 0;
-        var nouveauNom = D.renommes[id];
-        var classes = ['vc-puce'];
-        if (susp) classes.push('vc-suspect');
-        if (nouveauNom) classes.push('vc-renomme');
-        if (neuve) classes.push('vc-renomme');
-        if (vires[id]) classes.push('vc-vire');
-
-        /* EN MODE RENOMMER, la puce devient un champ. C'est un MODE et non
-           un petit crayon par puce : il y en a 298, et 298 crayons de plus
-           seraient illisibles. */
-        if (modeRenommer && !vires[id]) {
+      var fondues = [];
+      e.vars.forEach(function (v) {
+        var id = f.nom + ' § ' + v.texte;
+        var ren = D.renommes[id];
+        if (modeRenommer && !D.vires[id]) {
           var c = h('input', { class: 'vc-champ', type: 'text',
-            value: nouveauNom || e, title: 'était : ' + e });
+                               value: ren ? ren.apres : v.texte,
+                               title: 'était : ' + v.texte });
           c.addEventListener('input', function () {
-            var v = c.value.trim();
-            if (!v || v === e) delete D.renommes[id];
-            else D.renommes[id] = { fiche: f.nom, avant: e, apres: v };
+            var x = c.value.trim();
+            if (!x || x === v.texte) delete D.renommes[id];
+            else D.renommes[id] = { fiche: f.nom, avant: v.texte, apres: x };
             garder(); majSortie(); majCompte();
           });
           puces.appendChild(c);
         } else {
-          var b = h('button', { type: 'button', class: classes.join(' '),
-            title: (nouveauNom ? 'renommée, était « ' + e + ' » — ' : '')
-                 + (neuve ? 'ajoutée par toi — ' : '')
-                 + (susp ? 'dit la même chose que : ' + susp.join(', ')
-                         : 'clique pour la faire disparaître') });
-          b.appendChild(document.createTextNode(
-            nouveauNom ? nouveauNom.apres : e));
-          if (susp) b.appendChild(h('span', { class: 'vc-marque', text: ' △' }));
+          var cl = ['vc-puce'];
+          if (v.neuve) cl.push('vc-neuve');
+          if (ren) cl.push('vc-renomme');
+          if (D.vires[id]) cl.push('vc-vire');
+          var b = h('button', { type: 'button', class: cl.join(' '),
+            text: ren ? ren.apres : v.texte,
+            title: v.neuve ? 'ajoutée par toi — clique pour la retirer'
+                 : ((v.ecritures || []).length
+                    ? 'vient de : ' + v.ecritures.join(' + ')
+                    : 'clique pour la faire disparaître') });
           b.addEventListener('click', function () {
-            if (neuve) {
-              /* une variante ajoutée se RETIRE, elle ne se barre pas */
-              D.ajoutees[f.nom] = ajout.filter(function (x) { return x !== e; });
+            if (v.neuve) {
+              D.ajoutees[f.nom] = (D.ajoutees[f.nom] || []).filter(function (x) {
+                return x !== v.texte; });
               if (!D.ajoutees[f.nom].length) delete D.ajoutees[f.nom];
-            } else if (vires[id]) { delete vires[id]; }
-            else { vires[id] = { fiche: f.nom, ecriture: e }; }
+            } else if (D.vires[id]) { delete D.vires[id]; }
+            else { D.vires[id] = { fiche: f.nom, variante: v.texte,
+                                   ecritures: v.ecritures || [] }; }
             garder(); rendre();
           });
           puces.appendChild(b);
         }
-
-        /* CHAQUE PAIRE UNE SEULE FOIS. La première version écrivait les
-           deux sens — « A = B · B = A » — et la note doublait de longueur
-           pour ne rien dire de plus. On indexe donc par le groupe, pas par
-           l'écriture. */
-        var cle = norm(e);
-        if (susp && vusNote.indexOf(cle) < 0) {
-          vusNote.push(cle);
-          notes.push('« ' + [e].concat(susp).join(' » = « ') + ' »');
+        if ((v.ecritures || []).length > 1) {
+          fondues.push('<b>' + v.texte + '</b> ← ' + v.ecritures.join(' + '));
         }
       });
 
-      /* AJOUTER UNE VARIANTE : un champ qui ne s'ouvre qu'au clic, pour ne
-         pas poser 61 champs vides dans la page. */
-      var plus = h('button', { class: 'vc-bt', type: 'button',
-                               text: '+ variante', style: 'font-size:.8rem' });
-      var zoneAjout = h('span');
+      var plus = h('button', { class: 'vc-bt', type: 'button', text: '+ variante',
+                               style: 'font-size:.8rem' });
+      var zone = h('span');
       plus.addEventListener('click', function () {
-        if (zoneAjout.firstChild) { zoneAjout.innerHTML = ''; return; }
+        if (zone.firstChild) { zone.innerHTML = ''; return; }
         var c = h('input', { class: 'vc-champ', type: 'text',
                              placeholder: 'nom de la variante…' });
         var ok = h('button', { class: 'vc-bt', type: 'button', text: 'Ajouter',
                                style: 'font-size:.8rem' });
         function ajouter() {
-          var v = c.value.trim();
-          if (!v) return;
-          if (toutes.indexOf(v) >= 0) { ok.textContent = 'déjà là'; return; }
-          D.ajoutees[f.nom] = (D.ajoutees[f.nom] || []).concat([v]);
+          var x = c.value.trim();
+          if (!x) return;
+          if (e.vars.some(function (v) { return v.texte === x; })) {
+            ok.textContent = 'déjà là'; return;
+          }
+          D.ajoutees[f.nom] = (D.ajoutees[f.nom] || []).concat([x]);
           garder(); rendre();
         }
         ok.addEventListener('click', ajouter);
-        c.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Enter') ajouter();
-        });
-        zoneAjout.appendChild(c);
-        zoneAjout.appendChild(ok);
-        c.focus();
+        c.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') ajouter(); });
+        zone.appendChild(c); zone.appendChild(ok); c.focus();
       });
-      puces.appendChild(plus);
-      puces.appendChild(zoneAjout);
+      puces.appendChild(plus); puces.appendChild(zone);
       bloc.appendChild(puces);
-      if (notes.length) {
-        bloc.appendChild(h('div', { class: 'vc-note',
-          text: '△ ' + notes.join('  ·  ') }));
+
+      /* --- CE QUI A FONDU : le doublon disparu tout seul --- */
+      if (fondues.length) {
+        bloc.appendChild(h('div', { class: 'vc-de',
+          html: '⇢ ' + fondues.join('  ·  ') }));
+      }
+
+      /* --- LES AUTRES NOMS : plus dans le menu, mais toujours cherchables --- */
+      if (e.noms.length) {
+        var zn = h('div', { class: 'vc-noms' });
+        zn.appendChild(h('b', { text: 'Autres noms (plus dans le menu, '
+                                    + 'toujours cherchables) : ' }));
+        e.noms.forEach(function (n) { zn.appendChild(h('i', { text: n })); });
+        bloc.appendChild(zn);
       }
       z.appendChild(bloc);
     });
     if (!nf) z.appendChild(h('p', { class: 'vc-compte', text: 'Rien ici.' }));
-
     majCompte(nf);
-    [['tous','vcTous'],['susp','vcSusp'],['coche','vcCoche']].forEach(function (p) {
+    majSortie();
+    [['tous','vcTous'],['fondues','vcFondues'],['touche','vcTouche']].forEach(function (p) {
       document.getElementById(p[1]).setAttribute('aria-pressed',
         filtre === p[0] ? 'true' : 'false');
     });
-    majSortie();
   }
 
-  /* LE COMPTEUR A SA PROPRE FONCTION. Il etait calcule DANS le rendu, donc
-     il ne bougeait pas quand on tapait un nom — on renommait, et l'ecran
-     disait encore « 0 renommee ». Le rendu complet, lui, ne peut pas etre
-     rejoue a chaque frappe : il ferait perdre le focus du champ. */
   var dernierNf = 0;
   function majCompte(nf) {
     if (typeof nf === 'number') dernierNf = nf;
-    var n = Object.keys(vires).length;
+    var tv = 0, tn = 0;
+    fiches.forEach(function (f) {
+      var e = etat(f); tv += e.vars.length; tn += e.noms.length;
+    });
+    var nV = Object.keys(D.vires).length;
     var nR = Object.keys(D.renommes).length + Object.keys(D.fiches).length;
     var nA = 0; Object.keys(D.ajoutees).forEach(function (k) { nA += D.ajoutees[k].length; });
-    var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
     document.getElementById('vcCompte').innerHTML =
-      dernierNf + ' mouvement(s) · <b>' + n + '</b> supprimée(s) sur ' + tot
-      + ' · <b>' + nR + '</b> renommée(s) · <b>' + nA + '</b> ajoutée(s)'
-      + (modeRenommer ? ' <span class="vc-mode">— mode RENOMMER : tape dans '
-                      + 'les champs</span>' : '');
+      dernierNf + ' mouvement(s) · ' + tv + ' variantes · ' + tn + ' autres noms'
+      + ' — <b>' + nV + '</b> retirée(s) · <b>' + nR + '</b> renommée(s) · <b>'
+      + nA + '</b> ajoutée(s)'
+      + (modeRenommer ? ' <span class="vc-mode">— mode RENOMMER</span>' : '');
   }
 
-  /* LA SORTIE DIT LES TROIS GESTES SÉPARÉMENT. Les mélanger obligerait à
-     relire chaque ligne pour savoir ce qu'elle demande. */
   function majSortie() {
     var l = [];
-
     var par = {};
-    Object.keys(vires).forEach(function (k) {
-      var d = vires[k];
-      (par[d.fiche] = par[d.fiche] || []).push(d.ecriture);
+    Object.keys(D.vires).forEach(function (k) {
+      var d = D.vires[k];
+      (par[d.fiche] = par[d.fiche] || []).push(d.variante
+        + ((d.ecritures || []).length ? ' (= ' + d.ecritures.join(' + ') + ')' : ''));
     });
-    var noms = Object.keys(par).sort();
-    if (noms.length) {
-      l.push('### À SUPPRIMER');
-      noms.forEach(function (n) {
-        l.push('- ' + n + ' : ' + par[n].map(function (e) {
-          return '« ' + e + ' »'; }).join(', '));
-      });
+    var n1 = Object.keys(par).sort();
+    if (n1.length) {
+      l.push('### VARIANTES À RETIRER');
+      n1.forEach(function (n) { l.push('- ' + n + ' : ' + par[n].join(' | ')); });
       l.push('');
     }
-
     var rf = Object.keys(D.fiches).sort();
     if (rf.length) {
       l.push('### EXERCICES À RENOMMER');
-      rf.forEach(function (n) {
-        l.push('- « ' + n +' »  →  « ' + D.fiches[n] + ' »');
-      });
+      rf.forEach(function (n) { l.push('- « ' + n + ' »  →  « ' + D.fiches[n] + ' »'); });
       l.push('');
     }
-
     var rv = Object.keys(D.renommes);
     if (rv.length) {
       l.push('### VARIANTES À RENOMMER');
@@ -420,7 +367,6 @@
       });
       l.push('');
     }
-
     var aj = Object.keys(D.ajoutees).sort();
     if (aj.length) {
       l.push('### VARIANTES À AJOUTER');
@@ -429,32 +375,22 @@
           return '« ' + e + ' »'; }).join(', '));
       });
     }
-
     document.getElementById('vcJson').value = l.length ? l.join('\n')
-      : 'Rien pour l’instant. Clique une variante pour la supprimer, tape '
-      + 'dans un nom pour le renommer, ou « + variante » pour en créer une.';
+      : 'Rien pour l’instant. La règle a déjà fait le gros du travail — '
+      + 'regarde « Celles qui ont fondu » pour voir les doublons partis tout seuls.';
   }
 
   document.getElementById('vcTous').addEventListener('click', function () { filtre='tous'; rendre(); });
-  document.getElementById('vcSusp').addEventListener('click', function () { filtre='susp'; rendre(); });
-  document.getElementById('vcCoche').addEventListener('click', function () { filtre='coche'; rendre(); });
+  document.getElementById('vcFondues').addEventListener('click', function () { filtre='fondues'; rendre(); });
+  document.getElementById('vcTouche').addEventListener('click', function () { filtre='touche'; rendre(); });
   document.getElementById('vcQ').addEventListener('input', function (e) {
     recherche = e.target.value; rendre();
   });
-  document.getElementById('vcToutSusp').addEventListener('click', function () {
-    /* On coche la SECONDE de chaque paire, pas les deux : sinon le geste
-       disparaîtrait tout entier. La première reste, et MB peut inverser. */
-    var vus = {};
-    fiches.forEach(function (f) {
-      (f.aussi || []).forEach(function (e) {
-        var id = f.nom + ' § ' + e;
-        if (!SUSPECT[id]) return;
-        var cle = f.nom + '|' + norm(e);
-        if (!vus[cle]) { vus[cle] = 1; return; }   // la première reste
-        vires[id] = { fiche: f.nom, ecriture: e };
-      });
-    });
-    garder(); rendre();
+  document.getElementById('vcRenommer').addEventListener('click', function () {
+    modeRenommer = !modeRenommer;
+    document.getElementById('vcRenommer').setAttribute('aria-pressed',
+      modeRenommer ? 'true' : 'false');
+    rendre();
   });
   document.getElementById('vcCopier').addEventListener('click', function () {
     var t = document.getElementById('vcJson');
@@ -463,27 +399,27 @@
     t.setAttribute('readonly', 'readonly');
     document.getElementById('vcEtat').textContent = 'copié.';
   });
-  document.getElementById('vcRenommer').addEventListener('click', function () {
-    modeRenommer = !modeRenommer;
-    document.getElementById('vcRenommer').setAttribute('aria-pressed',
-      modeRenommer ? 'true' : 'false');
-    rendre();
-  });
   document.getElementById('vcVider').addEventListener('click', function () {
-    D.vires = {}; D.renommes = {}; D.fiches = {}; D.ajoutees = {};
-    vires = D.vires;
+    D = { vires: {}, renommes: {}, fiches: {}, ajoutees: {} };
     garder(); rendre();
     document.getElementById('vcEtat').textContent = '';
   });
 
-  var tot = 0; fiches.forEach(function (f) { tot += (f.aussi || []).length; });
-  var nSusp = Object.keys(SUSPECT).length;
+  var tv = 0, tn = 0, tf = 0, te = 0;
+  fiches.forEach(function (f) {
+    var e = etat(f);
+    tv += e.vars.length; tn += e.noms.length; te += (f.aussi || []).length;
+    e.vars.forEach(function (v) {
+      if ((v.ecritures || []).length > 1) tf += v.ecritures.length - 1;
+    });
+  });
   document.getElementById('vcQuoi').innerHTML =
-    '<b>' + tot + ' écritures</b> sur <b>' + fiches.length + ' mouvements</b>. '
-    + '<b>' + nSusp + '</b> portent le repère △ : une autre écriture de la même '
-    + 'fiche dit la même chose une fois traduite. <b>Ce repère en rate</b> — '
-    + '« Curl barre EZ » contre « Curl EZ » lui échappe, parce que l’un porte '
-    + 'un mot de plus. C’est pour ça que tout est montré.';
+    '<b>' + te + ' écritures</b> deviennent <b>' + tv + ' variantes</b> et '
+    + '<b>' + tn + ' autres noms</b>. Au passage, <b>' + tf + ' doublons de '
+    + 'traduction ont fondu tout seuls</b> — « Curl à la poulie » et « Cable '
+    + 'curl » tombent dans la même case <i>poulie</i>. Tu n’as donc pas à les '
+    + 'cocher : regarde-les sous « Celles qui ont fondu », et ne touche que ce '
+    + 'qui te paraît encore faux.';
 
   rendre();
 })(window.App);
