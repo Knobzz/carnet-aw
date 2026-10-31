@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onze gestes à valider — et ce que j’ai écarté</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `gv-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .gv-tete, .gv-corps, .gv-pied { max-width: 980px; margin: 0 auto; }
+  .gv-tete h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .gv-tete p { margin: 6px 0; font-size: .9rem; color: var(--texte-2); }
+  .gv-tete b { color: var(--texte); }
+  .gv-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .gv-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin: 14px 0; }
+  .gv-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .84rem; padding: 6px 12px; cursor: pointer; }
+  .gv-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .gv-c { border: 1px solid var(--trait); border-radius: 10px;
+          background: var(--fond-2); margin-bottom: 11px; overflow: hidden; }
+  .gv-c.gv-oui { border-color: #6cc08b; }
+  .gv-c.gv-non { opacity: .45; }
+  .gv-h { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+          padding: 9px 13px; background: var(--fond-3); }
+  .gv-h b { font-size: .98rem; }
+  .gv-h small { color: var(--texte-2); font-size: .77rem; }
+  .gv-h .gv-d { margin-left: auto; display: flex; gap: 6px; }
+  .gv-h button { background: var(--fond); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .79rem; padding: 3px 11px; cursor: pointer; }
+  .gv-h button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); font-weight: 600; }
+  .gv-b { padding: 10px 13px; font-size: .87rem; }
+  .gv-b p { margin: 0 0 6px; }
+  .gv-b p:last-child { margin-bottom: 0; }
+  .gv-b .gv-lab { color: var(--laiton); font-weight: 600; }
+  .gv-b .gv-pq { color: var(--texte-2); font-size: .83rem; }
+  .gv-b .gv-sav { color: #ffcf8f; }
+  .gv-b .gv-dt { color: #ff9b9b; }
+  .gv-ec { border: 1px solid var(--trait); border-radius: 10px;
+           background: var(--fond-2); padding: 11px 14px; margin-bottom: 9px;
+           font-size: .86rem; }
+  .gv-ec b { color: var(--texte); }
+  .gv-ec span { color: var(--texte-2); }
+  .gv-sortie { margin-top: 20px; }
+  .gv-sortie h2 { font-size: 1rem; margin: 0 0 7px; color: var(--laiton); }
+  .gv-sortie textarea { width: 100%; height: 190px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+  .gv-pied { font-size: .86rem; color: var(--texte-2);
+             border-top: 1px solid var(--trait); padding-top: 11px;
+             margin-top: 22px; }
+  .gv-pied h3 { color: var(--laiton); font-size: .93rem; margin: 13px 0 5px; }
+  .gv-pied b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<div class="gv-tete">
+  <h1>Onze gestes à valider</h1>
+  <p class="gv-cite">« Evite tout exo avec équipement, on peut les rajouter,
+     je cherche vraiment des gestes particuliers, fais moi une liste, je la
+     validerai ou non. »</p>
+  <p><b>207 entrées lues</b> sur docteur-fitness — les quatre listes qui
+     touchent ton carnet : biceps (34), dos (77), épaules (58), triceps (38).
+     Il en reste <b>onze</b>.</p>
+  <p>Chacun change la <b>façon</b> de faire un mouvement que le carnet porte
+     déjà : la prise, la trajectoire, la phase, l’angle du corps. <b>Aucun
+     n’a besoin d’un engin pour exister.</b></p>
+  <p id="gvQuoi"></p>
+</div>
+
+<div class="gv-corps">
+  <div class="gv-barre">
+    <button type="button" class="gv-pb" id="gvTous" aria-pressed="true">Tous</button>
+    <button type="button" class="gv-pb" id="gvDoutes">Mes doutes</button>
+    <button type="button" class="gv-pb" id="gvOui">Validés</button>
+    <span class="gv-pb" style="cursor:default" id="gvEtat"></span>
+  </div>
+  <div id="gvListe"></div>
+
+  <div class="gv-sortie">
+    <h2>Ta décision</h2>
+    <div class="gv-barre" style="margin-top:0">
+      <button type="button" class="gv-pb" id="gvCopier">Copier</button>
+      <button type="button" class="gv-pb" id="gvRaz">Tout remettre à zéro</button>
+      <span class="gv-pb" style="cursor:default" id="gvEtat2"></span>
+    </div>
+    <textarea id="gvJson" readonly></textarea>
+  </div>
+
+  <h2 style="font-size:1.02rem;margin:24px 0 8px">Ce que j’ai écarté, et pourquoi</h2>
+  <p style="font-size:.86rem;color:var(--texte-2);margin:0 0 11px">
+    Écrit pour que tu puisses contester <b>le filtre</b>, pas seulement la
+    liste. Un tri dont on ne voit que le résultat ne se vérifie pas.</p>
+  <div id="gvEcartes"></div>
+</div>
+
+<p class="gv-pied" id="gvPied"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/gestes-a-valider.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var G = A.gestesAValider;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k === 'class') e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) {
+      if (k) e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    });
+    return e;
+  }
+
+  var CLE = 'carnet-aw-gestes-valides';
+  var choix = {};
+  try { choix = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) {}
+  function garder() {
+    try { localStorage.setItem(CLE, JSON.stringify(choix)); } catch (e) {}
+  }
+
+  var filtre = 'tous';
+
+  function rendre() {
+    var z = document.getElementById('gvListe');
+    z.innerHTML = '';
+    var n = 0;
+    G.CANDIDATS.forEach(function (c) {
+      var d = choix[c.nom];
+      if (filtre === 'doutes' && !c.doute) return;
+      if (filtre === 'oui' && d !== 'oui') return;
+      n++;
+      var carte = h('div', { class: 'gv-c' + (d === 'oui' ? ' gv-oui'
+                                           : d === 'non' ? ' gv-non' : '') });
+      var t = h('div', { class: 'gv-h' }, [h('b', { text: c.nom })]);
+      t.appendChild(h('small', { text: 'sous « ' + c.fiche + ' »' }));
+      var dd = h('div', { class: 'gv-d' });
+      [['oui', 'Garder'], ['non', 'Écarter']].forEach(function (p) {
+        var b = h('button', { type: 'button', text: p[1],
+          'aria-pressed': d === p[0] ? 'true' : 'false' });
+        b.addEventListener('click', function () {
+          if (choix[c.nom] === p[0]) delete choix[c.nom];
+          else choix[c.nom] = p[0];
+          garder(); rendre();
+        });
+        dd.appendChild(b);
+      });
+      t.appendChild(dd);
+      carte.appendChild(t);
+
+      var b2 = h('div', { class: 'gv-b' });
+      b2.appendChild(h('p', {}, [
+        h('span', { class: 'gv-lab', text: 'Ce que ça change. ' }), c.change]));
+      b2.appendChild(h('p', { class: 'gv-pq',
+        text: 'Pourquoi c’est un geste et pas un engin : ' + c.pourquoi_geste }));
+      if (c.aussi && c.aussi.length) {
+        b2.appendChild(h('p', { class: 'gv-pq',
+          text: 'Aussi écrit : ' + c.aussi.join(' · ') }));
+      }
+      if (c.garde) {
+        b2.appendChild(h('p', { class: 'gv-sav' }, [
+          h('span', { class: 'gv-lab', style: 'color:#ffcf8f',
+                      text: 'À savoir. ' }), c.garde]));
+      }
+      if (c.doute) {
+        b2.appendChild(h('p', { class: 'gv-dt' }, [
+          h('span', { class: 'gv-lab', style: 'color:#ff9b9b',
+                      text: 'J’hésite. ' }), c.doute]));
+      }
+      carte.appendChild(b2);
+      z.appendChild(carte);
+    });
+    if (!n) {
+      z.appendChild(h('p', { style: 'font-style:italic;color:var(--texte-2)',
+        text: filtre === 'oui' ? 'Tu n’as encore rien validé.'
+            : 'Rien dans ce filtre.' }));
+    }
+    majSortie();
+  }
+
+  function majSortie() {
+    var oui = G.CANDIDATS.filter(function (c) { return choix[c.nom] === 'oui'; });
+    var non = G.CANDIDATS.filter(function (c) { return choix[c.nom] === 'non'; });
+    var reste = G.CANDIDATS.length - oui.length - non.length;
+    document.getElementById('gvEtat').textContent =
+      oui.length + ' gardé(s) · ' + non.length + ' écarté(s) · '
+      + reste + ' à trancher';
+    document.getElementById('gvJson').value =
+      'À GARDER (' + oui.length + ')\n'
+      + (oui.map(function (c) { return '- ' + c.fiche + ' ▸ ' + c.nom; }).join('\n')
+         || '  — aucun')
+      + '\n\nÀ ÉCARTER (' + non.length + ')\n'
+      + (non.map(function (c) { return '- ' + c.fiche + ' ▸ ' + c.nom; }).join('\n')
+         || '  — aucun')
+      + (reste ? '\n\nPAS ENCORE TRANCHÉS (' + reste + ')\n'
+        + G.CANDIDATS.filter(function (c) { return !choix[c.nom]; })
+            .map(function (c) { return '- ' + c.fiche + ' ▸ ' + c.nom; }).join('\n')
+        : '')
+      + '\n\n[' + oui.length + ' + ' + non.length + ' + ' + reste + ' = '
+      + G.CANDIDATS.length + ']';
+  }
+
+  ['gvTous', 'gvDoutes', 'gvOui'].forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function () {
+      filtre = id === 'gvTous' ? 'tous' : (id === 'gvDoutes' ? 'doutes' : 'oui');
+      ['gvTous', 'gvDoutes', 'gvOui'].forEach(function (x) {
+        document.getElementById(x).setAttribute('aria-pressed',
+          x === id ? 'true' : 'false');
+      });
+      rendre();
+    });
+  });
+  document.getElementById('gvCopier').addEventListener('click', function () {
+    var t = document.getElementById('gvJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('gvEtat2').textContent = 'copié.';
+  });
+  document.getElementById('gvRaz').addEventListener('click', function () {
+    choix = {}; garder(); rendre();
+  });
+
+  var ze = document.getElementById('gvEcartes');
+  G.ECARTES.forEach(function (e) {
+    ze.appendChild(h('div', { class: 'gv-ec' }, [
+      h('b', { text: e.quoi }), h('br'), h('span', { text: '→ ' + e.pourquoi })
+    ]));
+  });
+
+  var nbDoutes = G.CANDIDATS.filter(function (c) { return c.doute; }).length;
+  document.getElementById('gvQuoi').innerHTML =
+    'J’hésite sur <b>' + nbDoutes + '</b> des onze, et chacun le dit. '
+    + 'Source : ' + G.SOURCE + '.';
+
+  document.getElementById('gvPied').innerHTML =
+    '<h3>Ce que cette source est, et ce qu’elle n’est pas</h3>'
+    + 'docteur-fitness <b>liste et illustre</b> ; il ne mesure pas. Les onze '
+    + 'sont donnés comme CANDIDATS, pas comme des faits établis — à la '
+    + 'différence du rowing inversé ou de l’élévation latérale bras fléchi, '
+    + 'qui viennent d’études EMG.'
+    + '<br><br>Ce catalogue confirme en revanche ton architecture d’une autre '
+    + 'façon : il range ses exercices <b>par équipement</b> — avec barre, '
+    + 'avec haltères, à la poulie, avec élastique. Et il liste séparément '
+    + '« Curl allongé à la poulie », « Curl overhead avec élastique », '
+    + '« Curl haltère incliné avec rotation » — <b>exactement les écritures '
+    + 'que tu as fait retirer le 31/10</b>. Là où il a 34 entrées de biceps, '
+    + 'ton carnet aura un mouvement et son matériel.'
+    + '<h3>Si tu en gardes</h3>'
+    + 'Chaque geste gardé aura besoin de son <b>« Le geste »</b> — j’ai écrit '
+    + 'le « ce que ça change », pas le comment-faire. La page des '
+    + 'explications manquantes grossira donc d’autant : <b>28 + ce que tu '
+    + 'valides</b>. Je la régénérerai, elle se recalcule seule.';
+
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>
