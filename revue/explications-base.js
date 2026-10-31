@@ -150,6 +150,175 @@
            + 'qu’il n’y a pas un meilleur exercice.',
       source: 'StrengthLog (bras de fer) ; étude ACE / UW-La Crosse 2014'
     },
+    /* ================= LOT 2, 31/10 : LES EXERCICES DE TABLE ==========
+
+       CEUX-LA, LE CARNET LES DOCUMENTE DEJA. Leurs commentaires dans
+       `model.js` portent des arbitrages que MB a tranches et des sources
+       qu'il a validees — il n'y avait rien a chercher ailleurs, seulement a
+       le lire. C'est la regle « si je sais ouvrir le fichier qui contient
+       la reponse, je l'ouvre ». */
+    'Cup hold': {
+      faire: 'On ferme la main sur la prise et on TIENT, poignet enroulé '
+           + 'vers soi. Des secondes, pas des répétitions.',
+      pourquoi_aw: 'C’est la position de contrôle : main fermée sur celle de '
+           + 'l’adversaire, son levier réduit. Le carnet la compte en durée, '
+           + 'et un isométrique seul ne pèse donc aucun tonnage.',
+      source: 'dictionnaire du carnet, lot 3 des exercices de table '
+            + '(validé par MB le 23/10)'
+    },
+    'Toproll à la poulie': {
+      faire: 'À la poulie, on combine déviation radiale, pronation et '
+           + 'fermeture de la main pour rouler la prise vers l’extérieur.',
+      pourquoi_aw: 'Ce n’est pas un geste simple mais une COMPOSITION de '
+           + 'gestes déjà sourcés — déviation radiale, pronation, cupping, '
+           + 'prise. Ses muscles moteurs sont le rond pronateur et le carré '
+           + 'pronateur.',
+      source: 'dictionnaire du carnet, lot 3 (validé par MB le 23/10)'
+    },
+    'Hook à la poulie': {
+      faire: 'À la poulie, avant-bras en SUPINATION, on tire en fermant la '
+           + 'main et en gardant le poignet verrouillé.',
+      pourquoi_aw: 'La supination est un arbitrage de MB CONTRE un article '
+           + 'de 2026 qui décrit le hook en pronation : cette étude porte '
+           + 'sur onze athlètes en rééducation d’une épicondylite, et sa '
+           + 'pronation décrit vraisemblablement la charge qui les a '
+           + 'blessés.',
+      source: 'arbitrage de MB, inscrit dans le dictionnaire du carnet'
+    },
+    'Side pressure à la poulie': {
+      faire: 'À la poulie, on pousse latéralement en gardant le coude au '
+           + 'corps et le poignet ferme.',
+      pourquoi_aw: 'VOA la décrit comme une FINITION plutôt qu’un style : '
+           + '« elle termine la plupart des matchs de hook et beaucoup de '
+           + 'matchs de toproll ». Le carnet la range avec les six '
+           + 'mouvements, sur décision de MB du 28/10.',
+      source: 'VOA, cité dans le commentaire de STYLES_AW'
+    },
+    'Back pressure à la poulie': {
+      faire: 'À la poulie, on tire vers l’arrière en gardant le bras près du '
+           + 'corps, poignet verrouillé.',
+      pourquoi_aw: 'L’un des six mouvements du carnet, au même rang que le '
+           + 'rising, la pronation et la side pressure.',
+      source: 'dictionnaire du carnet, table FORCES'
+    },
+    'Rising': {
+      faire: 'Déviation radiale : le poignet s’incline vers le côté du '
+           + 'pouce, contre résistance.',
+      pourquoi_aw: 'BarBend note que la plupart des variantes de wrist curl '
+           + 'NÉGLIGENT les déviations radiale et ulnaire. Le carnet, lui, '
+           + 'leur donne chacune sa fiche.',
+      source: 'dictionnaire du carnet ; BarBend sur les variantes de '
+            + 'wrist curl'
+    },
+    'Déviation ulnaire': {
+      faire: 'Le poignet s’incline vers le côté du petit doigt, contre '
+           + 'résistance.',
+      pourquoi_aw: 'Le mouvement miroir du rising. VOA : « Chop / ulnar '
+           + 'deviation — bending the wrist down towards the little-finger '
+           + 'side ». MB, le 23/10 : elle n’a pas de mot propre au bras de '
+           + 'fer.',
+      source: 'VOA, cité dans le dictionnaire du carnet'
+    },
+
+    /* ---------------- quelques classiques, sources le 31/10 ---------- */
+    /* ============ LOT 3 : LES CLASSIQUES ============
+       Sources : les etudes ACE / University of Wisconsin-La Crosse lues le
+       31/10 (triceps 2011, biceps 2014, epaules 2014) et le guide bras de
+       fer de StrengthLog. Aucune n'est ecrite de memoire. */
+    'Curl biceps': {
+      faire: 'Bras le long du corps, coudes fixes, on fléchit en gardant le '
+           + 'buste immobile.',
+      pourquoi_aw: 'Le biceps et le brachial tiennent la traction quand le '
+           + 'coude est fléchi. StrengthLog rappelle que le brachial, sous '
+           + 'le biceps, est en réalité le plus fort des deux.',
+      source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
+    },
+    'Hammer curl': {
+      faire: 'Curl en prise neutre, paumes face à face, coudes au corps.',
+      pourquoi_aw: 'La prise neutre charge le brachio-radial, celui qui '
+           + 'tient la puissance dans le toproll.',
+      source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
+    },
+    'Preacher curl': {
+      faire: 'Bras posés sur le pupitre, coudes bloqués, on fléchit sans '
+           + 'décoller l’arrière du bras.',
+      pourquoi_aw: 'Le pupitre supprime l’élan du buste. L’étude ACE de 2014 '
+           + 'l’a testé parmi huit exercices de biceps ; c’est le curl '
+           + 'concentré qui l’emporte.',
+      source: 'étude ACE / UW-La Crosse 2014, 16 volontaires'
+    },
+    'Triceps kickback': {
+      faire: 'Buste penché, bras collé au corps, on étend le coude vers '
+           + 'l’arrière sans bouger l’épaule.',
+      pourquoi_aw: 'L’étude ACE sur huit exercices de triceps le classe '
+           + 'DEUXIÈME, derrière les pompes diamant, devant les dips.',
+      garde: 'Les auteurs préviennent que les deux exercices au poids du '
+           + 'corps testés ne sont pas strictement comparables aux six '
+           + 'autres, charges à 70 % du 1RM.',
+      source: 'étude ACE / UW-La Crosse (triceps), 8 exercices, EMG des '
+            + 'chefs long et latéral'
+    },
+    'Pompes': {
+      faire: 'Mains à largeur d’épaules, corps en ligne de la tête aux '
+           + 'talons, on descend la poitrine puis on pousse.',
+      pourquoi_aw: 'Une mesure EMG place la pompe STANDARD devant la prise '
+           + 'large pour le pectoral comme pour le triceps — l’inverse de ce '
+           + 'qu’on en dit d’ordinaire.',
+      source: 'étude EMG citée par Biology Insights ; comparatif LiveStrong'
+    },
+    'Élévation latérale': {
+      faire: 'Bras le long du corps, on élève sur les côtés jusqu’à hauteur '
+           + 'd’épaules, sans élan.',
+      pourquoi_aw: 'Pour le deltoïde MOYEN, l’étude ACE de 2014 place en '
+           + 'tête l’élévation bras fléchi et le rowing incliné à 45°.',
+      garde: 'Ses auteurs refusent de nommer un meilleur exercice d’épaule, '
+           + 'et conseillent de commencer par le deltoïde postérieur, le '
+           + 'plus faible d’ordinaire.',
+      source: 'étude ACE / UW-La Crosse 2014, 10 exercices, EMG des trois '
+            + 'faisceaux'
+    },
+    'Oiseau': {
+      faire: 'Buste penché, bras presque tendus, on écarte vers l’arrière à '
+           + 'hauteur d’épaules.',
+      pourquoi_aw: 'Travail du deltoïde postérieur, que l’étude ACE désigne '
+           + 'comme le plus faible des trois faisceaux et le premier à '
+           + 'renforcer.',
+      source: 'étude ACE / UW-La Crosse 2014'
+    },
+    'Tirage vertical': {
+      faire: 'Assis à la poulie haute, on tire la barre devant la poitrine '
+           + 'en laissant les omoplates descendre.',
+      pourquoi_aw: 'Les dorsaux stabilisent l’épaule et transfèrent la force '
+           + 'pour que le bras ne travaille pas seul.',
+      garde: 'Plusieurs études sur la largeur de prise ne trouvent PAS de '
+           + 'différence significative d’activation du grand dorsal.',
+      source: 'Andersen et al. via StrengthLog ; revue EMG PubMed 42647355'
+    },
+    'Traction': {
+      faire: 'Suspendu à la barre, paumes vers l’avant, on tire jusqu’à '
+           + 'passer le menton au-dessus.',
+      pourquoi_aw: 'Une revue EMG de 2026 trouve les différentes prises de '
+           + 'traction globalement ÉQUIVALENTES pour le grand dorsal ; c’est '
+           + 'le rowing inversé qu’elle place devant.',
+      source: 'revue narrative EMG, PubMed 42647355 (2026)'
+    },
+    'Dips prise large': {
+      faire: 'Buste penché vers l’avant sur les barres, coudes écartés, on '
+           + 'descend jusqu’à l’épaule sous le coude.',
+      pourquoi_aw: 'Le buste penché déplace le travail vers le pectoral ; '
+           + 'buste droit, c’est le triceps.',
+      source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
+    },
+    'Farmer walk': {
+      faire: 'Une charge lourde dans chaque main, on marche en gardant le '
+           + 'buste droit et les épaules basses.',
+      pourquoi_aw: 'Prise et stabilité d’épaule sous charge, deux choses que '
+           + 'le bras de fer exige en continu.',
+      garde: 'La fiche du carnet est INCOMPLÈTE par construction : les '
+           + 'muscles les mieux mesurés de cet exercice sont ceux du tronc, '
+           + 'qu’il ne connaît pas.',
+      source: 'dictionnaire du carnet ; dette inscrite dans CHANTIERS.md'
+    },
     'Dead hang': {
       faire: 'Suspendu à une barre, bras tendus, on tient.',
       pourquoi_aw: 'Le bras de fer met tendons et ligaments du poignet, du '

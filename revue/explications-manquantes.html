@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ce qui manque — les explications à écrire ensemble</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `em-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .em-tete, .em-corps, .em-pied { max-width: 1060px; margin: 0 auto; }
+  .em-tete h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .em-tete p { margin: 6px 0; font-size: .9rem; color: var(--texte-2); }
+  .em-tete b { color: var(--texte); }
+  .em-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .em-compte { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+  .em-carte { border: 1px solid var(--trait); border-radius: 10px;
+              background: var(--fond-2); padding: 9px 14px; min-width: 128px; }
+  .em-carte b { display: block; font-size: 1.5rem; color: var(--laiton);
+                line-height: 1.1; }
+  .em-carte span { font-size: .76rem; color: var(--texte-2); }
+  .em-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin: 12px 0; }
+  .em-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .84rem; padding: 6px 12px; cursor: pointer; }
+  .em-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .em-fiche { border: 1px solid var(--trait); border-radius: 10px;
+              background: var(--fond-2); margin-bottom: 12px; }
+  .em-fiche > h3 { margin: 0; font-size: .97rem; padding: 9px 13px;
+                   background: var(--fond-3); display: flex; gap: 10px;
+                   align-items: baseline; flex-wrap: wrap; }
+  .em-fiche > h3 small { color: var(--texte-2); font-size: .76rem;
+                         font-weight: 400; }
+  .em-fiche > h3 small.em-droite { margin-left: auto; }
+  .em-corps2 { padding: 11px 13px; }
+  .em-su { font-size: .8rem; color: var(--texte-2); margin: 0 0 8px; }
+  .em-su b { color: var(--texte); font-weight: 600; }
+  .em-su .em-mus { color: #8fdcab; }
+  .em-su .em-ecr { color: var(--laiton); }
+  .em-lab { display: block; font-size: .76rem; color: var(--texte-2);
+            margin: 9px 0 3px; }
+  .em-lab b { color: var(--laiton); }
+  textarea.em-t { width: 100%; box-sizing: border-box; background: var(--fond);
+        border: 1px solid var(--trait); border-radius: var(--r-s);
+        color: var(--texte); font: inherit; font-size: .88rem; padding: 8px 10px;
+        min-height: 58px; resize: vertical; }
+  textarea.em-t:focus { border-color: var(--laiton); outline: none; }
+  .em-cpt { font-size: .72rem; color: var(--texte-2); text-align: right;
+            margin-top: 2px; }
+  .em-cpt.em-trop { color: #ff9b9b; font-weight: 600; }
+  .em-sortie { margin-top: 20px; }
+  .em-sortie h2 { font-size: 1rem; margin: 0 0 7px; color: var(--laiton); }
+  .em-sortie textarea { width: 100%; height: 230px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+  .em-pied { font-size: .86rem; color: var(--texte-2);
+             border-top: 1px solid var(--trait); padding-top: 11px;
+             margin-top: 20px; }
+  .em-pied b { color: var(--texte); }
+  .em-pied h3 { color: var(--laiton); font-size: .93rem; margin: 12px 0 5px; }
+  .em-vide { font-size: .88rem; color: var(--texte-2); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="em-tete">
+  <h1>Ce qui manque</h1>
+  <p class="em-cite">« Tu me fais une page avec tous les exo &amp; gestes de
+     ces exos où tu n’arrives pas à trouver une explication ou ce que ça
+     change, on les travaillera ensemble. »</p>
+  <p>Je n’ai rien écrit de mémoire : ce projet a déjà payé une explication
+     inventée qui se lisait comme une explication vérifiée. Ce qui reste,
+     c’est ce que je n’ai pas su sourcer — <b>pas</b> ce que je n’ai pas eu
+     le temps de faire.</p>
+  <p id="emQuoi"></p>
+  <div class="em-compte" id="emCompte"></div>
+</div>
+
+<div class="em-corps">
+  <div class="em-barre">
+    <button type="button" class="em-pb" id="emTous" aria-pressed="true">Tout</button>
+    <button type="button" class="em-pb" id="emVides">Pas encore écrits</button>
+    <button type="button" class="em-pb" id="emFaits">Ce que j’ai écrit</button>
+    <span class="em-pb" style="cursor:default" id="emEtat"></span>
+  </div>
+  <div id="emListe"></div>
+
+  <div class="em-sortie">
+    <h2>À me renvoyer</h2>
+    <div class="em-barre" style="margin-top:0">
+      <button type="button" class="em-pb" id="emCopier">Copier</button>
+      <button type="button" class="em-pb" id="emRaz">Tout effacer</button>
+      <span class="em-pb" style="cursor:default" id="emEtat2"></span>
+    </div>
+    <textarea id="emJson" readonly></textarea>
+  </div>
+</div>
+
+<p class="em-pied" id="emPied"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script src="revue/classement-noms.js"></script>
+<script src="revue/explications-gestes.js"></script>
+<script src="revue/gestes-ajoutes.js"></script>
+<script src="revue/tractions-regroupees.js"></script>
+<script src="revue/explications-base.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, etat = S.vide();
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k === 'class') e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) {
+      if (k) e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    });
+    return e;
+  }
+
+  /* ================= LE MÊME ÉTAT QUE L'APP SIMULÉE =================
+
+     Cette page doit compter LES MÊMES manques que l'écran. Si elle
+     appliquait d'autres règles, elle listerait des exercices qui n'existent
+     plus et en oublierait d'autres — et MB travaillerait pour rien.
+
+     On refait donc ici, dans l'ordre, ce que le patch fait : absorber les
+     tractions, renommer, retirer « Pince ». Le patch lui-même n'est pas
+     chargé : il greffe un écran dont cette page n'a pas besoin. */
+  var TR = A.tractionsRegroupees || { RENOMMER: {}, ABSORPTIONS: [] };
+  var CLASSE = {};
+  TR.ABSORPTIONS.forEach(function (a) {
+    var acc = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === a.vers; })[0];
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === a.fiche) i = k; });
+    if (!acc || i < 0) return;
+    var abs = m.DICTIONNAIRE[i];
+    m.DICTIONNAIRE.splice(i, 1);
+    [a.geste, abs.nom].concat(abs.aussi || []).forEach(function (n) {
+      if (acc.aussi.indexOf(n) < 0) acc.aussi.push(n);
+    });
+    var nomAcc = TR.RENOMMER[a.vers] || a.vers;
+    CLASSE[nomAcc + ' § ' + a.geste] = 'geste';
+    if (abs.nom !== a.geste) CLASSE[nomAcc + ' § ' + abs.nom] = 'syn';
+  });
+  Object.keys(TR.RENOMMER).forEach(function (vieux) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === vieux; })[0];
+    if (!f) return;
+    f.aussi = f.aussi || [];
+    if (f.aussi.indexOf(vieux) < 0) f.aussi.unshift(vieux);
+    f.nom = TR.RENOMMER[vieux];
+  });
+  (function () {
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === 'Pince') i = k; });
+    if (i >= 0) m.DICTIONNAIRE.splice(i, 1);
+  })();
+  ((A.gestesAjoutes && A.gestesAjoutes.AJOUTS) || []).forEach(function (g) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) {
+      return x.nom === (TR.RENOMMER[g.fiche] || g.fiche); })[0];
+    if (!f) return;
+    var fiche = f.nom;
+    [g.nom].concat(g.aussi || []).forEach(function (n) {
+      if (f.aussi.indexOf(n) < 0) f.aussi.push(n);
+    });
+    CLASSE[fiche + ' § ' + g.nom] = 'geste';
+    (g.aussi || []).forEach(function (n) { CLASSE[fiche + ' § ' + n] = 'syn'; });
+  });
+  var RSS = (A.gestesAjoutes && A.gestesAjoutes.REND_SON_STATUT) || {};
+  Object.keys(RSS).forEach(function (id) { CLASSE[id] = RSS[id].code; });
+
+  function codeDe(fiche, nom) {
+    var id = fiche + ' § ' + nom;
+    if (CLASSE[id]) return CLASSE[id];
+    var pr = A.classementNoms && A.classementNoms.PLAT[id];
+    return (pr && pr.code) || 'syn';
+  }
+
+  /* ================= CE QUI MANQUE ================= */
+  var B = (A.explicationsBase && A.explicationsBase.BASE) || {};
+  var E = (A.explicationsGestes && A.explicationsGestes.E) || {};
+  var AJ = {};
+  ((A.gestesAjoutes && A.gestesAjoutes.AJOUTS) || []).forEach(function (g) { AJ[g.nom] = g; });
+  var TRX = {};
+  TR.ABSORPTIONS.forEach(function (a) { TRX[a.geste] = a; });
+  var RSX = {};
+  Object.keys(RSS).forEach(function (k) { RSX[k.split(' § ')[1]] = RSS[k]; });
+
+  function explGeste(n) { return E[n] || AJ[n] || TRX[n] || RSX[n] || null; }
+
+  var manques = [], gestesOk = 0, gestesTotal = 0, basesOk = 0;
+  (m.DICTIONNAIRE || []).forEach(function (f) {
+    var g = (f.aussi || []).filter(function (n) { return codeDe(f.nom, n) === 'geste'; });
+    gestesTotal += g.length;
+    var gSans = g.filter(function (n) {
+      var x = explGeste(n); return !x || !x.faire; });
+    gestesOk += g.length - gSans.length;
+    if (B[f.nom]) basesOk++;
+    if (!B[f.nom] || gSans.length) {
+      manques.push({ nom: f.nom, groupe: f.groupe,
+        base: !B[f.nom], gestes: gSans,
+        muscles: (f.muscles || []), ecritures: (f.aussi || []) });
+    }
+  });
+
+  var CLE = 'carnet-aw-explications-mb';
+  var ecrits = {};
+  try { ecrits = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) {}
+  function garder() {
+    try { localStorage.setItem(CLE, JSON.stringify(ecrits)); } catch (e) {}
+  }
+
+  var filtre = 'tous';
+
+  function champ(cle, libelle, aide) {
+    var z = h('div');
+    z.appendChild(h('label', { class: 'em-lab',
+      html: '<b>' + libelle + '</b> — ' + aide }));
+    var t = h('textarea', { class: 'em-t', placeholder: '…' });
+    t.value = ecrits[cle] || '';
+    var c = h('div', { class: 'em-cpt' });
+    function maj() {
+      var n = t.value.length;
+      c.textContent = n + ' / 200 signes';
+      c.className = 'em-cpt' + (n > 200 ? ' em-trop' : '');
+    }
+    t.addEventListener('input', function () {
+      if (t.value.trim()) ecrits[cle] = t.value; else delete ecrits[cle];
+      garder(); maj(); majSortie(); majEtat();
+    });
+    maj();
+    z.appendChild(t);
+    z.appendChild(c);
+    return z;
+  }
+
+  function rendre() {
+    var z = document.getElementById('emListe');
+    z.innerHTML = '';
+    var n = 0;
+    manques.forEach(function (x) {
+      var cles = [];
+      if (x.base) cles.push('base § ' + x.nom);
+      x.gestes.forEach(function (g) { cles.push(x.nom + ' § ' + g); });
+      var remplis = cles.filter(function (k) { return ecrits[k]; }).length;
+      if (filtre === 'vides' && remplis === cles.length) return;
+      if (filtre === 'faits' && !remplis) return;
+      n++;
+      var f = h('div', { class: 'em-fiche' });
+      var t = h('h3', {}, [x.nom]);
+      t.appendChild(h('small', { text: x.groupe }));
+      t.appendChild(h('small', { class: 'em-droite',
+        text: remplis + ' / ' + cles.length + ' écrit(s)' }));
+      f.appendChild(t);
+
+      var c = h('div', { class: 'em-corps2' });
+      /* CE QUE LE CARNET SAIT DEJA — pour que MB n'ait pas à le chercher */
+      var su = h('p', { class: 'em-su' });
+      su.appendChild(h('span', { html: '<b>Muscles :</b> ' }));
+      su.appendChild(h('span', { class: 'em-mus',
+        text: x.muscles.length ? x.muscles.join(', ') : '— aucun' }));
+      if (x.ecritures.length) {
+        su.appendChild(h('span', { html: '<br><b>Autres noms :</b> ' }));
+        su.appendChild(h('span', { class: 'em-ecr',
+          text: x.ecritures.slice(0, 6).join(' · ')
+              + (x.ecritures.length > 6 ? ' · +' + (x.ecritures.length - 6) : '') }));
+      }
+      c.appendChild(su);
+
+      if (x.base) {
+        c.appendChild(champ('base § ' + x.nom, 'Le geste',
+          'comment on fait le mouvement, en une ou deux phrases'));
+      }
+      x.gestes.forEach(function (g) {
+        c.appendChild(champ(x.nom + ' § ' + g, 'Geste : ' + g,
+          'comment on le fait, et ce que ça change par rapport au mouvement simple'));
+      });
+      f.appendChild(c);
+      z.appendChild(f);
+    });
+    if (!n) {
+      z.appendChild(h('p', { class: 'em-vide',
+        text: filtre === 'faits' ? 'Tu n’as encore rien écrit.'
+            : 'Rien ne manque dans ce filtre.' }));
+    }
+    majSortie();
+    majEtat();
+  }
+
+  function majEtat() {
+    var tot = 0, faits = 0;
+    manques.forEach(function (x) {
+      if (x.base) { tot++; if (ecrits['base § ' + x.nom]) faits++; }
+      x.gestes.forEach(function (g) {
+        tot++; if (ecrits[x.nom + ' § ' + g]) faits++; });
+    });
+    document.getElementById('emEtat').textContent =
+      faits + ' écrit(s) sur ' + tot;
+  }
+
+  function majSortie() {
+    var l = Object.keys(ecrits).sort();
+    document.getElementById('emJson').value = l.length
+      ? l.map(function (k) {
+          var p = k.split(' § ');
+          return (p[0] === 'base' ? p[1] + ' (le mouvement)' : p[0] + ' ▸ ' + p[1])
+               + '\n  ' + ecrits[k].replace(/\n/g, '\n  '); }).join('\n\n')
+      : 'Rien d’écrit pour l’instant. Ce que tu tapes ici reste dans ce '
+      + 'navigateur, et se recopie avec le bouton Copier.';
+  }
+
+  ['emTous', 'emVides', 'emFaits'].forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function () {
+      filtre = id === 'emTous' ? 'tous' : (id === 'emVides' ? 'vides' : 'faits');
+      ['emTous', 'emVides', 'emFaits'].forEach(function (x) {
+        document.getElementById(x).setAttribute('aria-pressed',
+          x === id ? 'true' : 'false');
+      });
+      rendre();
+    });
+  });
+  document.getElementById('emCopier').addEventListener('click', function () {
+    var t = document.getElementById('emJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('emEtat2').textContent = 'copié.';
+  });
+  document.getElementById('emRaz').addEventListener('click', function () {
+    ecrits = {}; garder(); rendre();
+  });
+
+  var nbBase = manques.filter(function (x) { return x.base; }).length;
+  var nbGestes = manques.reduce(function (n, x) { return n + x.gestes.length; }, 0);
+
+  var cartes = [
+    [m.DICTIONNAIRE.length, 'exercices au dictionnaire'],
+    [basesOk, 'mouvements expliqués'],
+    [nbBase, 'mouvements à écrire'],
+    [gestesTotal, 'gestes au total'],
+    [gestesOk, 'gestes expliqués'],
+    [nbGestes, 'gestes à écrire']
+  ];
+  var zc = document.getElementById('emCompte');
+  cartes.forEach(function (c) {
+    zc.appendChild(h('div', { class: 'em-carte' },
+      [h('b', { text: String(c[0]) }), h('span', { text: c[1] })]));
+  });
+
+  document.getElementById('emQuoi').innerHTML =
+    'Il manque <b>' + nbBase + '</b> explication(s) de mouvement et <b>'
+    + nbGestes + '</b> de geste, sur <b>' + manques.length + '</b> fiche(s). '
+    + 'Ce que tu tapes reste dans ce navigateur ; le bouton <b>Copier</b> te '
+    + 'rend le tout d’un bloc.';
+
+  document.getElementById('emPied').innerHTML =
+    '<h3>Pourquoi ces 28 et pas d’autres</h3>'
+    + 'Les <b>' + basesOk + '</b> déjà écrites viennent toutes d’une source '
+    + 'lue : le guide bras de fer de StrengthLog (lu en entier dans le '
+    + 'navigateur), les études ACE / University of Wisconsin-La Crosse '
+    + '(triceps, biceps 2014, épaules 2014), une revue EMG de 2026 sur le '
+    + 'grand dorsal, et les commentaires du dictionnaire lui-même — qui '
+    + 'portent des arbitrages que tu as tranchés, comme le hook en '
+    + 'supination contre l’article de 2026.'
+    + '<br><br>Celles qui restent sont, pour l’essentiel, des mouvements que '
+    + 'ces sources ne décrivent pas : les <b>wrist curl par côté</b>, le '
+    + '<b>curl Larratt</b>, les <b>curl rising et pronation à la poulie</b>, '
+    + 'le <b>Tate press</b>, l’<b>élévation en Y</b>. Ce sont aussi, souvent, '
+    + 'ceux que tu connais mieux que n’importe quelle page.'
+    + '<h3>Ce que la page ne fait pas</h3>'
+    + 'Elle n’écrit <b>rien</b> dans le carnet. Ce que tu tapes vit dans le '
+    + 'stockage local de ce navigateur, et sert à me le renvoyer. '
+    + '<b>Les 32 gestes ont déjà tous leur explication</b> — s’il n’y en a '
+    + 'aucun dans la liste, c’est pour cette raison, pas parce que la page '
+    + 'les a oubliés.';
+
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>
