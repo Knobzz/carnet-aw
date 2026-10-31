@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deux idées à comparer — l’équipement, et les autres noms</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `se-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .se-tete { max-width: 1240px; margin: 0 auto 14px; }
+  .se-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .se-tete p { margin: 5px 0; font-size: .9rem; color: var(--texte-2); }
+  .se-tete b { color: var(--texte); }
+  .se-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .se-pages { max-width: 1240px; margin: 0 auto 14px; display: flex; gap: 8px; }
+  .se-pages button { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 8px; color: var(--texte); font: inherit; font-size: .9rem;
+        padding: 8px 16px; cursor: pointer; }
+  .se-pages button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); font-weight: 600; }
+  .se-rangee { display: flex; gap: 26px; align-items: flex-start;
+               max-width: 1240px; margin: 0 auto; }
+  .se-tel { width: 320px; flex: 0 0 320px; position: sticky; top: 16px; }
+  .se-ecran { border: 1px solid var(--trait-fort); border-radius: 12px;
+              background: var(--fond-2); padding: 12px; width: 320px;
+              box-sizing: border-box; min-height: 440px; }
+  .se-aide { font-size: .8rem; color: var(--texte-2); margin: 10px 0 0; }
+  .se-label { font-size: .78rem; color: var(--texte-2); display: block;
+              margin: 11px 0 4px; }
+  .se-label:first-child { margin-top: 0; }
+  .se-champ { width: 100%; box-sizing: border-box; background: var(--fond);
+              border: 1px solid var(--trait); border-radius: var(--r-s);
+              color: var(--texte); font: inherit; padding: 9px 10px; }
+  .se-champ.se-plein { border-color: var(--laiton); }
+  .se-bt { width: 100%; margin-top: 8px; background: var(--fond-3);
+           border: 1px solid var(--trait); border-radius: var(--r-s);
+           color: var(--texte); font: inherit; padding: 8px 10px; cursor: pointer; }
+  .se-bt:hover { border-color: var(--laiton); }
+
+  /* --- la case équipement --- */
+  .se-equip { border: 1px solid var(--laiton); border-radius: var(--r-s);
+              padding: 9px 10px; margin-top: 8px;
+              background: color-mix(in srgb, var(--laiton) 7%, transparent); }
+  .se-equip > p { margin: 0 0 7px; font-size: .78rem; color: var(--texte-2); }
+  .se-equip > p b { color: var(--laiton); }
+  .se-poses { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .se-pose { background: var(--laiton); border: 1px solid var(--laiton);
+             border-radius: 999px; color: var(--fond); font: inherit;
+             font-size: .79rem; font-weight: 600; padding: 3px 10px;
+             cursor: pointer; }
+  .se-cat { font-size: .72rem; color: var(--texte-2); margin: 7px 0 3px;
+            text-transform: uppercase; letter-spacing: .04em; }
+  .se-choix { display: flex; flex-wrap: wrap; gap: 5px; }
+  .se-choix button { background: var(--fond); border: 1px solid var(--trait);
+        border-radius: 999px; color: var(--texte); font: inherit;
+        font-size: .79rem; padding: 3px 10px; cursor: pointer; }
+  .se-choix button:hover { border-color: var(--laiton); }
+  .se-choix button[disabled] { opacity: .35; cursor: default; }
+  .se-regl { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--trait); }
+  .se-resume { margin-top: 9px; font-size: .8rem; color: var(--texte-2); }
+  .se-resume b { color: var(--texte); }
+
+  /* --- les autres noms --- */
+  .se-cote { flex: 1; min-width: 470px; }
+  .se-cote h2 { font-size: 1.02rem; margin: 0 0 4px; }
+  .se-cote > p { font-size: .86rem; color: var(--texte-2); margin: 0 0 10px; }
+  .se-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin-bottom: 10px; }
+  .se-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .se-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .se-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .86rem; padding: 5px 10px; width: 180px; }
+  .se-fiche { border: 1px solid var(--trait); border-radius: 10px;
+              background: var(--fond-2); margin-bottom: 9px; }
+  .se-fiche > h3 { margin: 0; font-size: .93rem; padding: 7px 11px;
+                   background: var(--fond-3); display: flex; gap: 10px;
+                   align-items: baseline; }
+  .se-fiche > h3 small { margin-left: auto; color: var(--texte-2);
+                         font-size: .77rem; font-weight: 400; }
+  .se-noms { padding: 9px 11px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .se-nom { background: var(--fond); border: 1px solid var(--trait);
+            border-radius: 999px; color: var(--texte); font: inherit;
+            font-size: .81rem; padding: 3px 11px; cursor: pointer; }
+  .se-nom:hover { border-color: var(--laiton); }
+  .se-nom.se-var { background: #2f5e44; border-color: #6cc08b; color: #d6ffe6;
+                   font-weight: 600; }
+  .se-nom.se-syn { opacity: .5; }
+  .se-sortie { max-width: 1240px; margin: 18px auto 0; }
+  .se-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
+  .se-sortie textarea { width: 100%; height: 170px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+  .se-bilan { max-width: 1240px; margin: 18px auto 0; font-size: .86rem;
+              color: var(--texte-2); border-top: 1px solid var(--trait);
+              padding-top: 10px; }
+  .se-bilan b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<div class="se-tete">
+  <h1>Deux idées à comparer</h1>
+  <p class="se-cite">« Au lieu de créer des variantes, garder les noms d’exo
+     simples, et mettre une case “réglage / équipement” avec des choix
+     génériques — haltères, barre, barre EZ, kettlebell, pupitre, banc (avec
+     le degré) — sachant qu’il faut pouvoir en mettre plusieurs à la suite. »
+     Et : « on clique sur Curl biceps, et vu qu’il y a plusieurs autres noms
+     connus qui sont des variantes, qu’on puisse sélectionner à partir de
+     là. »</p>
+  <p><b>Rien n’est appliqué.</b> Les deux sont simulées ici, séparément,
+     pour que tu puisses les comparer avant qu’on en construise une.</p>
+  <p id="seQuoi"></p>
+</div>
+
+<div class="se-pages">
+  <button type="button" id="sePage1" aria-pressed="true">1 · L’équipement, cumulable</button>
+  <button type="button" id="sePage2" aria-pressed="false">2 · Les autres noms connus</button>
+</div>
+
+<div id="seVue1">
+  <div class="se-rangee">
+    <div class="se-tel">
+      <div class="se-ecran" id="seEcran"></div>
+      <p class="se-aide">Le nom reste <b>simple</b>. L’équipement se pose à
+         côté, et on peut en cumuler — haltères <i>et</i> banc incliné 30°.</p>
+      <button type="button" class="se-pb" id="seVider" style="margin-top:8px">↺ Vider</button>
+    </div>
+    <div class="se-cote">
+      <h2>Ce que le carnet connaît déjà, et ce qui manque</h2>
+      <p id="seEtat"></p>
+      <div id="seTable"></div>
+    </div>
+  </div>
+</div>
+
+<div id="seVue2" hidden>
+  <div class="se-cote" style="max-width:1240px;margin:0 auto">
+    <h2>Les autres noms connus — lesquels sont des variantes ?</h2>
+    <p>Ce sont les noms que la règle actuelle écarte du menu parce qu’ils
+       n’apportent ni engin ni position. <b>Clique ceux qui sont en réalité
+       un geste différent</b> : ils deviennent verts.</p>
+    <div class="se-barre">
+      <input type="search" id="seQ" placeholder="chercher…">
+      <button type="button" class="se-pb" id="seTous" aria-pressed="true">Tous</button>
+      <button type="button" class="se-pb" id="seMarques">Ce que j’ai marqué</button>
+      <button type="button" class="se-pb" id="seRestent">Pas encore vues</button>
+      <span class="se-pb" style="cursor:default" id="seCompte"></span>
+    </div>
+    <div id="seNoms"></div>
+    <div class="se-sortie">
+      <h2>Les noms que tu as marqués comme variantes</h2>
+      <div class="se-barre" style="margin-top:0">
+        <button type="button" class="se-pb" id="seCopier">Copier</button>
+        <button type="button" class="se-pb" id="seRaz">Tout décocher</button>
+        <span class="se-pb" style="cursor:default" id="seEtat2"></span>
+      </div>
+      <textarea id="seJson" readonly></textarea>
+    </div>
+  </div>
+</div>
+
+<p class="se-bilan" id="seBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, V = A.variantes;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  /* ============ IDÉE 1 : L'ÉQUIPEMENT, CUMULABLE ============
+     Les choix génériques que MB a nommés, plus ceux que le dictionnaire
+     emploie déjà. Chacun peut porter un RÉGLAGE — le banc a son degré,
+     c'est exactement ce qu'il demandait.
+
+     LE CARNET SAIT DÉJÀ FAIRE ÇA : un exercice porte `outils: []` et
+     `reglages: {}`, et un type d'outil peut déclarer ses réglages. Ce qui
+     manque, c'est que les engins ORDINAIRES n'y sont pas : ses 20 types
+     sont tous du matériel de bras de fer. */
+  var EQUIPEMENT = [
+    { cat: 'Barres', items: [
+      { nom: 'Barre', reglages: null },
+      { nom: 'Barre EZ', reglages: null },
+      { nom: 'Barre guidée', reglages: null },
+      { nom: 'Landmine', reglages: null } ] },
+    { cat: 'Poids libres', items: [
+      { nom: 'Haltères', reglages: null },
+      { nom: 'Kettlebell', reglages: null },
+      { nom: 'Disque', reglages: null } ] },
+    { cat: 'Câbles et résistance', items: [
+      { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
+      { nom: 'Élastique', reglages: null },
+      { nom: 'Machine', reglages: null } ] },
+    { cat: 'Supports', items: [
+      { nom: 'Banc', reglages: ['plat', 'incliné 15°', 'incliné 30°',
+                                'incliné 45°', 'décliné'] },
+      { nom: 'Pupitre', reglages: null },
+      { nom: 'Chaise', reglages: null },
+      { nom: 'Barre fixe', reglages: null },
+      { nom: 'Corde', reglages: null } ] },
+    { cat: 'Position du corps', items: [
+      { nom: 'Debout', reglages: null },
+      { nom: 'Assis', reglages: null },
+      { nom: 'Couché', reglages: null },
+      { nom: 'À genoux', reglages: null },
+      { nom: 'Unilatéral', reglages: null } ] }
+  ];
+
+  var poses = [];     // [{nom, reglage}]
+
+  function rendreEcran() {
+    var ec = document.getElementById('seEcran');
+    ec.innerHTML = '';
+    ec.appendChild(h('label', { class: 'se-label', text: 'Nom de l’exercice' }));
+    ec.appendChild(h('input', { class: 'se-champ se-plein', type: 'text',
+                                value: 'Curl biceps' }));
+    ec.appendChild(h('button', { class: 'se-bt', type: 'button',
+                                 text: 'Parcourir le dictionnaire ▾' }));
+
+    var z = h('div', { class: 'se-equip' });
+    z.appendChild(h('p', { html: poses.length
+      ? '<b>' + poses.length + '</b> posé(s) — clique pour retirer.'
+      : '<b>Réglage / équipement</b> — facultatif, et cumulable.' }));
+
+    if (poses.length) {
+      var p = h('div', { class: 'se-poses' });
+      poses.forEach(function (x, i) {
+        var b = h('button', { class: 'se-pose', type: 'button',
+          text: x.nom + (x.reglage ? ' · ' + x.reglage : '') });
+        b.addEventListener('click', function () {
+          poses.splice(i, 1); rendreEcran();
+        });
+        p.appendChild(b);
+      });
+      z.appendChild(p);
+    }
+
+    EQUIPEMENT.forEach(function (g) {
+      z.appendChild(h('div', { class: 'se-cat', text: g.cat }));
+      var c = h('div', { class: 'se-choix' });
+      g.items.forEach(function (it) {
+        var deja = poses.some(function (x) { return x.nom === it.nom; });
+        var b = h('button', { type: 'button', text: it.nom });
+        if (deja) b.setAttribute('disabled', 'disabled');
+        b.addEventListener('click', function () {
+          poses.push({ nom: it.nom, reglage: null, reglages: it.reglages });
+          rendreEcran();
+        });
+        c.appendChild(b);
+      });
+      z.appendChild(c);
+    });
+
+    /* LE RÉGLAGE NE S'OUVRE QUE POUR CE QUI EN A UN. Le banc a son degré,
+       la poulie sa hauteur — une barre n'a rien à régler. */
+    poses.forEach(function (x, i) {
+      if (!x.reglages) return;
+      var r = h('div', { class: 'se-regl' });
+      r.appendChild(h('div', { class: 'se-cat', text: x.nom + ' — réglage' }));
+      var c = h('div', { class: 'se-choix' });
+      x.reglages.forEach(function (v) {
+        var b = h('button', { type: 'button', text: v,
+          'aria-pressed': x.reglage === v ? 'true' : 'false' });
+        if (x.reglage === v) b.style.borderColor = 'var(--laiton)';
+        b.addEventListener('click', function () {
+          poses[i].reglage = (x.reglage === v) ? null : v;
+          rendreEcran();
+        });
+        c.appendChild(b);
+      });
+      r.appendChild(c);
+      z.appendChild(r);
+    });
+
+    z.appendChild(h('p', { class: 'se-resume', html: poses.length
+      ? 'Enregistré : <b>Curl biceps</b> — ' + poses.map(function (x) {
+          return x.nom + (x.reglage ? ' (' + x.reglage + ')' : ''); }).join(' + ')
+      : 'Enregistré : <b>Curl biceps</b>, sans équipement.' }));
+    ec.appendChild(z);
+
+    ec.appendChild(h('label', { class: 'se-label', text: 'Type de charge' }));
+    var sel = h('select', { class: 'se-champ' });
+    (m.TYPES_CHARGE || []).forEach(function (t) {
+      sel.appendChild(h('option', { text: t.nom }));
+    });
+    ec.appendChild(sel);
+  }
+
+  document.getElementById('seVider').addEventListener('click', function () {
+    poses = []; rendreEcran();
+  });
+
+  /* ce que le carnet connaît déjà */
+  var connus = 0, manquants = [];
+  EQUIPEMENT.forEach(function (g) {
+    g.items.forEach(function (it) {
+      var ty = m.typesDeLOutil ? m.typesDeLOutil(it.nom) : [];
+      if (ty && ty.length) connus++; else manquants.push(it.nom);
+    });
+  });
+  var totalEq = 0; EQUIPEMENT.forEach(function (g) { totalEq += g.items.length; });
+
+  document.getElementById('seEtat').innerHTML =
+    'Sur les <b>' + totalEq + '</b> équipements de cette liste, le carnet en '
+    + 'reconnaît <b>' + connus + '</b>. Les <b>' + manquants.length + '</b> '
+    + 'autres sont à ajouter à son catalogue — il en porte déjà <b>'
+    + (m.OUTILS_CONNUS || []).length + '</b>, mais ce sont tous des outils de '
+    + 'bras de fer (fat grip, cône, cup…), aucun engin ordinaire.';
+
+  var tb = document.getElementById('seTable');
+  EQUIPEMENT.forEach(function (g) {
+    var f = h('div', { class: 'se-fiche' });
+    var t = h('h3', {}, [document.createTextNode(g.cat)]);
+    t.appendChild(h('small', { text: g.items.length + ' choix' }));
+    f.appendChild(t);
+    var z = h('div', { class: 'se-noms' });
+    g.items.forEach(function (it) {
+      var ty = m.typesDeLOutil ? m.typesDeLOutil(it.nom) : [];
+      var b = h('span', { class: 'se-nom' + ((ty && ty.length) ? ' se-var' : ''),
+        text: it.nom + (it.reglages ? ' ⚙' : ''),
+        title: (ty && ty.length) ? 'déjà connu du carnet' : 'à ajouter' });
+      z.appendChild(b);
+    });
+    f.appendChild(z);
+    tb.appendChild(f);
+  });
+
+  /* ============ IDÉE 2 : LES AUTRES NOMS CONNUS ============ */
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+  var CLE = 'carnet-aw-noms-variantes';
+  var marques = {};
+  try { marques = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) {}
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(marques)); } catch (e) {} }
+
+  function autresNoms(f) {
+    var vars = V.variantesDe(f), pris = {};
+    vars.forEach(function (v) { (v.ecritures || []).forEach(function (e) { pris[e] = 1; }); });
+    return (f.aussi || []).filter(function (e) { return !pris[e]; });
+  }
+
+  var filtre2 = 'tous', rech2 = '';
+
+  /* LES PLUS CHARGEES EN TETE. Aucun jugement la-dedans : juste l'ordre dans
+     lequel il y a le plus a gagner. « Curl biceps » et ses 7 noms d'abord,
+     les fiches a un seul nom a la fin.
+
+     ET J'AI RENONCE A UN TRI PAR « CANDIDAT SERIEUX » : je l'ai mesure, et il
+     ne separe rien. Mon critere (un mot que le carnet n'emploie nulle part
+     ailleurs) marquait « Flexion du poignet », « Marche du fermier »,
+     « Shoulder press » et « Suspension » — quatre traductions pures — au meme
+     titre que « Spider curl ». 82 des 125 noms le declenchaient. Un tri qui
+     retient les deux tiers ne trie pas. */
+  var CLE_VU = 'carnet-aw-noms-fiches-vues';
+  var vues = {};
+  try { vues = JSON.parse(localStorage.getItem(CLE_VU) || '{}') || {}; } catch (e) {}
+  function garderVues() {
+    try { localStorage.setItem(CLE_VU, JSON.stringify(vues)); } catch (e) {}
+  }
+
+  var ordre = fiches.slice().sort(function (a, b) {
+    var d = autresNoms(b).length - autresNoms(a).length;
+    return d || a.nom.localeCompare(b.nom, 'fr');
+  });
+
+  function rendreNoms() {
+    var z = document.getElementById('seNoms');
+    z.innerHTML = '';
+    var nf = 0, tot = 0;
+    ordre.forEach(function (f) {
+      var noms = autresNoms(f);
+      if (!noms.length) return;
+      tot += noms.length;
+      if (rech2) {
+        var q = m.slug(rech2);
+        if (m.slug(f.nom).indexOf(q) < 0
+            && !noms.some(function (n) { return m.slug(n).indexOf(q) >= 0; })) return;
+      }
+      if (filtre2 === 'marques'
+          && !noms.some(function (n) { return marques[f.nom + ' § ' + n]; })) return;
+      if (filtre2 === 'restent' && vues[f.nom]) return;
+      nf++;
+      var bloc = h('div', { class: 'se-fiche' });
+      var t = h('h3', {}, [document.createTextNode(f.nom)]);
+      var nm = noms.filter(function (n) { return marques[f.nom + ' § ' + n]; }).length;
+      t.appendChild(h('small', { text: noms.length + ' nom(s)'
+                               + (nm ? ' · ' + nm + ' marqué(s) variante' : '') }));
+      var bv = h('button', { class: 'se-nom', type: 'button',
+        text: vues[f.nom] ? '✓ vue' : 'marquer vue',
+        title: 'pour traverser les 56 fiches en plusieurs fois' });
+      if (vues[f.nom]) { bv.style.borderColor = 'var(--laiton)';
+                         bv.style.color = 'var(--laiton)'; }
+      bv.addEventListener('click', function () {
+        if (vues[f.nom]) delete vues[f.nom]; else vues[f.nom] = 1;
+        garderVues(); rendreNoms();
+      });
+      t.appendChild(bv);
+      if (vues[f.nom]) bloc.style.opacity = '.55';
+      bloc.appendChild(t);
+      var zn = h('div', { class: 'se-noms' });
+      noms.forEach(function (n) {
+        var id = f.nom + ' § ' + n;
+        var b = h('button', { class: 'se-nom ' + (marques[id] ? 'se-var' : 'se-syn'),
+          type: 'button', text: n,
+          title: marques[id] ? 'marqué comme VARIANTE' : 'considéré comme un autre nom' });
+        b.addEventListener('click', function () {
+          if (marques[id]) delete marques[id];
+          else marques[id] = { fiche: f.nom, nom: n };
+          garder(); rendreNoms();
+        });
+        zn.appendChild(b);
+      });
+      bloc.appendChild(zn);
+      z.appendChild(bloc);
+    });
+    var reste = ordre.filter(function (f) {
+      return autresNoms(f).length && !vues[f.nom]; }).length;
+    document.getElementById('seCompte').textContent =
+      nf + ' mouvement(s) affiché(s) · ' + Object.keys(marques).length
+      + ' marqué(s) sur ' + tot + ' · ' + reste + ' fiche(s) pas encore vue(s)';
+    majSortie2();
+  }
+
+  function majSortie2() {
+    var par = {};
+    Object.keys(marques).forEach(function (k) {
+      var d = marques[k];
+      (par[d.fiche] = par[d.fiche] || []).push(d.nom);
+    });
+    var noms = Object.keys(par).sort();
+    document.getElementById('seJson').value = noms.length
+      ? noms.map(function (n) {
+          return '- ' + n + ' : ' + par[n].map(function (x) {
+            return '« ' + x + ' »'; }).join(', '); }).join('\n')
+      : 'Rien de marqué. Clique un nom qui est en réalité un geste différent — '
+      + '« Spider curl », « Behind the neck press », « Pompes diamant »…';
+  }
+
+  document.getElementById('seTous').addEventListener('click', function () {
+    filtre2 = 'tous';
+    document.getElementById('seTous').setAttribute('aria-pressed', 'true');
+    document.getElementById('seMarques').setAttribute('aria-pressed', 'false');
+    document.getElementById('seRestent').setAttribute('aria-pressed', 'false');
+    rendreNoms();
+  });
+  document.getElementById('seMarques').addEventListener('click', function () {
+    filtre2 = 'marques';
+    document.getElementById('seTous').setAttribute('aria-pressed', 'false');
+    document.getElementById('seMarques').setAttribute('aria-pressed', 'true');
+    document.getElementById('seRestent').setAttribute('aria-pressed', 'false');
+    rendreNoms();
+  });
+  document.getElementById('seRestent').addEventListener('click', function () {
+    filtre2 = 'restent';
+    ['seTous', 'seMarques', 'seRestent'].forEach(function (id) {
+      document.getElementById(id).setAttribute('aria-pressed',
+        id === 'seRestent' ? 'true' : 'false');
+    });
+    rendreNoms();
+  });
+  document.getElementById('seQ').addEventListener('input', function (e) {
+    rech2 = e.target.value; rendreNoms();
+  });
+  document.getElementById('seCopier').addEventListener('click', function () {
+    var t = document.getElementById('seJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('seEtat2').textContent = 'copié.';
+  });
+  document.getElementById('seRaz').addEventListener('click', function () {
+    marques = {}; garder(); rendreNoms();
+  });
+
+  /* ---- les deux pages ---- */
+  function page(n) {
+    document.getElementById('seVue1').hidden = n !== 1;
+    document.getElementById('seVue2').hidden = n !== 2;
+    document.getElementById('sePage1').setAttribute('aria-pressed', n === 1 ? 'true' : 'false');
+    document.getElementById('sePage2').setAttribute('aria-pressed', n === 2 ? 'true' : 'false');
+  }
+  document.getElementById('sePage1').addEventListener('click', function () { page(1); });
+  document.getElementById('sePage2').addEventListener('click', function () { page(2); });
+
+  var totNoms = 0;
+  fiches.forEach(function (f) { totNoms += autresNoms(f).length; });
+  document.getElementById('seQuoi').innerHTML =
+    '<b>Idée 1</b> : ' + totalEq + ' équipements génériques, dont <b>'
+    + manquants.length + '</b> que le carnet ne connaît pas encore. '
+    + '<b>Idée 2</b> : <b>' + totNoms + ' autres noms</b> à relire, pour '
+    + 'repêcher ceux qui sont un geste différent.';
+
+  document.getElementById('seBilan').innerHTML =
+    '<b>Ce que l’idée 1 change, et ce qu’elle coûte.</b> Le nom reste simple '
+    + '— « Curl biceps » — et l’équipement vit à côté, dans un champ que le '
+    + 'carnet porte <b>déjà</b> (<code>outils</code> et <code>reglages</code> '
+    + 'sur chaque exercice). Ce qui manque est le <b>catalogue</b> : ses 20 '
+    + 'types sont tous du matériel de bras de fer, aucun engin ordinaire. '
+    + '<br><br><b>Et le vrai gain est ailleurs</b> : ton historique se '
+    + 'regrouperait enfin. Aujourd’hui « Curl à la poulie » et « Curl barre » '
+    + 'sont deux exercices séparés dans le Suivi ; avec l’équipement à côté, '
+    + 'ce serait <b>un seul Curl biceps</b>, filtrable par engin. C’est ce que '
+    + 'la toute première simulation cherchait — mais sans toucher aux noms, '
+    + 'et sans menu de variantes à tenir à jour.'
+    + '<br><br><b>Ce qu’elle coûte</b> : les écritures d’engin du dictionnaire '
+    + '(« Curl à la poulie », « Curl barre ») perdraient leur raison d’être '
+    + 'dans le menu — elles resteraient pour la <b>recherche</b>, puisque tu '
+    + 'tapes encore ces mots. Et il faudrait poser l’équipement à la main la '
+    + 'première fois, là où le nom le disait tout seul.';
+
+  rendreEcran();
+  rendreNoms();
+})(window.App);
+</script>
+</body>
+</html>
