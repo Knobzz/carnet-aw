@@ -109,6 +109,34 @@
   });
   if (renommees.length) noter('renommee(s) : ' + renommees.join(', '));
 
+  /* ============ 1 ter. « PINCE » SORT DU DICTIONNAIRE ============
+
+     MB, 31/10 : « Je veux que tu enleves "Pince" comme exercice. »
+
+     CE QUE LE RETRAIT EMPORTE, mesure AVANT de l'ecrire :
+       - la fiche et ses 5 muscles (flechisseurs des doigts, les trois du
+         pouce, adducteur du pouce) ;
+       - ses 2 ecritures, « Pinch » et « Pinch block » ;
+       - LE LIEN DU TYPE D'OUTIL : `pinch` porte `entrees: ['Pince']`.
+         Laisse tel quel, il designerait une fiche absente. On le VIDE, ce
+         qui fait passer le type dans « s'ajoute a n'importe quoi » — comme
+         le fat grip. Les deux produits Golden Grip (Pinch Grip Block,
+         Plate Pinch) restent rattaches au TYPE, pas a la fiche : ils ne
+         perdent rien. */
+  (function () {
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === 'Pince') i = k; });
+    if (i < 0) { noter('PINCE DEJA ABSENTE du dictionnaire'); return; }
+    m.DICTIONNAIRE.splice(i, 1);
+    var n = 0;
+    (m.OUTILS_CONNUS || []).forEach(function (t) {
+      if ((t.entrees || []).indexOf('Pince') < 0) return;
+      t.entrees = t.entrees.filter(function (e) { return e !== 'Pince'; });
+      n++;
+    });
+    noter('« Pince » retiree ; ' + n + ' type(s) d’outil delies');
+  })();
+
   var CLASSE = {};
   /* les gestes nes des absorptions, sur leur fiche d'accueil APRES renommage */
   TR.ABSORPTIONS.forEach(function (a) {
@@ -144,6 +172,32 @@
     if (cle && pushPressEntre) return RSS[cle];
     return (A.explicationsGestes && A.explicationsGestes.E[nom]) || null;
   }
+  function explBase(nom) {
+    return (A.explicationsBase && A.explicationsBase.BASE[nom]) || null;
+  }
+
+  /* UN SEUL CONSTRUCTEUR pour les deux cas — le geste choisi et le
+     mouvement de base. En ecrire deux les ferait diverger au premier
+     changement de forme, et l'un des deux finirait par mentir.
+
+     Les champs different : un GESTE dit `change` (par rapport au mouvement
+     simple), un MOUVEMENT DE BASE dit `pourquoi_aw` (ce qu'il apporte au
+     bras de fer). Les deux disent `faire`, `garde` et `source`. */
+  function blocExplication(xp) {
+    var p = h('div', { class: 'item-resume',
+      style: 'margin:7px 2px;line-height:1.45;white-space:normal' });
+    p.appendChild(h('div', { html: '<b>Le geste.</b> ' + xp.faire }));
+    if (xp.change) p.appendChild(h('div', { style: 'margin-top:4px',
+      html: '<b>Ce que ça change.</b> ' + xp.change }));
+    if (xp.pourquoi_aw) p.appendChild(h('div', { style: 'margin-top:4px',
+      html: '<b>Pour le bras de fer.</b> ' + xp.pourquoi_aw }));
+    if (xp.garde) p.appendChild(h('div', { style: 'margin-top:4px',
+      html: '<b>À savoir.</b> ' + xp.garde }));
+    p.appendChild(h('div', { style: 'margin-top:4px;opacity:.7;'
+      + 'font-style:italic', text: 'source — ' + xp.source }));
+    return p;
+  }
+
   function estNeuf(nom) {
     return !!EXPL_TRACTION[nom]
         || poses.some(function (x) { return x.nom === nom; })
@@ -291,6 +345,19 @@
           style: 'margin:10px 2px 4px', text: gestes.length
             ? '2 — La façon de l’exécuter · ' + gestes.length + ' connue(s)'
             : '2 — La façon de l’exécuter · ce mouvement n’en a pas d’autre' }));
+
+        /* SANS AUCUN GESTE, l'etage 2 restait vide — c'est exactement ce
+           que MB a vu sur « Barre au front ». Il porte maintenant
+           l'explication du mouvement lui-meme, ou DIT qu'elle n'est pas
+           encore ecrite. Une absence nommee vaut mieux qu'un vide. */
+        if (!gestes.length) {
+          var xb = explBase(base);
+          zone.appendChild(xb ? blocExplication(xb)
+            : h('div', { class: 'item-resume',
+                style: 'margin:4px 2px;opacity:.7',
+                text: 'Pas encore d\u2019explication \u00e9crite pour ce mouvement.' }));
+        }
+
         if (gestes.length) {
           var p2 = h('div', { class: 'dico-variantes' });
           [base].concat(gestes).forEach(function (n) {
@@ -335,18 +402,14 @@
           });
           zone.appendChild(p2);
 
-          var xp = (nom !== base) && explDe(nom);
-          if (xp) {
-            var bx = h('div', { class: 'item-resume',
-              style: 'margin:7px 2px;line-height:1.45;white-space:normal' });
-            bx.appendChild(h('div', { html: '<b>Le geste.</b> ' + xp.faire }));
-            if (xp.change) bx.appendChild(h('div', { style: 'margin-top:4px',
-              html: '<b>Ce que ça change.</b> ' + xp.change }));
-            if (xp.garde) bx.appendChild(h('div', { style: 'margin-top:4px',
-              html: '<b>À savoir.</b> ' + xp.garde }));
-            bx.appendChild(h('div', { style: 'margin-top:4px;opacity:.7;'
-              + 'font-style:italic', text: 'cherché le 31/10 — ' + xp.source }));
-            zone.appendChild(bx);
+          /* LE GESTE CHOISI, ou le mouvement de base si on est revenu
+             sur « le mouvement simple ». Meme constructeur. */
+          var xp = (nom !== base) ? explDe(nom) : explBase(base);
+          if (xp) zone.appendChild(blocExplication(xp));
+          else if (nom !== base) {
+            zone.appendChild(h('div', { class: 'item-resume',
+              style: 'margin:4px 2px;opacity:.7',
+              text: 'Pas encore d\u2019explication \u00e9crite pour ce geste.' }));
           }
         }
       }

@@ -143,6 +143,40 @@
            + 'la force dans le dos et les bras.',
       source: 'Fitness Volt, Lyfta'
     },
+    /* ===== DEUX DE PLUS, trouves le 31/10 en cherchant les gestes manques
+       sur des sources EMG, a la demande de MB : « cherches voir si on a
+       rate des gestes pour certains exercices, evidemment venant de
+       sources sures & verifiees ». ===== */
+    {
+      fiche: 'Rowing',
+      nom: 'Rowing inversé',
+      aussi: ['Inverted row', 'Traction australienne', 'Australian pull up'],
+      faire: 'Barre fixee a hauteur de hanches, on se place dessous, corps '
+           + 'gaine en ligne, talons au sol, et on tire la poitrine vers la '
+           + 'barre.',
+      change: 'Au poids du corps, et la seule variante de rowing qu’une revue '
+            + 'EMG place DEVANT les autres pour le grand dorsal.',
+      garde: 'LA REVUE ELLE-MEME MET EN GARDE : ce classement repose sur une '
+           + 'seule etude preliminaire, de petite taille, qui demande a etre '
+           + 'repliquee. C’est un indice, pas un verdict.',
+      source: 'revue narrative EMG du grand dorsal, PubMed 42647355 (2026)'
+    },
+    {
+      fiche: 'Élévation latérale',
+      nom: 'Élévation latérale bras fléchi',
+      aussi: ['Bent-arm lateral raise', 'Élévation latérale coude plié'],
+      faire: 'Comme une elevation laterale, mais coudes flechis a 90° pendant '
+           + 'tout le mouvement, ce qui raccourcit le bras de levier.',
+      change: 'Une etude ACE sur dix exercices d’epaule la place parmi les '
+            + 'DEUX meilleures pour le deltoide MOYEN, avec le rowing incline '
+            + 'a 45°. Et « Élévation latérale » n’avait jusqu’ici aucun geste.',
+      garde: 'L’etude est financee par l’ACE, et ses auteurs refusent de '
+           + 'nommer un meilleur exercice d’epaule : « il n’y en a pas un ». '
+           + 'Ils conseillent de commencer par le deltoide POSTERIEUR, le '
+           + 'plus faible d’ordinaire.',
+      source: 'etude ACE / UW-La Crosse 2014, 16 sujets, EMG des trois '
+            + 'faisceaux du deltoide'
+    },
     {
       fiche: 'Pull up',
       nom: 'Traction L-sit',
