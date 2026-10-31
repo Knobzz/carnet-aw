@@ -736,13 +736,31 @@
         if (c === 'geste') g.push(l); else if (c === 'mat') mt.push(l);
       });
     });
+    /* LES CORRECTIONS VERS 'syn' AUSSI. Sans ce bloc elles disparaissent
+       sans trace : le 31/10, MB a reclasse « Poignee de pronation » en
+       synonyme, sa sortie a perdu une ligne, et il a fallu comparer deux
+       listes pour retrouver laquelle. Une sortie qui perd une decision ne
+       sert a rien. */
+    var versSyn = [];
+    Object.keys(marques).forEach(function (id) {
+      if (marques[id].code !== 'syn') return;
+      var pr = A.classementNoms && A.classementNoms.PLAT[id];
+      versSyn.push('- ' + id.replace(' § ', ' ▸ « ') + ' »'
+        + (pr ? '   (je l’avais mis : ' + pr.code + ')' : ''));
+    });
     document.getElementById('seJson').value =
       'LES ' + g.length + ' GESTES — ils montent à l’étage 2\n'
       + (g.join('\n') || '  — aucun')
       + '\n\nLES ' + mt.length + ' MATÉRIEL / POSITION — ils partent à '
       + 'l’étage 3\n' + (mt.join('\n') || '  — aucun')
+      + (versSyn.length
+         ? '\n\nCE QUE TU AS FAIT REDESCENDRE EN SYNONYME (' + versSyn.length
+           + ')\n' + versSyn.join('\n')
+         : '')
       + '\n\nLes ' + (105 - g.length - mt.length) + ' autres restent de simples '
-      + 'synonymes : cherchables, affichés nulle part.';
+      + 'synonymes : cherchables, affichés nulle part.'
+      + '\n\n[' + g.length + ' gestes + ' + mt.length + ' matériel + '
+      + (105 - g.length - mt.length) + ' synonymes = 105]';
   }
 
   function filtrer(id) {

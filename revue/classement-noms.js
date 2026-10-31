@@ -183,7 +183,11 @@
     'Élévation latérale': { 'Lateral raise': 'syn' },
     'Extenseurs à élastique': { 'Ouverture de la main': 'syn' },
     'Extension triceps': { 'Pushdown': 'syn' },
-    'Pronation': { 'Poignée de pronation': 'mat' },
+    /* CORRIGE PAR MB le 31/10 : j'avais mis 'mat'. « Poignee de
+       pronation » est le nom d'un OUTIL AW — le `pronator` est l'un
+       des 20 types d'OUTILS_CONNUS — donc il releve de l'ETAGE 4,
+       pas du materiel ordinaire. Comme nom, c'est un synonyme. */
+    'Pronation': { 'Poignée de pronation': 'syn' },
     'Pull-over': { 'Pullover': 'syn' },
     'Tate press': { 'Extension coudes ouverts': 'syn' },
     'Tirage menton': { 'Upright row': 'syn' },
