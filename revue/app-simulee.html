@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carnet AW — simulation des quatre étages</title>
+<meta name="description" content="L'application réelle, avec les quatre étages greffés sur l'écran « Ajouter un exercice ». Rien n'est écrit sur le disque.">
+<meta name="theme-color" content="#eef1f3">
+<!-- CHEMINS : cette page vit dans revue/, l'app à la racine. Sans cette
+     base, les treize scripts et le CSS seraient cherchés dans revue/. -->
+<base href="../">
+<link rel="icon" href="icones/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css?v=1.68.0">
+<!-- PAS DE MANIFESTE, et c'est voulu : une simulation ne doit pas
+     s'installer comme l'app, ni partager son service worker. -->
+</head>
+<body>
+
+<noscript>
+  <div style="padding:24px;font-family:system-ui">
+    <h1>JavaScript est nécessaire</h1>
+    <p>Le carnet fonctionne entièrement dans le navigateur, sans serveur. Active JavaScript pour l’utiliser.</p>
+  </div>
+</noscript>
+
+<!-- LES TREIZE SCRIPTS DE L'APP, dans l'ordre d'index.html, sans un
+     changement. C'est ce qui fait que cette page EST l'app : la
+     navigation, les séances, le Suivi, le Journal, les Réglages et le
+     dictionnaire feuilletable sont les vrais. -->
+<script src="js/store.js?v=1.68.0"></script>
+<script src="js/model.js?v=1.68.0"></script>
+<script src="js/ui.js?v=1.68.0"></script>
+<script src="js/panneau.js?v=1.68.0"></script>
+<script src="js/vue-seance.js?v=1.68.0"></script>
+<script src="js/vue-recup.js?v=1.68.0"></script>
+<script src="js/vue-programmes.js?v=1.68.0"></script>
+<script src="js/vue-sparring.js?v=1.68.0"></script>
+<script src="js/vue-journal.js?v=1.68.0"></script>
+<script src="js/vue-exercice.js?v=1.68.0"></script>
+<script src="js/vue-suivi.js?v=1.68.0"></script>
+<script src="js/vue-reglages.js?v=1.68.0"></script>
+
+<!-- LES FICHIERS DE REVUE, chargés AVANT app.js pour que le patch soit en
+     place quand l'app se monte. Aucun n'est dans l'app livrée. -->
+<script src="revue/variantes.js?r=20261031e"></script>
+<script src="revue/classement-noms.js?r=20261031e"></script>
+<script src="revue/explications-gestes.js?r=20261031e"></script>
+<script src="revue/gestes-ajoutes.js?r=20261031e"></script>
+<script src="revue/patch-quatre-etages.js?r=20261031e"></script>
+
+<script src="js/app.js?v=1.68.0"></script>
+
+</body>
+</html>

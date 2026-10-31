@@ -456,6 +456,68 @@ a trois lecteurs (Réglages, la séance, le Journal).
 
 ---
 
+## 7. Compléter le dictionnaire soi-même — **OUVERT le 2026-10-31**
+
+**Quand** : avec le chantier 2, dont il est la suite naturelle.
+
+MB, 2026-10-31 : « il faut que tu mettes dans chantier, la possibilité de
+rajouter des exos dans le dictionnaire, que ce soit un **nouvel exo**, un
+**nouveau geste** ou autre, l'utilisateur doit pouvoir se sentir libre de
+compléter le dictionnaire au besoin. »
+
+### CE QUI EXISTE DÉJÀ, ET C'EST LA MOITIÉ — mesuré avant d'écrire ce chantier
+
+Le mécanisme des fiches personnelles est **en place et complet** pour un
+exercice neuf. Je l'ai cherché en croyant devoir l'inventer :
+
+| | |
+|---|---|
+| `etat.dictionnairePerso` | existe, persisté par `store.js` |
+| `fondsDictionnaire(etat)` | perso **+** livré, dans cet ordre |
+| `ficheDictionnaire(nom, etat)` | cherche le perso **d'abord** |
+| le bouton « Ajouter *X* à ton dictionnaire » | dans le panneau, avec **trois** états et jamais un bouton mort |
+| le refus d'un homonyme livré | fait — « on ne crée pas le problème qu'on vient d'armer » |
+| `conflitsDictionnaire(etat)` | existe, affiché dans les Réglages |
+| la fusion à l'import | faite dans `store.js` |
+| l'écran de gestion | `vue-reglages.js`, avec suppression |
+
+Donc **« un nouvel exo » est déjà possible aujourd'hui**, et le message de
+confirmation dit même ce que la fiche ne retient pas.
+
+### LES TROIS MANQUES, ET C'EST EUX LE CHANTIER
+
+**1. Une fiche à moi ne retient que nom + muscles + colonnes.**
+`ajouterAuDictionnaire` la crée avec `aussi: []`, et **rien n'écrit jamais
+dans ce tableau**. Le champ existe, il reste vide à vie. C'est ce qui bloque
+le « nouveau geste » que MB demande : un geste est une entrée de `aussi`.
+
+**2. On ne peut rien ajouter à une fiche LIVRÉE.** Le bouton se cache dès que
+`ficheLivree(nom)` répond — et c'est juste, pour le nom principal. Mais MB ne
+veut pas renommer *Curl biceps* : il veut lui ajouter *Spider curl*. Il n'y a
+aucun chemin pour ça. Il faudrait une fiche perso qui **complète** une fiche
+livrée au lieu de la masquer — une troisième relation, à côté de « masque »
+et « ignore ».
+
+**3. Les fiches à moi sont INVISIBLES au parcours.**
+`fichesDuDictionnaire(etat, saisie)` filtre sa sortie sur `DICTIONNAIRE`
+seul : mes fiches sortent de la **recherche** (par `suggestionsDictionnaire`,
+qui lit le fonds complet) mais jamais du **parcours par groupe**. Un exercice
+que j'ai créé n'apparaît donc dans aucune des listes qu'on feuillette. Ce
+défaut-là est une ligne de code, et il est le plus visible des trois.
+
+### CE QUE LE CHANTIER 2 Y AJOUTE
+
+Avec les quatre étages, un « geste » n'est plus seulement un autre nom : il
+porte une **explication** (`faire`, `change`, `garde`, `source`). Si
+l'utilisateur crée un geste, il faut décider ce qu'il en est de ces quatre
+champs — les lui demander, ou accepter un geste sans explication et le dire
+à l'écran. **Un geste créé sans explication ne doit pas se présenter comme
+les quatorze qui en ont une.**
+
+Et la même question se pose pour le **matériel** de l'étage 3 : la liste est
+écrite en dur dans la simulation. Un utilisateur qui s'entraîne avec un engin
+absent doit pouvoir l'ajouter, sinon l'étage 3 contraint au lieu de servir.
+
 ## Dettes mesurées, pas des chantiers
 
 Petites, nommées, et qui ne demandent qu'une décision.
