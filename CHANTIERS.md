@@ -522,6 +522,20 @@ absent doit pouvoir l'ajouter, sinon l'étage 3 contraint au lieu de servir.
 
 Petites, nommées, et qui ne demandent qu'une décision.
 
+- **ON NE PEUT PAS REVENIR AU DICTIONNAIRE APRÈS AVOIR CHOISI UN EXERCICE.**
+  Trouvé par MB le 2026-10-31 : « quand un exo est sélectionné, je ne peux pas
+  retourner ensuite dans le dico pour chercher autre chose, je suis bloqué sur
+  l'exo ». **Mesuré sur `index.html`, sans aucun patch** — c'est un défaut du
+  produit, pas de la simulation. La cause : `rendreDico()` filtre le
+  dictionnaire sur `champNom.value`. Après une sélection, le champ porte un nom
+  **complet**, donc le filtre ne laisse qu'une fiche — « 1 mouvement(s) pour
+  *Curl biceps* ». Rien n'est cassé : le filtre fait son travail sur une saisie
+  qui n'en est plus une. **Le filtre est utile pendant la frappe** et ne doit
+  pas disparaître ; ce qui manque est la **sortie**. Deux pistes, à trancher :
+  vider le champ quand on rouvre le dictionnaire sur un nom exactement égal à
+  une fiche, ou un bouton explicite. La simulation emploie le bouton
+  (« ← Chercher un autre exercice »), parce qu'il ne touche à rien.
+
 - **LE FARMER WALK EST INCOMPLET PAR CONSTRUCTION, et il faut le savoir en
   lisant sa fiche.** Les muscles les MIEUX mesurés de cet exercice sont ceux du
   **tronc** — multifide, longissimus, oblique externe, grand droit — plus le

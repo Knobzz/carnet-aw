@@ -197,7 +197,33 @@
           return codeDe(base, n) === 'geste';
         });
       }
+      /* ================= SORTIR DE L'EXERCICE CHOISI =================
+
+         MB : « quand un exo est selectionne, je ne peux pas retourner
+         ensuite dans le dico pour chercher autre chose, je suis bloque sur
+         l'exo ».
+
+         LE DEFAUT EST DANS L'APP — verifie sur index.html SANS patch :
+         `rendreDico()` filtre le dictionnaire sur `champNom.value`, et
+         apres une selection ce champ porte un nom complet. Le filtre ne
+         laisse donc qu'une fiche. Rien n'est casse : le filtre fait son
+         travail sur une saisie qui n'en est plus une.
+
+         ON NE TOUCHE PAS AU FILTRE, qui sert pendant la frappe. On donne
+         la sortie qui manquait : vider le champ et rouvrir le dictionnaire
+         entier, en un geste. */
       if (fiche) {
+        var btSortir = h('button', { type: 'button', class: 'puce',
+          style: 'margin:10px 2px 0', text: '← Chercher un autre exercice' });
+        btSortir.addEventListener('click', function () {
+          champNom.value = '';           /* l'interception rappelle rendre() */
+          var bd = gNom.querySelector('button.bt-doux');
+          if (bd && bd.getAttribute('aria-expanded') !== 'true') bd.click();
+          else if (bd) { bd.click(); bd.click(); }   /* re-rendre, dico deja ouvert */
+          champNom.focus();
+        });
+        zone.appendChild(btSortir);
+
         zone.appendChild(h('div', { class: 'item-resume',
           style: 'margin:10px 2px 4px', text: gestes.length
             ? '2 — La façon de l’exécuter · ' + gestes.length + ' connue(s)'
@@ -365,6 +391,53 @@
        ECRITS dans `exo` — donc enregistres — mais le selecteur affiche
        encore l'etat d'avant tant qu'on ne touche pas au champ. Dans le
        carnet construit pour de bon, l'etage 2 appellerait `prendre`. */
+    /* ================= « PLUSIEURS GESTES POSSIBLES » =================
+
+       MB : « J'aimerai aussi un indicateur sur l'exo de base qui me dit
+       "plusieurs gestes possibles" pour voir. »
+
+       LE DICO EST RENDU PAR L'APP, pas par nous : on ne peut pas l'ecrire
+       a la source. On OBSERVE `zoneDico` et on decore chaque
+       `button.dico-choix` d'apres le nom exact de son `.remarque-titre`.
+
+       UN OBSERVATEUR, PAS UN INTERVALLE : `rendreDico()` ne previent
+       personne, mais il REMPLACE le contenu de la zone — une mutation
+       d'enfants, que MutationObserver voit. Le drapeau `decore` evite que
+       nos propres ajouts relancent l'observateur a l'infini. */
+    (function () {
+      var nus2 = [].slice.call(gNom.children).filter(function (c) {
+        return c.tagName === 'DIV' && !c.className; });
+      var zoneDico = nus2[nus2.length - 1];
+      if (!zoneDico || zoneDico === zone) { noter('ZONE DICO INTROUVABLE'); return; }
+
+      function decorer() {
+        var n = 0;
+        [].slice.call(zoneDico.querySelectorAll('button.dico-choix')).forEach(function (b) {
+          if (b.dataset.gestes) return;
+          var t = b.querySelector('.remarque-titre');
+          if (!t) return;
+          var nomFiche = t.textContent.trim();
+          var f = m.ficheDictionnaire(nomFiche, A.store.etat());
+          if (!f) return;
+          var g = (f.aussi || []).filter(function (x) {
+            return codeDe(f.nom, x) === 'geste'; });
+          b.dataset.gestes = String(g.length);
+          if (!g.length) return;
+          n++;
+          t.appendChild(h('span', { style: 'margin-left:7px;font-size:.64rem;'
+            + 'background:#2f5e44;color:#d6ffe6;border-radius:999px;'
+            + 'padding:1px 7px;font-weight:700;vertical-align:middle',
+            text: g.length + ' geste' + (g.length > 1 ? 's' : '') }));
+          b.appendChild(h('div', { class: 'item-resume',
+            style: 'color:#8fdcab', text: g.join(' · ') }));
+        });
+        if (n) noter(n + ' fiche(s) marquée(s) « plusieurs gestes »');
+      }
+      new MutationObserver(function () { decorer(); })
+        .observe(zoneDico, { childList: true, subtree: true });
+      decorer();
+    })();
+
     champNom.addEventListener('input', rendre);
     champNom.addEventListener('change', rendre);
 
