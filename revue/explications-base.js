@@ -52,7 +52,7 @@
       source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
     },
     'Pronation': {
-      faire: 'À la poulie, côté du bras travaillé. Coude à 90° au corps, paume vers l’intérieur ; on tourne pour l’amener vers le bas.',
+      faire: 'À la poulie ou ceinture, côté du bras travaillé. Coude à 90° au corps, paume vers l’intérieur ; on tourne pour l’amener vers le bas.',
       pourquoi_aw: 'Les pronateurs — le rond pronateur en premier — sont ce '
            + 'qui fait un toproll fort : ils créent le couple qui roule la '
            + 'main de l’adversaire vers l’extérieur.',
@@ -61,10 +61,7 @@
       source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
     },
     'Supination': {
-      faire: 'À la poulie, mais le côté travaillé tourné À L’OPPOSÉ de la '
-           + 'machine, le câble traversant le corps. Coude à 90° au corps, '
-           + 'paume vers le bas au départ, on tourne pour l’amener vers le '
-           + 'haut.',
+      faire: 'À la poulie ou ceinture, mais le côté travaillé tourné À L’OPPOSÉ de la machine, le câble traversant le corps. Coude à 90° au corps, paume vers le bas au départ, on tourne pour l’amener vers le haut.',
       pourquoi_aw: 'Le supinateur sert les techniques qui vivent paume vers '
            + 'le haut — le hook — et c’est lui qui répond quand l’adversaire '
            + 'cherche à te proner.',
@@ -176,8 +173,7 @@
       source: 'dictionnaire du carnet, lot 3 (validé par MB le 23/10)'
     },
     'Hook à la poulie': {
-      faire: 'À la poulie, avant-bras en SUPINATION, on tire en fermant la '
-           + 'main et en gardant le poignet verrouillé.',
+      faire: 'À la poulie, avant-bras en SUPINATION, on tire vers soi en fermant la main et en gardant le poignet verrouillé.',
       pourquoi_aw: 'La supination est un arbitrage de MB CONTRE un article '
            + 'de 2026 qui décrit le hook en pronation : cette étude porte '
            + 'sur onze athlètes en rééducation d’une épicondylite, et sa '
@@ -186,8 +182,7 @@
       source: 'arbitrage de MB, inscrit dans le dictionnaire du carnet'
     },
     'Side pressure à la poulie': {
-      faire: 'À la poulie, on pousse latéralement en gardant le coude au '
-           + 'corps et le poignet ferme.',
+      faire: 'À la poulie, on pousse latéralement en gardant le coude au corps et le poignet ferme, perpendiculaire à la poulie.',
       pourquoi_aw: 'VOA la décrit comme une FINITION plutôt qu’un style : '
            + '« elle termine la plupart des matchs de hook et beaucoup de '
            + 'matchs de toproll ». Le carnet la range avec les six '
@@ -303,8 +298,7 @@
       source: 'revue narrative EMG, PubMed 42647355 (2026)'
     },
     'Dips prise large': {
-      faire: 'Buste penché vers l’avant sur les barres, coudes écartés, on '
-           + 'descend jusqu’à l’épaule sous le coude.',
+      faire: 'Buste penché vers l’avant sur les barres, genoux qui remontent, coudes écartés, on descend jusqu’à l’épaule sous le coude.',
       pourquoi_aw: 'Le buste penché déplace le travail vers le pectoral ; '
            + 'buste droit, c’est le triceps.',
       source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
@@ -324,8 +318,8 @@
        dans l'ecran — jamais leur sens. */
     'Curl Larratt': {
       de: 'MB',
-      faire: 'Contraction isom\u00e9trique intense, id\u00e9alement \u00e0 90\u00b0, avec un '
-           + 'basculement du corps. Se fait sur pupitre de pr\u00e9f\u00e9rence.',
+      faire: 'Contraction isométrique intense, idéalement à 90°, avec un '
+           + 'basculement du corps. Se fait sur pupitre de préférence.',
       source: 'MB, 31/10'
     },
     'Curl Zottman': {
@@ -334,200 +328,189 @@
            + 'puis on bascule en pronation en haut et on redescend ainsi.',
       source: 'MB, 31/10'
     },
-    'Curl pronation \u00e0 la poulie': {
+    'Curl pronation à la poulie': {
       de: 'MB',
-      faire: 'Sangle autour du pouce, passant sur le dessus de la main. '
-           + 'Mouvement de bas en haut comme un curl, face \u00e0 la machine.',
-      pourquoi_aw: 'La sangle s\u2019enroule au choix en position basse (au '
-           + 'poignet), neutre, ou haute (apr\u00e8s les phalanges) \u2014 trois '
-           + 'hauteurs, trois bras de levier.',
+      faire: 'Sangle autour du pouce, passant sur le dessus de la main. Mouvement de bas en haut comme un curl, face à la machine. La sangle s’enroule au choix en position basse (au poignet), neutre, ou haute (après les phalanges) — trois hauteurs, trois bras de levier.',
       source: 'MB, 31/10'
     },
-    'Curl rising \u00e0 la poulie': {
+    'Curl rising à la poulie': {
       de: 'MB',
       faire: 'Sangle autour du poignet, qui passe ensuite sur les doigts '
-           + 'apr\u00e8s les phalanges. Mouvement de bas en haut comme un curl, '
-           + 'face \u00e0 la machine.',
+           + 'après les phalanges. Mouvement de bas en haut comme un curl, '
+           + 'face à la machine.',
       source: 'MB, 31/10'
     },
-    'D\u00e9velopp\u00e9 serr\u00e9': {
+    'Développé serré': {
       de: 'MB',
-      faire: 'Allong\u00e9, omoplates serr\u00e9es et abaiss\u00e9es, l\u00e9ger cambr\u00e9. Prise '
-           + 'serr\u00e9e, mains presque jointes. On descend au sternum et on '
+      faire: 'Allongé, omoplates serrées et abaissées, léger cambré. Prise '
+           + 'serrée, mains presque jointes. On descend au sternum et on '
            + 'pousse en expirant.',
       source: 'MB, 31/10'
     },
-    'Extenseurs \u00e0 \u00e9lastique': {
+    'Extenseurs à élastique': {
       de: 'MB',
-      faire: 'Doigts r\u00e9unis en un point, on ouvre la main le plus loin '
-           + 'possible contre l\u2019\u00e9lastique.',
+      faire: 'Doigts réunis en un point, on ouvre la main le plus loin possible.',
       source: 'MB, 31/10'
     },
     'Finger curl': {
       de: 'MB',
-      faire: 'Barre en prise supination, avant-bras pos\u00e9s ou non. Seulement '
-           + 'une flexion des doigts \u2014 un mouvement de crochet.',
+      faire: 'Barre ou poids en prise supination, avant-bras posés ou non. Seulement une flexion des doigts — un mouvement de crochet.',
       source: 'MB, 31/10'
     },
     'Pull-over': {
       de: 'MB',
-      faire: 'On abaisse l\u2019halt\u00e8re en arc de cercle derri\u00e8re la t\u00eate '
-           + 'jusqu\u2019\u00e0 l\u2019\u00e9tirement du dos et de la cage, puis on remonte en '
-           + 'contractant les dorsaux.',
+      faire: 'On abaisse l’haltère en arc de cercle derrière la tête jusqu’à l’étirement du dos et de la cage, bras tendus, puis on remonte en contractant les dorsaux.',
       source: 'MB, 31/10'
     },
     'Traction partielle': {
       de: 'MB',
-      faire: 'Tenue isom\u00e9trique coude \u00e0 90\u00b0 : on monte et on descend en '
-           + 'gardant cet angle.',
+      faire: 'Tenue isométrique coude à 90° : on monte et on descend en gardant cet angle à la redescente.',
       source: 'MB, 31/10'
     },
-    'Wrist curl c\u00f4t\u00e9 petit doigt': {
+    'Wrist curl côté petit doigt': {
       de: 'MB',
-      faire: 'Barre en supination, avant-bras pos\u00e9s. On laisse rouler vers '
-           + 'les doigts, puis on remonte au poignet en accentuant c\u00f4t\u00e9 '
+      faire: 'Barre en supination, avant-bras posés. On laisse rouler vers '
+           + 'les doigts, puis on remonte au poignet en accentuant côté '
            + 'auriculaire.',
       source: 'MB, 31/10'
     },
-    'Wrist curl c\u00f4t\u00e9 pouce': {
+    'Wrist curl côté pouce': {
       de: 'MB',
-      faire: 'Barre en supination, avant-bras pos\u00e9s. On laisse rouler vers '
-           + 'les doigts, puis on remonte au poignet en accentuant c\u00f4t\u00e9 '
+      faire: 'Barre en supination, avant-bras posés. On laisse rouler vers '
+           + 'les doigts, puis on remonte au poignet en accentuant côté '
            + 'pouce.',
       source: 'MB, 31/10'
     },
-    '\u00c9cart\u00e9': {
+    'Écarté': {
       de: 'MB',
-      faire: 'M\u00eame mouvement qu\u2019un d\u00e9velopp\u00e9 couch\u00e9, mais les bras restent '
-           + 'tendus : ils s\u2019ouvrent en arc de cercle au lieu de plier.',
+      faire: 'Allongé, omoplates serrées et abaissées, léger cambré. Bras tendus, on forme un arc de cercle.',
       source: 'MB, 31/10'
     },
 
     /* ========== LOT 5 : LES QUINZE CHERCHEES ==========
        Dont DEUX que MB m'a nommement rendues : « Montee a la corde :
        cherche sur internet », « Muscle-up : cherche sur internet ». */
-    'Mont\u00e9e \u00e0 la corde': {
+    'Montée à la corde': {
       faire: 'On grimpe en bloquant la corde avec les pieds : elle passe de '
-           + 'l\u2019int\u00e9rieur de la jambe par-dessus la cheville et revient au '
-           + 'milieu du pied, genou \u00e0 90\u00b0.',
-      pourquoi_aw: 'Prise et tirage sous charge compl\u00e8te. Les sources '
+           + 'l’intérieur de la jambe par-dessus la cheville et revient au '
+           + 'milieu du pied, genou à 90°.',
+      pourquoi_aw: 'Prise et tirage sous charge complète. Les sources '
            + 'conseillent de commencer par la descente lente jambes '
-           + 'tendues, puis des mont\u00e9es partielles.',
+           + 'tendues, puis des montées partielles.',
       garde: 'Des tapis sous la corde : les sources le disent franchement.',
       source: 'BarBend, 8 Tips For Improving Your Rope Climb'
     },
     'Muscle-up': {
       faire: 'Prise fausse, pouces par-dessus la barre. Tirage puissant vers '
            + 'le ventre, buste qui bascule en avant au passage, puis on '
-           + 'pousse jusqu\u2019au verrouillage.',
-      pourquoi_aw: 'La vitesse prise d\u00e8s le d\u00e9but du tirage fait passer la '
+           + 'pousse jusqu’au verrouillage.',
+      pourquoi_aw: 'La vitesse prise dès le début du tirage fait passer la '
            + 'transition. Le chemin se fait AUTOUR de la barre, pas en '
            + 'tirant droit dessus.',
-      garde: 'Une source avance une base d\u2019environ 12 \u00e0 15 tractions avant '
-           + 'd\u2019y pr\u00e9tendre. Progressions : saut\u00e9 depuis une caisse, avec '
-           + '\u00e9lastique, ou en excentrique depuis le haut.',
+      garde: 'Une source avance une base d’environ 12 à 15 tractions avant '
+           + 'd’y prétendre. Progressions : sauté depuis une caisse, avec '
+           + 'élastique, ou en excentrique depuis le haut.',
       source: 'BarBend et StrengthLog, muscle-up et ses progressions'
     },
-    'R\u00e9traction des omoplates': {
-      faire: 'Debout, gainage serr\u00e9, poitrine haute : on tire les omoplates '
-           + 'vers le bas et vers l\u2019arri\u00e8re sans cambrer le bas du dos.',
-      pourquoi_aw: 'ACE donne une tenue de 5 \u00e0 10 secondes, 2 \u00e0 4 fois. '
-           + 'C\u2019est la base de la stabilit\u00e9 d\u2019\u00e9paule sous charge.',
+    'Rétraction des omoplates': {
+      faire: 'Debout, gainage serré, poitrine haute : on tire les omoplates '
+           + 'vers le bas et vers l’arrière sans cambrer le bas du dos.',
+      pourquoi_aw: 'ACE donne une tenue de 5 à 10 secondes, 2 à 4 fois. '
+           + 'C’est la base de la stabilité d’épaule sous charge.',
       source: 'ACE, Correct Cues for Scapular Motion'
     },
-    'Haussement d\u2019\u00e9paules': {
-      faire: 'Debout, charge en main, gainage serr\u00e9, tr\u00e8s l\u00e9ger buste en '
-           + 'avant. Coudes verrouill\u00e9s, on monte les \u00e9paules vers les '
+    'Haussement d’épaules': {
+      faire: 'Debout, charge en main, gainage serré, très léger buste en '
+           + 'avant. Coudes verrouillés, on monte les épaules vers les '
            + 'oreilles.',
       garde: 'Le mouvement reste VERTICAL : un haussement ne doit pas '
-           + 'tourner en rotation d\u2019\u00e9paules.',
+           + 'tourner en rotation d’épaules.',
       source: 'BarBend, Shrugs'
     },
-    '\u00c9l\u00e9vation frontale': {
-      faire: 'Charge devant les cuisses, prise pronation. Gainage serr\u00e9, '
-           + 'omoplates basses et en arri\u00e8re, on l\u00e8ve jusqu\u2019\u00e0 '
-           + 'l\u2019horizontale des \u00e9paules.',
+    'Élévation frontale': {
+      faire: 'Charge devant les cuisses, prise pronation. Gainage serré, '
+           + 'omoplates basses et en arrière, on lève jusqu’à '
+           + 'l’horizontale des épaules.',
       garde: 'Buste droit, pas de cambrure lombaire, poignets neutres.',
-      source: 'ACE, Exercise Library \u2014 Front raise'
+      source: 'ACE, Exercise Library — Front raise'
     },
     'Tirage menton': {
-      faire: 'Barre devant les cuisses, on tire vers le haut en menant par '
-           + 'les coudes.',
-      garde: 'EXERCICE DISCUT\u00c9 : les sources le disent praticable sur une '
-           + '\u00e9paule saine, avec des adaptations. Elles conseillent de le '
-           + 'faire suivre de haussements, pour que les trap\u00e8zes sup\u00e9rieurs '
-           + 'suivent les delto\u00efdes.',
+      faire: 'Barre devant les cuisses, on tire vers le haut jusqu’au menton en menant par les coudes.',
+      garde: 'EXERCICE DISCUTÉ : les sources le disent praticable sur une '
+           + 'épaule saine, avec des adaptations. Elles conseillent de le '
+           + 'faire suivre de haussements, pour que les trapèzes supérieurs '
+           + 'suivent les deltoïdes.',
       source: 'BarBend, best shoulder exercises'
     },
-    'Rotation externe d\u2019\u00e9paule': {
-      faire: 'Coude fl\u00e9chi, avant-bras qui part vers l\u2019ext\u00e9rieur contre la '
-           + 'r\u00e9sistance.',
+    'Rotation externe d’épaule': {
+      faire: 'Coude fléchi, avant-bras qui part vers l’extérieur contre la '
+           + 'résistance.',
       pourquoi_aw: 'Les cliniciens commencent coude au corps, position qui '
-           + 'r\u00e9duit le pincement de la coiffe, et vont vers l\u2019abduction \u00e0 '
-           + '90\u00b0 quand l\u2019\u00e9paule le supporte.',
+           + 'réduit le pincement de la coiffe, et vont vers l’abduction à '
+           + '90° quand l’épaule le supporte.',
       source: 'Eric Cressey ; tables de tests cliniques'
     },
-    'Rotation interne d\u2019\u00e9paule': {
-      faire: 'Coude fl\u00e9chi, avant-bras qui revient vers le ventre contre la '
-           + 'r\u00e9sistance.',
+    'Rotation interne d’épaule': {
+      faire: 'Coude fléchi, avant-bras qui revient vers le ventre contre la '
+           + 'résistance.',
       pourquoi_aw: 'Le pendant de la rotation externe. Le bras de fer '
-           + 'sollicite fortement les rotateurs internes \u2014 d\u2019o\u00f9 '
-           + 'l\u2019int\u00e9r\u00eat des face pulls en contrepoids.',
+           + 'sollicite fortement les rotateurs internes — d’où '
+           + 'l’intérêt des face pulls en contrepoids.',
       source: 'Eric Cressey ; StrengthLog (bras de fer)'
     },
     'Rotation cubaine': {
-      faire: 'Coudes \u00e0 hauteur d\u2019\u00e9paules, on fait tourner les avant-bras '
-           + 'vers le haut en rotation externe, sans d\u00e9velopp\u00e9.',
-      pourquoi_aw: 'C\u2019est le Cuban press d\u00e9pouill\u00e9 : il garde la seule '
+      faire: 'Coudes à hauteur d’épaules, on fait tourner les avant-bras '
+           + 'vers le haut en rotation externe, sans développé.',
+      pourquoi_aw: 'C’est le Cuban press dépouillé : il garde la seule '
            + 'rotation externe et laisse tomber le tirage menton et le '
-           + 'd\u00e9velopp\u00e9.',
-      garde: 'Charge l\u00e9g\u00e8re : la coiffe est minuscule \u00e0 c\u00f4t\u00e9 des '
-           + 'delto\u00efdes.',
+           + 'développé.',
+      garde: 'Charge légère : la coiffe est minuscule à côté des '
+           + 'deltoïdes.',
       source: 'Mirafit, Fitness Volt, Sole Treadmills'
     },
-    'D\u00e9velopp\u00e9 Arnold': {
-      faire: 'Halt\u00e8res devant le visage, paumes vers soi. On presse '
-           + 'au-dessus de la t\u00eate en tournant les paumes vers l\u2019avant.',
-      garde: 'Bras perpendiculaires au sol et parall\u00e8les entre eux pendant '
-           + 'la mont\u00e9e.',
+    'Développé Arnold': {
+      faire: 'Haltères devant le visage, paumes vers soi. On presse '
+           + 'au-dessus de la tête en tournant les paumes vers l’avant.',
+      garde: 'Bras perpendiculaires au sol et parallèles entre eux pendant '
+           + 'la montée.',
       source: 'BarBend, How to Do the Arnold Press'
     },
-    '\u00c9l\u00e9vation en Y': {
-      faire: '\u00c0 plat ventre sur un banc inclin\u00e9 \u00e0 30-45\u00b0, bras pendants. On '
-           + 'l\u00e8ve en Y, pouces vers le haut, jusqu\u2019\u00e0 hauteur de t\u00eate.',
-      garde: 'Charges tr\u00e8s l\u00e9g\u00e8res, sinon le mouvement ne sert plus \u00e0 '
+    'Élévation en Y': {
+      faire: 'À plat ventre sur un banc incliné à 30-45°, bras pendants. On '
+           + 'lève en Y, pouces vers le haut, jusqu’à hauteur de tête.',
+      garde: 'Charges très légères, sinon le mouvement ne sert plus à '
            + 'rien.',
       source: 'StrengthLog, dumbbell shoulder exercises'
     },
     'Extension triceps': {
-      faire: 'Face \u00e0 la poulie haute, pieds joints, coudes coll\u00e9s aux '
-           + 'c\u00f4tes. Poitrine haute, dos plat, on pousse jusqu\u2019\u00e0 '
-           + 'l\u2019extension compl\u00e8te.',
+      faire: 'Face à la poulie haute, pieds joints, coudes collés aux '
+           + 'côtes. Poitrine haute, dos plat, on pousse jusqu’à '
+           + 'l’extension complète.',
       source: 'BarBend, Triceps Pushdowns'
     },
     'Barre au front': {
-      faire: 'Allong\u00e9, barre au-dessus de la poitrine. Sans bouger les bras, '
-           + 'on fl\u00e9chit les coudes pour descendre vers le front, puis on '
+      faire: 'Allongé, barre au-dessus de la poitrine. Sans bouger les bras, '
+           + 'on fléchit les coudes pour descendre vers le front, puis on '
            + 'tend.',
       garde: 'Les sources divergent sur la fin de course : certaines '
-           + 'descendent l\u00e9g\u00e8rement DERRI\u00c8RE la t\u00eate pour plus '
-           + 'd\u2019\u00e9tirement, d\u2019autres s\u2019arr\u00eatent au front.',
+           + 'descendent légèrement DERRIÈRE la tête pour plus '
+           + 'd’étirement, d’autres s’arrêtent au front.',
       source: 'BarBend, Skull Crushers'
     },
     'Extension verticale des triceps': {
-      faire: 'Dos \u00e0 la poulie basse, l\u00e9ger buste en avant, corde derri\u00e8re '
-           + 'la t\u00eate et bras pr\u00e8s des oreilles. On tend les coudes \u00e0 fond.',
-      pourquoi_aw: 'Le chef long est le seul des trois \u00e0 s\u2019attacher au '
-           + 'coude ET \u00e0 l\u2019\u00e9paule : il faut passer les bras au-dessus de '
-           + 'la t\u00eate pour l\u2019\u00e9tirer vraiment.',
+      faire: 'Dos à la poulie basse, léger buste en avant, corde derrière '
+           + 'la tête et bras près des oreilles. On tend les coudes à fond.',
+      pourquoi_aw: 'Le chef long est le seul des trois à s’attacher au '
+           + 'coude ET à l’épaule : il faut passer les bras au-dessus de '
+           + 'la tête pour l’étirer vraiment.',
       source: 'BarBend, overhead triceps extension'
     },
     'Tate press': {
-      faire: 'Allong\u00e9, halt\u00e8res au-dessus de la poitrine. Sans bouger les '
-           + '\u00e9paules, on fl\u00e9chit les coudes vers l\u2019EXT\u00c9RIEUR, pouces vers '
+      faire: 'Allongé, haltères au-dessus de la poitrine. Sans bouger les '
+           + 'épaules, on fléchit les coudes vers l’EXTÉRIEUR, pouces vers '
            + 'le milieu de la poitrine.',
-      garde: 'Ne pas laisser les \u00e9paules s\u2019enrouler en avant. Un rep\u00e8re : '
-           + 'penser \u00e0 pousser les auriculaires vers le plafond.',
+      garde: 'Ne pas laisser les épaules s’enrouler en avant. Un repère : '
+           + 'penser à pousser les auriculaires vers le plafond.',
       source: 'BarBend et StrengthLog, Tate press'
     },
 
