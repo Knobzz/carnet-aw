@@ -52,10 +52,7 @@
       source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
     },
     'Pronation': {
-      faire: 'À la poulie réglée à hauteur de taille ou de poitrine, du côté '
-           + 'du bras travaillé. Coude plié à 90° et collé au corps, paume '
-           + 'vers l’intérieur au départ. On tourne l’avant-bras pour amener '
-           + 'la paume vers le bas.',
+      faire: 'À la poulie, côté du bras travaillé. Coude à 90° au corps, paume vers l’intérieur ; on tourne pour l’amener vers le bas.',
       pourquoi_aw: 'Les pronateurs — le rond pronateur en premier — sont ce '
            + 'qui fait un toproll fort : ils créent le couple qui roule la '
            + 'main de l’adversaire vers l’extérieur.',
@@ -130,10 +127,7 @@
       source: 'StrengthLog, Arm Wrestling Strength Training (02/12/2025)'
     },
     'Face pull': {
-      faire: 'Corde à la poulie haute, prise en pronation, deux pas en '
-           + 'arrière, bras presque tendus. On tire vers soi en écartant les '
-           + 'coudes à hauteur d’épaules, avant-bras qui tournent vers le '
-           + 'haut. Les omoplates doivent bouger.',
+      faire: 'Corde à la poulie haute, bras presque tendus. On tire en écartant les coudes à hauteur d’épaules, omoplates qui bougent.',
       pourquoi_aw: 'Le bras de fer abîme les épaules, les coudes et les '
            + 'poignets ; le face pull renforce les petits stabilisateurs qui '
            + 'protègent l’épaule et contrebalancent le travail des rotateurs '

@@ -27,13 +27,8 @@
       nom: 'Wrist curl derrière le dos',
       aussi: ['Behind the back wrist curl', 'Flexion du poignet derrière le dos',
               'Behind the back barbell wrist curl'],
-      faire: 'Debout, barre tenue derrière les fesses, paumes vers l’arrière. '
-           + 'On laisse la barre rouler vers le bout des doigts, puis on '
-           + 'referme en remontant par la seule flexion du poignet.',
-      change: 'La charge passe DERRIÈRE la ligne médiane du corps, et c’est '
-            + 'tout l’intérêt pour toi : c’est la position du hook et du '
-            + 'toproll. Un wrist curl ordinaire, assis bras sur les cuisses, '
-            + 'ne te met jamais là.',
+      faire: 'Debout, barre derrière les fesses, paumes vers l’arrière. On la laisse rouler vers les doigts, puis on remonte au poignet.',
+      change: 'La charge passe derrière la ligne médiane : la position du hook et du toproll.',
       garde: 'Avec une barre, selon la longueur de tes bras, les fessiers '
            + 'gênent la remontée et réduisent l’amplitude — la poulie est '
            + 'donnée comme le meilleur outil pour ce geste, la machine '
@@ -48,15 +43,8 @@
       fiche: 'Développé militaire',
       nom: 'Push press',
       aussi: ['Développé avec élan', 'Push-press'],
-      faire: 'Même départ qu’un développé militaire, mais les jambes '
-           + 'lancent la barre : une flexion courte des hanches, genoux et '
-           + 'chevilles, puis on finit aux épaules.',
-      change: 'C’EST LUI QUI DONNE SON SENS À « STRICT PRESS ». Tant qu’il '
-            + 'n’était pas au carnet, « strict press » ne distinguait rien — '
-            + 'il redevient un geste du moment que le push press existe à '
-            + 'côté. Et l’élan permet de charger nettement plus lourd : une '
-            + 'source avance environ 30 % de plus, chiffre à prendre comme '
-            + 'un ordre de grandeur, pas comme une mesure.',
+      faire: 'Comme un développé militaire, mais les jambes lancent la barre : flexion courte des hanches et des genoux, puis on finit aux épaules.',
+      change: 'L’élan permet de charger plus lourd qu’en strict.',
       source: 'Fitness Volt, PowerliftingTechnique, BarBend'
     },
 
@@ -65,10 +53,8 @@
       fiche: 'Développé militaire',
       nom: 'Z press',
       aussi: ['Développé assis au sol', 'Z-press'],
-      faire: 'Assis au sol, jambes tendues devant soi, sans banc et sans '
-           + 'appui dans le dos. On presse la barre au-dessus de la tête.',
-      change: 'Ni jambes ni dossier : rien pour tricher, ni élan ni '
-            + 'cambrure. Le gainage devient la limite avant les épaules.',
+      faire: 'Assis au sol, jambes tendues, sans banc ni appui dans le dos. On presse au-dessus de la tête.',
+      change: 'Ni jambes ni dossier : le gainage devient la limite avant les épaules.',
       garde: 'Les sources s’accordent à en faire un ACCESSOIRE, pas un '
            + 'mouvement principal : on y charge moins qu’assis sur un banc, '
            + 'et son rôle est d’améliorer le développé ordinaire.',
@@ -78,10 +64,8 @@
       fiche: 'Développé couché',
       nom: 'Développé au sol',
       aussi: ['Floor press', 'Développé couché au sol'],
-      faire: 'Allongé au sol au lieu d’un banc. Les coudes touchent le sol '
-           + 'en bas, ce qui arrête la descente avant la poitrine.',
-      change: 'Amplitude raccourcie par le sol : sert surtout le verrouillage '
-            + 'en fin de poussée, et épargne l’épaule de la position basse.',
+      faire: 'Allongé au sol au lieu d’un banc : les coudes touchent le sol et arrêtent la descente.',
+      change: 'Amplitude raccourcie : sert le verrouillage, et épargne l’épaule en position basse.',
       garde: 'Eric Cressey le classe DEVANT le pin press pour une raison '
            + 'précise : sur pins, on n’est pas en position de « poser » '
            + 'correctement les stabilisateurs de l’omoplate. Son ordre est '
@@ -93,11 +77,8 @@
       fiche: 'Rowing',
       nom: 'Pendlay row',
       aussi: ['Rowing Pendlay', 'Rowing départ au sol'],
-      faire: 'Buste à l’horizontale, et la barre REPOSE AU SOL entre chaque '
-           + 'répétition. Chaque tirage repart de l’arrêt complet.',
-      change: 'C’est la seule différence avec un rowing ordinaire, et elle '
-            + 'est nette : le départ et l’amplitude. Pas d’élan accumulé '
-            + 'd’une rép à l’autre.',
+      faire: 'Buste à l’horizontale, la barre repose au sol entre chaque répétition.',
+      change: 'Chaque tirage repart de l’arrêt complet : pas d’élan accumulé.',
       garde: 'Une source place le rowing ordinaire comme le meilleur choix '
            + 'pour la prise de masse (séries plus longues), le Pendlay '
            + 'étant plutôt un mouvement de force. Les deux travaillent '
@@ -123,12 +104,8 @@
       fiche: 'Pull up',
       nom: 'Traction commando',
       aussi: ['Commando pull up', 'Traction prise mixte sur la barre'],
-      faire: 'Mains l’une devant l’autre SUR la barre, dans son axe, et le '
-           + 'corps monte en se décalant d’un côté puis de l’autre à chaque '
-           + 'répétition.',
-      change: 'Le décalage latéral attaque le dos sous un angle que la '
-            + 'traction de face ne donne pas, et change de côté à chaque '
-            + 'rép.',
+      faire: 'Mains l’une devant l’autre sur la barre, dans son axe. Le corps monte en se décalant d’un côté, puis de l’autre.',
+      change: 'Le décalage attaque le dos sous un angle que la traction de face ne donne pas.',
       source: 'Bodybuilding.com'
     },
     {
@@ -151,11 +128,8 @@
       fiche: 'Rowing',
       nom: 'Rowing inversé',
       aussi: ['Inverted row', 'Traction australienne', 'Australian pull up'],
-      faire: 'Barre fixee a hauteur de hanches, on se place dessous, corps '
-           + 'gaine en ligne, talons au sol, et on tire la poitrine vers la '
-           + 'barre.',
-      change: 'Au poids du corps, et la seule variante de rowing qu’une revue '
-            + 'EMG place DEVANT les autres pour le grand dorsal.',
+      faire: 'Barre à hauteur de hanches, on se place dessous, corps gainé, et on tire la poitrine vers elle.',
+      change: 'La seule variante de rowing qu’une revue EMG place devant les autres pour le grand dorsal.',
       garde: 'LA REVUE ELLE-MEME MET EN GARDE : ce classement repose sur une '
            + 'seule etude preliminaire, de petite taille, qui demande a etre '
            + 'repliquee. C’est un indice, pas un verdict.',
@@ -165,11 +139,8 @@
       fiche: 'Élévation latérale',
       nom: 'Élévation latérale bras fléchi',
       aussi: ['Bent-arm lateral raise', 'Élévation latérale coude plié'],
-      faire: 'Comme une elevation laterale, mais coudes flechis a 90° pendant '
-           + 'tout le mouvement, ce qui raccourcit le bras de levier.',
-      change: 'Une etude ACE sur dix exercices d’epaule la place parmi les '
-            + 'DEUX meilleures pour le deltoide MOYEN, avec le rowing incline '
-            + 'a 45°. Et « Élévation latérale » n’avait jusqu’ici aucun geste.',
+      faire: 'Comme une élévation latérale, mais coudes fléchis à 90° tout du long, ce qui raccourcit le bras de levier.',
+      change: 'Une étude ACE la place parmi les deux meilleures pour le deltoïde moyen.',
       garde: 'L’etude est financee par l’ACE, et ses auteurs refusent de '
            + 'nommer un meilleur exercice d’epaule : « il n’y en a pas un ». '
            + 'Ils conseillent de commencer par le deltoide POSTERIEUR, le '

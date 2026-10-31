@@ -183,18 +183,29 @@
      Les champs different : un GESTE dit `change` (par rapport au mouvement
      simple), un MOUVEMENT DE BASE dit `pourquoi_aw` (ce qu'il apporte au
      bras de fer). Les deux disent `faire`, `garde` et `source`. */
+  /* ================= DEUX BLOCS, PAS QUATRE =================
+
+     MB, 31/10 : « dans 2-La facon de l'executer, tu peux retirer "Pour le
+     bras de fer" et "A savoir", ce que ca change est interessant, mais il
+     faut limiter le nombre de caracteres et etre plus synthetique ».
+
+     CE QUE LE RETRAIT COUTE, MESURE AVANT : les deux blocs pesent 8 022
+     signes sur 18 971, soit 42 % du texte. 29 explications sur 43 portent
+     un avertissement, dont CINQ qui parlent d'un risque corporel — le
+     developpe nuque le premier, avec sa mise en garde sur la mobilite
+     d'epaule et la morphologie de l'acromion.
+
+     RIEN N'EST SUPPRIME DES FICHIERS. `pourquoi_aw` et `garde` restent
+     ecrits : ils serviront l'onglet Aide, ou l'espace ne manque pas. C'est
+     leur place DANS CET ECRAN qui part, et c'est ce que MB a demande. */
   function blocExplication(xp) {
     var p = h('div', { class: 'item-resume',
       style: 'margin:7px 2px;line-height:1.45;white-space:normal' });
     p.appendChild(h('div', { html: '<b>Le geste.</b> ' + xp.faire }));
     if (xp.change) p.appendChild(h('div', { style: 'margin-top:4px',
       html: '<b>Ce que ça change.</b> ' + xp.change }));
-    if (xp.pourquoi_aw) p.appendChild(h('div', { style: 'margin-top:4px',
-      html: '<b>Pour le bras de fer.</b> ' + xp.pourquoi_aw }));
-    if (xp.garde) p.appendChild(h('div', { style: 'margin-top:4px',
-      html: '<b>À savoir.</b> ' + xp.garde }));
-    p.appendChild(h('div', { style: 'margin-top:4px;opacity:.7;'
-      + 'font-style:italic', text: 'source — ' + xp.source }));
+    p.appendChild(h('div', { style: 'margin-top:3px;opacity:.6;'
+      + 'font-style:italic;font-size:.92em', text: xp.source }));
     return p;
   }
 

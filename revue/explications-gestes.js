@@ -24,38 +24,25 @@
   var E = {
     /* ---------------- biceps ---------------- */
     'Spider curl': {
-      faire: 'Poitrine posée sur un banc incliné, face au dossier, les bras '
-           + 'pendent dans le vide. On monte sans que l’épaule ni le torse '
-           + 'ne bougent.',
-      change: 'Le banc bloque le tronc : impossible de tricher en balançant '
-            + 'le buste. Amplitude large, mais on charge moins lourd qu’un '
-            + 'drag curl.',
+      faire: 'Poitrine sur un banc incliné, face au dossier, bras dans le vide. On monte sans bouger l’épaule.',
+      change: 'Le banc bloque le tronc : pas de balancement possible. Amplitude large, charge plus légère.',
       source: 'PureGym, Muscle & Strength, comparatif Gymkee'
     },
     'Drag curl': {
-      faire: 'Le poids « traîne » le long du corps au lieu de décrire un arc '
-           + 'devant soi : les coudes reculent derrière le torse pendant la '
-           + 'montée.',
-      change: 'Insiste sur le chef court du biceps. On peut charger plus '
-            + 'lourd qu’au spider curl, pour une amplitude plus courte.',
+      faire: 'Le poids traîne le long du corps au lieu de décrire un arc : les coudes reculent derrière le torse.',
+      change: 'Insiste sur le chef court. Plus lourd qu’au spider curl, amplitude plus courte.',
       garde: 'Ne pas hausser les épaules pour aider — c’est le signe que la '
            + 'charge est trop lourde.',
       source: 'Outlift, comparatif Gymkee'
     },
     'Bayesian curl': {
-      faire: 'À la poulie, debout dos à la machine, le bras part en arrière '
-           + 'du corps et on curle de là. Aussi appelé curl derrière le dos.',
-      change: 'L’épaule en extension met le chef long du biceps sous tension '
-            + 'dès le départ, et le câble maintient cette tension du début à '
-            + 'la fin — ce qu’un haltère ne fait pas.',
+      faire: 'À la poulie, debout dos à la machine, le bras part en arrière du corps.',
+      change: 'L’épaule en extension met le chef long sous tension dès le départ, et le câble la maintient du début à la fin.',
       source: 'BarBend, StrengthLog'
     },
     'Waiter curl': {
-      faire: 'Un seul haltère, tenu à plat dans les deux paumes par le '
-           + 'dessous — comme un plateau de serveur. Le dessus de l’haltère '
-           + 'reste tourné vers le haut tout le long.',
-      change: 'La prise par-dessous empêche de refermer les doigts, donc '
-            + 'd’aider avec les avant-bras. Le chef long travaille.',
+      faire: 'Un seul haltère tenu à plat dans les deux paumes, par le dessous — comme un plateau de serveur.',
+      change: 'La prise par-dessous empêche d’aider avec les avant-bras. Le chef long travaille.',
       garde: 'Deux pièges nommés par les sources : laisser l’haltère '
            + 'basculer (on retombe sur une prise neutre, et c’est le '
            + 'brachial qui prend), et laisser le coude avancer — le curl '
@@ -96,23 +83,15 @@
       source: 'Mirafit, Motra, The Body Blueprint'
     },
     'Cuban press': {
-      faire: 'Un enchaînement : tirage menton, puis rotation externe des '
-           + 'épaules, puis développé au-dessus de la tête.',
-      change: 'C’EST UN MOUVEMENT COMPOSÉ, pas une rotation. La rotation '
-            + 'cubaine en est la version dépouillée : elle garde la seule '
-            + 'rotation externe et laisse tomber le tirage et le développé. '
-            + 'Le press travaille deltoïdes et haut du dos en plus de la '
-            + 'coiffe.',
+      faire: 'Un enchaînement : tirage menton, rotation externe des épaules, puis développé au-dessus de la tête.',
+      change: 'Mouvement composé, pas une rotation : la rotation cubaine en est la version dépouillée.',
       garde: 'Charge légère : la coiffe est minuscule à côté des deltoïdes '
            + 'et lâche vite.',
       source: 'Mirafit, Fitness Volt, Sole Treadmills'
     },
     'Rotation externe coude au corps': {
       faire: 'Coude collé au flanc, avant-bras qui part vers l’extérieur.',
-      change: 'Coude au corps contre bras en abduction à 90°, ce n’est pas '
-            + 'le même angle d’épaule. Les cliniciens commencent par le '
-            + 'coude au corps parce qu’il réduit le pincement de la coiffe, '
-            + 'et vont vers l’abduction quand l’épaule le supporte.',
+      change: 'Coude au corps plutôt qu’en abduction à 90° : l’angle d’épaule change, et le pincement de la coiffe est moindre.',
       garde: 'Aucune étude comparant directement les deux positions n’est '
            + 'ressortie de la recherche : ce classement vient de la '
            + 'pratique clinique, pas d’un essai.',
@@ -120,31 +99,22 @@
     },
     'Rotation interne coude au corps': {
       faire: 'Coude collé au flanc, avant-bras qui revient vers le ventre.',
-      change: 'Même raison que l’externe : le coude au corps et l’abduction '
-            + 'à 90° ne chargent pas la même chose. Les deux vont ensemble — '
-            + 'si tu gardes l’un, garde l’autre.',
+      change: 'Même logique que l’externe : les deux vont ensemble.',
       source: 'Eric Cressey, tables de tests cliniques'
     },
 
     /* ---------------- pectoraux / triceps ---------------- */
     'Hex press': {
-      faire: 'Deux haltères pressés l’un contre l’autre, les têtes qui se '
-           + 'touchent, et on serre pendant toute la montée. Prise neutre, '
-           + 'coudes serrés.',
-      change: 'La tension vient de la PRESSION entre les deux haltères, pas '
-            + 'de la largeur de prise. Ce n’est pas le même geste qu’un '
-            + 'développé serré à la barre, qui est le mouvement lourd ; le '
-            + 'hex press est un accessoire, plus léger.',
+      faire: 'Deux haltères pressés l’un contre l’autre, têtes qui se touchent. Prise neutre, coudes serrés.',
+      change: 'La tension vient de la pression entre les haltères, pas de la prise. Accessoire, plus léger qu’à la barre.',
       garde: 'La recherche n’a pas donné de guide détaillé : les sources '
            + 'disent qu’il « ressemble » au développé haltères prise serrée '
            + 'sans toujours détailler la différence.',
       source: 'Breaking Muscle, BarBend, Fitness Volt'
     },
     'Pompes diamant': {
-      faire: 'Mains rapprochées sous la poitrine, index et pouces qui '
-           + 'forment un losange. Coudes serrés le long des côtes.',
-      change: 'Les triceps passent devant, les pectoraux et les épaules '
-            + 'derrière. Plus dur qu’une pompe large.',
+      faire: 'Mains rapprochées sous la poitrine, index et pouces en losange. Coudes serrés.',
+      change: 'Les triceps passent devant, pectoraux et épaules derrière.',
       source: 'Peloton, LiveStrong, Coach, mesures EMG citées par '
             + 'Biology Insights'
     },

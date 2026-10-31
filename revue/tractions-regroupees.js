@@ -41,11 +41,8 @@
       vers: 'Pull up',            /* nom AVANT renommage */
       fiche: 'Chin up',
       geste: 'Traction supinée',
-      faire: 'Paumes tournées vers soi, mains à peu près à largeur d’épaules.',
-      change: 'C’est la variante la mieux documentée : une étude trouve le '
-            + 'grand pectoral et le biceps nettement plus actifs qu’en '
-            + 'pronation, et le trapèze inférieur moins. Si tu tires pour '
-            + 'le biceps, c’est celle-là.',
+      faire: 'Paumes tournées vers soi, mains à largeur d’épaules.',
+      change: 'Une étude trouve le pectoral et le biceps plus actifs qu’en pronation, le trapèze inférieur moins.',
       garde: 'Le trapèze que porte la fiche « Traction » travaille MOINS '
            + 'ici. Une autre source nuance : à charge suffisante, les deux '
            + 'prises activent assez semblablement — la différence est '
