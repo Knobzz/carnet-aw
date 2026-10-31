@@ -105,6 +105,24 @@
   .se-nom.se-syn { opacity: .5; }
   .se-nom.se-trad { opacity: .4; text-decoration: line-through;
                     cursor: default; }
+  /* les trois cases du classement : vert = geste, bleu = materiel,
+     gris = synonyme. Le POINTILLE dit « j'ai un doute ici ». */
+  .se-nom.se-mat { background: #2d4766; border-color: #6f9fd8; color: #d8e8ff; }
+  .se-nom.se-doute { border-style: dashed; border-width: 2px; }
+  .se-leg { display: flex; flex-wrap: wrap; gap: 12px; font-size: .8rem;
+            color: var(--texte-2); margin: 0 0 10px; align-items: center; }
+  .se-leg span.se-nom { cursor: default; }
+  /* L'EXPLICATION DU GESTE, sous l'etage 2. MB : « le fait de selectionner
+     une variante devrait etre accompagne d'une petite explication ». */
+  .se-expl { margin-top: 8px; padding: 8px 10px; border-radius: var(--r-s);
+             background: var(--fond); border: 1px solid var(--trait);
+             font-size: .8rem; line-height: 1.45; }
+  .se-expl p { margin: 0 0 6px; }
+  .se-expl p:last-child { margin-bottom: 0; }
+  .se-expl b { color: var(--laiton); }
+  .se-expl .se-garde { color: #ffcf8f; }
+  .se-expl .se-src { color: var(--texte-2); font-size: .74rem;
+                     font-style: italic; }
   .se-sortie { max-width: 1240px; margin: 18px auto 0; }
   .se-sortie h2 { font-size: 1rem; margin: 0 0 6px; color: var(--laiton); }
   .se-sortie textarea { width: 100%; height: 150px; background: var(--fond-2);
@@ -162,20 +180,28 @@
 <div id="seVue2" hidden>
   <div class="se-cote" style="max-width:1240px;margin:0 auto;min-width:0">
     <h2>Les autres noms connus — lesquels s’exécutent différemment ?</h2>
-    <p>Tu avais raison sur les doublons : <b id="seNbTrad"></b> de ces noms
-       sont la <b>traduction</b> d’un autre nom de la même fiche. Ils sont
-       <span style="opacity:.4;text-decoration:line-through">barrés</span> et
-       ne se cliquent plus. <b>Clique ceux qui sont un geste différent.</b></p>
+    <p><b>Je les ai classés tous les 105</b> — tu corriges ce qui cloche,
+       tu ne repars pas de zéro. En plus : <b id="seNbTrad"></b> traductions
+       sont <span style="opacity:.4;text-decoration:line-through">barrées</span>
+       et ne se cliquent plus.</p>
     <div class="se-barre">
       <input type="search" id="seQ" placeholder="chercher…">
       <button type="button" class="se-pb" id="seTous" aria-pressed="true">Tous</button>
-      <button type="button" class="se-pb" id="seMarques">Ce que j’ai marqué</button>
+      <button type="button" class="se-pb" id="seDoutes">Mes 12 doutes</button>
+      <button type="button" class="se-pb" id="seMarques">Ce que j’ai corrigé</button>
       <button type="button" class="se-pb" id="seRestent">Pas encore vues</button>
       <span class="se-pb" style="cursor:default" id="seCompte"></span>
     </div>
+    <p class="se-leg">
+      <span class="se-nom se-var">geste différent</span> monte à l’étage 2 ·
+      <span class="se-nom se-mat">matériel ou position</span> part à l’étage 3 ·
+      <span class="se-nom se-syn">synonyme</span> reste cherchable, affiché
+      nulle part · <span class="se-nom se-syn se-doute">pointillé</span> =
+      j’hésite, survole pour la raison. <b>Un clic fait tourner les trois.</b>
+    </p>
     <div id="seNoms"></div>
     <div class="se-sortie">
-      <h2>Les noms que tu as marqués comme un geste différent</h2>
+      <h2>Le classement final — à relire en entier</h2>
       <div class="se-barre" style="margin-top:0">
         <button type="button" class="se-pb" id="seCopier">Copier</button>
         <button type="button" class="se-pb" id="seRaz">Tout décocher</button>
@@ -200,6 +226,8 @@
 <script src="js/store.js"></script>
 <script src="js/model.js"></script>
 <script src="revue/variantes.js"></script>
+<script src="revue/classement-noms.js"></script>
+<script src="revue/explications-gestes.js"></script>
 <script>
 (function (A) {
   'use strict';
@@ -381,8 +409,12 @@
 
     /* --- 2. la variante de geste --- */
     var fiche = fiches.filter(function (f) { return f.nom === ex.nom; })[0];
+    /* L'ETAGE 2 NE MONTRE QUE LES 'geste'. Avant ce classement il
+       affichait les 105 moins les traductions — donc « Curl debout » et
+       « Shoulder press » y figuraient, ce que MB refuse justement. */
     var gestes = fiche ? autresNoms(fiche).filter(function (n) {
-      return !tradDe[fiche.nom + ' § ' + n]; }) : [];
+      return !tradDe[fiche.nom + ' § ' + n]
+          && A.codeDe(fiche.nom, n) === 'geste'; }) : [];
     var e2 = etage('2', 'La façon de l’exécuter',
                    gestes.length ? gestes.length + ' connue(s)' : null, ' se-vif');
     if (!gestes.length) {
@@ -398,6 +430,25 @@
         c2.appendChild(b);
       });
       e2.appendChild(c2);
+      /* L'EXPLICATION DU GESTE CHOISI. Elle ne s'affiche que quand une
+         variante est selectionnee — sur « le mouvement simple » il n'y a
+         rien a expliquer de plus que le nom. */
+      var ex2 = ex.variante && A.explicationsGestes
+              && A.explicationsGestes.E[ex.variante];
+      if (ex2) {
+        var p = h('div', { class: 'se-expl' });
+        p.appendChild(h('p', { html: '<b>Le geste.</b> ' + ex2.faire }));
+        if (ex2.change) p.appendChild(h('p', { html: '<b>Ce que \u00e7a change.</b> '
+          + ex2.change }));
+        if (ex2.garde) p.appendChild(h('p', { class: 'se-garde',
+          html: '<b style="color:#ffcf8f">\u00c0 savoir.</b> ' + ex2.garde }));
+        p.appendChild(h('p', { class: 'se-src', text: 'cherch\u00e9 le 31/10 \u2014 '
+          + ex2.source }));
+        e2.appendChild(p);
+      } else if (ex.variante) {
+        e2.appendChild(h('p', { class: 'se-rien',
+          text: 'Pas encore d\u2019explication pour ce geste.' }));
+      }
     }
     ec.appendChild(e2);
 
@@ -556,6 +607,17 @@
   }
 
   var filtre2 = 'tous', rech2 = '';
+
+  /* LE CODE COURANT D'UN NOM : mon classement, sauf si MB l'a corrige.
+     UNE SEULE SOURCE — l'ecran, le compteur et la sortie s'en servent tous.
+     Sans elle, la page dirait une chose et l'ecran une autre. */
+  function codeDe(fiche, nom) {
+    var id = fiche + ' § ' + nom;
+    if (marques[id]) return marques[id].code;
+    var pr = A.classementNoms && A.classementNoms.PLAT[id];
+    return (pr && pr.code) || 'syn';
+  }
+  A.codeDe = codeDe;
   var ordre = fiches.slice().sort(function (a, b) {
     var d = autresNoms(b).length - autresNoms(a).length;
     return d || a.nom.localeCompare(b.nom, 'fr');
@@ -576,15 +638,25 @@
       }
       if (filtre2 === 'marques'
           && !noms.some(function (n) { return marques[f.nom + ' § ' + n]; })) return;
+      if (filtre2 === 'doutes'
+          && !noms.some(function (n) {
+               var pr = A.classementNoms && A.classementNoms.PLAT[f.nom + ' § ' + n];
+               return pr && pr.doute; })) return;
       if (filtre2 === 'restent' && vues[f.nom]) return;
       nf++;
       var bloc = h('div', { class: 'se-fiche' });
       var t = h('h3', {}, [document.createTextNode(f.nom)]);
-      var nm = noms.filter(function (n) { return marques[f.nom + ' § ' + n]; }).length;
       var nt = noms.filter(function (n) { return tradDe[f.nom + ' § ' + n]; }).length;
+      var ng = noms.filter(function (n) {
+        return !tradDe[f.nom + ' § ' + n] && codeDe(f.nom, n) === 'geste'; }).length;
+      var nmat = noms.filter(function (n) {
+        return !tradDe[f.nom + ' § ' + n] && codeDe(f.nom, n) === 'mat'; }).length;
+      var nc = noms.filter(function (n) { return marques[f.nom + ' § ' + n]; }).length;
       t.appendChild(h('small', { text: noms.length + ' nom(s)'
-        + (nt ? ' · ' + nt + ' traduction(s)' : '')
-        + (nm ? ' · ' + nm + ' geste(s)' : '') }));
+        + (nt ? ' · ' + nt + ' trad.' : '')
+        + (ng ? ' · ' + ng + ' geste(s)' : '')
+        + (nmat ? ' · ' + nmat + ' matériel' : '')
+        + (nc ? ' · ' + nc + ' corrigé(s)' : '') }));
       var bv = h('button', { class: 'se-nom', type: 'button',
         text: vues[f.nom] ? '✓ vue' : 'marquer vue' });
       if (vues[f.nom]) {
@@ -606,12 +678,26 @@
             title: 'traduction de « ' + tr + ' » — gardée pour la recherche' }));
           return;
         }
-        var b = h('button', { class: 'se-nom ' + (marques[id] ? 'se-var' : 'se-syn'),
+        /* LE CLASSEMENT EST LE POINT DE DEPART, la marque de MB le
+           corrige. `marques[id]` ne vaut donc plus « c'est un geste »
+           mais « MB a change mon avis » — et la couleur affichee est
+           TOUJOURS celle du code courant, jamais celle du clic. */
+        var pr = (A.classementNoms && A.classementNoms.PLAT[id]) || { code: 'syn' };
+        var code = marques[id] ? marques[id].code : pr.code;
+        var cl = code === 'geste' ? 'se-var' : (code === 'mat' ? 'se-mat' : 'se-syn');
+        var b = h('button', { class: 'se-nom ' + cl + (pr.doute ? ' se-doute' : ''),
           type: 'button', text: n,
-          title: marques[id] ? 'marqué : geste différent' : 'simple autre nom' });
+          title: (code === 'geste' ? 'geste différent' :
+                  code === 'mat' ? 'matériel ou position — étage 3'
+                                 : 'même geste, autre mot')
+               + (marques[id] ? ' — TU AS CORRIGÉ' : '')
+               + (pr.doute ? '\n\nJ’hésite : ' + pr.doute : '') });
         b.addEventListener('click', function () {
-          if (marques[id]) delete marques[id];
-          else marques[id] = { fiche: f.nom, nom: n };
+          /* le clic fait tourner geste -> materiel -> synonyme -> mon avis */
+          var suite = { geste: 'mat', mat: 'syn', syn: 'geste' };
+          var neuf = suite[code];
+          if (neuf === pr.code) delete marques[id];
+          else marques[id] = { fiche: f.nom, nom: n, code: neuf };
           garder(); rendreNoms();
         });
         zn.appendChild(b);
@@ -621,36 +707,55 @@
     });
     var reste = ordre.filter(function (f) {
       return autresNoms(f).length && !vues[f.nom]; }).length;
+    var tg = 0, tm = 0;
+    ordre.forEach(function (f) {
+      autresNoms(f).forEach(function (n) {
+        if (tradDe[f.nom + ' § ' + n]) return;
+        var c = codeDe(f.nom, n);
+        if (c === 'geste') tg++; else if (c === 'mat') tm++;
+      });
+    });
     document.getElementById('seCompte').textContent =
-      nf + ' affiché(s) · ' + Object.keys(marques).length + ' marqué(s) geste · '
-      + reste + ' fiche(s) pas encore vue(s)';
+      tg + ' geste(s) · ' + tm + ' matériel · ' + (105 - tg - tm)
+      + ' synonymes · ' + Object.keys(marques).length + ' corrigé(s) · '
+      + reste + ' fiche(s) à voir';
     majSortie2();
   }
 
   function majSortie2() {
-    var par = {};
-    Object.keys(marques).forEach(function (k) {
-      var d = marques[k]; (par[d.fiche] = par[d.fiche] || []).push(d.nom);
+    /* ON SORT LE CLASSEMENT FINAL, pas la liste des corrections : c'est lui
+       qui sera applique, et MB doit pouvoir le relire en entier. Les lignes
+       qu'il a corrigees portent une etoile. */
+    var g = [], mt = [];
+    ordre.forEach(function (f) {
+      autresNoms(f).forEach(function (n) {
+        if (tradDe[f.nom + ' § ' + n]) return;
+        var id = f.nom + ' § ' + n, c = codeDe(f.nom, n);
+        var l = '- ' + f.nom + ' ▸ « ' + n + ' »'
+              + (marques[id] ? '   *corrigé*' : '');
+        if (c === 'geste') g.push(l); else if (c === 'mat') mt.push(l);
+      });
     });
-    var noms = Object.keys(par).sort();
-    document.getElementById('seJson').value = noms.length
-      ? noms.map(function (n) {
-          return '- ' + n + ' : ' + par[n].map(function (x) {
-            return '« ' + x + ' »'; }).join(', '); }).join('\n')
-      : 'Rien de marqué. Clique un nom qui s’exécute différemment — '
-      + '« Spider curl », « Drag curl », « Behind the neck press »…';
+    document.getElementById('seJson').value =
+      'LES ' + g.length + ' GESTES — ils montent à l’étage 2\n'
+      + (g.join('\n') || '  — aucun')
+      + '\n\nLES ' + mt.length + ' MATÉRIEL / POSITION — ils partent à '
+      + 'l’étage 3\n' + (mt.join('\n') || '  — aucun')
+      + '\n\nLes ' + (105 - g.length - mt.length) + ' autres restent de simples '
+      + 'synonymes : cherchables, affichés nulle part.';
   }
 
   function filtrer(id) {
     filtre2 = id === 'seTous' ? 'tous'
-            : (id === 'seMarques' ? 'marques' : 'restent');
-    ['seTous', 'seMarques', 'seRestent'].forEach(function (x) {
+            : (id === 'seMarques' ? 'marques'
+            : (id === 'seDoutes' ? 'doutes' : 'restent'));
+    ['seTous', 'seDoutes', 'seMarques', 'seRestent'].forEach(function (x) {
       document.getElementById(x).setAttribute('aria-pressed',
         x === id ? 'true' : 'false');
     });
     rendreNoms();
   }
-  ['seTous', 'seMarques', 'seRestent'].forEach(function (id) {
+  ['seTous', 'seDoutes', 'seMarques', 'seRestent'].forEach(function (id) {
     document.getElementById(id).addEventListener('click', function () {
       filtrer(id);
     });
