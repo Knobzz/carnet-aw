@@ -3487,8 +3487,12 @@
     /* LE PRIX DU CORRECTIF, BORNE ET MESURE. Posséder une écriture rend son
        nom principal injoignable PAR CETTE REQUETE — mais pas par les
        lettres du nom principal. */
+    /* LE NOM VISE A CHANGE LE 31/10 — decision de MB : la fiche
+       « Extension triceps a la poulie » est devenue « Extension triceps »,
+       et l'ancien nom y est redevenu une ecriture. Ce controle cherchait
+       donc une fiche qui n'existe plus, et TOMBAIT sur un produit juste. */
     v.vrai(A.m.suggestions(etatAvec('Triceps poulie'), 'extension', 8)
-            .some(function (x) { return x.nom === 'Extension triceps à la poulie'; }),
+            .some(function (x) { return x.nom === 'Extension triceps'; }),
            '[temoin] posséder « Triceps poulie » n’enterre pas « Extension '
          + 'triceps » : ses propres lettres le retrouvent. Il tient des deux '
          + 'côtés, et il garde le seul prix que le correctif accepte');
@@ -5867,16 +5871,20 @@
        TypeError qui a emporte TOUT LE BLOC — un bloc muet ne dit pas
        qu'il est muet. */
     var et = A.m.DICTIONNAIRE.filter(function (d) {
-      return d.nom === 'Extension triceps à la poulie';
+      return d.nom === 'Extension triceps';
     })[0];
-    v.vrai(!!et, '[temoin] la fiche des extensions à la poulie existe — sans '
+    v.vrai(!!et, '[temoin] la fiche des extensions triceps existe — sans '
          + 'elle, tout ce bloc se tairait au lieu de tomber');
+    /* LE RENOMMAGE DU 31/10 A INVERSE LES DEUX NOMS. La fiche s'appelle
+       « Extension triceps » — MB : « le nom long etait a moi, pas a lui » —
+       et « Extension triceps a la poulie » est passe en TETE de ses
+       ecritures. La liste attendue suit ce renversement. */
     v.egal(((et || {}).aussi || []).join(' · '),
-           'Extension triceps · Pushdown · Extension à la poulie · '
+           'Extension triceps à la poulie · Pushdown · Extension à la poulie · '
          + 'Triceps poulie · Extension haltère · Triceps corde',
            'et la fiche ne garde QUE ce qui lui reste — les quatre '
-         + 'transférées en sont parties, et l’ancien nom « Extension '
-         + 'triceps » y est redevenu une écriture le 30/10');
+         + 'transférées en sont parties, et l’ancien nom long y est devenu '
+         + 'une écriture le 31/10');
 
     /* ---- CE QUE LE CARNET REND MAINTENANT, ET QU'IL RENDAIT MAL ---- */
     v.egal(mus('Tate press'), 'ancone,triceps',

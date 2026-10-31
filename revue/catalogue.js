@@ -508,7 +508,7 @@
     {
       id: 'wrist-curl-pouce',
       nom: 'Wrist curl côté pouce',
-      aussi: ['Wrist curl bord du pouce', 'Wrist curl accentué pouce'],
+      aussi: ['Wrist curl côté pouce avec haltères', 'Wrist curl côté pouce à la poulie', 'Wrist curl bord du pouce', 'Wrist curl accentué pouce'],
       geste: 'Le même geste, mais la main part vers le pouce pendant qu’elle '
            + 'se plie.',
       muscles: [
@@ -524,7 +524,7 @@
     {
       id: 'wrist-curl-auriculaire',
       nom: 'Wrist curl côté petit doigt',
-      aussi: ['Wrist curl bord du petit doigt', 'Wrist curl côté auriculaire'],
+      aussi: ['Wrist curl côté petit doigt avec haltères', 'Wrist curl côté petit doigt à la poulie', 'Wrist curl bord du petit doigt', 'Wrist curl côté auriculaire'],
       geste: 'Le même geste, mais la main part vers l’auriculaire.',
       muscles: [
         m('long_palmaire', 'moteur', S.pl, C.pl),
@@ -569,7 +569,7 @@
     {
       id: 'deviation-radiale',
       nom: 'Rising',
-      aussi: ['Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
+      aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
               'Cable rising', 'Rising à la poulie'],
       geste: 'Le poignet penche vers le pouce, sans se plier ni se tendre.',
       muscles: [
@@ -621,7 +621,7 @@
     {
       id: 'deviation-ulnaire',
       nom: 'Déviation ulnaire',
-      aussi: ['Déviation cubitale', 'Inclinaison ulnaire',
+      aussi: ['Déviation ulnaire avec élastique', 'Déviation cubitale', 'Inclinaison ulnaire',
               'Ulnar deviation', 'Déviation ulnaire au cable', 'Chop',
               'Cable Chop', 'Déviation ulnaire à la poulie'],
       geste: 'Le poignet penche vers l’auriculaire, sans se plier ni se '
@@ -645,7 +645,7 @@
     {
       id: 'pronation',
       nom: 'Pronation',
-      aussi: ['Poignée de pronation', 'Pronation à la poulie',
+      aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie',
               'Cable pronation'],
       geste: 'L’avant-bras tourne : la paume va vers le bas.',
       muscles: [
@@ -746,7 +746,7 @@
     {
       id: 'finger-curl',
       nom: 'Finger curl',
-      aussi: ['Rouleau de doigts', 'Finger rolling',
+      aussi: ['Finger curl avec haltères', 'Finger curl avec kettlebell', 'Rouleau de doigts', 'Finger rolling',
               'Enroulement des doigts', 'Finger curl à la barre',
               'Finger curl à la poulie', 'Barbell finger curl'],
       geste: 'La barre roule jusqu’au bout des doigts, puis les doigts la '
@@ -887,7 +887,7 @@
     {
       id: 'tenue-cup',
       nom: 'Cup hold',
-      aussi: ['Cupping', 'Tenue en cup', 'Tenue de poignet fermé',
+      aussi: ['Cup hold à la barre', 'Cupping', 'Tenue en cup', 'Tenue de poignet fermé',
               'Cup hold à la poulie', 'Cup hold avec haltère'],
       geste: 'Le poignet reste fermé sous la charge, sans bouger.',
       muscles: [
@@ -1866,7 +1866,7 @@
          donc la traction du bras sans la rétraction qui la rend possible.
          « Tirage vertical », lui, ne rétracte pas : il reste tel quel, et
          c'est volontaire — la différence est là. */
-      aussi: ['Tirage horizontal', 'Rowing barre', 'Rowing haltère',
+      aussi: ['Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère',
               'Rowing buste penché', 'Seal row avec haltères',
               'Renegade row'],
       geste: 'Buste penché, la charge est tirée vers le ventre, coudes le '
@@ -2085,7 +2085,7 @@
          sont parties chez leurs fiches, et cette entrée enregistre ce qui
          LUI RESTE. Le `reprend` des trois fiches neuves dit d'où leur nom
          vient. */
-      aussi: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
+      aussi: ['Extension triceps à la poulie', 'Pushdown', 'Extension à la poulie', 'Triceps poulie',
               'Extension haltère', 'Triceps corde'],
       aussiEcartees: [
         ['Extension au-dessus de la tête',
@@ -2097,7 +2097,11 @@
          'transférée au lot 7 chez « Extension verticale des triceps »'],
         ['Kickback', 'transférée au lot 7 à sa propre fiche']
       ],
-      apres: ['Pushdown', 'Extension à la poulie', 'Triceps poulie',
+      /* « Extension triceps a la poulie » entre ici le 31/10 : MB a
+         RENOMME la fiche, et l'ancien nom long y est devenu une
+         ecriture.  doit dire ce que la fiche porte VRAIMENT. */
+      apres: ['Extension triceps à la poulie', 'Pushdown',
+              'Extension à la poulie', 'Triceps poulie',
               'Extension haltère', 'Triceps corde'],
       geste: 'Le coude se tend contre la charge.',
       muscles: [
@@ -2122,7 +2126,7 @@
       /* LE HEX PRESS ENTRE AU LOT 9 : deux haltères serrés l'un contre
          l'autre, c'est un developpe PRISE SERREE, pas un ecarte — le coude
          travaille, et le triceps mene. Il ne rendait que « Pectoral ». */
-      aussi: ['Close grip bench press', 'Développé couché prise serrée',
+      aussi: ['Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée',
               'Close grip', 'Hex press', 'Hex press à la barre guidée',
               'Développé couché serré avec haltères'],
       geste: 'Allongé, mains rapprochées : les coudes restent près du corps '
@@ -2251,7 +2255,7 @@
     {
       id: 'oiseau',
       nom: 'Oiseau',
-      aussi: ['Reverse fly', 'Rear delt fly', 'Élévation latérale buste penché',
+      aussi: ['Oiseau avec haltères', 'Reverse fly', 'Rear delt fly', 'Élévation latérale buste penché',
               'Bent over lateral raise', 'Oiseau assis sur un banc',
               'Oiseau à la poulie à 45°', 'Oiseau avec élastique',
               'Écartés arrière',
@@ -2313,7 +2317,7 @@
     {
       id: 'rotation-externe-epaule',
       nom: 'Rotation externe d’épaule',
-      aussi: ['External rotation', 'Rotation externe', 'Rotateurs externes',
+      aussi: ['Rotation externe d’épaule avec haltères', 'External rotation', 'Rotation externe', 'Rotateurs externes',
               'Rotation externe coude au corps',
               'Rotation externe de l’épaule couchée avec haltère',
               'Rotation externe de l’épaule à la poulie',
@@ -2332,7 +2336,7 @@
     {
       id: 'rotation-interne-epaule',
       nom: 'Rotation interne d’épaule',
-      aussi: ['Internal rotation', 'Rotation interne', 'Rotateurs internes',
+      aussi: ['Rotation interne d’épaule à la poulie', 'Rotation interne d’épaule avec haltères', 'Internal rotation', 'Rotation interne', 'Rotateurs internes',
               'Rotation interne coude au corps',
               'Rotation interne à 90° à la poulie',
               'Rotations internes de l’épaule avec élastique'],
@@ -2350,7 +2354,7 @@
     {
       id: 'rotation-cubaine',
       nom: 'Rotation cubaine',
-      aussi: ['Cuban rotation', 'Cuban press', 'Rotations cubaines',
+      aussi: ['Rotation cubaine avec haltères', 'Cuban rotation', 'Cuban press', 'Rotations cubaines',
               'Rotation cubaine à la barre'],
       geste: 'Un tirage menton, puis une rotation externe, puis un développé '
            + '— les trois enchaînés sans lâcher.',
@@ -2385,7 +2389,7 @@
     {
       id: 'elevation-y',
       nom: 'Élévation en Y',
-      aussi: ['Y raise', 'Élévation en Y à la poulie'],
+      aussi: ['Élévation en Y avec haltères', 'Y raise', 'Élévation en Y à la poulie'],
       geste: 'Bras tendus, la charge monte en DIAGONALE vers le haut et '
            + 'l’extérieur : les deux bras dessinent un Y.',
       muscles: [

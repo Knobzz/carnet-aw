@@ -1789,119 +1789,56 @@
      et c'est le chemin le plus facile à casser en silence.
      ================================================================ */
 
-  bloc('Le côté, posé au doigt', function (v, h) {
+  bloc('Le côté et la prise sont PARTIS de la fiche', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var exo = fen.App.m.exerciceSeanceVierge({ nom: 'Curl', typeCharge: 'kg' });
 
     fen.App.panneau.editerExercice(exo, {}, function () {});
 
+    /* LA FICHE SE REFERME QUOI QU'IL ARRIVE. La version d'avant de ce bloc
+       sortait par `return` quand le groupe manquait, laissait sa fiche
+       ouverte, et le bloc du REPOS lisait celle-ci au lieu de la sienne :
+       5/12 au lieu de 12/12, sept echecs qui ne parlaient pas du repos. */
     return attendre(120).then(function () {
-      var pan = doc.querySelector('.panneau');
-      function groupe(libelle) {
-        var l = pan.querySelectorAll('.groupe > label');
-        for (var i = 0; i < l.length; i++) if (l[i].textContent === libelle) return l[i].parentNode;
-        return null;
+      try { mesurer(); } finally {
+        Array.prototype.forEach.call(doc.querySelectorAll('.panneau'), function (p) {
+          var x = p.querySelector('.panneau-entete .bt-icone');
+          if (x) x.click();
+        });
       }
-      var g = groupe('Côté');
-      v.vrai(!!g, 'la fiche d’exercice demande le côté');
-      if (!g) return;
-
-      var puces = g.querySelectorAll('.puce');
-      v.egal(puces.length, 3, 'trois réponses : droit, gauche, les deux');
-      var mini = 999;
-      Array.prototype.forEach.call(puces, function (p) {
-        mini = Math.min(mini, p.getBoundingClientRect().height);
-      });
-      v.vrai(mini >= 44, 'chaque puce fait 44 px (mesuré : ' + Math.round(mini) + ')');
-      v.egal(exo.cote, null, '[temoin] rien n’est coché d’avance : le côté n’est pas inventé');
-
-      puces[0].click();
-      v.egal(exo.cote, 'droit', 'un appui pose le côté');
-      v.egal(puces[0].getAttribute('aria-pressed'), 'true', 'et se voit');
-      puces[1].click();
-      v.egal(exo.cote, 'gauche', 'le choix est UNIQUE : l’autre prend la place');
-      v.egal(puces[0].getAttribute('aria-pressed'), 'false', 'le premier se relâche');
-      puces[1].click();
-      v.egal(exo.cote, null,
-             'ré-appuyer sur celui qui est actif le retire : « non renseigné » reste atteignable');
-
-      var fermer = pan.querySelector('.panneau-entete .bt-icone');
-      if (fermer) fermer.click();
-
-      /* --- la feuille de douleur : côté PUIS intensité --- */
-      return attendre(100).then(function () {
-        var douleurs = [];
-        var sel = fen.App.ui.selecteurDouleurs([], function (v2) { douleurs = v2; });
-        doc.getElementById('vue').appendChild(sel);
-
-        var zone = null;
-        Array.prototype.forEach.call(sel.querySelectorAll('.puce-douleur'), function (b) {
-          if (b.textContent === 'Coude médial') zone = b;
-        });
-        v.vrai(!!zone, '[temoin] la zone est là');
-        zone.click();                       // premier appui : la zone seule
-        v.egal(douleurs.length, 1, 'un appui pose la zone');
-        v.egal(douleurs[0].cote, null, 'sans côté : on n’a rien demandé encore');
-
-        zone.click();                       // second appui : la feuille
-        return attendre(100).then(function () {
-          var popo = doc.querySelector('.popo');
-          v.vrai(!!popo, 'le second appui ouvre la feuille');
-          if (!popo) return;
-
-          var cotes = popo.querySelectorAll('.puce');
-          v.egal(cotes.length, 3, 'la feuille demande AUSSI le côté — une feuille, deux questions');
-
-          var droit = null;
-          Array.prototype.forEach.call(cotes, function (b) {
-            if (b.textContent === 'Droit') droit = b;
-          });
-          droit.click();
-
-          var cinq = null;
-          Array.prototype.forEach.call(popo.querySelectorAll('.echelon'), function (b) {
-            if (b.textContent === '5') cinq = b;
-          });
-          cinq.click();
-
-          return attendre(100).then(function () {
-            v.egal(douleurs[0].intensite, 5, 'l’intensité arrive jusqu’au modèle');
-            v.egal(douleurs[0].cote, 'droit', 'et le côté AUSSI — c’est ce chemin qui casse en silence');
-            v.egal(fen.App.m.texteDouleur(douleurs[0]), 'Coude médial D 5/10',
-                   'la puce le dit en clair');
-            v.egal(doc.querySelectorAll('.popo').length, 0, 'et la feuille se referme');
-
-            fen.App.ui.vider(doc.getElementById('vue'));
-            return attendre(20);
-          });
-        });
-      });
     });
+
+    function mesurer() {
+      var pan = doc.querySelector('.panneau');
+      v.vrai(!!pan, 'la fiche s’ouvre');
+      if (!pan) return;
+      var libelles = Array.prototype.map.call(pan.querySelectorAll('.groupe > label'),
+        function (l) { return l.textContent; }).filter(function (t) { return t; });
+
+      /* LE TEMOIN D'ABORD : sans lui, « Cote est absent » serait vrai sur
+         une fiche vide, et ce bloc tiendrait pour rien. */
+      v.vrai(libelles.indexOf('Nom de l’exercice') >= 0
+             && libelles.indexOf('Type de charge') >= 0,
+             '[temoin] la fiche porte bien ses groupes — sans eux, '
+           + '« Côté est absent » serait vrai pour rien (lus : '
+           + libelles.join(' | ') + ')');
+
+      v.egal(libelles.indexOf('Côté'), -1,
+             'le groupe « Côté » n’est plus dans la fiche — décision de MB '
+           + 'du 31/10 : « on va enlever tout bonnement le Côté »');
+      v.egal(libelles.indexOf('Prise'), -1,
+             'le groupe « Prise » non plus, même décision');
+
+      /* ET CE QUI EST DEJA SAISI NE BOUGE PAS. Le choix disparait de
+         l'ecran, la donnee reste lisible — c'est ce qui rend le retrait
+         reversible, et c'est la seule chose qui compte pour un carnet
+         deja rempli. */
+      v.egal(typeof fen.App.m.coteValide, 'function',
+             'le modèle sait toujours lire un côté : les séances qui en '
+           + 'portent un le gardent');
+    }
   });
 
-  /* ================================================================
-     9. Choisir dans tout l'équipement
-
-     Taper le nom marche quand on le connaît. Passé une vingtaine d'outils, la
-     liste déroulante de huit ne montre que les plus récents : il faut pouvoir
-     ouvrir son équipement, le voir rangé, en cocher plusieurs d'un coup.
-     ================================================================ */
-
-  /* ================================================================
-     Le réglage de l'outil, à l'écran
-
-     Le même Titan Grip, mousqueton dehors ou dedans, ne charge pas la même
-     chose. La rangée ne doit apparaître QUE si l'outil retenu a des réglages
-     déclarés : une case vide de plus serait une case de plus à ignorer.
-     ================================================================ */
-  /* ==================================================================
-     LE REPOS : SA PLACE, ET LE REPORT DES SECONDES
-
-     Retour d'un utilisateur de MB, 29/10 : « le temps de repos en seconde
-     est pas hyper adapté, ce serait bien si tu pouvais faire un côté où tu
-     choisis les minutes et l'autre les secondes ». MB : « il est tout en
-     bas, on va le placer après "Prise" et au dessus de "Type de charge" ».
-     ================================================================== */
   bloc('Le repos, en minutes puis secondes', function (v, h) {
     var fen = h.fen, doc = h.doc;
     var exo = fen.App.m.exerciceSeanceVierge({ nom: 'Curl', typeCharge: 'kg' });
@@ -1939,17 +1876,20 @@
          muscles et la consigne : ce contrôle tombe, et il doit tomber. */
       var libelles = Array.prototype.map.call(pan.querySelectorAll('.groupe > label'),
         function (l) { return l.textContent; }).filter(function (t) { return t; });
-      var iPrise = libelles.indexOf('Prise');
+      /* LE REPERE A CHANGE LE 31/10 : « Prise » est partie de la fiche,
+         sur decision de MB. Le repos se lit maintenant entre le NOM et le
+         type de charge — la meme exigence, sur ce qui existe. */
+      var iNom = libelles.indexOf('Nom de l’exercice');
       var iRepos = libelles.indexOf('Repos');
       var iCharge = libelles.indexOf('Type de charge');
-      v.vrai(iPrise >= 0 && iCharge >= 0,
-             '[temoin] « Prise » et « Type de charge » sont bien dans la '
-           + 'fiche — sans eux, « le repos est entre les deux » serait vrai '
-           + 'pour rien (lus : ' + libelles.join(' | ') + ')');
-      v.vrai(iRepos > iPrise && iRepos < iCharge,
-             'le groupe « Repos » est APRÈS « Prise » et AVANT « Type de '
+      v.vrai(iNom >= 0 && iCharge >= 0,
+             '[temoin] « Nom de l’exercice » et « Type de charge » sont bien '
+           + 'dans la fiche — sans eux, « le repos est entre les deux » '
+           + 'serait vrai pour rien (lus : ' + libelles.join(' | ') + ')');
+      v.vrai(iRepos > iNom && iRepos < iCharge,
+             'le groupe « Repos » est APRÈS le nom et AVANT « Type de '
            + 'charge » : il était le dernier avant les structures (positions '
-           + 'lues : prise ' + iPrise + ', repos ' + iRepos + ', charge '
+           + 'lues : nom ' + iNom + ', repos ' + iRepos + ', charge '
            + iCharge + ')');
 
       var gr = null;
@@ -3343,8 +3283,21 @@
             v.vrai(!!ligne, '« Curl biceps » est dans le groupe Biceps');
             if (!ligne) { refermerTout(); return; }
             var t = ligne.textContent;
-            v.vrai(t.indexOf('Curl haltères') >= 0,
-                   'la ligne montre ses autres écritures : ' + t.slice(0, 70));
+            /* ON NE FIGE PLUS UNE ECRITURE PRECISE. Le 31/10, remettre
+               cinquante ecritures en tete de leur fiche a repousse
+               « Curl haltères » hors des trois affichees, et ce controle
+               est tombe sur un produit JUSTE. Un nom d'ecriture n'est pas
+               un effet : il bouge des qu'on touche au dictionnaire. On
+               mesure donc que la ligne montre bien DES ecritures de la
+               fiche, lues dans le modele. */
+            var fBic = fen.App.m.ficheDictionnaire('Curl biceps',
+                                                   fen.App.store.vide());
+            var ecr = (fBic && fBic.aussi || []).filter(function (e) {
+              return t.indexOf(e) >= 0;
+            });
+            v.vrai(ecr.length > 0,
+                   'la ligne montre ses autres écritures (' + ecr.length
+                 + ' reconnue(s)) : ' + t.slice(0, 70));
             v.egal(t.indexOf('Brachio-radial'), -1,
                    'et PAS ses muscles — MB : « pas besoin de mettre les '
                  + 'muscles que ça travaille »');
