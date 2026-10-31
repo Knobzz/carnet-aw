@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ajouter un exercice — le rendu final</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `sf-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sf-tete { max-width: 1240px; margin: 0 auto 14px; }
+  .sf-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .sf-tete p { margin: 5px 0; font-size: .9rem; color: var(--texte-2); }
+  .sf-tete b { color: var(--texte); }
+  .sf-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .sf-rangee { display: flex; gap: 26px; align-items: flex-start;
+               max-width: 1240px; margin: 0 auto; }
+  .sf-tel { width: 320px; flex: 0 0 320px; position: sticky; top: 16px; }
+  .sf-ecran { border: 1px solid var(--trait-fort); border-radius: 12px;
+              background: var(--fond-2); padding: 12px; width: 320px;
+              box-sizing: border-box; min-height: 500px; }
+  .sf-aide { font-size: .8rem; color: var(--texte-2); margin: 10px 0 0; }
+  .sf-label { font-size: .78rem; color: var(--texte-2); display: block;
+              margin: 10px 0 4px; }
+  .sf-label:first-child { margin-top: 0; }
+  .sf-champ { width: 100%; box-sizing: border-box; background: var(--fond);
+              border: 1px solid var(--trait); border-radius: var(--r-s);
+              color: var(--texte); font: inherit; padding: 9px 10px; }
+  .sf-champ.sf-plein { border-color: var(--laiton); }
+  .sf-bt { width: 100%; margin-top: 8px; background: var(--fond-3);
+           border: 1px solid var(--trait); border-radius: var(--r-s);
+           color: var(--texte); font: inherit; padding: 8px 10px; cursor: pointer; }
+  .sf-bt:hover { border-color: var(--laiton); }
+  .sf-grp { border: 1px solid var(--trait); border-radius: var(--r-s);
+            margin-top: 8px; overflow: hidden; }
+  .sf-grp > button { display: flex; width: 100%; background: var(--fond-3);
+        border: 0; color: var(--texte); font: inherit; font-size: .88rem;
+        padding: 8px 10px; cursor: pointer; align-items: center; gap: 8px; }
+  .sf-grp > button small { margin-left: auto; color: var(--texte-2); font-size: .76rem; }
+  .sf-mvt { display: block; width: 100%; text-align: left; background: none;
+            border: 0; border-top: 1px solid var(--trait); color: var(--texte);
+            font: inherit; padding: 8px 10px; cursor: pointer; }
+  .sf-mvt:hover { background: var(--fond-3); }
+  .sf-mvt small { display: block; color: var(--texte-2); font-size: .76rem; }
+  .sf-vars { margin-top: 10px; border: 1px solid var(--laiton);
+             border-radius: var(--r-s); padding: 9px 10px;
+             background: color-mix(in srgb, var(--laiton) 7%, transparent); }
+  .sf-vars > p { margin: 0 0 7px; font-size: .78rem; color: var(--texte-2); }
+  .sf-vars > p b { color: var(--laiton); }
+  .sf-puces { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sf-puces button { background: var(--fond); border: 1px solid var(--trait);
+        border-radius: 999px; color: var(--texte); font: inherit;
+        font-size: .79rem; padding: 3px 10px; cursor: pointer; }
+  .sf-puces button[aria-pressed="true"] { background: var(--laiton);
+        border-color: var(--laiton); color: var(--fond); font-weight: 600; }
+  .sf-choisi { margin-top: 9px; font-size: .8rem; color: var(--texte-2); }
+  .sf-choisi b { color: var(--texte); }
+  .sf-select { width: 100%; box-sizing: border-box; background: var(--fond);
+               border: 1px solid var(--trait); border-radius: var(--r-s);
+               color: var(--texte); font: inherit; padding: 8px 10px; }
+  .sf-retire { border: 1px dashed #e06c6c; border-radius: var(--r-s);
+               padding: 7px 10px; margin-top: 10px; font-size: .78rem;
+               color: #e06c6c; }
+
+  .sf-cote { flex: 1; min-width: 480px; }
+  .sf-cote h2 { font-size: 1.02rem; margin: 0 0 4px; }
+  .sf-cote > p { font-size: .86rem; color: var(--texte-2); margin: 0 0 10px; }
+  .sf-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin-bottom: 10px; }
+  .sf-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .sf-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .sf-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .86rem; padding: 5px 10px; width: 180px; }
+  .sf-tab { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .sf-tab th { text-align: left; color: var(--texte-2); font-size: .74rem;
+               text-transform: uppercase; letter-spacing: .04em;
+               border-bottom: 1px solid var(--trait); padding: 5px 8px 5px 0; }
+  .sf-tab td { border-bottom: 1px solid var(--trait); padding: 6px 8px 6px 0;
+               vertical-align: top; }
+  .sf-tab .sf-nom { font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .sf-tab .sf-nom:hover { color: var(--laiton); }
+  .sf-tab i { font-style: normal; border: 1px solid var(--trait);
+              border-radius: 999px; padding: 0 7px; margin: 0 3px 3px 0;
+              display: inline-block; font-size: .78rem; }
+  .sf-tab i.sf-neuve { border-color: #6cc08b; color: #6cc08b; }
+  .sf-tab i.sf-off { border-style: dashed; color: var(--texte-2);
+                     text-decoration: line-through; opacity: .6; }
+  .sf-bilan { max-width: 1240px; margin: 18px auto 0; font-size: .86rem;
+              color: var(--texte-2); border-top: 1px solid var(--trait);
+              padding-top: 10px; }
+  .sf-bilan b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<div class="sf-tete">
+  <h1>Ajouter un exercice — le rendu final</h1>
+  <p class="sf-cite">« J’ai besoin de voir à quoi va ressembler la sélection
+     des exos, je suis encore dubitatif sur le résultat final. »</p>
+  <p><b>Rien n’est appliqué.</b> Cette page prend le dictionnaire réel et y
+     applique <b>tes décisions d’aujourd’hui</b> — les variantes retirées, les
+     ajoutées, le renommage — puis rend l’écran tel qu’il serait. Le téléphone
+     fait 320 px, et l’écran a perdu <b>Côté</b>, <b>Prise</b> et
+     <b>Niveau (gripper)</b> comme tu l’as demandé.</p>
+  <p id="sfQuoi"></p>
+</div>
+
+<div class="sf-rangee">
+  <div class="sf-tel">
+    <div class="sf-ecran" id="sfEcran"></div>
+    <p class="sf-aide" id="sfAide"></p>
+    <button type="button" class="sf-pb" id="sfRefaire" style="margin-top:8px">↺ Recommencer</button>
+  </div>
+  <div class="sf-cote">
+    <h2>Ce que chaque mouvement proposera</h2>
+    <p>Clique un nom pour le charger dans le téléphone. Les
+       <i class="sf-neuve">vertes</i> sont celles que tu viens d’ajouter, les
+       <i class="sf-off">barrées</i> celles que tu as retirées.</p>
+    <div class="sf-barre">
+      <input type="search" id="sfQ" placeholder="chercher un mouvement…">
+      <button type="button" class="sf-pb" id="sfTous">Tous</button>
+      <button type="button" class="sf-pb" id="sfAvec">Avec variantes</button>
+      <button type="button" class="sf-pb" id="sfTouche">Ce que tu as changé</button>
+      <span id="sfCompte" style="font-size:.82rem;color:var(--texte-2)"></span>
+    </div>
+    <table class="sf-tab"><thead><tr>
+      <th>Mouvement</th><th>Variantes</th>
+    </tr></thead><tbody id="sfTable"></tbody></table>
+  </div>
+</div>
+
+<p class="sf-bilan" id="sfBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script src="revue/decisions-mb.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, V = A.variantes, DEC = A.decisionsMB;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+    return e;
+  }
+
+  /* ========== LE DICTIONNAIRE, AVEC TES DÉCISIONS ==========
+     On ne touche pas au modèle : on calcule ici ce qu'il DEVIENDRAIT. */
+  var fiches = m.fichesDuDictionnaire(S.vide(), '');
+
+  function nomFinal(f) { return DEC.RENOMMER[f.nom] || f.nom; }
+
+  /* CE QUI S'ECRIT DANS LE CHAMP quand on choisit une variante. La variante
+     seule (« machine ») n'est pas un nom d'exercice ; le nom seul perd ce
+     qu'on vient de choisir. On compose les deux. */
+  function nomComplet(x, v) {
+    return v ? x.nom + ' · ' + v.texte : x.nom;
+  }
+
+  function variantes(f) {
+    var vars = V.variantesDe(f).map(function (v) {
+      return { texte: v.texte, ecritures: v.ecritures, etat: 'garde' };
+    });
+    (DEC.RETIRER[f.nom] || []).forEach(function (t) {
+      var trouve = false;
+      vars.forEach(function (v) { if (v.texte === t) { v.etat = 'retire'; trouve = true; } });
+      if (!trouve) vars.push({ texte: t, ecritures: [], etat: 'introuvable' });
+    });
+    (DEC.AJOUTER[f.nom] || []).forEach(function (t) {
+      vars.push({ texte: t, ecritures: [], etat: 'neuve' });
+    });
+    return vars;
+  }
+
+  var tout = fiches.map(function (f) {
+    var v = variantes(f);
+    return { fiche: f, nom: nomFinal(f), vars: v,
+             gardees: v.filter(function (x) { return x.etat !== 'retire'; }),
+             touche: !!(DEC.RETIRER[f.nom] || DEC.AJOUTER[f.nom] || DEC.RENOMMER[f.nom]) };
+  });
+  tout.sort(function (a, b) { return b.gardees.length - a.gardees.length; });
+
+  /* ========== LE TÉLÉPHONE ========== */
+  var etape = 'depart', ouvert = null, courant = null, variante = null;
+  var AIDES = {
+    depart: 'L’écran d’ajout, débarrassé de Côté et Prise. Clique « Parcourir le dictionnaire ».',
+    dico: 'Les six groupes, repliés. Déplie-en un, puis choisis un mouvement.',
+    choisi: 'Les variantes qui RESTENT après tes retraits, plus celles que tu as ajoutées. Choisir est facultatif.'
+  };
+
+  function rendre() {
+    var ec = document.getElementById('sfEcran');
+    ec.innerHTML = '';
+    ec.appendChild(h('label', { class: 'sf-label', text: 'Nom de l’exercice' }));
+    ec.appendChild(h('input', { class: 'sf-champ' + (courant ? ' sf-plein' : ''),
+      /* LE CHAMP PORTE UN NOM D'EXERCICE, pas une etiquette. Cliquer
+         « machine » ecrivait « machine » tout seul dans le champ — ce
+         n'est pas un exercice. On compose donc « Nom · variante ». */
+      type: 'text', value: courant ? nomComplet(courant, variante) : '',
+      placeholder: 'Développé couché, Curl…' }));
+
+    var bt = h('button', { class: 'sf-bt', type: 'button',
+      text: etape === 'dico' ? 'Masquer le dictionnaire ▴' : 'Parcourir le dictionnaire ▾' });
+    bt.addEventListener('click', function () {
+      etape = etape === 'dico' ? (courant ? 'choisi' : 'depart') : 'dico';
+      rendre();
+    });
+    ec.appendChild(bt);
+
+    if (etape === 'dico') ec.appendChild(leDico());
+    if (courant && etape !== 'dico' && courant.gardees.length) ec.appendChild(lesVariantes());
+
+    /* --- le reste du panneau, SANS ce que MB a retiré --- */
+    ec.appendChild(h('label', { class: 'sf-label', text: 'Type de charge' }));
+    var sel = h('select', { class: 'sf-select' });
+    (m.TYPES_CHARGE || []).forEach(function (t) {
+      if (t.id === 'niveau' && !DEC.ECRAN.niveau) return;   // retiré par MB
+      sel.appendChild(h('option', { value: t.id, text: t.nom }));
+    });
+    ec.appendChild(sel);
+
+    ec.appendChild(h('label', { class: 'sf-label', text: 'Repos (secondes)' }));
+    ec.appendChild(h('input', { class: 'sf-champ', type: 'text', value: '120' }));
+
+    var off = [];
+    if (!DEC.ECRAN.cote) off.push('Côté');
+    if (!DEC.ECRAN.prise) off.push('Prise');
+    if (!DEC.ECRAN.niveau) off.push('Niveau (gripper)');
+    if (off.length) {
+      ec.appendChild(h('div', { class: 'sf-retire',
+        text: 'Retiré de cet écran : ' + off.join(' · ') }));
+    }
+    document.getElementById('sfAide').textContent = AIDES[etape];
+    marquer();
+  }
+
+  function leDico() {
+    var z = h('div');
+    (m.GROUPES_DICO || []).forEach(function (g) {
+      var id = typeof g === 'string' ? g : g.id;
+      var dedans = tout.filter(function (x) { return x.fiche.groupe === id; });
+      if (!dedans.length) return;
+      var bloc = h('div', { class: 'sf-grp' });
+      var tete = h('button', { type: 'button' });
+      tete.appendChild(document.createTextNode(
+        (ouvert === id ? '▾ ' : '▸ ') + (m.nomGroupeDico ? m.nomGroupeDico(id) : id)));
+      tete.appendChild(h('small', { text: dedans.length }));
+      tete.addEventListener('click', function () {
+        ouvert = ouvert === id ? null : id; rendre();
+      });
+      bloc.appendChild(tete);
+      if (ouvert === id) {
+        dedans.forEach(function (x) {
+          var b = h('button', { class: 'sf-mvt', type: 'button' });
+          b.appendChild(document.createTextNode(x.nom));
+          b.appendChild(h('small', { text: x.gardees.length
+            ? x.gardees.length + ' variante(s)' : 'pas de variante' }));
+          b.addEventListener('click', function () {
+            courant = x; variante = null; etape = 'choisi'; rendre();
+          });
+          bloc.appendChild(b);
+        });
+      }
+      z.appendChild(bloc);
+    });
+    return z;
+  }
+
+  function lesVariantes() {
+    var z = h('div', { class: 'sf-vars' });
+    z.appendChild(h('p', { html: '<b>' + courant.gardees.length
+      + ' variante(s)</b> — facultatif, le nom seul suffit.' }));
+    var p = h('div', { class: 'sf-puces' });
+    var sans = h('button', { type: 'button', text: 'sans précision',
+      'aria-pressed': variante === null ? 'true' : 'false' });
+    sans.addEventListener('click', function () { variante = null; rendre(); });
+    p.appendChild(sans);
+    courant.gardees.forEach(function (v) {
+      var b = h('button', { type: 'button', text: v.texte,
+        'aria-pressed': v === variante ? 'true' : 'false',
+        title: v.etat === 'neuve' ? 'ajoutée par toi'
+             : (v.ecritures || []).join(' + ') });
+      b.addEventListener('click', function () {
+        variante = (v === variante) ? null : v; rendre();
+      });
+      p.appendChild(b);
+    });
+    z.appendChild(p);
+    z.appendChild(h('p', { class: 'sf-choisi', html: variante
+      ? 'Enregistré : <b>' + nomComplet(courant, variante) + '</b>'
+      : 'Enregistré : <b>' + courant.nom + '</b>, sans précision.' }));
+    return z;
+  }
+
+  /* ========== LA TABLE ========== */
+  var filtre = 'avec', recherche = '';
+  var corps = document.getElementById('sfTable');
+
+  function visible(x) {
+    if (recherche) {
+      var q = m.slug(recherche);
+      if (m.slug(x.nom).indexOf(q) < 0
+          && !(x.fiche.aussi || []).some(function (e) { return m.slug(e).indexOf(q) >= 0; })) {
+        return false;
+      }
+    }
+    if (filtre === 'avec') return x.gardees.length >= 1;
+    if (filtre === 'touche') return x.touche;
+    return true;
+  }
+
+  function rendreTable() {
+    corps.innerHTML = '';
+    var n = 0;
+    tout.forEach(function (x) {
+      if (!visible(x)) return;
+      n++;
+      var tr = h('tr', { 'data-nom': x.nom });
+      var td1 = h('td', { class: 'sf-nom', text: x.nom });
+      td1.addEventListener('click', function () {
+        courant = x; variante = null; etape = 'choisi'; rendre();
+      });
+      tr.appendChild(td1);
+      var td2 = h('td');
+      x.vars.forEach(function (v) {
+        var cl = v.etat === 'neuve' ? 'sf-neuve'
+               : (v.etat !== 'garde' ? 'sf-off' : '');
+        td2.appendChild(h('i', { class: cl, text: v.texte,
+          title: v.etat === 'introuvable'
+               ? 'tu l’as retirée, mais elle n’existe pas sous ce nom — à vérifier'
+               : '' }));
+      });
+      if (!x.vars.length) td2.appendChild(h('i', { class: 'sf-off', text: '—' }));
+      tr.appendChild(td2);
+      corps.appendChild(tr);
+    });
+    document.getElementById('sfCompte').textContent = n + ' mouvement(s)';
+    [['tous','sfTous'],['avec','sfAvec'],['touche','sfTouche']].forEach(function (p) {
+      document.getElementById(p[1]).setAttribute('aria-pressed',
+        filtre === p[0] ? 'true' : 'false');
+    });
+    marquer();
+  }
+
+  function marquer() {
+    corps.querySelectorAll('tr').forEach(function (tr) {
+      tr.style.outline = (courant && tr.getAttribute('data-nom') === courant.nom)
+        ? '1px solid var(--laiton)' : '';
+    });
+  }
+
+  [['tous','sfTous'],['avec','sfAvec'],['touche','sfTouche']].forEach(function (p) {
+    document.getElementById(p[1]).addEventListener('click', function () {
+      filtre = p[0]; rendreTable();
+    });
+  });
+  document.getElementById('sfQ').addEventListener('input', function (e) {
+    recherche = e.target.value; rendreTable();
+  });
+  document.getElementById('sfRefaire').addEventListener('click', function () {
+    etape = 'depart'; courant = null; variante = null; ouvert = null; rendre();
+  });
+
+  /* ========== LES CHIFFRES ========== */
+  var avant = 0, apres = 0, retires = 0, ajoutes = 0, introuvables = [];
+  tout.forEach(function (x) {
+    x.vars.forEach(function (v) {
+      if (v.etat === 'garde') { avant++; apres++; }
+      if (v.etat === 'retire') { avant++; retires++; }
+      if (v.etat === 'neuve') { apres++; ajoutes++; }
+      if (v.etat === 'introuvable') introuvables.push(x.nom + ' ▸ ' + v.texte);
+    });
+  });
+  var avecVar = tout.filter(function (x) { return x.gardees.length >= 1; }).length;
+  var sansVar = tout.length - avecVar;
+
+  document.getElementById('sfQuoi').innerHTML =
+    '<b>' + avant + ' variantes</b> deviennent <b>' + apres + '</b> : tu en as '
+    + 'retiré <b>' + retires + '</b> et ajouté <b>' + ajoutes + '</b>. '
+    + '<b>' + avecVar + '</b> mouvements afficheront le bloc, <b>' + sansVar
+    + '</b> ne le verront jamais.'
+    + (introuvables.length
+       ? ' <span style="color:#e06c6c">⚠ ' + introuvables.length + ' que tu as '
+         + 'retirée(s) n’existent pas sous ce nom : ' + introuvables.join(', ')
+         + '</span>' : '');
+
+  document.getElementById('sfBilan').innerHTML =
+    '<b>Ce que cet écran a perdu, et ce que ça coûte.</b> '
+    + '<b>Prise</b> : elle n’apparaissait que comme étiquette dans le Journal — '
+    + 'son retrait ne casse rien. '
+    + '<b>Niveau (gripper)</b> : zéro usage dans le carnet de démonstration de '
+    + 'ce navigateur, mais <b>tes vraies données sont sur ton téléphone et je '
+    + 'n’ai pas pu les mesurer</b>. Si des séances passées l’emploient, elles '
+    + 'garderont leur type — c’est seulement le choix qui disparaît. '
+    + '<b>Côté</b> : celui-là a un prix réel. <code>exercicesAyantCharge'
+    + '(seances, structure, <b>cote</b>)</code> relie une douleur DROITE ou '
+    + 'GAUCHE aux exercices qui l’ont chargée, et le Suivi affiche un jeton de '
+    + 'côté. Le retirer ferme ce lien pour les séances à venir. À toi de dire '
+    + 'si tu t’en sers.';
+
+  rendre();
+  rendreTable();
+})(window.App);
+</script>
+</body>
+</html>
