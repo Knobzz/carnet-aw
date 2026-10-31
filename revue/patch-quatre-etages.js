@@ -94,7 +94,12 @@
       { nom: 'Barre guidée' }, { nom: 'Landmine' }] },
     { cat: 'Poids libres', items: [{ nom: 'Haltères' }, { nom: 'Kettlebell' },
       { nom: 'Disque' }] },
-    { cat: 'Câbles et résistance', items: [
+    /* RENOMMEE le 31/10 — MB : « Cables et resistance faut trouver
+       autre chose car on a machine.... ». Les trois objets sont
+       Poulie, Elastique, Machine : « Machines et elastiques » les
+       couvre sans mentir, une poulie etant une machine au sens
+       courant. */
+    { cat: 'Machines et élastiques', items: [
       { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
       { nom: 'Élastique' }, { nom: 'Machine' }] },
     { cat: 'Appuis', items: [
@@ -109,17 +114,23 @@
   MATERIEL.forEach(function (g) {
     g.items.forEach(function (it) { TOUT_MATERIEL[it.nom] = it; });
   });
-  var AW = (m.OUTILS_CONNUS || []).map(function (t) {
-    return { nom: (t.mots && t.mots[0]) || '?', entrees: t.entrees || [],
-             ajoutable: !(t.entrees && t.entrees.length) };
-  });
-  var AW_AJOUTABLES = AW.filter(function (t) { return t.ajoutable; });
+  /* ================= PAS D'ETAGE 4 =================
 
-  /* UN SEUL CHAMP POUR DEUX ÉTAGES, et c'est une limite de la greffe, pas
-     un choix : `exo.outils` est le tableau que `valider()` enregistre. Les
-     deux étages y écrivent, et on les RESÉPARE à l'affichage en regardant
-     si le nom est du matériel ordinaire. Dans le carnet construit pour de
-     bon, le matériel mériterait son propre champ — c'est dit au chantier. */
+     MB, 31/10 : « 4-Equipement AW ne doit pas etre present, il est deja en
+     bas avec "Equipements" ». MESURE : le panneau porte dix groupes, dont
+     « Equipements » et « Reglage de l'outil ». L'etage 4 affichait les
+     memes outils une seconde fois, quelques centimetres plus haut.
+
+     IL NE RESTE DONC QUE TROIS ETAGES ICI : l'exercice, la facon de
+     l'executer, le materiel. L'equipement de bras de fer reste ou il a
+     toujours ete, dans le groupe de l'app, avec son catalogue de marques
+     et ses reglages — que mon etage 4 ne savait pas faire. */
+
+  /* `exo.outils` porte MON materiel ET l'equipement de l'app. On ne garde
+     a l'etage 3 que ce qui est du materiel ordinaire ; le reste appartient
+     au groupe « Equipements » et n'est pas touche ici. Dans le carnet
+     construit pour de bon, le materiel meriterait son propre champ — c'est
+     dit au chantier. */
   function estMateriel(nom) {
     return !!TOUT_MATERIEL[String(nom).split(' · ')[0]];
   }
@@ -164,6 +175,8 @@
     blocApp.style.display = 'none';   /* masque, jamais detruit */
     var zone = h('div');
     gNom.insertBefore(zone, blocApp.nextSibling);
+
+    var ouverts = {};   /* survit au re-rendu : voir plus bas */
 
     function rendre() {
       zone.innerHTML = '';
@@ -270,22 +283,48 @@
         });
         zone.appendChild(pm);
       }
+      /* UNE CATEGORIE SE REPLIE — MB : « il faut que 3-Materiel puisse etre
+         reduit pour chaque categories ».
+
+         REPLIEES PAR DEFAUT, sauf celles qui portent deja un posé : sinon
+         l'ecran s'ouvre sur vingt puces et le nom de l'exercice sort du
+         champ de vision. L'etat d'ouverture SURVIT au re-rendu, qui a lieu
+         a chaque clic — sans `ouverts`, poser une puce refermait la
+         categorie qu'on etait en train d'employer. */
       MATERIEL.forEach(function (g) {
+        var dedans = g.items.filter(function (it) {
+          return mat.some(function (x) { return x.split(' · ')[0] === it.nom; });
+        });
         var libres = g.items.filter(function (it) {
-          return !mat.some(function (x) { return x.split(' · ')[0] === it.nom; });
+          return dedans.indexOf(it) < 0;
         });
-        if (!libres.length) return;
-        zone.appendChild(h('div', { class: 'equip-cat', text: g.cat }));
-        var pc = h('div', { class: 'puces' });
-        libres.forEach(function (it) {
-          var b = h('button', { type: 'button', class: 'puce', text: it.nom });
-          b.addEventListener('click', function () {
-            exo.outils = (exo.outils || []).concat([it.nom]);
-            rendre();
+        var d = h('details', { class: 'mat-cat' });
+        if (ouverts[g.cat] || dedans.length) d.setAttribute('open', '');
+        d.addEventListener('toggle', function () { ouverts[g.cat] = d.open; });
+        var sm = h('summary', { style: 'cursor:pointer;padding:5px 2px;'
+          + 'font-size:.78rem;color:var(--texte-2);list-style:revert' });
+        sm.appendChild(document.createTextNode(g.cat));
+        if (dedans.length) {
+          sm.appendChild(h('span', { class: 'equip-compte',
+            style: 'margin-left:6px', text: String(dedans.length) }));
+        }
+        d.appendChild(sm);
+        if (libres.length) {
+          var pc = h('div', { class: 'puces' });
+          libres.forEach(function (it) {
+            var b = h('button', { type: 'button', class: 'puce', text: it.nom });
+            b.addEventListener('click', function () {
+              exo.outils = (exo.outils || []).concat([it.nom]);
+              rendre();
+            });
+            pc.appendChild(b);
           });
-          pc.appendChild(b);
-        });
-        zone.appendChild(pc);
+          d.appendChild(pc);
+        } else {
+          d.appendChild(h('div', { class: 'item-resume',
+            style: 'margin:2px', text: 'tout est posé.' }));
+        }
+        zone.appendChild(d);
       });
       /* le réglage ne s'ouvre que pour ce qui en a un */
       mat.forEach(function (x) {
@@ -310,42 +349,15 @@
         zone.appendChild(pr);
       });
 
-      /* --- étage 4 : l'équipement AW --- */
-      var propres = AW.filter(function (t) {
-        return !t.ajoutable && base && t.entrees.indexOf(base) >= 0; });
-      zone.appendChild(h('div', { class: 'item-resume',
-        style: 'margin:12px 2px 4px', text: '4 — Équipement AW · '
-          + (aw.length ? aw.length + ' posé(s)' : 'facultatif') }));
+      /* L'EQUIPEMENT DE BRAS DE FER N'EST PAS ICI : il vit dans le groupe
+         « Equipements » de l'app, quelques centimetres plus bas, avec son
+         catalogue de marques et ses reglages. */
       if (aw.length) {
-        var pa = h('div', { class: 'puces' });
-        aw.forEach(function (x) {
-          var b = h('button', { type: 'button', class: 'puce puce-aw',
-            'aria-pressed': 'true', text: x });
-          b.addEventListener('click', function () {
-            exo.outils = (exo.outils || []).filter(function (o) { return o !== x; });
-            rendre();
-          });
-          pa.appendChild(b);
-        });
-        zone.appendChild(pa);
+        zone.appendChild(h('div', { class: 'item-resume',
+          style: 'margin:10px 2px 0;opacity:.75',
+          text: aw.length + ' équipement(s) de bras de fer posé(s) plus bas, '
+              + 'dans « Équipements » : ' + aw.join(', ') }));
       }
-      function listeAw(titre, src) {
-        var libres = src.filter(function (t) { return aw.indexOf(t.nom) < 0; });
-        if (!libres.length) return;
-        zone.appendChild(h('div', { class: 'equip-cat', text: titre }));
-        var pc = h('div', { class: 'puces' });
-        libres.forEach(function (t) {
-          var b = h('button', { type: 'button', class: 'puce', text: t.nom });
-          b.addEventListener('click', function () {
-            exo.outils = (exo.outils || []).concat([t.nom]);
-            rendre();
-          });
-          pc.appendChild(b);
-        });
-        zone.appendChild(pc);
-      }
-      if (propres.length) listeAw('Propre à ce mouvement (' + propres.length + ')', propres);
-      listeAw('S’ajoute à n’importe quoi (' + AW_AJOUTABLES.length + ')', AW_AJOUTABLES);
     }
 
     /* CE QUE LA GREFFE NE SAIT PAS FAIRE, et qui est dit a l'ecran :
@@ -355,6 +367,40 @@
        carnet construit pour de bon, l'etage 2 appellerait `prendre`. */
     champNom.addEventListener('input', rendre);
     champNom.addEventListener('change', rendre);
+
+    /* ================= LE CHEMIN MUET =================
+
+       MB, 31/10 : « Je viens de cliquer sur Biceps, et je n'ai pas la
+       possibilite ensuite de selectionner un geste different ».
+
+       LA CAUSE EST DANS LA SOURCE DE L'APP, et elle est VOLONTAIRE :
+       `poserNom` ecrit `champNom.value` puis dit en commentaire « PAS DE
+       `input` EMIS ICI » — l'autocompletion ecoute cet evenement et se
+       deployait par-dessus le dictionnaire. Aucun evenement ne part donc
+       quand on choisit depuis le dictionnaire feuilletable, et aucun
+       listener ne PEUT entendre. Ecouter plus fort n'y aurait rien fait.
+
+       ON INTERCEPTE L'ECRITURE DE `.value` sur cette seule instance, en
+       appelant le setter natif pour ne rien changer au comportement. Ca
+       attrape TOUS les chemins d'un coup — le dictionnaire, les puces de
+       l'app, la frappe — au lieu de courir apres chacun. */
+    (function () {
+      var proto = Object.getPrototypeOf(champNom);
+      var natif = Object.getOwnPropertyDescriptor(proto, 'value');
+      if (!natif || !natif.set) { noter('VALUE NON INTERCEPTABLE'); return; }
+      Object.defineProperty(champNom, 'value', {
+        configurable: true,
+        get: function () { return natif.get.call(this); },
+        set: function (v) {
+          var avant = natif.get.call(this);
+          natif.set.call(this, v);
+          if (v !== avant) { try { rendre(); } catch (e) {
+            noter('RENDU TOMBE apres ecriture du nom : ' + (e && e.message)); } }
+        }
+      });
+      noter('ecriture du nom interceptee');
+    })();
+
     rendre();
     noter('greffe posée sur « ' + (exo.nom || 'nouvel exercice') + ' »');
     return true;
@@ -380,11 +426,36 @@
     return r;
   };
 
+  /* ============ 4 bis. PAS DE SERVICE WORKER SUR UNE SIMULATION ============
+
+     `app.js` appelle `navigator.serviceWorker.register('sw.js')`. Depuis
+     revue/, avec la `<base href="../">`, le script resout a la racine mais
+     le scope reste revue/ — le navigateur refuse, et il a RAISON : une
+     simulation ne doit pas s'installer hors ligne ni partager le cache de
+     l'app. L'echec etait donc le bon comportement.
+
+     MAIS IL SE REPETAIT A CHAQUE CHARGEMENT — neuf lignes rouges dans la
+     console, qui masquent les vraies erreurs quand on en cherche une. On
+     neutralise franchement, et on le NOTE, plutot que de laisser un echec
+     attendu se confondre avec un defaut.
+
+     CE PATCH NE TOUCHE QUE CETTE PAGE : l'app reelle, servie par
+     index.html, enregistre son service worker comme avant. */
+  if (navigator.serviceWorker && navigator.serviceWorker.register) {
+    navigator.serviceWorker.register = function () {
+      noter('service worker refuse — simulation, pas d’installation');
+      return Promise.reject(new Error('simulation'));
+    };
+  }
+
   /* ============ 5. LE BANDEAU, qui dit ce qui tourne ============ */
   var bandeau = null;
   function majBandeau() {
     if (!bandeau) return;
-    var mauvais = journal.filter(function (x) { return /INTROUVABLE|TOMBÉE/.test(x); });
+    /* « service worker refuse » n'est PAS un defaut : c'est le comportement
+       voulu. Le bandeau ne vire au rouge que sur un vrai echec de greffe. */
+    var mauvais = journal.filter(function (x) {
+      return /INTROUVABLE|TOMBÉE|TOMBE/.test(x); });
     bandeau.style.background = mauvais.length ? '#5e2f2f' : '#2f5e44';
     bandeau.textContent = (mauvais.length ? '⚠ ' : '● ')
       + 'Simulation — ' + poses.length + ' gestes ajoutés en mémoire'
