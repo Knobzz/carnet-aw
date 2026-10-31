@@ -1,0 +1,124 @@
+# Ce qui change, version par version
+
+Écrit **pour qui utilise le carnet**, pas pour qui l'écrit. Chaque version dit
+ce qu'elle **ajoute**, ce qu'elle **enlève** et ce qu'elle **corrige** — en
+mots d'utilisateur, sans nom de fichier ni de fonction.
+
+> **Comment lire sa propre version.** Réglages, tout en bas. Si l'écran ne
+> montre pas ce qui est écrit ici, c'est le navigateur qui sert l'ancienne
+> version : ferme l'onglet, rouvre-le depuis l'écran d'accueil.
+
+**Rien n'est jamais perdu en montant de version.** Une séance saisie dans une
+version ancienne se relit dans toutes les suivantes. Quand une version retire
+quelque chose de l'écran, ce qui a déjà été saisi le garde — c'est le choix
+qui disparaît, pas la donnée.
+
+---
+
+## 1.68.0 — à venir
+
+Le gros chantier du **dictionnaire d'exercices**. Pas encore publié : il est
+en cours de relecture.
+
+**Ce que ça ajoute**
+
+- **Les gestes sous le nom.** En choisissant *Curl biceps*, le carnet propose
+  les façons de l'exécuter — spider curl, drag curl, bayesian curl, waiter
+  curl — avec, pour chacune, **comment le faire et ce que ça change**.
+- **Une explication pour chaque mouvement**, avec sa source. 95 en tout.
+- **Un champ Matériel**, repliable par famille : barres, poids libres,
+  machines et élastiques, appuis, position du corps. Cumulable, et le banc y
+  porte son degré.
+- **Les tractions sont regroupées** : huit fiches deviennent deux, *Traction*
+  et *Traction partielle*, chacune avec ses façons de faire.
+- **De nouveaux mouvements** : rowing inversé, élévation latérale bras
+  fléchi, wrist curl derrière le dos, push press, Z press, développé au sol,
+  Pendlay row, Yates row, tractions commando / archer / L-sit, Svend press.
+
+**Ce que ça enlève**
+
+- *Pince*, *Développé incliné*, *Gripper*, *Croix de fer*, *Handstand
+  push-up* quittent le dictionnaire. **Leurs noms restent cherchables** et
+  les séances déjà saisies ne bougent pas.
+- *Côté*, *Prise* et *Niveau (gripper)* quittent l'écran d'ajout d'exercice.
+  Les séances qui les portent les gardent.
+- Une cinquantaine d'écritures qui ne faisaient que nommer un engin —
+  *Curl à la poulie*, *Curl overhead avec élastique* — ne s'affichent plus
+  dans le menu. **Elles restent cherchables** : l'engin se choisit maintenant
+  dans Matériel.
+
+---
+
+## 1.66.0
+
+**Corrige** le sens de montage du cône : son énoncé de départ était faux, et
+l'avertissement qui l'accompagnait aussi.
+
+## 1.65.1
+
+**Corrige** le sens de montage du cône, validé après essai.
+
+## 1.65.0
+
+**Ajoute** les deux sens du cône, et les deux faces de l'avant-bras qu'ils
+travaillent.
+
+## 1.64.0
+
+**Corrige** la proposition de muscles : l'accessoire effectivement choisi
+propose enfin les siens, au lieu de ceux du type générique.
+
+## 1.63.0
+
+**Ajoute** le dixième lot du dictionnaire. Les quatre familles de muscles
+sont complètes.
+
+## 1.62.0
+
+**Ajoute** le lot des pectoraux. L'*Écarté* absorbe treize noms qui en
+faisaient des fiches séparées.
+
+## 1.61.0
+
+**Ajoute** le lot des dorsaux. Le *Rowing* se rétracte : ses variantes
+rentrent sous lui au lieu de vivre à part.
+
+## 1.60.0
+
+**Change** l'écran de choix d'un exercice : il montre les **noms connus** du
+mouvement plutôt que les muscles qu'il travaille.
+
+## 1.59.0
+
+**Change** le classement du dictionnaire : six groupes, un seul par
+mouvement, et on le parcourt directement depuis *Ajouter un exercice*.
+
+## 1.58.0
+
+**Ajoute** le rangement du dictionnaire par groupe de muscles, replié à
+l'arrivée.
+
+## 1.57.0
+
+**Ajoute** le septième lot et les tractions partielles, sourcées. Le
+dictionnaire devient consultable.
+
+## 1.56.1
+
+**Corrige** un exercice en « reps seules », que le carnet racontait comme
+« rien de saisi ».
+
+## 1.56.0
+
+**Ajoute** la recherche par mots : taper deux mots dans le désordre trouve le
+mouvement. **Corrige** les doublons de la planche.
+
+---
+
+## Avant 1.56
+
+L'historique détaillé n'a pas été tenu sous cette forme. Il se relit dans les
+messages de commit du dépôt — `git log --oneline` — mais ceux-ci sont écrits
+pour qui développe, pas pour qui s'entraîne.
+
+**Ce fichier commence ici, et il est tenu à chaque montée de version.**

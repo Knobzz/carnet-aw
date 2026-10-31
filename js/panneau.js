@@ -553,26 +553,23 @@
       c.appendChild(A.ui.groupe('', btAw,
         'Compté dans le volume AW, à part de la muscu générale.'));
 
-      /* Quel bras cet exercice charge, et comment la main tient. Facultatifs,
-         posés une fois : le catalogue les retient avec le nom. */
-      var boiteCote = h('div');
-      function rafraichirCote() {
-        A.ui.vider(boiteCote);
-        boiteCote.appendChild(A.ui.selecteurCote(exo.cote, function (v) { exo.cote = v; }));
-      }
-      rafraichirCote();
-      c.appendChild(A.ui.groupe('Côté', boiteCote));
+      /* CÔTÉ ET PRISE SONT PARTIS DE CET ÉCRAN le 2026-10-31, demande de MB.
 
-      var boitePrise = h('div');
-      function rafraichirPrise() {
-        A.ui.vider(boitePrise);
-        boitePrise.appendChild(A.ui.selecteurPrise(exo.prise, function (v) {
-          exo.prise = v;
-          if (surChangementForces) surChangementForces();
-        }));
-      }
-      rafraichirPrise();
-      c.appendChild(A.ui.groupe('Prise', boitePrise));
+         CE QUE LE CÔTÉ COÛTE, et il a tranché en le sachant :
+         `exercicesAyantCharge(seances, structure, cote)` relie une douleur
+         DROITE ou GAUCHE aux exercices qui l'ont chargée, et le Suivi
+         affiche un jeton de côté. Ce lien ne se posera plus sur les séances
+         à venir.
+
+         CE QUI NE CHANGE PAS : les séances passées gardent leur côté et leur
+         prise, le Suivi continue de les lire, et le modèle garde les deux
+         champs. C'est la SAISIE qui disparaît, pas la donnée — un carnet
+         importé d'avant reste entier.
+
+         `rafraichirPrise` est appelée plus haut, dans `prendre()` : elle
+         reste définie, et ne fait plus rien. */
+      function rafraichirCote() {}
+      function rafraichirPrise() {}
 
       /* ---- LE REPOS, EN MINUTES PUIS EN SECONDES ----
 

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relire les explications — avant toute montée de version</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `re-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .re-tete, .re-corps, .re-pied { max-width: 1040px; margin: 0 auto; }
+  .re-tete h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  .re-tete p { margin: 6px 0; font-size: .9rem; color: var(--texte-2); }
+  .re-tete b { color: var(--texte); }
+  .re-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .re-compte { display: flex; flex-wrap: wrap; gap: 9px; margin: 14px 0; }
+  .re-k { border: 1px solid var(--trait); border-radius: 10px;
+          background: var(--fond-2); padding: 8px 13px; min-width: 110px; }
+  .re-k b { display: block; font-size: 1.4rem; color: var(--laiton);
+            line-height: 1.15; }
+  .re-k span { font-size: .74rem; color: var(--texte-2); }
+  .re-barre { display: flex; flex-wrap: wrap; gap: 7px; align-items: center;
+              margin: 12px 0; position: sticky; top: 0; z-index: 5;
+              background: var(--fond); padding: 8px 0; }
+  .re-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 6px 11px; cursor: pointer; }
+  .re-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .re-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .86rem; padding: 6px 10px; width: 160px; }
+  .re-c { border: 1px solid var(--trait); border-radius: 10px;
+          background: var(--fond-2); margin-bottom: 10px; overflow: hidden; }
+  .re-c.re-ok { border-color: #6cc08b; }
+  .re-c.re-ko { border-color: #ff9b9b; }
+  .re-h { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap;
+          padding: 8px 12px; background: var(--fond-3); }
+  .re-h b { font-size: .95rem; }
+  .re-h small { color: var(--texte-2); font-size: .75rem; }
+  .re-h .re-mb { background: var(--laiton); color: var(--fond);
+        border-radius: 999px; font-size: .62rem; font-weight: 700;
+        padding: 1px 7px; }
+  .re-h .re-g { background: #2f5e44; color: #d6ffe6; border-radius: 999px;
+        font-size: .62rem; font-weight: 700; padding: 1px 7px; }
+  .re-h .re-d { margin-left: auto; display: flex; gap: 5px; }
+  .re-h .re-d button { background: var(--fond); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .77rem; padding: 3px 10px; cursor: pointer; }
+  .re-h .re-d button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); font-weight: 600; }
+  .re-b { padding: 9px 12px; font-size: .87rem; }
+  .re-b p { margin: 0 0 5px; }
+  .re-b p:last-child { margin-bottom: 0; }
+  .re-lab { color: var(--laiton); font-weight: 600; }
+  .re-src { color: var(--texte-2); font-size: .78rem; font-style: italic; }
+  .re-cpt { font-size: .72rem; color: var(--texte-2); }
+  .re-cpt.re-trop { color: #ff9b9b; font-weight: 600; }
+  textarea.re-t { width: 100%; box-sizing: border-box; background: var(--fond);
+        border: 1px solid #ffcf8f; border-radius: var(--r-s);
+        color: var(--texte); font: inherit; font-size: .86rem; padding: 7px 9px;
+        min-height: 52px; resize: vertical; margin-top: 7px; }
+  .re-sortie { margin-top: 20px; }
+  .re-sortie h2 { font-size: 1rem; margin: 0 0 7px; color: var(--laiton); }
+  .re-sortie textarea { width: 100%; height: 210px; background: var(--fond-2);
+        border: 1px solid var(--trait); border-radius: 8px; color: var(--texte);
+        font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px;
+        box-sizing: border-box; }
+  .re-pied { font-size: .86rem; color: var(--texte-2);
+             border-top: 1px solid var(--trait); padding-top: 11px;
+             margin-top: 20px; }
+  .re-pied h3 { color: var(--laiton); font-size: .93rem; margin: 12px 0 5px; }
+  .re-pied b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<div class="re-tete">
+  <h1>Relire les explications</h1>
+  <p class="re-cite">« Je veux pouvoir voir les explications pour les gestes
+     avant toute validation de version. »</p>
+  <p>Tout ce qui s’affichera dans l’écran <b>Ajouter un exercice</b> est ici :
+     les mouvements et les gestes, avec leur source et qui les a écrites.
+     <b>Rien n’est appliqué au carnet</b> — tes verdicts restent dans ce
+     navigateur et se recopient d’un bloc.</p>
+  <p id="reQuoi"></p>
+  <div class="re-compte" id="reCompte"></div>
+</div>
+
+<div class="re-corps">
+  <div class="re-barre">
+    <input type="search" id="reQ" placeholder="chercher…">
+    <button type="button" class="re-pb" id="reTous" aria-pressed="true">Tout</button>
+    <button type="button" class="re-pb" id="reMouv">Mouvements</button>
+    <button type="button" class="re-pb" id="reGestes">Gestes</button>
+    <button type="button" class="re-pb" id="reMb">Écrites par toi</button>
+    <button type="button" class="re-pb" id="reReste">Pas encore vues</button>
+    <button type="button" class="re-pb" id="reKo">À corriger</button>
+    <span class="re-pb" style="cursor:default" id="reEtat"></span>
+  </div>
+  <div id="reListe"></div>
+
+  <div class="re-sortie">
+    <h2>Ton verdict</h2>
+    <div class="re-barre" style="position:static">
+      <button type="button" class="re-pb" id="reCopier">Copier</button>
+      <button type="button" class="re-pb" id="reRaz">Tout remettre à zéro</button>
+      <span class="re-pb" style="cursor:default" id="reEtat2"></span>
+    </div>
+    <textarea id="reJson" readonly></textarea>
+  </div>
+</div>
+
+<p class="re-pied" id="rePied"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="revue/variantes.js"></script>
+<script src="revue/classement-noms.js"></script>
+<script src="revue/explications-gestes.js"></script>
+<script src="revue/gestes-ajoutes.js"></script>
+<script src="revue/tractions-regroupees.js"></script>
+<script src="revue/gestes-valides-mb.js"></script>
+<script src="revue/explications-base.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store;
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k === 'class') e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) {
+      if (k) e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    });
+    return e;
+  }
+
+  /* ================= LE MÊME ÉTAT QUE L'ÉCRAN =================
+     Cette page doit montrer EXACTEMENT ce que l'écran affichera. Elle refait
+     donc, dans l'ordre, ce que le patch fait au dictionnaire : absorber les
+     tractions, renommer, retirer « Pince » et « Développé incliné », poser
+     les gestes. Sans ça elle relirait des explications pour des exercices
+     qui n'existent plus. */
+  var TR = A.tractionsRegroupees || { RENOMMER: {}, ABSORPTIONS: [] };
+  var CLASSE = {}, EXPL = {};
+
+  TR.ABSORPTIONS.forEach(function (a) {
+    var acc = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === a.vers; })[0];
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === a.fiche) i = k; });
+    if (!acc || i < 0) return;
+    var abs = m.DICTIONNAIRE[i];
+    m.DICTIONNAIRE.splice(i, 1);
+    [a.geste, abs.nom].concat(abs.aussi || []).forEach(function (n) {
+      if (acc.aussi.indexOf(n) < 0) acc.aussi.push(n);
+    });
+    var na = TR.RENOMMER[a.vers] || a.vers;
+    CLASSE[na + ' § ' + a.geste] = 'geste';
+    EXPL[a.geste] = a;
+    if (abs.nom !== a.geste) CLASSE[na + ' § ' + abs.nom] = 'syn';
+  });
+  Object.keys(TR.RENOMMER).forEach(function (v) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === v; })[0];
+    if (!f) return;
+    f.aussi = f.aussi || [];
+    if (f.aussi.indexOf(v) < 0) f.aussi.unshift(v);
+    f.nom = TR.RENOMMER[v];
+  });
+  ['Pince', 'Développé incliné'].forEach(function (nom) {
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === nom) i = k; });
+    if (i >= 0) m.DICTIONNAIRE.splice(i, 1);
+  });
+  function poser(liste) {
+    (liste || []).forEach(function (g) {
+      var cible = TR.RENOMMER[g.fiche] || g.fiche;
+      var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === cible; })[0];
+      if (!f) return;
+      f.aussi = f.aussi || [];
+      [g.nom].concat(g.aussi || []).forEach(function (n) {
+        if (f.aussi.indexOf(n) < 0) f.aussi.push(n);
+      });
+      CLASSE[f.nom + ' § ' + g.nom] = 'geste';
+      EXPL[g.nom] = g;
+      (g.aussi || []).forEach(function (n) { CLASSE[f.nom + ' § ' + n] = 'syn'; });
+    });
+  }
+  poser(A.gestesAjoutes && A.gestesAjoutes.AJOUTS);
+  poser(A.gestesValidesMB && A.gestesValidesMB.GARDES);
+  var RSS = (A.gestesAjoutes && A.gestesAjoutes.REND_SON_STATUT) || {};
+  Object.keys(RSS).forEach(function (id) {
+    CLASSE[id] = RSS[id].code;
+    EXPL[id.split(' § ')[1]] = RSS[id];
+  });
+  var E = (A.explicationsGestes && A.explicationsGestes.E) || {};
+  Object.keys(E).forEach(function (n) { if (!EXPL[n]) EXPL[n] = E[n]; });
+
+  function codeDe(f, n) {
+    var id = f + ' § ' + n;
+    if (CLASSE[id]) return CLASSE[id];
+    var pr = A.classementNoms && A.classementNoms.PLAT[id];
+    return (pr && pr.code) || 'syn';
+  }
+
+  /* ================= LA LISTE À RELIRE ================= */
+  var B = (A.explicationsBase && A.explicationsBase.BASE) || {};
+  var items = [];
+  (m.DICTIONNAIRE || []).forEach(function (f) {
+    items.push({ cle: 'mouv § ' + f.nom, type: 'mouvement', nom: f.nom,
+                 fiche: f.groupe, x: B[f.nom] || null });
+    (f.aussi || []).forEach(function (n) {
+      if (codeDe(f.nom, n) !== 'geste') return;
+      items.push({ cle: f.nom + ' § ' + n, type: 'geste', nom: n,
+                   fiche: f.nom, x: EXPL[n] || null });
+    });
+  });
+
+  var CLE = 'carnet-aw-relecture';
+  var v = {};
+  try { v = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch (e) {}
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(v)); } catch (e) {} }
+
+  var filtre = 'tous', rech = '';
+
+  function rendre() {
+    var z = document.getElementById('reListe');
+    z.innerHTML = '';
+    var n = 0;
+    items.forEach(function (it) {
+      var d = v[it.cle] || {};
+      if (filtre === 'mouv' && it.type !== 'mouvement') return;
+      if (filtre === 'gestes' && it.type !== 'geste') return;
+      if (filtre === 'mb' && !(it.x && it.x.de === 'MB')) return;
+      if (filtre === 'reste' && d.verdict) return;
+      if (filtre === 'ko' && d.verdict !== 'ko') return;
+      if (rech) {
+        var q = m.slug(rech);
+        if (m.slug(it.nom).indexOf(q) < 0 && m.slug(it.fiche || '').indexOf(q) < 0) return;
+      }
+      n++;
+      var c = h('div', { class: 're-c' + (d.verdict === 'ok' ? ' re-ok'
+                                      : d.verdict === 'ko' ? ' re-ko' : '') });
+      var t = h('div', { class: 're-h' }, [h('b', { text: it.nom })]);
+      if (it.type === 'geste') {
+        t.appendChild(h('span', { class: 're-g', text: 'GESTE' }));
+        t.appendChild(h('small', { text: 'sous « ' + it.fiche + ' »' }));
+      } else {
+        t.appendChild(h('small', { text: it.fiche }));
+      }
+      if (it.x && it.x.de === 'MB') t.appendChild(h('span', { class: 're-mb', text: 'TOI' }));
+      var dd = h('div', { class: 're-d' });
+      [['ok', '✓ Bon'], ['ko', '✎ À corriger']].forEach(function (p) {
+        var b = h('button', { type: 'button', text: p[1],
+          'aria-pressed': d.verdict === p[0] ? 'true' : 'false' });
+        b.addEventListener('click', function () {
+          if (!v[it.cle]) v[it.cle] = {};
+          if (v[it.cle].verdict === p[0]) delete v[it.cle].verdict;
+          else v[it.cle].verdict = p[0];
+          if (!v[it.cle].verdict && !v[it.cle].texte) delete v[it.cle];
+          garder(); rendre();
+        });
+        dd.appendChild(b);
+      });
+      t.appendChild(dd);
+      c.appendChild(t);
+
+      var b2 = h('div', { class: 're-b' });
+      if (!it.x) {
+        b2.appendChild(h('p', { style: 'color:#ff9b9b;font-style:italic',
+          text: 'Aucune explication écrite.' }));
+      } else {
+        var lg = (it.x.faire || '').length + (it.x.change || '').length;
+        b2.appendChild(h('p', {}, [
+          h('span', { class: 're-lab', text: 'Le geste. ' }), it.x.faire || '—']));
+        if (it.x.change) b2.appendChild(h('p', {}, [
+          h('span', { class: 're-lab', text: 'Ce que ça change. ' }), it.x.change]));
+        /* `pourquoi_aw` et `garde` ne s'affichent PAS dans l'écran — MB les a
+           fait retirer le 31/10. On les montre ICI, en relecture, parce
+           qu'ils restent dans les fichiers et serviront l'onglet Aide. */
+        if (it.x.pourquoi_aw) b2.appendChild(h('p', { style: 'opacity:.72' }, [
+          h('span', { class: 're-lab', style: 'color:var(--texte-2)',
+                      text: 'Hors écran — pour le bras de fer. ' }),
+          it.x.pourquoi_aw]));
+        if (it.x.garde) b2.appendChild(h('p', { style: 'opacity:.72' }, [
+          h('span', { class: 're-lab', style: 'color:var(--texte-2)',
+                      text: 'Hors écran — à savoir. ' }), it.x.garde]));
+        b2.appendChild(h('p', { class: 're-src',
+          text: (it.x.source || 'sans source') + ' · ' + lg + ' signes à l’écran' }));
+      }
+      if (d.verdict === 'ko') {
+        var ta = h('textarea', { class: 're-t',
+          placeholder: 'Ce qu’il faut écrire à la place…' });
+        ta.value = d.texte || '';
+        var cp = h('div', { class: 're-cpt' });
+        function maj() {
+          cp.textContent = ta.value.length + ' / 200 signes';
+          cp.className = 're-cpt' + (ta.value.length > 200 ? ' re-trop' : '');
+        }
+        ta.addEventListener('input', function () {
+          if (!v[it.cle]) v[it.cle] = {};
+          if (ta.value.trim()) v[it.cle].texte = ta.value;
+          else delete v[it.cle].texte;
+          garder(); maj(); majSortie();
+        });
+        maj();
+        b2.appendChild(ta);
+        b2.appendChild(cp);
+      }
+      c.appendChild(b2);
+      z.appendChild(c);
+    });
+    if (!n) {
+      z.appendChild(h('p', { style: 'font-style:italic;color:var(--texte-2)',
+        text: 'Rien dans ce filtre.' }));
+    }
+    majSortie();
+  }
+
+  function majSortie() {
+    var ok = items.filter(function (i) { return (v[i.cle] || {}).verdict === 'ok'; });
+    var ko = items.filter(function (i) { return (v[i.cle] || {}).verdict === 'ko'; });
+    var reste = items.length - ok.length - ko.length;
+    document.getElementById('reEtat').textContent =
+      ok.length + ' bon(s) · ' + ko.length + ' à corriger · ' + reste + ' à voir';
+    document.getElementById('reJson').value =
+      'À CORRIGER (' + ko.length + ')\n'
+      + (ko.map(function (i) {
+          var d = v[i.cle];
+          return '- ' + (i.type === 'geste' ? i.fiche + ' ▸ ' : '') + i.nom
+               + (d.texte ? '\n  ' + d.texte.replace(/\n/g, '\n  ')
+                          : '\n  (pas encore réécrit)'); }).join('\n')
+         || '  — aucune')
+      + '\n\nVALIDÉES : ' + ok.length + ' / ' + items.length
+      + (reste ? '\nPAS ENCORE VUES : ' + reste : '\nTOUT A ÉTÉ VU.')
+      + '\n\n[' + ok.length + ' + ' + ko.length + ' + ' + reste + ' = '
+      + items.length + ']';
+  }
+
+  [['reTous', 'tous'], ['reMouv', 'mouv'], ['reGestes', 'gestes'],
+   ['reMb', 'mb'], ['reReste', 'reste'], ['reKo', 'ko']].forEach(function (p) {
+    document.getElementById(p[0]).addEventListener('click', function () {
+      filtre = p[1];
+      ['reTous', 'reMouv', 'reGestes', 'reMb', 'reReste', 'reKo']
+        .forEach(function (x) {
+          document.getElementById(x).setAttribute('aria-pressed',
+            x === p[0] ? 'true' : 'false');
+        });
+      rendre();
+    });
+  });
+  document.getElementById('reQ').addEventListener('input', function (e) {
+    rech = e.target.value; rendre();
+  });
+  document.getElementById('reCopier').addEventListener('click', function () {
+    var t = document.getElementById('reJson');
+    t.removeAttribute('readonly'); t.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    t.setAttribute('readonly', 'readonly');
+    document.getElementById('reEtat2').textContent = 'copié.';
+  });
+  document.getElementById('reRaz').addEventListener('click', function () {
+    v = {}; garder(); rendre();
+  });
+
+  var nMouv = items.filter(function (i) { return i.type === 'mouvement'; }).length;
+  var nGeste = items.length - nMouv;
+  var nMB = items.filter(function (i) { return i.x && i.x.de === 'MB'; }).length;
+  var nSans = items.filter(function (i) { return !i.x; }).length;
+  var zc = document.getElementById('reCompte');
+  [[items.length, 'à relire'], [nMouv, 'mouvements'], [nGeste, 'gestes'],
+   [nMB, 'écrites par toi'], [nSans, 'sans explication']].forEach(function (c) {
+    zc.appendChild(h('div', { class: 're-k' },
+      [h('b', { text: String(c[0]) }), h('span', { text: c[1] })]));
+  });
+
+  document.getElementById('reQuoi').innerHTML =
+    '<b>' + items.length + '</b> explications : <b>' + nMouv + '</b> mouvements '
+    + 'et <b>' + nGeste + '</b> gestes. <b>' + nMB + '</b> sont de toi — '
+    + 'marquées <span class="re-mb">TOI</span> — et seule leur longueur a été '
+    + 'arrangée.';
+
+  document.getElementById('rePied').innerHTML =
+    '<h3>Ce que tu vois ici et pas à l’écran</h3>'
+    + 'Deux blocs sont affichés en grisé : <b>« pour le bras de fer »</b> et '
+    + '<b>« à savoir »</b>. Tu les as fait retirer de l’écran le 31/10, et '
+    + 'ils n’y sont plus — mais ils restent <b>écrits dans les fichiers</b> '
+    + 'et serviront l’onglet Aide. Tu les relis donc ici, une fois, plutôt '
+    + 'que de les découvrir plus tard.'
+    + '<br><br>Le compte de signes au bout de chaque fiche est celui qui '
+    + 'comptera <b>à l’écran</b> — « Le geste » plus « Ce que ça change ». '
+    + 'Aucune ne dépasse 200.'
+    + '<h3>Ce que la page ne fait pas</h3>'
+    + 'Elle n’écrit rien dans le carnet. Tes verdicts vivent dans le '
+    + 'stockage local de ce navigateur, et le bouton <b>Copier</b> te rend '
+    + 'd’un bloc ce qui est à corriger, avec ton texte de remplacement.';
+
+  rendre();
+})(window.App);
+</script>
+</body>
+</html>
