@@ -522,6 +522,21 @@ absent doit pouvoir l'ajouter, sinon l'étage 3 contraint au lieu de servir.
 
 Petites, nommées, et qui ne demandent qu'une décision.
 
+- **UN OUTIL POSÉ APRÈS MINUIT NE REMONTE PAS EN TÊTE.** `aujourdHui()` rend
+  une date **locale**, `maintenant()` un horodatage **UTC**. Entre minuit et
+  1 h en hiver (deux heures en été), les deux ne tombent pas le même jour, et
+  un outil repris à l'instant porte une date **antérieure** à une simple date
+  du jour. Le tri des suggestions met alors la date seule devant.
+  **Mesuré le 2026-11-01 à 00h01** : `aujourdHui()` → `2026-11-01`,
+  `maintenant()` → `2026-10-31T23:01:38Z`. Deux contrôles du banc sont tombés
+  dessus, sur un produit inchangé. — **Ce qui est fait** : les contrôles ne
+  dépendent plus de l'heure, ils tirent leur date seule de `maintenant()`.
+  **Ce qui reste** : le produit garde le défaut. Deux issues, à trancher —
+  un `aujourdHui()` aligné sur UTC (mais alors la date affichée saute d'un
+  jour le soir), ou une comparaison qui normalise les deux formes avant de
+  trier. La seconde ne change rien à ce qui s'affiche ; c'est elle que je
+  proposerais.
+
 - **ON NE PEUT PAS REVENIR AU DICTIONNAIRE APRÈS AVOIR CHOISI UN EXERCICE.**
   Trouvé par MB le 2026-10-31 : « quand un exo est sélectionné, je ne peux pas
   retourner ensuite dans le dico pour chercher autre chose, je suis bloqué sur

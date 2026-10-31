@@ -101,7 +101,14 @@
       + '</div></div>'
       + '</main></div>'
       + '<nav class="onglets" role="tablist" aria-label="Sections">' + barre + '</nav>'
-      + s('store.js') + s('model.js') + s('ui.js') + s('panneau.js')
+      /* `gestes.js` ENTRE model.js ET panneau.js, comme dans
+         index.html : il complete le dictionnaire et l'ecran s'en sert.
+         Oublie ici le 31/10, `App.gestes` etait undefined dans l'hote
+         et l'etage 2 levait un TypeError — exactement ce qui etait
+         arrive a vue-sparring.js le 27/10. Une liste tenue a la main
+         oublie, et c'est la deuxieme fois. */
+      + s('store.js') + s('model.js') + s('gestes.js') + s('ui.js')
+      + s('panneau.js')
       + s('vue-exercice.js') + s('vue-suivi.js') + s('vue-seance.js')
       + s('vue-programmes.js') + s('vue-recup.js') + s('vue-reglages.js')
       /* `vue-sparring.js` MANQUAIT jusqu'au 27/10 : `A.vues.sparring` etait
@@ -3363,11 +3370,17 @@
       var p = puces();
       /* LE COMPTE EST LU DANS LE DICTIONNAIRE, pas ecrit en dur : le jour ou
          une ecriture part, ce controle suit au lieu de mentir. */
-      var fiche = fen.App.m.ficheDictionnaire('Curl biceps', fen.App.store.etat());
-      var attendu = (fiche.aussi || []).length + 1;   // + « sans precision »
+      /* LES GESTES, PAS LES ECRITURES — c'est le changement du 31/10 :
+         l'engin ne se choisit plus par le nom, il a sa case a l'etage 3.
+         Le compte vient de `App.gestes`, lu a l'execution. */
+      var lesGestes = fen.App.gestes.gestesDe('Curl biceps');
+      var attendu = lesGestes.length + 1;   // + « le mouvement simple »
+      v.vrai(lesGestes.length > 0,
+             '[temoin] « Curl biceps » a bien des gestes — sans eux, le '
+           + 'compte serait juste pour rien');
       v.egal(p.length, attendu,
-             'une fiche prise montre ses écritures en puces : '
-           + (attendu - 1) + ' variantes, plus « sans précision »');
+             'une fiche prise montre ses GESTES en puces : '
+           + lesGestes.length + ', plus « le mouvement simple »');
       /* UNE GARDE AVANT D'INDEXER. Sans elle, ce bloc PLANTAIT sur la
          version d'avant au lieu de tomber — « TypeError: Cannot read
          properties of undefined » — et le plantage emportait les contrôles
@@ -3378,8 +3391,8 @@
         refermerTout();
         return;
       }
-      v.egal(texte(p[0]), 'sans précision',
-             'et « sans précision » vient EN PREMIER — sans lui, on ne '
+      v.egal(texte(p[0]), 'le mouvement simple',
+             'et « le mouvement simple » vient EN PREMIER — sans lui, on ne '
            + 'pourrait pas revenir au nom de base après avoir choisi');
       v.egal(p[0].getAttribute('aria-pressed'), 'true',
              'elle est marquée tant qu’on n’a rien choisi');
@@ -3406,7 +3419,7 @@
                '[temoin] les puces restent toutes là : on peut en changer');
 
         var sans = puces().filter(function (b) {
-          return texte(b) === 'sans précision';
+          return texte(b) === 'le mouvement simple';
         })[0];
         sans.click();
         return attendre(220).then(function () {
@@ -3421,9 +3434,18 @@
           fen.App.panneau.editerExercice(exo2, { titre: 'Banc' }, function () {});
           return attendre(260).then(function () {
             v.egal(puces().length, 0,
-                   '[prix] « Curl Larratt » n’affiche AUCUNE variante : ses six '
-                 + 'écritures sont parties le 30/10, et une fiche sans '
-                 + 'écriture n’a rien à proposer');
+                   '« Curl Larratt » n’affiche AUCUN geste : il n’en a pas, '
+                 + 'et l’écran ne s’invente rien');
+            /* CE QUI A CHANGE LE 31/10 : une fiche sans geste n'est plus
+               MUETTE. Elle montre l'explication de son mouvement — et
+               celle-la, MB l'a ecrite lui-meme. C'est ce qu'il reprochait
+               a l'ecran : « je n'ai pas l'explication de comment faire le
+               geste en 2- ». */
+            var txt = doc.querySelector('.panneau').textContent;
+            v.vrai(/isom\u00e9trique/.test(txt),
+                   'mais elle montre l\u2019explication de son mouvement, '
+                 + '\u00e9crite par MB le 31/10 — une fiche sans geste n\u2019est '
+                 + 'plus muette');
             refermerTout();
 
             /* ET UN NOM QUE LE DICTIONNAIRE NE CONNAIT PAS n'affiche rien

@@ -15,10 +15,10 @@ qui disparaît, pas la donnée.
 
 ---
 
-## 1.68.0 — à venir
+## 1.70.0
 
-Le gros chantier du **dictionnaire d'exercices**. Pas encore publié : il est
-en cours de relecture.
+Le gros chantier du **dictionnaire d’exercices**, appliqué. Les 95
+explications ont été relues une à une : **83 validées, 12 réécrites**.
 
 **Ce que ça ajoute**
 
@@ -46,6 +46,14 @@ en cours de relecture.
   *Curl à la poulie*, *Curl overhead avec élastique* — ne s'affichent plus
   dans le menu. **Elles restent cherchables** : l'engin se choisit maintenant
   dans Matériel.
+
+**Ce qui reste à corriger, et qu'on sait**
+
+- **Un outil posé entre minuit et 1 h du matin** ne remonte pas en tête de tes
+  suggestions — une date est lue en heure locale, l'autre en heure
+  universelle. Mesuré et inscrit dans `CHANTIERS.md` ; pas encore corrigé,
+  parce que les deux façons de le faire ont un prix différent et que c'est
+  une décision, pas un oubli.
 
 ---
 

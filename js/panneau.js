@@ -399,31 +399,199 @@
       var zoneVariantes = h('div');
       var ficheOuverte = null;      // le nom de BASE, pas l'écriture choisie
 
+      /* ================= LE MATERIEL ORDINAIRE =================
+
+         Aucun de ces engins n'est du materiel de bras de fer, et c'est
+         VOULU — MB, 31/10 : « pour moi les deux sont distincts pour le
+         coup, pas de melange ». La corde AW et la corde de poulie portent
+         le meme mot ; elle n'est donc PAS ici.
+
+         « Machines et elastiques » et non « Cables et resistance » : MB,
+         « faut trouver autre chose car on a machine.... ». Les trois
+         objets sont Poulie, Elastique, Machine, et une poulie est une
+         machine au sens courant. */
+      var MATERIEL = [
+        { cat: 'Barres', items: [{ nom: 'Barre' }, { nom: 'Barre EZ' },
+          { nom: 'Barre guidée' }, { nom: 'Landmine' }] },
+        { cat: 'Poids libres', items: [{ nom: 'Haltères' },
+          { nom: 'Kettlebell' }, { nom: 'Disque' }] },
+        { cat: 'Machines et élastiques', items: [
+          { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
+          { nom: 'Élastique' }, { nom: 'Machine' }] },
+        { cat: 'Appuis', items: [
+          { nom: 'Banc', reglages: ['plat', 'incliné 15°', 'incliné 30°',
+                                    'incliné 45°', 'décliné'] },
+          { nom: 'Pupitre' }, { nom: 'Chaise' }, { nom: 'Barre fixe' },
+          { nom: 'Au sol' }] },
+        { cat: 'Position du corps', items: [{ nom: 'Debout' },
+          { nom: 'Assis' }, { nom: 'Couché' }, { nom: 'À genoux' },
+          { nom: 'Unilatéral' }] }
+      ];
+      var TOUT_MATERIEL = {};
+      MATERIEL.forEach(function (g) {
+        g.items.forEach(function (it) { TOUT_MATERIEL[it.nom] = it; });
+      });
+      function estMateriel(nom) {
+        return !!TOUT_MATERIEL[String(nom).split(' · ')[0]];
+      }
+
+      /* L'ETAT D'OUVERTURE DES CATEGORIES SURVIT AU RE-RENDU, qui a lieu a
+         chaque clic : sans lui, poser une puce refermait la categorie
+         qu'on etait en train d'employer. */
+      var ouverts = {};
+
+      function blocExplication(xp) {
+        var p = h('div', { class: 'item-resume',
+          style: 'margin:7px 2px;line-height:1.45;white-space:normal' });
+        p.appendChild(h('div', { class: 'remarque-titre', text: 'Le geste' }));
+        p.appendChild(h('div', { text: xp.faire }));
+        if (xp.change) {
+          p.appendChild(h('div', { class: 'remarque-titre',
+                                   style: 'margin-top:5px',
+                                   text: 'Ce que ça change' }));
+          p.appendChild(h('div', { text: xp.change }));
+        }
+        if (xp.source) {
+          p.appendChild(h('div', { style: 'margin-top:4px;opacity:.65;'
+            + 'font-style:italic', text: xp.source }));
+        }
+        return p;
+      }
+
       function rendreVariantes() {
         A.ui.vider(zoneVariantes);
         if (!ficheOuverte) return;
-        var f = A.m.ficheDictionnaire(ficheOuverte, etat());
-        var au = (f && f.aussi) || [];
-        if (!au.length) return;     // une fiche sans écriture n'affiche rien
-
+        var G = A.gestes;
         var choisi = champNom.value.trim();
-        zoneVariantes.appendChild(h('div', { class: 'item-resume',
-          style: 'margin:8px 2px 4px',
-          text: au.length + ' variante(s) de « ' + ficheOuverte + ' » — '
-              + 'facultatif, le nom seul suffit.' }));
 
-        var puces = h('div', { class: 'dico-variantes' });
-        /* LE NOM DE BASE EST LE PREMIER CHOIX, et il est marqué quand il
-           est en place : sans lui, on ne saurait pas revenir en arrière
-           après avoir cliqué une variante. */
-        [ficheOuverte].concat(au).forEach(function (n) {
-          var b = h('button', { type: 'button', class: 'dico-variante',
-                                'aria-pressed': n === choisi ? 'true' : 'false',
-                                text: n === ficheOuverte ? 'sans précision' : n });
-          b.addEventListener('click', function () { poserNom(n); });
-          puces.appendChild(b);
+        /* ---- 2. LA FACON DE L'EXECUTER ----
+           Les seuls GESTES, pas les ecritures d'engin : celles-ci
+           faisaient les doublons que MB a vus le 30/10, et l'engin se
+           choisit maintenant a l'etage 3. */
+        var gestes = G ? G.gestesDe(ficheOuverte) : [];
+        zoneVariantes.appendChild(h('div', { class: 'item-resume',
+          style: 'margin:10px 2px 4px', text: gestes.length
+            ? '2 — La façon de l’exécuter · ' + gestes.length + ' connue(s)'
+            : '2 — La façon de l’exécuter · ce mouvement n’en a pas d’autre' }));
+
+        if (gestes.length) {
+          var puces = h('div', { class: 'dico-variantes' });
+          var noms = [ficheOuverte].concat(gestes.map(function (g) { return g.nom; }));
+          noms.forEach(function (n) {
+            var b = h('button', { type: 'button', class: 'dico-variante',
+                                  'aria-pressed': n === choisi ? 'true' : 'false',
+                                  text: n === ficheOuverte ? 'le mouvement simple' : n });
+            b.addEventListener('click', function () { poserNom(n); });
+            puces.appendChild(b);
+          });
+          zoneVariantes.appendChild(puces);
+        }
+
+        /* L'EXPLICATION DU GESTE CHOISI, ou celle du mouvement quand on est
+           sur le nom simple. Une absence se DIT, elle ne se laisse pas
+           vide : MB a vu « Barre au front » ne rien afficher. */
+        var xp = null;
+        if (G) {
+          if (choisi && choisi !== ficheOuverte) {
+            xp = G.gestesDe(ficheOuverte).filter(function (g) {
+              return g.nom === choisi; })[0] || null;
+          }
+          if (!xp) xp = G.explicationDe(ficheOuverte);
+        }
+        zoneVariantes.appendChild(xp ? blocExplication(xp)
+          : h('div', { class: 'item-resume', style: 'margin:4px 2px;opacity:.7',
+              text: 'Pas encore d’explication écrite pour ce mouvement.' }));
+
+        /* ---- 3. LE MATERIEL ----
+           `exo.outils` porte le materiel ET l'equipement de bras de fer.
+           On ne montre ici que le materiel ordinaire ; le reste appartient
+           au groupe « Equipements », plus bas, et n'est pas touche. */
+        var tous = (exo.outils || []).slice();
+        var mat = tous.filter(estMateriel);
+        var aw = tous.filter(function (x) { return !estMateriel(x); });
+
+        zoneVariantes.appendChild(h('div', { class: 'item-resume',
+          style: 'margin:12px 2px 4px', text: '3 — Matériel · '
+            + (mat.length ? mat.length + ' posé(s)' : 'facultatif, cumulable') }));
+
+        if (mat.length) {
+          var pm = h('div', { class: 'puces' });
+          mat.forEach(function (x) {
+            var b = h('button', { type: 'button', class: 'puce puce-suggeree',
+              'aria-pressed': 'true', text: x });
+            b.addEventListener('click', function () {
+              exo.outils = (exo.outils || []).filter(function (o) { return o !== x; });
+              rendreVariantes();
+            });
+            pm.appendChild(b);
+          });
+          zoneVariantes.appendChild(pm);
+        }
+
+        MATERIEL.forEach(function (g) {
+          var dedans = g.items.filter(function (it) {
+            return mat.some(function (x) { return x.split(' · ')[0] === it.nom; });
+          });
+          var libres = g.items.filter(function (it) { return dedans.indexOf(it) < 0; });
+          var d = h('details');
+          if (ouverts[g.cat] || dedans.length) d.setAttribute('open', '');
+          d.addEventListener('toggle', function () { ouverts[g.cat] = d.open; });
+          var sm = h('summary', { class: 'equip-cat',
+            style: 'cursor:pointer;list-style:revert' });
+          sm.appendChild(document.createTextNode(g.cat));
+          if (dedans.length) {
+            sm.appendChild(h('span', { class: 'equip-compte',
+              style: 'margin-left:6px', text: String(dedans.length) }));
+          }
+          d.appendChild(sm);
+          if (libres.length) {
+            var pc = h('div', { class: 'puces' });
+            libres.forEach(function (it) {
+              var b = h('button', { type: 'button', class: 'puce', text: it.nom });
+              b.addEventListener('click', function () {
+                exo.outils = (exo.outils || []).concat([it.nom]);
+                rendreVariantes();
+              });
+              pc.appendChild(b);
+            });
+            d.appendChild(pc);
+          } else {
+            d.appendChild(h('div', { class: 'item-resume', style: 'margin:2px',
+              text: 'tout est posé.' }));
+          }
+          zoneVariantes.appendChild(d);
         });
-        zoneVariantes.appendChild(puces);
+
+        /* LE REGLAGE NE S'OUVRE QUE POUR CE QUI EN A UN : le banc son
+           degre, la poulie sa hauteur. Une barre n'a rien a regler. */
+        mat.forEach(function (x) {
+          var base = x.split(' · ')[0];
+          var def = TOUT_MATERIEL[base];
+          if (!def || !def.reglages) return;
+          var courant = x.indexOf(' · ') > 0 ? x.split(' · ')[1] : null;
+          zoneVariantes.appendChild(h('div', { class: 'equip-cat',
+            text: base + ' — réglage' }));
+          var pr = h('div', { class: 'puces' });
+          def.reglages.forEach(function (v) {
+            var b = h('button', { type: 'button', class: 'puce',
+              'aria-pressed': courant === v ? 'true' : 'false', text: v });
+            b.addEventListener('click', function () {
+              var neuf = (courant === v) ? base : (base + ' · ' + v);
+              exo.outils = (exo.outils || []).map(function (o) {
+                return o === x ? neuf : o; });
+              rendreVariantes();
+            });
+            pr.appendChild(b);
+          });
+          zoneVariantes.appendChild(pr);
+        });
+
+        if (aw.length) {
+          zoneVariantes.appendChild(h('div', { class: 'item-resume',
+            style: 'margin:10px 2px 0;opacity:.75',
+            text: aw.length + ' équipement(s) de bras de fer posé(s) plus '
+                + 'bas, dans « Équipements » : ' + aw.join(', ') }));
+        }
       }
 
       /* Le chemin commun : écrire un nom dans le champ et remplir avec lui.

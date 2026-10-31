@@ -714,8 +714,19 @@
     /* Un horodatage reste prioritaire sur une date seule du même jour : se
        servir d'un outil ancien doit le remonter devant les autres. */
     var melange = A.store.vide();
+    /* LA DATE SEULE EST TIREE DE `maintenant()`, PAS DE `aujourdHui()`.
+
+       Les deux ne tombent pas le meme jour entre minuit et 1 h (UTC+1) :
+       `aujourdHui()` est LOCAL, `maintenant()` est UTC. Ce controle voulait
+       comparer une date seule AU MEME JOUR qu'un horodatage ; en prenant le
+       jour local il comparait parfois deux jours differents, et tombait sur
+       un produit inchange. Mesure du 01/11 a 00h01 : aujourdHui 2026-11-01,
+       maintenant 2026-10-31T23:01Z.
+
+       LE DEFAUT DU PRODUIT, LUI, RESTE — il est inscrit dans CHANTIERS.md. */
+    var jourUTC = A.m.maintenant().slice(0, 10);
     melange.outils.push({ id: 'a', nom: 'Ancien', slug: 'ancien', categorie: '',
-                          vuLe: A.m.aujourdHui() });
+                          vuLe: jourUTC });
     A.m.majCatalogueOutils(melange, 'Repris');
     v.egal(A.m.suggestionsOutils(melange, '', [], 8)[0].nom, 'Repris',
            'un outil dont on vient de se servir passe devant une date seule');
@@ -725,9 +736,13 @@
        même jour, puisqu'on ne sait pas à quelle heure elle a été posée. */
     var e3 = A.store.vide();
     A.m.majCatalogueOutils(e3, 'Outil horodaté');
+    /* MEME JOUR QUE L'HORODATAGE, donc tire de `maintenant()` : entre
+       minuit et 1 h, `aujourdHui()` est deja au lendemain et le
+       controle comparait deux jours differents. Voir la dette inscrite
+       dans CHANTIERS.md. */
     e3.outils.push({ id: 'vieux', nom: 'Outil d’un ancien carnet',
                      slug: 'outil d un ancien carnet', categorie: '',
-                     vuLe: A.m.aujourdHui() });
+                     vuLe: A.m.maintenant().slice(0, 10) });
     v.egal(A.m.suggestionsOutils(e3, '', [], 8)[0].nom, 'Outil horodaté',
            'une date seule se relit, et se classe avant un horodatage du même jour');
     v.egal(A.m.suggestionsOutils(e3, '', [], 8).length, 2,
