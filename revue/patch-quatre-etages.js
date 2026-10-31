@@ -59,10 +59,71 @@
   });
   noter(poses.length + ' gestes posés, ' + refuses.length + ' refusés');
 
+  /* ============ 1 bis. LES TRACTIONS, REGROUPEES ============
+
+     MB : « J'aimerai un exo Traction avec les 4-5 tractions qui sont
+     possibles et pareil pour Traction partielle », puis « Donc "Dos", je
+     vois Pull up... Mais c'est traction en fait, ya un doublon flagrant ».
+
+     HUIT FICHES DEVIENNENT DEUX. Chaque absorption RETIRE la fiche du
+     dictionnaire et verse son nom, ses ecritures et son geste dans la
+     fiche d'accueil. Rien n'est perdu pour la recherche : « Chin up » reste
+     une ecriture de « Traction ».
+
+     ET ON COMPTE LES ECHECS. Une absorption qui ne trouve pas sa fiche est
+     notee, pas avalee — sans quoi l'ecran montrerait huit fiches moins
+     celles qu'on a su retirer, et personne ne saurait lesquelles. */
+  var TR = A.tractionsRegroupees || { RENOMMER: {}, ABSORPTIONS: [] };
+  var absorbees = [], absorbRates = [];
+  var EXPL_TRACTION = {};
+
+  TR.ABSORPTIONS.forEach(function (a) {
+    var accueil = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === a.vers; })[0];
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) { if (x.nom === a.fiche) i = k; });
+    if (!accueil) { absorbRates.push(a.fiche + ' : accueil « ' + a.vers + ' » absent'); return; }
+    if (i < 0) { absorbRates.push(a.fiche + ' : fiche absente du dictionnaire'); return; }
+    var abs = m.DICTIONNAIRE[i];
+    m.DICTIONNAIRE.splice(i, 1);
+    /* le NOM de la fiche absorbee, ses ecritures, et le libelle du geste */
+    var versees = [a.geste, abs.nom].concat(abs.aussi || []);
+    versees.forEach(function (n) {
+      if (accueil.aussi.indexOf(n) < 0) accueil.aussi.push(n);
+    });
+    absorbees.push({ de: abs.nom, vers: a.vers, geste: a.geste });
+    EXPL_TRACTION[a.geste] = a;
+  });
+  noter(absorbees.length + ' fiche(s) de traction absorbee(s)'
+        + (absorbRates.length ? ', ' + absorbRates.length + ' en echec' : ''));
+
+  /* LE RENOMMAGE VIENT APRES LES ABSORPTIONS, qui visent l'ancien nom. */
+  var renommees = [];
+  Object.keys(TR.RENOMMER).forEach(function (vieux) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === vieux; })[0];
+    if (!f) { absorbRates.push('renommage : « ' + vieux + ' » absente'); return; }
+    var neuf = TR.RENOMMER[vieux];
+    f.aussi = f.aussi || [];
+    if (f.aussi.indexOf(vieux) < 0) f.aussi.unshift(vieux);  /* reste cherchable */
+    f.nom = neuf;
+    renommees.push(vieux + ' -> ' + neuf);
+  });
+  if (renommees.length) noter('renommee(s) : ' + renommees.join(', '));
+
   var CLASSE = {};
+  /* les gestes nes des absorptions, sur leur fiche d'accueil APRES renommage */
+  TR.ABSORPTIONS.forEach(function (a) {
+    var nomAccueil = TR.RENOMMER[a.vers] || a.vers;
+    CLASSE[nomAccueil + ' § ' + a.geste] = 'geste';
+    var abs = absorbees.filter(function (x) { return x.geste === a.geste; })[0];
+    if (abs && abs.de !== a.geste) CLASSE[nomAccueil + ' § ' + abs.de] = 'syn';
+  });
   poses.forEach(function (g) {
-    CLASSE[g.fiche + ' § ' + g.nom] = 'geste';
-    (g.aussi || []).forEach(function (n) { CLASSE[g.fiche + ' § ' + n] = 'syn'; });
+    /* APRES RENOMMAGE : « Pull up » est devenue « Traction », et les trois
+       gestes qu'on lui a poses doivent se classer sous son nom NEUF, sinon
+       `codeDe` ne les retrouve plus et l'etage 2 les perd en silence. */
+    var fiche = TR.RENOMMER[g.fiche] || g.fiche;
+    CLASSE[fiche + ' § ' + g.nom] = 'geste';
+    (g.aussi || []).forEach(function (n) { CLASSE[fiche + ' § ' + n] = 'syn'; });
   });
   var RSS = (A.gestesAjoutes && A.gestesAjoutes.REND_SON_STATUT) || {};
   var pushPressEntre = poses.some(function (g) { return g.nom === 'Push press'; });
@@ -75,6 +136,7 @@
     return (pr && pr.code) || 'syn';
   }
   function explDe(nom) {
+    if (EXPL_TRACTION[nom]) return EXPL_TRACTION[nom];
     var g = poses.filter(function (x) { return x.nom === nom; })[0];
     if (g) return g;
     var cle = Object.keys(RSS).filter(function (id) {
@@ -83,7 +145,8 @@
     return (A.explicationsGestes && A.explicationsGestes.E[nom]) || null;
   }
   function estNeuf(nom) {
-    return poses.some(function (x) { return x.nom === nom; })
+    return !!EXPL_TRACTION[nom]
+        || poses.some(function (x) { return x.nom === nom; })
         || (pushPressEntre && Object.keys(RSS).some(function (id) {
              return id.split(' § ')[1] === nom; }));
   }
@@ -213,13 +276,13 @@
          la sortie qui manquait : vider le champ et rouvrir le dictionnaire
          entier, en un geste. */
       if (fiche) {
+        /* IL EFFACE, et c'est tout ce qu'il fait — « Parcourir le
+           dictionnaire » suffit desormais a tout revoir SANS perdre la
+           selection. Celui-ci sert a repartir de zero. */
         var btSortir = h('button', { type: 'button', class: 'puce',
-          style: 'margin:10px 2px 0', text: '← Chercher un autre exercice' });
+          style: 'margin:10px 2px 0', text: '✕ Effacer le nom' });
         btSortir.addEventListener('click', function () {
-          champNom.value = '';           /* l'interception rappelle rendre() */
-          var bd = gNom.querySelector('button.bt-doux');
-          if (bd && bd.getAttribute('aria-expanded') !== 'true') bd.click();
-          else if (bd) { bd.click(); bd.click(); }   /* re-rendre, dico deja ouvert */
+          champNom.value = '';
           champNom.focus();
         });
         zone.appendChild(btSortir);
@@ -422,6 +485,28 @@
           var g = (f.aussi || []).filter(function (x) {
             return codeDe(f.nom, x) === 'geste'; });
           b.dataset.gestes = String(g.length);
+
+          /* ================= LES ECRITURES D'ENGIN S'EN VONT =============
+
+             MB : « je vois pour elevations laterales plusieurs noms qui
+             s'affichent en dessous, est ce encore necessaire puisqu'on a le
+             materiel selectionnable ensuite ? »
+
+             NON. L'app liste les trois premieres ecritures de `aussi` sous
+             chaque fiche — « Front raise · Elevation frontale sur banc
+             incline · Elevations frontales a la poulie basse · +2 autres ».
+             Avec l'etage 3, l'engin ne se choisit plus par le nom : ces
+             lignes montrent un chemin qui n'existe plus.
+
+             On RETIRE cette ligne et on met les GESTES a la place, qui sont
+             la seule chose a choisir ensuite. Une fiche sans geste ne porte
+             donc plus rien — c'est voulu : il n'y a rien a y decider.
+
+             Les ecritures restent dans le dictionnaire et restent
+             CHERCHABLES. C'est leur AFFICHAGE qui part, pas elles. */
+          var ligneEcritures = [].slice.call(b.querySelectorAll('.item-resume'))[0];
+          if (ligneEcritures) ligneEcritures.remove();
+
           if (!g.length) return;
           n++;
           t.appendChild(h('span', { style: 'margin-left:7px;font-size:.64rem;'
@@ -457,13 +542,20 @@
        appelant le setter natif pour ne rien changer au comportement. Ca
        attrape TOUS les chemins d'un coup — le dictionnaire, les puces de
        l'app, la frappe — au lieu de courir apres chacun. */
+    var masquerNom = false;   /* voir « LE DICO NE FILTRE PLUS » plus bas */
+
     (function () {
       var proto = Object.getPrototypeOf(champNom);
       var natif = Object.getOwnPropertyDescriptor(proto, 'value');
       if (!natif || !natif.set) { noter('VALUE NON INTERCEPTABLE'); return; }
       Object.defineProperty(champNom, 'value', {
         configurable: true,
-        get: function () { return natif.get.call(this); },
+        get: function () {
+          /* PENDANT LE RENDU DU DICO SEULEMENT, et seulement quand le champ
+             porte une SELECTION : le dictionnaire se croit sans filtre et
+             rend ses 65 mouvements. Partout ailleurs, la valeur reelle. */
+          return masquerNom ? '' : natif.get.call(this);
+        },
         set: function (v) {
           var avant = natif.get.call(this);
           natif.set.call(this, v);
@@ -473,6 +565,46 @@
       });
       noter('ecriture du nom interceptee');
     })();
+
+    /* ================= LE DICO NE FILTRE PLUS SUR UNE SELECTION =========
+
+       MB, capture du 31/10 : « j'ai selectionne barre au front, et si je
+       veux retourner dans Triceps ou ailleurs meme, je suis oblige de
+       retirer l'ecriture dans "Nom de l'exercice" ».
+
+       MON BOUTON « Chercher un autre exercice » NE SUFFISAIT PAS : il vide
+       le champ, donc il RETIRE la selection. MB ne veut pas perdre son
+       exercice — il veut parcourir le dictionnaire en le gardant.
+
+       LA CAUSE, deja mesuree sur index.html sans patch : `rendreDico()`
+       filtre sur `champNom.value`. Quand ce champ porte un nom EXACTEMENT
+       egal a une fiche, ce n'est plus une saisie en cours, c'est une
+       selection — et filtrer dessus ne rend que cette fiche.
+
+       ON N'OUVRE LA PARENTHESE QUE POUR CE RENDU-LA : clic en phase de
+       CAPTURE pour poser le drapeau avant le handler de l'app, et on le
+       retire au tour de boucle suivant, quand `rendreDico()` a fini. Une
+       frappe partielle (« tract ») garde donc son filtre, qui est utile. */
+    var btDico = gNom.querySelector('button.bt-doux');
+    if (btDico) {
+      btDico.addEventListener('click', function () {
+        var v = natifValue();
+        if (!v) return;
+        var f = m.ficheDictionnaire(v, A.store.etat());
+        /* EXACTEMENT une fiche ou l'une de ses ecritures — pas « commence
+           par » : « Curl » tape a la main doit garder son filtre. */
+        var exact = f && (m.slug(f.nom) === m.slug(v)
+          || (f.aussi || []).some(function (a) { return m.slug(a) === m.slug(v); }));
+        if (!exact) return;
+        masquerNom = true;
+        setTimeout(function () { masquerNom = false; }, 0);
+      }, true);
+    }
+    function natifValue() {
+      var d = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(champNom), 'value');
+      return d && d.get ? d.get.call(champNom) : champNom.value;
+    }
 
     rendre();
     noter('greffe posée sur « ' + (exo.nom || 'nouvel exercice') + ' »');
