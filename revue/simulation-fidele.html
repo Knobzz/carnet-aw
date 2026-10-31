@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La simulation fidèle — le vrai modèle, enrichi des 9 gestes</title>
+<base href="../">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* Classes préfixées `sf-`. Le 29/10, une classe `onglets` est entrée en
+     collision avec la barre d'onglets de l'app et deux écrans de 320 px se
+     sont rendus à 1009 — trouvé en MESURANT, pas en relisant. */
+  body { margin: 0; padding: 16px; background: var(--fond); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sf-tete { max-width: 1280px; margin: 0 auto 14px; }
+  .sf-tete h1 { margin: 0 0 5px; font-size: 1.3rem; }
+  .sf-tete p { margin: 5px 0; font-size: .9rem; color: var(--texte-2); }
+  .sf-tete b { color: var(--texte); }
+  .sf-cite { border-left: 3px solid var(--laiton); padding-left: 10px;
+             font-style: italic; }
+  .sf-pages { max-width: 1280px; margin: 0 auto 14px; display: flex; gap: 8px;
+              flex-wrap: wrap; }
+  .sf-pages button { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 8px; color: var(--texte); font: inherit; font-size: .9rem;
+        padding: 8px 16px; cursor: pointer; }
+  .sf-pages button[aria-pressed="true"] { border-color: var(--laiton);
+        color: var(--laiton); font-weight: 600; }
+  .sf-rangee { display: flex; gap: 26px; align-items: flex-start;
+               max-width: 1280px; margin: 0 auto; flex-wrap: wrap; }
+  .sf-tel { width: 340px; flex: 0 0 340px; }
+  /* le cadre reprend les proportions d'un telephone : c'est la largeur ou
+     l'ecran reel vit, et une maquette large ment sur l'encombrement */
+  .sf-cadre { border: 1px solid var(--trait-fort); border-radius: 14px;
+              background: var(--fond-2); width: 340px; box-sizing: border-box;
+              overflow: hidden; }
+  .sf-cote { flex: 1; min-width: 420px; }
+  .sf-cote h2 { font-size: 1.02rem; margin: 0 0 4px; }
+  .sf-cote > p { font-size: .86rem; color: var(--texte-2); margin: 0 0 10px; }
+  .sf-aide { font-size: .8rem; color: var(--texte-2); margin: 10px 0 0; }
+  .sf-pb { background: var(--fond-2); border: 1px solid var(--trait);
+           border-radius: 6px; color: var(--texte); font: inherit;
+           font-size: .82rem; padding: 5px 11px; cursor: pointer; }
+  .sf-pb[aria-pressed="true"] { border-color: var(--laiton); color: var(--laiton); }
+  .sf-barre { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+              margin-bottom: 10px; }
+  .sf-barre input { background: var(--fond-2); border: 1px solid var(--trait);
+        border-radius: 6px; color: var(--texte); font: inherit;
+        font-size: .9rem; padding: 7px 11px; width: 260px; }
+
+  /* --- l'etage, dans le cadre --- */
+  .sf-etage { border-top: 1px solid var(--trait); padding: 10px 12px; }
+  .sf-etage:first-child { border-top: 0; }
+  .sf-etage.sf-aw { background: color-mix(in srgb, #6cc08b 7%, transparent); }
+  .sf-num { font-size: .7rem; color: var(--texte-2); letter-spacing: .04em;
+            text-transform: uppercase; margin: 0 0 7px; display: flex;
+            gap: 7px; align-items: baseline; }
+  .sf-num b { color: var(--laiton); font-size: .83rem; text-transform: none;
+              letter-spacing: 0; }
+  .sf-etage.sf-aw .sf-num b { color: #8fdcab; }
+  .sf-num small { margin-left: auto; font-size: .69rem; }
+  .sf-cat { font-size: .7rem; color: var(--texte-2); margin: 8px 0 3px; }
+  .sf-rien { font-size: .78rem; color: var(--texte-2); font-style: italic;
+             margin: 0; }
+  .sf-expl { margin-top: 9px; padding: 9px 10px; border-radius: var(--r-s);
+             background: var(--fond); border: 1px solid var(--trait);
+             font-size: .79rem; line-height: 1.45; }
+  .sf-expl p { margin: 0 0 6px; }
+  .sf-expl p:last-child { margin-bottom: 0; }
+  .sf-expl b { color: var(--laiton); }
+  .sf-expl .sf-src { color: var(--texte-2); font-size: .72rem;
+                     font-style: italic; }
+  .sf-pied { border-top: 1px solid var(--trait-fort); padding: 10px 12px;
+             font-size: .83rem; background: var(--fond-3); }
+  .sf-pied b { color: var(--laiton); }
+  .sf-neuf { display: inline-block; background: #2f5e44; color: #d6ffe6;
+             border-radius: 999px; font-size: .64rem; font-weight: 700;
+             padding: 1px 7px; margin-left: 5px; vertical-align: middle; }
+
+  /* --- la recherche --- */
+  .sf-res { border: 1px solid var(--trait); border-radius: 10px;
+            background: var(--fond-2); margin-bottom: 9px; }
+  .sf-res > h3 { margin: 0; font-size: .92rem; padding: 7px 11px;
+                 background: var(--fond-3); display: flex; gap: 10px;
+                 align-items: baseline; }
+  .sf-res > h3 small { margin-left: auto; color: var(--texte-2);
+                       font-size: .76rem; font-weight: 400; }
+  .sf-res .sf-corps { padding: 8px 11px; font-size: .84rem; }
+  .sf-pourquoi { color: var(--texte-2); font-size: .78rem; }
+  .sf-pourquoi em { color: var(--laiton); font-style: normal; font-weight: 600; }
+  table.sf-t { border-collapse: collapse; font-size: .84rem; width: 100%;
+               margin-bottom: 12px; }
+  table.sf-t th, table.sf-t td { border: 1px solid var(--trait);
+        padding: 5px 9px; text-align: left; vertical-align: top; }
+  table.sf-t th { background: var(--fond-3); color: var(--texte); }
+  table.sf-t td.sf-n { text-align: right; font-variant-numeric: tabular-nums; }
+  .sf-bilan { max-width: 1280px; margin: 18px auto 0; font-size: .86rem;
+              color: var(--texte-2); border-top: 1px solid var(--trait);
+              padding-top: 10px; }
+  .sf-bilan b { color: var(--texte); }
+  .sf-bilan h3 { color: var(--laiton); font-size: .93rem; margin: 12px 0 5px; }
+</style>
+</head>
+<body>
+
+<div class="sf-tete">
+  <h1>La simulation fidèle</h1>
+  <p class="sf-cite">« Tu rajoutes les deux, ainsi que les classiques absents,
+     qui sont des gestes de différents mouvements j’ai l’impression. Fais moi
+     une simulation fidèle ensuite. »</p>
+  <p><b>Fidèle veut dire ceci :</b> cette page charge le <b>vrai</b>
+     <code>model.js</code>, enrichit le <b>vrai</b> dictionnaire des 9 gestes,
+     et la recherche ci-dessous est la <b>vraie</b>
+     <code>fichesDuDictionnaire</code> — pas une copie. Si elle se comporte
+     mal ici, elle se comportera mal dans l’app.</p>
+  <p><b>Rien n’est écrit sur le disque.</b> L’enrichissement vit en mémoire,
+     le temps de la page.</p>
+  <p id="sfQuoi"></p>
+</div>
+
+<div class="sf-pages">
+  <button type="button" id="sfPage1" aria-pressed="true">1 · Ajouter un exercice</button>
+  <button type="button" id="sfPage2" aria-pressed="false">2 · La recherche</button>
+  <button type="button" id="sfPage3" aria-pressed="false">3 · Le Suivi</button>
+</div>
+
+<div id="sfVue1">
+  <div class="sf-rangee">
+    <div class="sf-tel">
+      <div class="sf-cadre" id="sfEcran"></div>
+      <p class="sf-aide">Largeur réelle d’un téléphone (340 px). Une maquette
+         large mentirait sur l’encombrement.</p>
+      <button type="button" class="sf-pb" id="sfVider" style="margin-top:8px">↺ Vider</button>
+    </div>
+    <div class="sf-cote">
+      <h2>Les 9 gestes ajoutés, et où ils tombent</h2>
+      <p>Tu avais raison : ils se rattachent à <b>cinq</b> fiches différentes — j’avais dit six sans compter.</p>
+      <div id="sfAjouts"></div>
+    </div>
+  </div>
+</div>
+
+<div id="sfVue2" hidden>
+  <div class="sf-cote" style="max-width:1280px;margin:0 auto;min-width:0">
+    <h2>La recherche — la vraie fonction, sur le dictionnaire enrichi</h2>
+    <p>Tape ce que tu taperais dans l’app. Le compte vient de
+       <code>fichesDuDictionnaire(état, saisie)</code>, celle que l’app
+       appelle.</p>
+    <div class="sf-barre">
+      <input type="search" id="sfQ" placeholder="curl, press, poulie, nuque…"
+             value="press">
+      <button type="button" class="sf-pb" id="sfQ1">curl</button>
+      <button type="button" class="sf-pb" id="sfQ2">poulie</button>
+      <button type="button" class="sf-pb" id="sfQ3">row</button>
+      <button type="button" class="sf-pb" id="sfQ4">nuque</button>
+      <button type="button" class="sf-pb" id="sfQ5">traction</button>
+    </div>
+    <div id="sfRech"></div>
+    <h2 style="margin-top:18px">Ce que les 9 gestes changent à la recherche</h2>
+    <div id="sfDelta"></div>
+  </div>
+</div>
+
+<div id="sfVue3" hidden>
+  <div class="sf-cote" style="max-width:1280px;margin:0 auto;min-width:0">
+    <h2>Le Suivi — avant et après le regroupement</h2>
+    <p>Mesuré sur un carnet de démonstration construit ici même : six séances
+       où le même mouvement est fait avec des engins différents.</p>
+    <div id="sfSuivi"></div>
+  </div>
+</div>
+
+<p class="sf-bilan" id="sfBilan"></p>
+
+<script src="js/store.js"></script>
+<script src="js/model.js"></script>
+<script src="js/ui.js"></script>
+<script src="revue/variantes.js"></script>
+<script src="revue/classement-noms.js"></script>
+<script src="revue/explications-gestes.js"></script>
+<script src="revue/gestes-ajoutes.js"></script>
+<script>
+(function (A) {
+  'use strict';
+  var m = A.m, S = A.store, V = A.variantes;
+  /* NOTRE PROPRE `h`, et c'est deliberе : la vraie `A.ui.h` de l'app ne
+     gere pas `html` — elle le pose comme ATTRIBUT, donc invisible, et le
+     pied de l'ecran rendait vide. Lu dans js/ui.js. La fidelite de cette
+     page tient au CSS et aux classes reelles, pas a ce helper. */
+  var h = function (tag, attrs, kids) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (k) {
+      if (k) e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    });
+    return e;
+  };
+  var etat = S.vide();
+
+  /* ================= 1. MESURER AVANT D'ENRICHIR =================
+     On prend les comptes AVANT de toucher au dictionnaire, sinon le
+     « delta » de la page 2 ne mesure rien. C'est le piege du controle qui
+     ne peut pas tomber : un avant pris apres n'est pas un avant. */
+  /* DEUX FAMILLES, et la distinction est le coeur de la mesure.
+
+     MOTS_NEUFS : propres aux gestes ajoutes. Ils DOIVENT passer de 0 a 1 ;
+     s'ils restent a 0, l'ajout n'a pas pris et la page le dira en rouge.
+
+     MOTS_COMMUNS : deja portes par des fiches existantes. Ils ne PEUVENT
+     pas bouger — « traction » rendait deja Pull up. Les afficher comme un
+     delta serait un controle qui ne peut pas tomber ; ils ont leur propre
+     tableau, qui dit pourquoi. */
+  var MOTS_NEUFS = ['pendlay', 'yates', 'commando', 'archer', 'l-sit',
+                    'z press', 'push press', 'floor press',
+                    'derriere le dos'];
+  /* « STRICT PRESS » N'EST PAS DANS CETTE LISTE, et c'est mesure : il
+     rendait 1 avant et 1 apres, donc le controle le declarait en ECHEC. Il
+     avait tort. « Strict press » existe DEJA comme ecriture depuis
+     toujours — ce qui change, c'est son CLASSEMENT : il repasse de
+     synonyme a geste parce que le push press entre. Un mot deja present ne
+     peut pas passer de 0 a 1, et l'exiger etait un controle qui tombe sur
+     un travail juste. Son effet se verifie a l'ETAGE 2, pas a la
+     recherche. */
+  var RECLASSE = 'Strict press';
+  var MOTS_COMMUNS = ['curl', 'press', 'poulie', 'nuque', 'row', 'traction',
+                      'haltere', 'banc', 'wrist', 'rowing'];
+  var MOTS = MOTS_NEUFS.concat(MOTS_COMMUNS);
+  var AVANT = {};
+  MOTS.forEach(function (q) {
+    AVANT[q] = (m.fichesDuDictionnaire(etat, q) || []).length;
+  });
+  var AVANT_FICHES = (m.DICTIONNAIRE || []).length;
+  var AVANT_ECRITURES = (m.DICTIONNAIRE || []).reduce(function (n, f) {
+    return n + 1 + (f.aussi || []).length; }, 0);
+
+  /* ================= 2. ENRICHIR LE VRAI DICTIONNAIRE =================
+     En mémoire seulement. Chaque ajout est VÉRIFIÉ : la fiche existe, le
+     nom est libre. Un ajout qui échoue est COMPTÉ et dit, pas avalé — une
+     simulation qui perd un ajout en silence ment sur ce qu'elle montre. */
+  var AJ = (A.gestesAjoutes && A.gestesAjoutes.AJOUTS) || [];
+  var poses = [], rates = [];
+  AJ.forEach(function (g) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === g.fiche; })[0];
+    if (!f) { rates.push(g.nom + ' : fiche « ' + g.fiche + ' » absente'); return; }
+    var tous = [g.nom].concat(g.aussi || []);
+    var collision = tous.filter(function (n) {
+      return !!m.ficheDictionnaire(n, etat); });
+    if (collision.length) {
+      rates.push(g.nom + ' : « ' + collision.join(', ') + ' » déjà pris');
+      return;
+    }
+    f.aussi = (f.aussi || []).concat(tous);
+    poses.push(g);
+  });
+
+  /* le classement : les 9 ajoutés sont des GESTES, et leurs `aussi` des
+     synonymes. Plus « Strict press », que le push press fait remonter. */
+  var CLASSE = {};
+  poses.forEach(function (g) {
+    CLASSE[g.fiche + ' § ' + g.nom] = 'geste';
+    (g.aussi || []).forEach(function (n) { CLASSE[g.fiche + ' § ' + n] = 'syn'; });
+  });
+  var RSS = (A.gestesAjoutes && A.gestesAjoutes.REND_SON_STATUT) || {};
+  var pushPresseEntre = poses.some(function (g) { return g.nom === 'Push press'; });
+  if (pushPresseEntre) {
+    Object.keys(RSS).forEach(function (id) { CLASSE[id] = RSS[id].code; });
+  }
+
+  function codeDe(fiche, nom) {
+    var id = fiche + ' § ' + nom;
+    if (CLASSE[id]) return CLASSE[id];
+    var pr = A.classementNoms && A.classementNoms.PLAT[id];
+    return (pr && pr.code) || 'syn';
+  }
+  function explDe(nom) {
+    var g = poses.filter(function (x) { return x.nom === nom; })[0];
+    if (g) return g;
+    var r = Object.keys(RSS).filter(function (id) {
+      return id.split(' § ')[1] === nom; })[0];
+    if (r && pushPresseEntre) return RSS[r];
+    return (A.explicationsGestes && A.explicationsGestes.E[nom]) || null;
+  }
+  function estNeuf(nom) {
+    return poses.some(function (x) { return x.nom === nom; })
+        || (pushPresseEntre && Object.keys(RSS).some(function (id) {
+             return id.split(' § ')[1] === nom; }));
+  }
+
+  var APRES = {};
+  MOTS.forEach(function (q) {
+    APRES[q] = (m.fichesDuDictionnaire(etat, q) || []).length;
+  });
+  var APRES_ECRITURES = (m.DICTIONNAIRE || []).reduce(function (n, f) {
+    return n + 1 + (f.aussi || []).length; }, 0);
+
+  /* ================= L'ÉCRAN « AJOUTER UN EXERCICE » ================= */
+  var MATERIEL = [
+    { cat: 'Barres', items: [{ nom: 'Barre' }, { nom: 'Barre EZ' },
+      { nom: 'Barre guidée' }, { nom: 'Landmine' }] },
+    { cat: 'Poids libres', items: [{ nom: 'Haltères' }, { nom: 'Kettlebell' },
+      { nom: 'Disque' }] },
+    { cat: 'Câbles et résistance', items: [
+      { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
+      { nom: 'Élastique' }, { nom: 'Machine' }] },
+    { cat: 'Appuis', items: [
+      { nom: 'Banc', reglages: ['plat', 'incliné 15°', 'incliné 30°',
+                                'incliné 45°', 'décliné'] },
+      { nom: 'Pupitre' }, { nom: 'Chaise' }, { nom: 'Barre fixe' },
+      { nom: 'Au sol' }] },
+    { cat: 'Position du corps', items: [{ nom: 'Debout' }, { nom: 'Assis' },
+      { nom: 'Couché' }, { nom: 'À genoux' }, { nom: 'Unilatéral' }] }
+  ];
+  var AW_TOUS = (m.OUTILS_CONNUS || []).map(function (t) {
+    return { nom: (t.mots && t.mots[0]) || '?', entrees: t.entrees || [],
+             ajoutable: !(t.entrees && t.entrees.length) };
+  });
+  var AW_AJOUTABLES = AW_TOUS.filter(function (t) { return t.ajoutable; });
+
+  var ex = { nom: 'Pull up', variante: null, mat: [], aw: [] };
+
+  function autresNoms(f) {
+    var pris = {};
+    V.variantesDe(f).forEach(function (v) {
+      (v.ecritures || []).forEach(function (e) { pris[e] = 1; });
+    });
+    return (f.aussi || []).filter(function (e) { return !pris[e]; });
+  }
+
+  function etage(n, titre, note, cls) {
+    var z = h('div', { class: 'sf-etage' + (cls || '') });
+    var t = h('p', { class: 'sf-num' }, [document.createTextNode(n + ' —'),
+                                         h('b', { text: titre })]);
+    if (note) t.appendChild(h('small', { text: note }));
+    z.appendChild(t);
+    return z;
+  }
+  function puces(liste, onClic, actif, classeDe) {
+    var c = h('div', { class: 'puces' });
+    liste.forEach(function (x) {
+      var nom = typeof x === 'string' ? x : x.nom;
+      var b = h('button', { class: 'puce' + (classeDe ? classeDe(x) : ''),
+        type: 'button' });
+      b.appendChild(document.createTextNode(nom));
+      if (estNeuf(nom)) b.appendChild(h('span', { class: 'sf-neuf', text: 'NEUF' }));
+      if (actif && actif(x)) b.setAttribute('aria-pressed', 'true');
+      b.addEventListener('click', function () { onClic(x); });
+      c.appendChild(b);
+    });
+    return c;
+  }
+
+  function rendreEcran() {
+    var ec = document.getElementById('sfEcran');
+    ec.innerHTML = '';
+    ec.appendChild(h('div', { class: 'panneau-entete' },
+      [h('b', { text: 'Ajouter un exercice' })]));
+
+    /* 1 — l'exercice */
+    var e1 = etage('1', 'L’exercice', 'le nom reste simple');
+    var champ = h('input', { class: 'champ', type: 'text', value: ex.nom });
+    champ.addEventListener('change', function () {
+      ex.nom = champ.value; ex.variante = null; ex.aw = []; rendreEcran();
+    });
+    e1.appendChild(champ);
+    e1.appendChild(puces(['Pull up', 'Développé militaire', 'Rowing',
+                          'Wrist curl', 'Développé couché', 'Cup hold'],
+      function (n) { ex.nom = n; ex.variante = null; ex.aw = []; rendreEcran(); },
+      function (n) { return ex.nom === n; }));
+    ec.appendChild(e1);
+
+    /* 2 — la façon de l'exécuter */
+    var fiche = (m.DICTIONNAIRE || []).filter(function (f) {
+      return f.nom === ex.nom; })[0];
+    var gestes = fiche ? autresNoms(fiche).filter(function (n) {
+      return codeDe(fiche.nom, n) === 'geste'; }) : [];
+    var e2 = etage('2', 'La façon de l’exécuter',
+      gestes.length ? gestes.length + ' connue(s)' : null);
+    if (!gestes.length) {
+      e2.appendChild(h('p', { class: 'sf-rien', text: fiche
+        ? 'Ce mouvement n’a pas d’autre façon connue.'
+        : 'Nom inconnu du dictionnaire.' }));
+    } else {
+      e2.appendChild(puces([null].concat(gestes).map(function (g) {
+        return g === null ? 'le mouvement simple' : g; }),
+        function (n) { ex.variante = (n === 'le mouvement simple') ? null : n;
+                       rendreEcran(); },
+        function (n) { return (n === 'le mouvement simple') ? !ex.variante
+                            : ex.variante === n; }));
+      var xp = ex.variante && explDe(ex.variante);
+      if (xp) {
+        var p = h('div', { class: 'sf-expl' });
+        p.appendChild(h('p', { html: '<b>Le geste.</b> ' + xp.faire }));
+        if (xp.change) p.appendChild(h('p', { html: '<b>Ce que ça change.</b> '
+          + xp.change }));
+        if (xp.garde) p.appendChild(h('p', { html:
+          '<b style="color:#ffcf8f">À savoir.</b> ' + xp.garde }));
+        p.appendChild(h('p', { class: 'sf-src',
+          text: 'cherché le 31/10 — ' + xp.source }));
+        e2.appendChild(p);
+      }
+    }
+    ec.appendChild(e2);
+
+    /* 3 — le matériel */
+    var e3 = etage('3', 'Matériel',
+      ex.mat.length ? ex.mat.length + ' posé(s)' : 'facultatif, cumulable');
+    if (ex.mat.length) {
+      e3.appendChild(puces(ex.mat.map(function (x) {
+        return x.nom + (x.reglage ? ' · ' + x.reglage : ''); }),
+        function (lib) {
+          ex.mat = ex.mat.filter(function (x) {
+            return (x.nom + (x.reglage ? ' · ' + x.reglage : '')) !== lib; });
+          rendreEcran();
+        }, function () { return true; },
+        function () { return ' puce-suggeree'; }));
+    }
+    MATERIEL.forEach(function (g) {
+      e3.appendChild(h('div', { class: 'sf-cat', text: g.cat }));
+      e3.appendChild(puces(g.items.filter(function (it) {
+        return !ex.mat.some(function (x) { return x.nom === it.nom; }); }),
+        function (it) {
+          ex.mat.push({ nom: it.nom, reglage: null, reglages: it.reglages });
+          rendreEcran();
+        }));
+    });
+    ex.mat.forEach(function (x, i) {
+      if (!x.reglages) return;
+      e3.appendChild(h('div', { class: 'sf-cat', text: x.nom + ' — réglage' }));
+      e3.appendChild(puces(x.reglages, function (v) {
+        ex.mat[i].reglage = (x.reglage === v) ? null : v; rendreEcran();
+      }, function (v) { return x.reglage === v; }));
+    });
+    ec.appendChild(e3);
+
+    /* 4 — l'équipement AW */
+    var propres = AW_TOUS.filter(function (t) {
+      return !t.ajoutable && t.entrees.indexOf(ex.nom) >= 0; });
+    var e4 = etage('4', 'Équipement AW',
+      ex.aw.length ? ex.aw.length + ' posé(s)' : 'facultatif', ' sf-aw');
+    if (ex.aw.length) {
+      e4.appendChild(puces(ex.aw, function (n) {
+        ex.aw = ex.aw.filter(function (x) { return x !== n; }); rendreEcran();
+      }, function () { return true; }, function () { return ' puce-aw'; }));
+    }
+    if (propres.length) {
+      e4.appendChild(h('div', { class: 'sf-cat',
+        text: 'Propre à ce mouvement (' + propres.length + ')' }));
+      e4.appendChild(puces(propres.filter(function (t) {
+        return ex.aw.indexOf(t.nom) < 0; }),
+        function (t) { ex.aw.push(t.nom); rendreEcran(); }));
+    }
+    e4.appendChild(h('div', { class: 'sf-cat',
+      text: 'S’ajoute à n’importe quoi (' + AW_AJOUTABLES.length + ')' }));
+    e4.appendChild(puces(AW_AJOUTABLES.filter(function (t) {
+      return ex.aw.indexOf(t.nom) < 0; }),
+      function (t) { ex.aw.push(t.nom); rendreEcran(); }));
+    ec.appendChild(e4);
+
+    /* le pied : ce qui s'enregistre */
+    var bits = [];
+    if (ex.mat.length) bits.push(ex.mat.map(function (x) {
+      return x.nom + (x.reglage ? ' (' + x.reglage + ')' : ''); }).join(' + '));
+    if (ex.aw.length) bits.push('AW : ' + ex.aw.join(' + '));
+    ec.appendChild(h('div', { class: 'sf-pied', html:
+      'Séance : <b>' + (ex.variante || ex.nom) + '</b>'
+      + (bits.length ? '<br><span style="color:var(--texte-2)">'
+         + bits.join(' — ') + '</span>' : '')
+      + '<br><span style="font-size:.77rem;color:var(--texte-2)">Suivi : '
+      + 'regroupé sous <b>' + ex.nom + '</b>.</span>' }));
+  }
+
+  document.getElementById('sfVider').addEventListener('click', function () {
+    ex.mat = []; ex.aw = []; ex.variante = null; rendreEcran();
+  });
+
+  /* ---- la colonne : les 9 ajoutés, groupés par fiche ---- */
+  (function () {
+    var z = document.getElementById('sfAjouts');
+    var parFiche = {};
+    poses.forEach(function (g) { (parFiche[g.fiche] = parFiche[g.fiche] || []).push(g); });
+    if (pushPresseEntre) {
+      (parFiche['Développé militaire'] = parFiche['Développé militaire'] || [])
+        .push({ nom: 'Strict press', retour: true });
+    }
+    Object.keys(parFiche).forEach(function (f) {
+      var b = h('div', { class: 'sf-res' });
+      var t = h('h3', {}, [document.createTextNode(f)]);
+      t.appendChild(h('small', { text: parFiche[f].length + ' geste(s)' }));
+      b.appendChild(t);
+      var c = h('div', { class: 'sf-corps' });
+      parFiche[f].forEach(function (g) {
+        c.appendChild(h('p', { style: 'margin:0 0 6px', html:
+          '<b>' + g.nom + '</b>'
+          + (g.retour
+             ? ' <span style="color:var(--laiton)">— redevient un geste, '
+               + 'parce que le push press entre</span>'
+             : ' <span class="sf-pourquoi">' + (g.change || '').slice(0, 150)
+               + '…</span>') }));
+      });
+      b.appendChild(c);
+      z.appendChild(b);
+    });
+    if (rates.length) {
+      var r = h('div', { class: 'sf-res' });
+      r.appendChild(h('h3', {}, [document.createTextNode('Ajouts refusés')]));
+      var rc = h('div', { class: 'sf-corps' });
+      rates.forEach(function (x) { rc.appendChild(h('p', { text: x })); });
+      r.appendChild(rc);
+      z.appendChild(r);
+    }
+  })();
+
+  /* ================= PAGE 2 : LA RECHERCHE ================= */
+  function rendreRecherche() {
+    var q = document.getElementById('sfQ').value.trim();
+    var z = document.getElementById('sfRech');
+    z.innerHTML = '';
+    if (!q) { z.appendChild(h('p', { class: 'sf-rien', text: 'Tape quelque chose.' })); return; }
+    var res = m.fichesDuDictionnaire(etat, q) || [];
+    z.appendChild(h('p', { class: 'sf-pourquoi', html:
+      '<em>' + res.length + '</em> fiche(s) sur ' + (m.DICTIONNAIRE || []).length
+      + ' — rendues par la vraie fonction de l’app.' }));
+    res.slice(0, 14).forEach(function (f) {
+      var b = h('div', { class: 'sf-res' });
+      var t = h('h3', {}, [document.createTextNode(f.nom)]);
+      var g = autresNoms(f).filter(function (n) {
+        return codeDe(f.nom, n) === 'geste'; });
+      t.appendChild(h('small', { text: f.groupe + ' · ' + g.length + ' geste(s)' }));
+      b.appendChild(t);
+      /* POURQUOI CETTE FICHE SORT : c'est la question de MB sur la
+         recherche. On montre le nom qui a fait mouche, pas juste la fiche. */
+      var sq = m.slug(q);
+      var causes = [f.nom].concat(f.aussi || []).filter(function (n) {
+        return m.slug(n).indexOf(sq) >= 0; });
+      var c = h('div', { class: 'sf-corps' });
+      c.appendChild(h('p', { style: 'margin:0', class: 'sf-pourquoi', html:
+        'trouvée par : ' + causes.slice(0, 5).map(function (n) {
+          return (estNeuf(n) ? '<em>' : '') + '« ' + n + ' »'
+               + (estNeuf(n) ? ' NEUF</em>' : ''); }).join(', ')
+        + (causes.length > 5 ? ' … et ' + (causes.length - 5) + ' autre(s)' : '') }));
+      b.appendChild(c);
+      z.appendChild(b);
+    });
+    if (res.length > 14) {
+      z.appendChild(h('p', { class: 'sf-rien',
+        text: '… et ' + (res.length - 14) + ' fiche(s) de plus.' }));
+    }
+  }
+  document.getElementById('sfQ').addEventListener('input', rendreRecherche);
+  [['sfQ1', 'curl'], ['sfQ2', 'poulie'], ['sfQ3', 'row'], ['sfQ4', 'nuque'],
+   ['sfQ5', 'traction']].forEach(function (p) {
+    document.getElementById(p[0]).addEventListener('click', function () {
+      document.getElementById('sfQ').value = p[1]; rendreRecherche();
+    });
+  });
+
+  /* le delta avant / après */
+  (function () {
+    var z = document.getElementById('sfDelta');
+
+    /* TABLEAU 1 — les mots qui DOIVENT bouger. Un zéro ici est un échec,
+       et la ligne le dit en rouge au lieu de se lire comme un succès. */
+    var rates0 = 0;
+    var t = h('table', { class: 'sf-t' });
+    t.appendChild(h('tr', {}, [h('th', { text: 'mot propre à un geste neuf' }),
+      h('th', { text: 'avant' }), h('th', { text: 'après' }),
+      h('th', { text: 'verdict' })]));
+    MOTS_NEUFS.forEach(function (q) {
+      var d = APRES[q] - AVANT[q];
+      if (d <= 0) rates0++;
+      t.appendChild(h('tr', {}, [
+        h('td', { text: q }),
+        h('td', { class: 'sf-n', text: String(AVANT[q]) }),
+        h('td', { class: 'sf-n', text: String(APRES[q]) }),
+        h('td', { html: d > 0
+          ? '<span style="color:#8fdcab">trouvé (+' + d + ')</span>'
+          : '<span style="color:#ff9b9b">ÉCHEC — l’ajout n’a pas pris</span>' })
+      ]));
+    });
+    z.appendChild(h('p', { class: 'sf-pourquoi', html:
+      'Ces ' + MOTS_NEUFS.length + ' mots n’existaient nulle part avant. <em>'
+      + (MOTS_NEUFS.length - rates0) + ' sur ' + MOTS_NEUFS.length
+      + '</em> sont trouvés maintenant.'
+      + (rates0 ? ' <b style="color:#ff9b9b">' + rates0 + ' en échec.</b>' : '') }));
+    z.appendChild(t);
+
+    /* TABLEAU 2 — les mots qui NE PEUVENT PAS bouger, et pourquoi. */
+    var t2 = h('table', { class: 'sf-t' });
+    t2.appendChild(h('tr', {}, [h('th', { text: 'mot déjà porté' }),
+      h('th', { text: 'avant' }), h('th', { text: 'après' }),
+      h('th', { text: 'pourquoi c’est normal' })]));
+    /* la ligne du reclasse, avec sa vraie preuve : l'etage 2 */
+    (function () {
+      var f = (m.DICTIONNAIRE || []).filter(function (x) {
+        return x.nom === 'Développé militaire'; })[0];
+      var estGeste = f && codeDe(f.nom, RECLASSE) === 'geste';
+      t2.appendChild(h('tr', {}, [
+        h('td', { html: '<b>' + RECLASSE + '</b>' }),
+        h('td', { class: 'sf-n', text: String(AVANT['press']) }),
+        h('td', { class: 'sf-n', text: String(APRES['press']) }),
+        h('td', { html: 'déjà présent — ce qui change est son <b>classement</b> : '
+          + (estGeste
+             ? '<span style="color:#8fdcab">il est geste à l’étage 2</span>'
+             : '<span style="color:#ff9b9b">il est resté synonyme — ÉCHEC</span>') })
+      ]));
+    })();
+    MOTS_COMMUNS.forEach(function (q) {
+      var d = APRES[q] - AVANT[q];
+      t2.appendChild(h('tr', {}, [
+        h('td', { text: q }),
+        h('td', { class: 'sf-n', text: String(AVANT[q]) }),
+        h('td', { class: 'sf-n', html: APRES[q]
+          + (d ? ' <span style="color:var(--laiton)">(+' + d + ')</span>' : '') }),
+        h('td', { text: d
+          ? 'une fiche qui ne sortait pas sort maintenant'
+          : 'la recherche compte des FICHES : celles-ci sortaient déjà' })
+      ]));
+    });
+    z.appendChild(h('p', { class: 'sf-pourquoi', style: 'margin-top:14px',
+      html: 'Ceux-là ne bougent pas, et <em>c’est attendu</em> : la recherche '
+      + 'rend des FICHES. « Traction commando » entre dans la fiche « Pull '
+      + 'up », que le mot « traction » faisait déjà sortir.' }));
+    z.appendChild(t2);
+    z.appendChild(h('p', { class: 'sf-aide', html:
+      'Le dictionnaire passe de <b>' + AVANT_ECRITURES + '</b> à <b>'
+      + APRES_ECRITURES + '</b> écritures, pour <b>' + AVANT_FICHES
+      + '</b> fiches inchangées — les 9 gestes se rattachent à des fiches '
+      + 'existantes, aucune n’est créée.<br><br><b>ET VOICI CE QUE LA '
+      + 'RECHERCHE NE GAGNE PAS,</b> parce qu’il faut le dire : les quatre '
+      + 'étages ne la simplifient pas. « poulie » rendait <b>' + AVANT.poulie
+      + '</b> fiches sur ' + AVANT_FICHES + ' avant, et en rend <b>'
+      + APRES.poulie + '</b> maintenant. Les écritures d’engin restent dans '
+      + 'le dictionnaire pour que tu puisses taper ces mots. Le gain des '
+      + 'quatre étages est dans le <b>Suivi</b>, pas dans la recherche.' }));
+  })();
+
+  /* ================= PAGE 3 : LE SUIVI ================= */
+  (function () {
+    var z = document.getElementById('sfSuivi');
+    /* un carnet de six seances, le meme mouvement avec des engins differents */
+    var DEMO = [
+      { nom: 'Curl à la poulie', base: 'Curl biceps', mat: 'Poulie', poids: 22 },
+      { nom: 'Curl barre', base: 'Curl biceps', mat: 'Barre', poids: 35 },
+      { nom: 'Curl haltères', base: 'Curl biceps', mat: 'Haltères', poids: 14 },
+      { nom: 'Curl au pupitre', base: 'Curl biceps', mat: 'Pupitre', poids: 30 },
+      { nom: 'Spider curl', base: 'Curl biceps', mat: 'Banc (incliné 45°)', poids: 12 },
+      { nom: 'Curl barre EZ', base: 'Curl biceps', mat: 'Barre EZ', poids: 32 }
+    ];
+    var t = h('table', { class: 'sf-t' });
+    t.appendChild(h('tr', {}, [h('th', { text: 'Aujourd’hui — Suivi' }),
+      h('th', { text: 'charge' }), h('th', { text: 'historique' })]));
+    DEMO.forEach(function (d) {
+      t.appendChild(h('tr', {}, [h('td', { text: d.nom }),
+        h('td', { class: 'sf-n', text: d.poids + ' kg' }),
+        h('td', { text: '1 ligne — isolée' })]));
+    });
+    z.appendChild(t);
+
+    var t2 = h('table', { class: 'sf-t' });
+    t2.appendChild(h('tr', {}, [h('th', { text: 'Avec les quatre étages' }),
+      h('th', { text: 'charge' }), h('th', { text: 'historique' })]));
+    t2.appendChild(h('tr', {}, [
+      h('td', { html: '<b>Curl biceps</b>' }),
+      h('td', { class: 'sf-n', text: '12 à 35 kg' }),
+      h('td', { html: '<b>6 séances</b>, filtrables par matériel' })]));
+    DEMO.forEach(function (d) {
+      t2.appendChild(h('tr', {}, [
+        h('td', { html: '&nbsp;&nbsp;↳ <span style="color:var(--texte-2)">'
+          + d.mat + (d.nom === 'Spider curl' ? ' · <i>spider curl</i>' : '')
+          + '</span>' }),
+        h('td', { class: 'sf-n', text: d.poids + ' kg' }),
+        h('td', { text: '—' })]));
+    });
+    z.appendChild(t2);
+    z.appendChild(h('p', { class: 'sf-aide', html:
+      '<b>C’est là qu’est le gain, et il est entier.</b> Six lignes séparées '
+      + 'deviennent un mouvement avec six séances. Une progression devient '
+      + 'lisible ; aujourd’hui elle est coupée en six morceaux d’une ligne. '
+      + '<br><br><b>Et c’est là qu’est le prix</b> : la charge n’est plus '
+      + 'comparable d’une ligne à l’autre — 12 kg au spider curl ne se '
+      + 'compare pas à 35 kg à la barre. Un Suivi qui mélangerait les deux '
+      + 'afficherait une progression fausse. C’est pour ça que le filtre par '
+      + 'matériel n’est pas un confort : c’est une condition.' }));
+  })();
+
+  /* ---- les trois pages ---- */
+  function page(n) {
+    [1, 2, 3].forEach(function (i) {
+      document.getElementById('sfVue' + i).hidden = i !== n;
+      document.getElementById('sfPage' + i)
+        .setAttribute('aria-pressed', i === n ? 'true' : 'false');
+    });
+  }
+  [1, 2, 3].forEach(function (i) {
+    document.getElementById('sfPage' + i)
+      .addEventListener('click', function () { page(i); });
+  });
+
+  document.getElementById('sfQuoi').innerHTML =
+    '<b>' + poses.length + '</b> gestes posés sur <b>'
+    + Object.keys(poses.reduce(function (o, g) { o[g.fiche] = 1; return o; }, {})).length
+    + '</b> fiches'
+    + (rates.length ? ', <b style="color:#ff9b9b">' + rates.length
+       + ' refusé(s)</b>' : ', aucun refusé')
+    + (pushPresseEntre ? ', plus « Strict press » qui redevient un geste' : '')
+    + '. Le dictionnaire passe de <b>' + AVANT_ECRITURES + '</b> à <b>'
+    + APRES_ECRITURES + '</b> écritures, sur <b>' + AVANT_FICHES
+    + '</b> fiches inchangées.';
+
+  document.getElementById('sfBilan').innerHTML =
+    '<h3>Ce que cette simulation prouve, et ce qu’elle ne prouve pas</h3>'
+    + '<b>Elle prouve</b> que les 9 gestes entrent sans collision — la page '
+    + 'refuse et COMPTE tout ajout dont le nom serait déjà pris, et elle en '
+    + 'a refusé <b>' + rates.length + '</b> — et que la vraie recherche les '
+    + 'trouve, puisque c’est elle qui tourne ici.'
+    + '<br><br><b>Elle ne prouve pas</b> que l’app se comporte ainsi : l’app '
+    + 'n’a PAS les quatre étages, son écran « Ajouter un exercice » est '
+    + 'encore l’ancien. Cette page montre le rendu VOULU sur des données '
+    + 'RÉELLES, ce qui est autre chose qu’une app modifiée. Rien n’est écrit '
+    + 'sur le disque.'
+    + '<h3>Le point où je ne te suis pas encore</h3>'
+    + 'Les 9 gestes sont posés en mémoire, mais <b>le dictionnaire du disque '
+    + 'ne les a pas</b>. Les écrire pour de bon veut dire toucher '
+    + '<code>js/model.js</code>, qui porte déjà tes décisions d’hier non '
+    + 'commitées et dont deux contrôles du banc sont rouges. Je ne mélange '
+    + 'pas les deux chantiers sans que tu le dises.';
+
+  rendreEcran();
+  rendreRecherche();
+})(window.App);
+</script>
+</body>
+</html>
