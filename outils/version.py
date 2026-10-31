@@ -10,13 +10,13 @@ correctif est bien livré.
     sw.js            le nom du cache                            1
     js/app.js        window.APP_VERSION, affiché dans Réglages  1
 
-                                                        total 18
+                                                        total 19
 
 Usage :
     python outils/version.py            lit et vérifie la cohérence
     python outils/version.py 1.1.0      pose 1.1.0 partout
 
-Le compte est imprimé à chaque fois : un total qui n'est pas 18 veut dire
+Le compte est imprimé à chaque fois : un total qui n'est pas 19 veut dire
 qu'un fichier a bougé et que ce script doit être relu, pas contourné.
 
 Il a déjà refusé d'écrire une fois, à l'arrivée de js/vue-recup.js : c'est ce
@@ -27,7 +27,7 @@ import os
 import re
 import sys
 
-ATTENDU = 18
+ATTENDU = 19   # 18 jusqu'au 31/10 ; +1 pour js/gestes.js
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

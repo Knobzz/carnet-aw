@@ -5708,12 +5708,16 @@
     v.egal(ratees.join(' · '), '',
            'les noms de la page mènent tous à « Écarté » — ils ne rendaient '
          + 'RIEN, ou « Pectoral » tout seul');
-    v.egal((fiche('Svend press') || {}).nom, undefined,
-           '[prix] et « Svend press » ne mène plus nulle part, depuis que MB '
-         + 'l’a sorti de l’écarté le 30/10 : c’est un développé. ET IL N’AURA '
-         + 'PAS DE FICHE — aucune EMG n’existe, StrengthLog n’a même pas de '
-         + 'page, et MB a tranché « pas de fiche » plutôt que d’inventer des '
-         + 'muscles. État VOULU, pas oublié');
+    /* MB A CHANGE D'AVIS LE 31/10, et c'est l'architecture qui l'a permis.
+       Le 30/10 il tranchait « pas de fiche » : lui en donner une voulait
+       dire lui INVENTER des muscles, puisque aucune EMG n'existe. Le
+       31/10 : « rajoute la svend press dans les gestes ». Devenu GESTE du
+       developpe serre, il herite des muscles de sa fiche et n'en invente
+       aucun — le probleme qui motivait le refus a disparu. */
+    v.egal((fiche('Svend press') || {}).nom, 'Développé serré',
+           '« Svend press » mène au développé serré depuis le 31/10 : il en '
+         + 'est un GESTE, à côté du hex press, et hérite de ses muscles au '
+         + 'lieu d’en inventer');
 
     /* ---- LE DEVELOPPE SERRE N'EST PAS DEDOUBLE ----
        MB : « attention aux doublons ». Il gagne trois ecritures. */

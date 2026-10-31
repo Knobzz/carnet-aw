@@ -1278,7 +1278,7 @@
        et les 2 qui restent sont celui-là. */
     { nom: 'Wrist curl', groupe: 'avant_bras',
       /* LES ENGINS, ajoutes le 29/10 : ils ne changent que le nom. */
-      aussi: ['Flexion du poignet', 'Wrist curl à la poulie', 'Cable wrist curl', 'Wrist curl à la barre', 'Barbell wrist curl', 'Wrist curl avec haltères', 'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
+      aussi: ['Wrist curl derrière le dos', 'Behind the back wrist curl', 'Flexion du poignet derrière le dos', 'Behind the back barbell wrist curl', 'Flexion du poignet', 'Wrist curl à la poulie', 'Cable wrist curl', 'Wrist curl à la barre', 'Barbell wrist curl', 'Wrist curl avec haltères', 'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl côté pouce', groupe: 'avant_bras',
@@ -1440,7 +1440,7 @@
        geste sur un autre engin. Ses muscles ne bougent pas — ce lot ne les
        a pas remesures. */
     { nom: 'Développé militaire', groupe: 'epaules',
-      aussi: ['Développé épaule unilatéral à genoux à la landmine', 'Développé épaules debout à la landmine', 'Développé épaules assis avec élastique', 'Développé épaule unilatéral avec élastique', 'Overhead press', 'Développé épaules', 'Shoulder press', 'Développé militaire debout', 'Military press', 'Strict press', 'Développé épaules assis', 'Développé épaules avec haltères', 'Développé épaules à la machine', 'Développé épaule avec kettlebell', 'Développé épaules avec élastique', 'Développé épaules à la barre guidée', 'Presse à épaules inclinée', 'Développé nuque', 'Développé nuque à la barre guidée', 'Behind the neck press'],
+      aussi: ['Z press', 'Développé assis au sol', 'Push press', 'Développé avec élan', 'Développé épaule unilatéral à genoux à la landmine', 'Développé épaules debout à la landmine', 'Développé épaules assis avec élastique', 'Développé épaule unilatéral avec élastique', 'Overhead press', 'Développé épaules', 'Shoulder press', 'Développé militaire debout', 'Military press', 'Strict press', 'Développé épaules assis', 'Développé épaules avec haltères', 'Développé épaules à la machine', 'Développé épaule avec kettlebell', 'Développé épaules avec élastique', 'Développé épaules à la barre guidée', 'Presse à épaules inclinée', 'Développé nuque', 'Développé nuque à la barre guidée', 'Behind the neck press'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     /* ---------- LES PECTORAUX (lot 9) ----------
 
@@ -1468,13 +1468,13 @@
       aussi: ['Écartés unilatéraux à la landmine', 'Écartés couché à la poulie vis-à-vis', 'Écartés couché avec haltères', 'Écartés incliné avec haltères', 'Écartés décliné avec haltères', 'Écartés Hyght', 'Écarté unilatéral à la poulie', 'Écartés à la poulie haute', 'Écartés à la poulie vis-à-vis', 'Écartés à la poulie vis-à-vis haute à genoux', 'Écartés inclinés à la machine', 'Écartés avec élastique', 'Pec deck', 'Butterfly à la machine', 'Chest fly'],
       muscles: ['grand_pectoral', 'deltoide', 'coraco_brachial'] },
     { nom: 'Développé couché', groupe: 'pectoraux',
-      aussi: ['Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
+      aussi: ['Développé au sol', 'Floor press', 'Développé couché au sol', 'Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Développé serré', groupe: 'triceps',
       /* LE HEX PRESS ENTRE AU LOT 9, et ce n'est PAS un écarté : deux
          haltères serrés l'un contre l'autre, le coude travaille et le
          triceps mène. Il ne rendait que « Pectoral ». */
-      aussi: ['Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée', 'Hex press', 'Hex press à la barre guidée', 'Développé couché serré avec haltères'],
+      aussi: ['Svend press', 'Plate press', 'Développé avec disques', 'Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée', 'Hex press', 'Hex press à la barre guidée', 'Développé couché serré avec haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Dips prise large', groupe: 'pectoraux',
       aussi: ['Dips pectoraux', 'Dips buste penché'],
@@ -1521,7 +1521,7 @@
          difference SERAIT — bras derriere le corps etire la longue portion,
          bras devant la raccourcit — est ecrit sur la planche, pas simule
          dans les muscles. Meme traitement qu'aux lots 5 et 7. */
-      aussi: ['Curl haltère incliné avec rotation', 'Curl allongé à la poulie', 'Curl overhead avec élastique', 'Curl haltère debout sur banc incliné', 'Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ', 'Curl debout', 'Curl à la poulie', 'Cable curl', 'Curl incliné', 'Incline curl', 'Spider curl', 'Drag curl', 'Bayesian curl', 'Waiter curl'],
+      aussi: ['Curl alterné', 'Curl biceps alterné', 'Curl croisé', 'Curl biceps croisé', 'Cross body curl', 'Curl haltère incliné avec rotation', 'Curl allongé à la poulie', 'Curl overhead avec élastique', 'Curl haltère debout sur banc incliné', 'Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ', 'Curl debout', 'Curl à la poulie', 'Cable curl', 'Curl incliné', 'Incline curl', 'Spider curl', 'Drag curl', 'Bayesian curl', 'Waiter curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl concentré', groupe: 'biceps',
       aussi: ['Concentration curl', 'Curl concentré à la poulie', 'Curl concentré avec élastique'],
@@ -1590,7 +1590,7 @@
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
                 'biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Traction', groupe: 'dos',
-      aussi: ['Pull up', 'Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Traction pronée'],
+      aussi: ['Traction négative', 'Tractions négatives', 'Traction excentrique', 'Traction nuque', 'Behind the neck pull up', 'Traction L-sit', 'L-sit pull up', 'Traction jambes tendues', 'Traction archer', 'Archer pull up', 'Traction commando', 'Commando pull up', 'Traction prise mixte sur la barre', 'Pull up', 'Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Traction pronée'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
                 'biceps', 'brachial', 'brachio_radial'] },
     /* ---------- LES DORSAUX (lot 8) ----------
@@ -1617,7 +1617,7 @@
          fiche décrivait la traction du bras sans la rétraction qui la rend
          possible. Le tirage VERTICAL, lui, ne rétracte pas : il garde ses
          quatre, et c'est ce qui les sépare. */
-      aussi: ['Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère', 'Rowing buste penché', 'Seal row avec haltères'],
+      aussi: ['Rowing prise neutre', 'Rowing en prise neutre', 'Rowing inversé', 'Inverted row', 'Traction australienne', 'Australian pull up', 'Yates row', 'Rowing Yates', 'Rowing en supination', 'Pendlay row', 'Rowing Pendlay', 'Rowing départ au sol', 'Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère', 'Rowing buste penché', 'Seal row avec haltères'],
       muscles: ['grand_dorsal', 'grand_rond', 'trapeze', 'rhomboides',
                 'biceps', 'brachial'] },
     /* SIX NOMS DE LA PAGE, UNE SEULE FICHE. Et il lui manque le DENTELÉ
@@ -1660,7 +1660,7 @@
        l'ajouter ici serait une attribution que MB n'a pas vue sur la
        planche. Elle ira au lot suivant. */
     { nom: 'Élévation latérale', groupe: 'epaules',
-      aussi: ['Élévations latérales à la landmine', 'Élévation latérale debout à la machine', 'Élévations latérales unilatérales à la poulie', 'Lateral raise', 'Élévation latérale à la poulie', 'Élévations latérales inclinées avec haltère', 'Élévation latérale à la poulie en inclinaison', 'Élévations latérales à la poulie', 'Élévations latérales à la machine', 'Élévations latérales avec kettlebell'],
+      aussi: ['Élévation latérale bras fléchi', 'Bent-arm lateral raise', 'Élévation latérale coude plié', 'Élévations latérales à la landmine', 'Élévation latérale debout à la machine', 'Élévations latérales unilatérales à la poulie', 'Lateral raise', 'Élévation latérale à la poulie', 'Élévations latérales inclinées avec haltère', 'Élévation latérale à la poulie en inclinaison', 'Élévations latérales à la poulie', 'Élévations latérales à la machine', 'Élévations latérales avec kettlebell'],
       muscles: ['deltoide'] },
 
     /* ================= LOT 6 — LES ÉPAULES, validé le 2026-10-29 =========

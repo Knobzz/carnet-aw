@@ -487,7 +487,7 @@
     {
       id: 'wrist-curl',
       nom: 'Wrist curl',
-      aussi: ['Flexion du poignet', 'Wrist curl à la poulie',
+      aussi: ['Wrist curl derrière le dos', 'Behind the back wrist curl', 'Flexion du poignet derrière le dos', 'Behind the back barbell wrist curl', 'Flexion du poignet', 'Wrist curl à la poulie',
               'Cable wrist curl', 'Wrist curl à la barre',
               'Barbell wrist curl', 'Wrist curl avec haltères',
               'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
@@ -909,7 +909,7 @@
          portait deja « Curl incline », « Spider curl » et « Drag curl » —
          ouvrir « Curl spider » ou « Curl incline » aurait ete le doublon que
          MB signale a chaque lot depuis le septieme. */
-      aussi: ['Curl haltères', 'Curl barre', 'Curl barre EZ',
+      aussi: ['Curl croisé', 'Curl biceps croisé', 'Cross body curl', 'Curl alterné', 'Curl biceps alterné', 'Curl haltères', 'Curl barre', 'Curl barre EZ',
               'Curl EZ', 'Curl debout', 'Curl à la poulie', 'Cable curl',
               'Curl incliné', 'Incline curl', 'Spider curl', 'Curl araignée',
               'Drag curl', 'Curl 21', 'Bayesian curl',
@@ -1268,7 +1268,7 @@
     {
       id: 'developpe-militaire',
       nom: 'Développé militaire',
-      aussi: ['Overhead press', 'Développé épaules', 'Shoulder press',
+      aussi: ['Push press', 'Développé avec élan', 'Z press', 'Développé assis au sol', 'Overhead press', 'Développé épaules', 'Shoulder press',
               'Développé militaire debout', 'Military press',
               'Strict press', 'Développé épaules assis',
               'Développé épaules avec haltères',
@@ -1324,7 +1324,7 @@
               'Écartés inclinés à la machine', 'Écartés avec élastique',
               'Écartés unilatéraux à la landmine',
               'Pec deck', 'Butterfly à la machine', 'Butterfly',
-              'Chest fly', 'Svend press'],
+              'Chest fly'],
       geste: 'Allongé ou debout, bras ÉCARTÉS et coudes à peine fléchis : '
            + 'les mains se rejoignent devant la poitrine sans que le coude '
            + 'ne travaille.',
@@ -1361,7 +1361,7 @@
     {
       id: 'developpe-couche',
       nom: 'Développé couché',
-      aussi: ['Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
+      aussi: ['Développé au sol', 'Floor press', 'Développé couché au sol', 'Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
       geste: 'Allongé, la barre descend sur la poitrine et remonte bras '
            + 'tendus.',
       muscles: [
@@ -1439,7 +1439,7 @@
     {
       id: 'traction',
       nom: 'Traction',
-      aussi: ['Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Pull up', 'Traction', 'Traction pronée'],
+      aussi: ['Traction commando', 'Commando pull up', 'Traction prise mixte sur la barre', 'Traction archer', 'Archer pull up', 'Traction L-sit', 'L-sit pull up', 'Traction jambes tendues', 'Traction nuque', 'Behind the neck pull up', 'Traction négative', 'Tractions négatives', 'Traction excentrique', 'Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Pull up', 'Traction', 'Traction pronée'],
       geste: 'Suspendu à la barre, le corps monte jusqu’à ce que le menton '
            + 'passe.',
       muscles: [
@@ -1609,7 +1609,7 @@
          donc la traction du bras sans la rétraction qui la rend possible.
          « Tirage vertical », lui, ne rétracte pas : il reste tel quel, et
          c'est volontaire — la différence est là. */
-      aussi: ['Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère',
+      aussi: ['Pendlay row', 'Rowing Pendlay', 'Rowing départ au sol', 'Yates row', 'Rowing Yates', 'Rowing en supination', 'Rowing inversé', 'Inverted row', 'Traction australienne', 'Australian pull up', 'Rowing prise neutre', 'Rowing en prise neutre', 'Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère',
               'Rowing buste penché', 'Seal row avec haltères',
               'Renegade row'],
       geste: 'Buste penché, la charge est tirée vers le ventre, coudes le '
@@ -1787,7 +1787,7 @@
     {
       id: 'elevation-laterale',
       nom: 'Élévation latérale',
-      aussi: ['Lateral raise', 'Élévations latérales',
+      aussi: ['Élévation latérale bras fléchi', 'Bent-arm lateral raise', 'Élévation latérale coude plié', 'Lateral raise', 'Élévations latérales',
               'Side lateral raise', 'Élévation latérale à la poulie',
               'Élévations latérales inclinées avec haltère',
               'Élévation latérale à la poulie en inclinaison',
@@ -1869,7 +1869,7 @@
       /* LE HEX PRESS ENTRE AU LOT 9 : deux haltères serrés l'un contre
          l'autre, c'est un developpe PRISE SERREE, pas un ecarte — le coude
          travaille, et le triceps mene. Il ne rendait que « Pectoral ». */
-      aussi: ['Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée',
+      aussi: ['Svend press', 'Plate press', 'Développé avec disques', 'Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée',
               'Close grip', 'Hex press', 'Hex press à la barre guidée',
               'Développé couché serré avec haltères'],
       geste: 'Allongé, mains rapprochées : les coudes restent près du corps '
