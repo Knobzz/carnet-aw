@@ -1278,11 +1278,7 @@
        et les 2 qui restent sont celui-là. */
     { nom: 'Wrist curl', groupe: 'avant_bras',
       /* LES ENGINS, ajoutes le 29/10 : ils ne changent que le nom. */
-      aussi: ['Flexion du poignet',
-              'Wrist curl à la poulie', 'Cable wrist curl',
-              'Wrist curl à la barre', 'Barbell wrist curl',
-              'Wrist curl avec haltères', 'Dumbbell wrist curl',
-              'Flexion du poignet à la poulie'],
+      aussi: ['Flexion du poignet', 'Wrist curl à la poulie', 'Cable wrist curl', 'Wrist curl à la barre', 'Barbell wrist curl', 'Wrist curl avec haltères', 'Dumbbell wrist curl', 'Flexion du poignet à la poulie'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl côté pouce', groupe: 'avant_bras',
@@ -1294,16 +1290,11 @@
       muscles: ['long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
     { nom: 'Wrist curl inversé', groupe: 'avant_bras',
-      aussi: ['Reverse wrist curl', 'Extension du poignet',
-              'Wrist curl inversé à la poulie', 'Reverse cable wrist curl',
-              'Wrist curl inversé à la barre',
-              'Wrist curl inversé avec haltères',
-              'Extension du poignet à la poulie'],
+      aussi: ['Reverse wrist curl', 'Extension du poignet', 'Wrist curl inversé à la poulie', 'Reverse cable wrist curl', 'Wrist curl inversé à la barre', 'Wrist curl inversé avec haltères', 'Extension du poignet à la poulie'],
       muscles: ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
                 'extenseurs_doigts'] },
     { nom: 'Rising', groupe: 'avant_bras',
-      aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
-              'Cable rising', 'Rising à la poulie'],
+      aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation', 'Cable rising', 'Rising à la poulie'],
       muscles: ['fcr', 'ecrl', 'ecrb'] },
     { nom: 'Déviation ulnaire', groupe: 'avant_bras',
       /* « CHOP » ENTRE LE 28/10 — MB : « on peut egalement un "Nom connu"
@@ -1329,18 +1320,13 @@
          pourrait ptete rajouter Deviation ulnaire a la poulie et Cable
          Chop ? ». La fiche portait deja « au cable » ; ces deux-la
          manquaient. */
-      aussi: ['Déviation ulnaire avec élastique', 'Chop', 'Cable Chop', 'Déviation cubitale',
-              'Inclinaison ulnaire', 'Ulnar deviation',
-              'Déviation ulnaire au cable', 'Déviation ulnaire à la poulie'],
+      aussi: ['Déviation ulnaire avec élastique', 'Chop', 'Cable Chop', 'Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation', 'Déviation ulnaire au cable', 'Déviation ulnaire à la poulie'],
       muscles: ['fcu', 'ecu'] },
     { nom: 'Pronation', groupe: 'avant_bras',
-      aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie',
-              'Cable pronation'],
+      aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie', 'Cable pronation'],
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination', groupe: 'avant_bras',
-      aussi: ['Supination à la poulie',
-              'Supination avec haltère', 'Supination avec élastique',
-              'Cable supination'],
+      aussi: ['Supination à la poulie', 'Supination avec haltère', 'Supination avec élastique', 'Cable supination'],
       muscles: ['biceps', 'supinateur'] },
 
     /* LOT 2 — la main et le grip, validé le 2026-10-23.
@@ -1358,21 +1344,13 @@
     /* GRIPPER EST PARTI le 2026-10-30, decision de MB. Mesure qui l'a
        autorise : sans la fiche, le moteur de mots rend les SIX MEMES
        muscles, et « Gripper N3 » continue de repondre. Rien n'est perdu. */
-    { nom: 'Pince', groupe: 'avant_bras',
-      aussi: ['Pinch', 'Pinch block'],
-      muscles: ['flechisseurs_doigts', 'long_flechisseur_pouce',
-                'court_flechisseur_pouce', 'opposant_pouce',
-                'adducteur_pouce'] },
     { nom: 'Extenseurs à élastique', groupe: 'avant_bras',
-      aussi: ['Élastique autour des doigts', 'Extensor band', 'Ouverture de la main',
-              ],
+      aussi: ['Élastique autour des doigts', 'Extensor band', 'Ouverture de la main'],
       muscles: ['extenseurs_doigts', 'extenseur_petit_doigt',
                 'extenseurs_pouce', 'extenseur_index', 'court_abducteur_pouce',
                 'abducteur_auriculaire', 'lombricaux'] },
     { nom: 'Finger curl', groupe: 'avant_bras',
-      aussi: ['Finger curl avec haltères', 'Finger curl avec kettlebell', 'Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts',
-              'Finger curl à la barre', 'Finger curl à la poulie',
-              'Barbell finger curl'],
+      aussi: ['Finger curl avec haltères', 'Finger curl avec kettlebell', 'Rouleau de doigts', 'Finger rolling', 'Enroulement des doigts', 'Finger curl à la barre', 'Finger curl à la poulie', 'Barbell finger curl'],
       muscles: ['flechisseurs_doigts', 'court_flechisseur_auriculaire'] },
     /* Pendu à la barre ou marche du fermier : on tient, on ne répète pas. */
     { nom: 'Dead hang', groupe: 'avant_bras', colonnes: ['charge', 'duree'],
@@ -1400,8 +1378,7 @@
        un palier plus faible que le reste du dictionnaire, et la fiche de
        revue le dit. */
     { nom: 'Farmer walk', groupe: 'avant_bras', colonnes: ['charge', 'duree'],
-      aussi: ['Marche du fermier', 'Farmers walk', 'Port de charge',
-              'Loaded carry'],
+      aussi: ['Marche du fermier', 'Farmers walk', 'Port de charge', 'Loaded carry'],
       /* L'ORDRE EST CELUI DE LA TABLE MUSCLES, et c'est le banc qui me l'a
          dit : « toutes les entrees suivent l'ordre de MUSCLES ». Ma
          premiere liste partait de la main vers l'epaule. */
@@ -1417,7 +1394,7 @@
        Ces exercices sont des COMPOSITIONS de gestes deja sources : la
        deviation radiale, la pronation, le cupping, la prise. */
     { nom: 'Toproll à la poulie', groupe: 'avant_bras',
-      aussi: ['Cable toproll', ],
+      aussi: ['Cable toproll'],
       muscles: ['rond_pronateur', 'fcr', 'flechisseurs_doigts',
                 'carre_pronateur', 'ecrl', 'ecrb'] },
     /* Le hook se tient en SUPINATION — tranche par MB contre un article de
@@ -1425,7 +1402,7 @@
        en REEDUCATION d'une epicondylite, et sa pronation decrit
        vraisemblablement la charge qui les a blesses. */
     { nom: 'Hook à la poulie', groupe: 'avant_bras',
-      aussi: ['Cable hook', ],
+      aussi: ['Cable hook'],
       muscles: ['biceps', 'brachial', 'fcr', 'long_palmaire', 'fcu',
                 'flechisseurs_doigts', 'supinateur',
                 'long_flechisseur_pouce'] },
@@ -1439,8 +1416,7 @@
          DUREE. Un cupping se TIENT — taper le mot donnait une fiche en
          repetitions. C'est le meme doublon que « Tenue en cup » avait
          deja coute. */
-      aussi: ['Cup hold à la barre', 'Cupping', 'Tenue en cup', 'Tenue de poignet fermé',
-              'Cup hold à la poulie', 'Cup hold avec haltère'],
+      aussi: ['Cup hold à la barre', 'Cupping', 'Tenue en cup', 'Tenue de poignet fermé', 'Cup hold à la poulie', 'Cup hold avec haltère'],
       muscles: ['fcr', 'long_palmaire', 'fcu', 'flechisseurs_doigts',
                 'long_flechisseur_pouce'] },
 
@@ -1464,15 +1440,7 @@
        geste sur un autre engin. Ses muscles ne bougent pas — ce lot ne les
        a pas remesures. */
     { nom: 'Développé militaire', groupe: 'epaules',
-      aussi: ['Développé épaule unilatéral à genoux à la landmine', 'Développé épaules debout à la landmine', 'Développé épaules assis avec élastique', 'Développé épaule unilatéral avec élastique', 'Overhead press', 'Développé épaules', 'Shoulder press',
-              'Développé militaire debout', 'Military press', 'Strict press',
-              'Développé épaules assis', 'Développé épaules avec haltères',
-              'Développé épaules à la machine',
-              'Développé épaule avec kettlebell',
-              'Développé épaules avec élastique',
-                                                                      'Développé épaules à la barre guidée',
-              'Presse à épaules inclinée', 'Développé nuque',
-              'Développé nuque à la barre guidée', 'Behind the neck press'],
+      aussi: ['Développé épaule unilatéral à genoux à la landmine', 'Développé épaules debout à la landmine', 'Développé épaules assis avec élastique', 'Développé épaule unilatéral avec élastique', 'Overhead press', 'Développé épaules', 'Shoulder press', 'Développé militaire debout', 'Military press', 'Strict press', 'Développé épaules assis', 'Développé épaules avec haltères', 'Développé épaules à la machine', 'Développé épaule avec kettlebell', 'Développé épaules avec élastique', 'Développé épaules à la barre guidée', 'Presse à épaules inclinée', 'Développé nuque', 'Développé nuque à la barre guidée', 'Behind the neck press'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     /* ---------- LES PECTORAUX (lot 9) ----------
 
@@ -1497,31 +1465,19 @@
          garde refuse qu'un nom de mouvement porte un équipement — règle de
          MB du 27/10 — et le mot « sangles » lui faisait rendre les
          fléchisseurs des doigts. */
-      aussi: ['Écartés unilatéraux à la landmine', 'Écartés couché à la poulie vis-à-vis', 'Écartés couché avec haltères', 'Écartés incliné avec haltères',
-              'Écartés décliné avec haltères', 'Écartés Hyght',
-              'Écarté unilatéral à la poulie', 'Écartés à la poulie haute',
-              'Écartés à la poulie vis-à-vis',
-              'Écartés à la poulie vis-à-vis haute à genoux',
-                            'Écartés inclinés à la machine', 'Écartés avec élastique',
-                            'Pec deck', 'Butterfly à la machine',               'Chest fly'],
+      aussi: ['Écartés unilatéraux à la landmine', 'Écartés couché à la poulie vis-à-vis', 'Écartés couché avec haltères', 'Écartés incliné avec haltères', 'Écartés décliné avec haltères', 'Écartés Hyght', 'Écarté unilatéral à la poulie', 'Écartés à la poulie haute', 'Écartés à la poulie vis-à-vis', 'Écartés à la poulie vis-à-vis haute à genoux', 'Écartés inclinés à la machine', 'Écartés avec élastique', 'Pec deck', 'Butterfly à la machine', 'Chest fly'],
       muscles: ['grand_pectoral', 'deltoide', 'coraco_brachial'] },
     { nom: 'Développé couché', groupe: 'pectoraux',
-      aussi: ['Bench press', 'Développé barre', 'Développé haltères'],
-      muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
-    { nom: 'Développé incliné', groupe: 'pectoraux',
-      aussi: ['Incline bench press', 'Développé incliné barre',
-              'Développé incliné haltères'],
+      aussi: ['Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Développé serré', groupe: 'triceps',
       /* LE HEX PRESS ENTRE AU LOT 9, et ce n'est PAS un écarté : deux
          haltères serrés l'un contre l'autre, le coude travaille et le
          triceps mène. Il ne rendait que « Pectoral ». */
-      aussi: ['Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée',
-              'Hex press', 'Hex press à la barre guidée',
-              'Développé couché serré avec haltères'],
+      aussi: ['Développé serré à la barre', 'Close grip bench press', 'Développé couché prise serrée', 'Hex press', 'Hex press à la barre guidée', 'Développé couché serré avec haltères'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     { nom: 'Dips prise large', groupe: 'pectoraux',
-      aussi: ['Dips pectoraux', 'Dips buste penché',               ],
+      aussi: ['Dips pectoraux', 'Dips buste penché'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     /* LES QUATRE DERNIERES SONT DU LOT 7. Critère de MB, posé en refusant
        « Dips aux barres parallèles » : c'est l'INCLINAISON qui décide, pas
@@ -1531,11 +1487,10 @@
        autorisent les deux : cinq écritures sont donc restées dehors, et le
        catalogue dit laquelle pour quelle raison. */
     { nom: 'Dips prise serrée', groupe: 'triceps',
-      aussi: ['Dips sur une chaise', 'Dips entre deux bancs', 'Bench dips', 'Dips sur banc', 'Dips triceps', 'Dips buste droit',                             ],
+      aussi: ['Dips sur une chaise', 'Dips entre deux bancs', 'Bench dips', 'Dips sur banc', 'Dips triceps', 'Dips buste droit'],
       muscles: ['deltoide', 'triceps', 'ancone'] },
     { nom: 'Pompes', groupe: 'pectoraux',
-      aussi: ['Push up', 'Pompes diamant',
-              'Wide push up'],
+      aussi: ['Push up', 'Pompes diamant', 'Wide push up'],
       muscles: ['grand_pectoral', 'deltoide', 'triceps'] },
     /* ---------- LES FLECHISSEURS DU COUDE (lot 5) ----------
 
@@ -1566,33 +1521,25 @@
          difference SERAIT — bras derriere le corps etire la longue portion,
          bras devant la raccourcit — est ecrit sur la planche, pas simule
          dans les muscles. Meme traitement qu'aux lots 5 et 7. */
-      aussi: ['Curl haltère incliné avec rotation', 'Curl allongé à la poulie', 'Curl overhead avec élastique', 'Curl haltère debout sur banc incliné', 'Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ',
-              'Curl debout', 'Curl à la poulie', 'Cable curl',
-              'Curl incliné', 'Incline curl', 'Spider curl',               'Drag curl', 'Bayesian curl',
-                                          'Waiter curl'],
+      aussi: ['Curl haltère incliné avec rotation', 'Curl allongé à la poulie', 'Curl overhead avec élastique', 'Curl haltère debout sur banc incliné', 'Curl haltères', 'Curl barre', 'Curl barre EZ', 'Curl EZ', 'Curl debout', 'Curl à la poulie', 'Cable curl', 'Curl incliné', 'Incline curl', 'Spider curl', 'Drag curl', 'Bayesian curl', 'Waiter curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl concentré', groupe: 'biceps',
-      aussi: ['Concentration curl',               'Curl concentré à la poulie', 'Curl concentré avec élastique'],
+      aussi: ['Concentration curl', 'Curl concentré à la poulie', 'Curl concentré avec élastique'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Preacher curl', groupe: 'biceps',
-      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre',
-              'Curl au pupitre à la barre EZ', 'Curl au pupitre à la poulie',
-              'Curl au pupitre à la machine'],
+      aussi: ['Curl pupitre', 'Curl Larry Scott', 'Curl au pupitre', 'Curl au pupitre à la barre EZ', 'Curl au pupitre à la poulie', 'Curl au pupitre à la machine'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Hammer curl', groupe: 'biceps',
       /* DEUX ECRITURES AU LOT 10 : elles ne rendaient que le
          BRACHIO-RADIAL, le lecteur de noms y lisant « marteau » sans voir
          le curl. */
-      aussi: ['Curl en prise marteau avec élastique', 'Curl haltère prise marteau au pupitre', 'Curl marteau haltères', 'Curl marteau', 'Curl prise neutre',                             ],
+      aussi: ['Curl en prise marteau avec élastique', 'Curl haltère prise marteau au pupitre', 'Curl marteau haltères', 'Curl marteau', 'Curl prise neutre'],
       muscles: ['biceps', 'brachial', 'brachio_radial'] },
     { nom: 'Curl inversé', groupe: 'avant_bras',
-      aussi: ['Reverse curl', 'Curl inversé haltères', 'Curl inversé barre',
-              'Reverse barbell curl', 'Curl inversé barre EZ',
-              'Curl inversé EZ', 'Reverse EZ curl',
-              'Curl inversé à la poulie', 'Reverse cable curl'],
+      aussi: ['Reverse curl', 'Curl inversé haltères', 'Curl inversé barre', 'Reverse barbell curl', 'Curl inversé barre EZ', 'Curl inversé EZ', 'Reverse EZ curl', 'Curl inversé à la poulie', 'Reverse cable curl'],
       muscles: ['biceps', 'brachial', 'brachio_radial', 'ecrl', 'ecrb'] },
     { nom: 'Curl Zottman', groupe: 'biceps',
-      aussi: ['Zottman curl haltères', 'Curl Zottman avec haltères',               ],
+      aussi: ['Zottman curl haltères', 'Curl Zottman avec haltères'],
       muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
                 'brachio_radial', 'supinateur'] },
     /* Le LARRATT CURL est une tenue ISOMETRIQUE, faite au bout des preacher
@@ -1617,7 +1564,7 @@
        sait pas composer deux gestes : chaque combinaison est une entree, et
        sa liste est l'union de deux listes deja citees. */
     { nom: 'Curl rising à la poulie', groupe: 'biceps',
-      aussi: ['Rising cable curl', ],
+      aussi: ['Rising cable curl'],
       muscles: ['biceps', 'brachial', 'fcr', 'brachio_radial', 'ecrl', 'ecrb'] },
     { nom: 'Curl pronation à la poulie', groupe: 'avant_bras',
       /* « PRONATION CURL » NE TROUVAIT RIEN, et MB a cru l'entree absente :
@@ -1626,8 +1573,7 @@
          « pronation curl » n'est ni dans « curl pronation a la poulie » ni
          dans « pronation cable curl », ou « cable » s'intercale. Mesure :
          « Curl pronation » trouvait, « Pronation curl » non. */
-      aussi: ['Pronation cable curl', 'Pronation curl',
-              ],
+      aussi: ['Pronation cable curl', 'Pronation curl'],
       muscles: ['biceps', 'brachial', 'rond_pronateur', 'carre_pronateur',
                 'brachio_radial'] },
     /* LES QUATRE TRACTIONS DE MB, et c'est lui qui a refuse l'entree unique :
@@ -1635,65 +1581,16 @@
        differents ». Ce qui les separe est l'ORIENTATION de la paume, jamais
        la largeur — sauf la prise large, dont la seule difference mesuree
        porte sur le trapeze, entre au carnet le 26/10 pour cette raison. */
-    { nom: 'Chin up', groupe: 'dos',
-      aussi: ['Traction supinée', 'Traction prise supinée'],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'biceps',
-                'brachial', 'brachio_radial'] },
-    { nom: 'Traction prise serrée', groupe: 'dos',
-      aussi: [],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'biceps',
-                'brachial', 'brachio_radial'] },
-    /* ---- LES QUATRE TRACTIONS PARTIELLES ----
-
-       Demande de MB le 2026-10-28 : « il me faut 4 fiches pour la partial,
-       partial chin up, partial pull up, partial close grip et partial wide
-       grip ».
-
-       CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, et c'est un choix
-       mesure, pas une facilite : une amplitude partielle ne RECRUTE pas un
-       muscle de plus, elle deplace l'accent. Le dictionnaire dit ce qui
-       travaille ; il ne dit pas combien, ni ou dans la course. Ajouter ou
-       retirer un muscle parce que le geste s'arrete a mi-hauteur serait
-       inventer une precision que le carnet n'a pas.
-
-       CE QU'ELLES APPORTENT QUAND MEME : un nom a soi. « Traction
-       partielle » et « Traction » sont deux exercices dans le journal, deux
-       lignes dans la derniere sollicitation, et deux entrees separees dans
-       le volume. C'est ce que MB demandait — pouvoir les distinguer. */
     { nom: 'Traction partielle', groupe: 'dos',
       /* « Partial pullup » colle les deux mots : le lecteur de noms cherche
          « pull up » comme DEUX mots, et ne trouve rien. Ecarte plutot que
          livre muet — une ecriture qui ne dit rien est pire qu'absente, elle
          se propose et ne remplit pas. */
-      aussi: ['Partial pull up', 'Traction partielle pronée',
-              ],
+      aussi: ['Traction partielle prise serrée', 'Traction partielle prise large', 'Partial wide grip pull up', 'Traction partielle large', 'Traction partielle supinée', 'Partial chin up', 'Chin up partiel', 'Partial pull up', 'Traction partielle pronée'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
                 'biceps', 'brachial', 'brachio_radial'] },
-    { nom: 'Traction partielle supinée', groupe: 'dos',
-      aussi: ['Partial chin up', 'Chin up partiel'],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
-                'biceps', 'brachial', 'brachio_radial'] },
-    { nom: 'Traction partielle prise serrée', groupe: 'dos',
-      /* « CLOSE GRIP » EST PRIS PAR LE DEVELOPPE COUCHE, et la mesure est
-         sans appel : « Partial close grip » rend grand_pectoral, DELTOIDE
-         et TRICEPS — un developpe, pas une traction. « Partial close grip
-         pull up » y ajoute les deux de trop. Meme piege que « press », et
-         que le « grip » tout court que le carnet ecarte deja. */
-      aussi: [],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond',
-                'biceps', 'brachial', 'brachio_radial'] },
-    { nom: 'Traction partielle prise large', groupe: 'dos',
-      /* « Partial wide grip » seul ne dit rien au lecteur de noms ; avec
-         « pull up » il dit juste. On garde celle qui parle. */
-      aussi: ['Partial wide grip pull up', 'Traction partielle large'],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
-                'biceps', 'brachial', 'brachio_radial'] },
-    { nom: 'Traction prise large', groupe: 'dos',
-      aussi: ['Traction large', 'Wide grip pull up', 'Wide pull up'],
-      muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
-                'biceps', 'brachial', 'brachio_radial'] },
-    { nom: 'Pull up', groupe: 'dos',
-      aussi: ['Traction', 'Traction pronée'],
+    { nom: 'Traction', groupe: 'dos',
+      aussi: ['Pull up', 'Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Traction pronée'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'trapeze',
                 'biceps', 'brachial', 'brachio_radial'] },
     /* ---------- LES DORSAUX (lot 8) ----------
@@ -1720,9 +1617,7 @@
          fiche décrivait la traction du bras sans la rétraction qui la rend
          possible. Le tirage VERTICAL, lui, ne rétracte pas : il garde ses
          quatre, et c'est ce qui les sépare. */
-      aussi: ['Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère',
-              'Rowing buste penché', 'Seal row avec haltères',
-              ],
+      aussi: ['Seal row à la barre', 'Tirage horizontal', 'Rowing barre', 'Rowing haltère', 'Rowing buste penché', 'Seal row avec haltères'],
       muscles: ['grand_dorsal', 'grand_rond', 'trapeze', 'rhomboides',
                 'biceps', 'brachial'] },
     /* SIX NOMS DE LA PAGE, UNE SEULE FICHE. Et il lui manque le DENTELÉ
@@ -1730,9 +1625,7 @@
        carnet ne l'a pas, aucune planche Gray ne l'isole, et c'est une dette
        inscrite, pas un oubli. */
     { nom: 'Pull-over', groupe: 'dos',
-      aussi: ['Pull-over assis à la machine', 'Pull-over avec barre', 'Pull-over décliné à la barre',
-              'Pull-over avec deux haltères', 'Pull-over avec haltère',
-              'Pull-over à la poulie',               'Pullover'],
+      aussi: ['Pull-over assis à la machine', 'Pull-over avec barre', 'Pull-over décliné à la barre', 'Pull-over avec deux haltères', 'Pull-over avec haltère', 'Pull-over à la poulie', 'Pullover'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'triceps'] },
     /* DEUX GESTES EN UN : une traction PUIS une poussée. Sa liste est celle
        du pull up plus celle des dips. « Traction en muscle-up » est restée
@@ -1757,8 +1650,7 @@
        disent la TRACTION, et le lecteur de noms leur rendait ses sept
        muscles pour un geste qui n'en demande que deux. */
     { nom: 'Rétraction des omoplates', groupe: 'dos',
-      aussi: ['Rétraction des omoplates assis à la machine', 'Rétraction scapulaire', 'Scapular retraction',
-              ],
+      aussi: ['Rétraction des omoplates assis à la machine', 'Rétraction scapulaire', 'Scapular retraction'],
       muscles: ['trapeze', 'rhomboides'] },
     { nom: 'Tirage vertical', groupe: 'dos',
       aussi: ['Tirage poulie haute', 'Lat pulldown', 'Tirage nuque'],
@@ -1768,13 +1660,7 @@
        l'ajouter ici serait une attribution que MB n'a pas vue sur la
        planche. Elle ira au lot suivant. */
     { nom: 'Élévation latérale', groupe: 'epaules',
-      aussi: ['Élévations latérales à la landmine', 'Élévation latérale debout à la machine', 'Élévations latérales unilatérales à la poulie', 'Lateral raise',               'Élévation latérale à la poulie',
-              'Élévations latérales inclinées avec haltère',
-              'Élévation latérale à la poulie en inclinaison',
-              'Élévations latérales à la poulie',
-                            'Élévations latérales à la machine',
-                            'Élévations latérales avec kettlebell',
-              ],
+      aussi: ['Élévations latérales à la landmine', 'Élévation latérale debout à la machine', 'Élévations latérales unilatérales à la poulie', 'Lateral raise', 'Élévation latérale à la poulie', 'Élévations latérales inclinées avec haltère', 'Élévation latérale à la poulie en inclinaison', 'Élévations latérales à la poulie', 'Élévations latérales à la machine', 'Élévations latérales avec kettlebell'],
       muscles: ['deltoide'] },
 
     /* ================= LOT 6 — LES ÉPAULES, validé le 2026-10-29 =========
@@ -1801,11 +1687,7 @@
        le modèle ne garde que QUI travaille, pas qui mène. Les quarante-cinq
        attributions y portent chacune leur citation Kenhub mot pour mot. */
     { nom: 'Haussement d’épaules', groupe: 'dos',
-      aussi: ['Shrug', 'Dumbbell shrug',
-              'Haussement d’épaules avec haltères', 'Shrug barre',
-              'Shrugs avec haltères', 'Shrug à la poulie',
-              'Shrugs avec élastique', 'Shrug à la machine à mollets',
-              'Overhead shrug', 'Barbell shrug'],
+      aussi: ['Shrug', 'Dumbbell shrug', 'Haussement d’épaules avec haltères', 'Shrug barre', 'Shrugs avec haltères', 'Shrug à la poulie', 'Shrugs avec élastique', 'Shrug à la machine à mollets', 'Overhead shrug', 'Barbell shrug'],
       /* IL MANQUE L'ANGULAIRE DE L'OMOPLATE, et ce n'est pas un oubli :
          aucune planche libre ne l'illustre. Sa ligne Kenhub est MOT POUR
          MOT celle de la partie descendante du trapèze — « Draws scapula
@@ -1813,45 +1695,32 @@
          travaille. Inscrit dans CHANTIERS.md. */
       muscles: ['trapeze', 'rhomboides'] },
     { nom: 'Élévation frontale', groupe: 'epaules',
-      aussi: ['Élévation frontale à la poulie', 'Élévation frontale allongée à la barre', 'Front raise',                                           'Élévation frontale sur banc incliné',
-              'Élévations frontales à la poulie basse',
-              'Élévations frontales avec élastique', 'Dumbbell front raise'],
+      aussi: ['Élévation frontale à la poulie', 'Élévation frontale allongée à la barre', 'Front raise', 'Élévation frontale sur banc incliné', 'Élévations frontales à la poulie basse', 'Élévations frontales avec élastique', 'Dumbbell front raise'],
       muscles: ['grand_pectoral', 'deltoide'] },
     /* L'OISEAU ABSORBE QUATRE APPELLATIONS SANS RAPPORT entre elles —
        « oiseau », « écartés arrière », « pec deck inversé », « extension
        horizontale ». C'est exactement ce que les autres écritures servent à
        rattraper. */
     { nom: 'Oiseau', groupe: 'epaules',
-      aussi: ['Oiseau avec élastique', 'Extension horizontale des épaules avec élastique', 'Écartés arrière avec élastique', 'Oiseau avec haltères', 'Reverse fly',               'Élévation latérale buste penché', 'Bent over lateral raise',
-              'Oiseau assis sur un banc', 'Oiseau à la poulie à 45°',
-              'Écartés arrière',
-              'Pec deck inversé',
-                            ],
+      aussi: ['Oiseau avec élastique', 'Extension horizontale des épaules avec élastique', 'Écartés arrière avec élastique', 'Oiseau avec haltères', 'Reverse fly', 'Élévation latérale buste penché', 'Bent over lateral raise', 'Oiseau assis sur un banc', 'Oiseau à la poulie à 45°', 'Écartés arrière', 'Pec deck inversé'],
       muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
                 'rhomboides'] },
     { nom: 'Face pull', groupe: 'epaules',
-      aussi: ['Rope face pull', 'Tirage à la corde au visage', 'Face pull couché à la poulie', 'Tirage visage',
-              ],
+      aussi: ['Rope face pull', 'Tirage à la corde au visage', 'Face pull couché à la poulie', 'Tirage visage'],
       muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
                 'rhomboides'] },
     /* IL RENDAIT « DORSAL » À SES TROIS ÉCRITURES, parce que le carnet y
        lisait « tirage ». */
     { nom: 'Tirage menton', groupe: 'epaules',
-      aussi: ['Upright row', 'Tirage menton à la barre',
-              'Tirage menton à la poulie', 'Tirage menton avec kettlebell',
-              'Tirage menton avec élastique',
-              'Tirage menton à la barre guidée'],
+      aussi: ['Upright row', 'Tirage menton à la barre', 'Tirage menton à la poulie', 'Tirage menton avec kettlebell', 'Tirage menton avec élastique', 'Tirage menton à la barre guidée'],
       muscles: ['trapeze', 'deltoide', 'biceps', 'brachial'] },
     /* LES DEUX SENS DE LA ROTATION, et c'est le geste qui a rendu ce lot
        impossible jusqu'au 29/10 : le carnet n'avait aucun rotateur externe. */
     { nom: 'Rotation externe d’épaule', groupe: 'epaules',
-      aussi: ['Rotation externe de l’épaule en abduction avec élastique', 'Rotation externe de l’épaule couchée avec haltère', 'Rotation externe d’épaule avec haltères', 'External rotation',               'Rotation externe coude au corps',
-                            'Rotation externe de l’épaule à la poulie',
-                            'Rotations externes de l’épaule avec élastique'],
+      aussi: ['Rotation externe de l’épaule en abduction avec élastique', 'Rotation externe de l’épaule couchée avec haltère', 'Rotation externe d’épaule avec haltères', 'External rotation', 'Rotation externe coude au corps', 'Rotation externe de l’épaule à la poulie', 'Rotations externes de l’épaule avec élastique'],
       muscles: ['deltoide', 'infra_epineux', 'petit_rond'] },
     { nom: 'Rotation interne d’épaule', groupe: 'epaules',
-      aussi: ['Rotation interne à 90° à la poulie', 'Rotation interne d’épaule à la poulie', 'Rotation interne d’épaule avec haltères', 'Internal rotation',               'Rotation interne coude au corps',
-                            'Rotations internes de l’épaule avec élastique'],
+      aussi: ['Rotation interne à 90° à la poulie', 'Rotation interne d’épaule à la poulie', 'Rotation interne d’épaule avec haltères', 'Internal rotation', 'Rotation interne coude au corps', 'Rotations internes de l’épaule avec élastique'],
       muscles: ['grand_pectoral', 'grand_dorsal', 'grand_rond', 'deltoide',
                 'subscapulaire'] },
     /* UN GESTE COMPOSÉ : tirage menton, puis rotation externe, puis
@@ -1859,7 +1728,7 @@
        combinaison est une entrée, et sa liste est l'union de listes déjà
        citées. Même traitement que le « Curl rising à la poulie ». */
     { nom: 'Rotation cubaine', groupe: 'epaules',
-      aussi: ['Rotation cubaine avec haltères', 'Cuban rotation', 'Cuban press',               'Rotation cubaine à la barre'],
+      aussi: ['Rotation cubaine avec haltères', 'Cuban rotation', 'Cuban press', 'Rotation cubaine à la barre'],
       muscles: ['trapeze', 'deltoide', 'infra_epineux', 'petit_rond',
                 'biceps', 'triceps'] },
     /* SA ROTATION PART PAUMES VERS SOI ET FINIT PAUMES VERS L'AVANT : c'est
@@ -1908,28 +1777,16 @@
     /* RENOMMEE le 2026-10-31, decision de MB : le nom long etait a moi,
        pas a lui. Son ancien nom reste une ecriture. */
     { nom: 'Extension triceps', groupe: 'triceps',
-      aussi: ['Extension triceps à la poulie', 'Pushdown', 'Extension à la poulie', 'Triceps poulie',
-              'Extension haltère', 'Triceps corde'],
+      aussi: ['Extension triceps à la poulie', 'Pushdown', 'Extension à la poulie', 'Triceps poulie', 'Extension haltère', 'Triceps corde'],
       muscles: ['triceps', 'ancone'] },
     { nom: 'Barre au front', groupe: 'triceps',
-      aussi: ['Skull crusher', 'Barre au front à la barre EZ',
-              'Extensions des triceps couché avec haltères',
-              'Extensions des triceps décliné avec haltères',
-              'Extensions des triceps incliné avec haltères',
-              'Extension des triceps couché avec élastique',
-              'Extensions des triceps incliné à la barre guidée',
-              'Lying triceps extension'],
+      aussi: ['Skull crusher', 'Barre au front à la barre EZ', 'Extensions des triceps couché avec haltères', 'Extensions des triceps décliné avec haltères', 'Extensions des triceps incliné avec haltères', 'Extension des triceps couché avec élastique', 'Extensions des triceps incliné à la barre guidée', 'Lying triceps extension'],
       muscles: ['triceps', 'ancone'] },
     /* C'est la position qui étire le plus le CHEF LONG, le seul des trois
        qui traverse l'épaule. Le carnet ne le distingue pas : c'est écrit
        sur la planche, pas simulé dans les muscles. */
     { nom: 'Extension verticale des triceps', groupe: 'triceps',
-      aussi: ['Extension des triceps au-dessus de la tête avec élastique', 'Extension verticale à la poulie basse', 'Extension verticale assis à la barre', 'Extension nuque', 'Overhead triceps extension',
-                                          'Extensions verticales à deux mains avec haltère',
-              'Extensions verticales d’un bras avec haltère',
-                            'Extensions verticales à la poulie haute',
-              'Extensions des triceps assis avec haltère',
-                            'Extension verticale des triceps avec élastique'],
+      aussi: ['Extension des triceps au-dessus de la tête avec élastique', 'Extension verticale à la poulie basse', 'Extension verticale assis à la barre', 'Extension nuque', 'Overhead triceps extension', 'Extensions verticales à deux mains avec haltère', 'Extensions verticales d’un bras avec haltère', 'Extensions verticales à la poulie haute', 'Extensions des triceps assis avec haltère', 'Extension verticale des triceps avec élastique'],
       muscles: ['triceps', 'ancone'] },
     /* RENOMMEE le 2026-10-30 : « Kickback » tout court est parti, MB le
        voulait remplace par « Triceps kickback ». Le mot court ne figure
@@ -1939,8 +1796,7 @@
       /* « Kickback triceps » RESTE : MB avait repondu « Garder » sur cette
          ligne, et le renommage l'avait emportee avec le mot court. C'est le
          banc qui l'a dit — « attendu Triceps kickback, obtenu undefined ». */
-      aussi: ['Extension horizontale à la poulie', 'Extensions concentrées des triceps à la poulie', 'Kickback debout avec haltères', 'Kickback triceps', 'Extension arrière',
-              'Kickback alterné assis',                             ],
+      aussi: ['Extension horizontale à la poulie', 'Extensions concentrées des triceps à la poulie', 'Kickback debout avec haltères', 'Kickback triceps', 'Extension arrière', 'Kickback alterné assis'],
       muscles: ['triceps', 'ancone'] },
     /* ABSENT, ET PIRE QU'ABSENT : le carnet rendait « Pectoral » sur ce
        nom, parce qu'il y lit « press ». Une réponse fausse coûte plus cher
@@ -2767,7 +2623,7 @@
     { mots: ['hook', 'heavy hook'], entrees: ['Hook à la poulie'] },
     { mots: ['pinch', 'pince', 'blob', 'globe', 'cannonball', 'coinlift',
              'saxon bar'],
-      entrees: ['Pince'] },
+      entrees: [] },
     /* Le MULTISPINNER tourne : les deux sens de rotation. Golden Grip et
        Mithril le vendent tous les deux sous ce nom. */
     { mots: ['multispinner', 'multi spinner', 'spinner'],

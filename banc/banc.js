@@ -1577,20 +1577,42 @@
        qui tiennent des deux cotes le disent maintenant. */
     v.vrai(A.m.musclesDuNom('Traction').indexOf('trapeze') >= 0,
            'une traction pronée prend le trapèze');
-    v.egal(A.m.musclesDuNom('Chin up').indexOf('trapeze'), -1,
-           '[temoin] un chin up ne le prend pas — et ce n’est pas la garde '
-         + 'qui l’en empêche : son nom ne contient aucun mot du trapèze');
-    v.egal(A.m.musclesDuNom('Traction supinée').indexOf('trapeze'), -1,
-           'une traction SUPINÉE non plus, et celle-là tient par la garde : '
-         + 'son nom dit « traction »');
-    v.egal(A.m.musclesDuNom('Traction prise serrée').indexOf('trapeze'), -1,
-           'une prise neutre non plus : c’est l’écart que Dickie mesure');
+    /* « CHIN UP » A CHANGE DE NATURE LE 31/10. Ce n'est plus une fiche :
+       elle est absorbee dans « Traction », qui porte le trapeze. Le
+       controle mesurait un ecart qui n'existe plus.
+
+       C'EST LE PRIX DE LA FUSION, ET IL A ETE MESURE AVANT : les huit
+       fiches de traction partageaient SIX muscles, et le trapeze etait la
+       SEULE difference — present en pronee et prise large, absent en
+       supinee et prise serree. Une fiche unique devait trancher ; elle le
+       porte, et l'explication de « Traction supinee » dit qu'il y travaille
+       moins. Le controle dit maintenant ce qui EST. */
+    v.vrai(A.m.musclesDuNom('Chin up').indexOf('trapeze') >= 0,
+           '« Chin up » herite du trapeze depuis qu’il est une ecriture de '
+         + '« Traction » — c’est le prix de la fusion du 31/10, et il '
+         + 'etait mesure avant');
+    /* LES DEUX SUIVENT LE MEME SORT QUE « Chin up » : absorbees dans
+       « Traction » le 31/10, elles heritent de son trapeze. La garde qui
+       les en privait ne s'applique plus : `ficheDictionnaire` les resout
+       a la fiche AVANT que le moteur de mots n'intervienne.
+
+       CE QUI EST PERDU EST DIT, pas efface : l'ecart de trapeze entre
+       pronation et supination etait reel, et c'est l'explication du
+       geste « Traction supinee » qui le porte desormais — « une etude
+       trouve le pectoral et le biceps plus actifs qu'en pronation, le
+       trapeze inferieur moins ». */
+    v.vrai(A.m.musclesDuNom('Traction supinée').indexOf('trapeze') >= 0,
+           'une traction SUPINÉE herite du trapeze de sa fiche depuis '
+         + 'son absorption : l\u2019ecart vit maintenant dans '
+         + 'l\u2019explication du geste, pas dans les muscles');
+    v.vrai(A.m.musclesDuNom('Traction prise serrée').indexOf('trapeze') >= 0,
+           'une prise serree aussi, meme raison');
     v.egal(A.m.musclesDuNom('Traction').filter(function (id) {
              return A.m.musclesDuNom('Chin up').indexOf(id) < 0;
-           }).join(','), 'trapeze',
-           '[temoin] et le trapèze est la SEULE différence entre les deux '
-         + 'listes — vrai des deux côtés de la garde, mais il tombe si un '
-         + 'muscle entre dans l’une sans entrer dans l’autre');
+           }).join(','), '',
+           '[temoin] les deux listes sont IDENTIQUES depuis la fusion — '
+         + 'il tombe si l’une gagne un muscle que l’autre n’a pas, ce qui '
+         + 'signalerait que l’absorption a laisse un reste');
 
     /* Le marqueur ne doit pas se déclencher sur un nom qui NOMME le pouce.
        C'est la garde contre un mot trop gourmand — le défaut de « lat »
@@ -2734,10 +2756,17 @@
     /* QUATRE DEPUIS QUE GOLDEN GRIP A SON CADRE. Deux espèces, et c'est
        tout : ce qui RELIE (sangle, corde) et ce qui REÇOIT (les deux
        cadres). Toute cinquième entrée serait un oubli. */
+    /* CINQ DEPUIS LE 31/10 : « Pince » est retiree du dictionnaire sur
+       decision de MB, et le type `pinch` ne nomme donc plus aucun
+       exercice. Il rejoint ceux qui s'ajoutent a n'importe quoi. Ses deux
+       produits Golden Grip restent rattaches au TYPE, pas a la fiche : ils
+       ne perdent rien. */
     v.egal(sansMuscle.sort().join(' · '),
-           'armwrestling buddies · ceinture de judo · corde · multi tool',
-           'QUATRE types ne proposent rien : deux qui RELIENT, et deux '
-         + 'CADRES dont l’accessoire monté décide');
+           'armwrestling buddies · ceinture de judo · corde · multi tool · '
+         + 'pinch',
+           'CINQ types ne proposent rien : deux qui RELIENT, deux CADRES '
+         + 'dont l’accessoire monté décide, et le pinch depuis que sa fiche '
+         + 'est partie');
     v.egal(A.m.reglagesProposes(null, 'Multi-Tool').length, 9,
            'le Multi-Tool porte ses NEUF accessoires en réglages : c’est là '
          + 'que ses muscles vivent');
@@ -4527,10 +4556,14 @@
        temps, mais il se fait aussi en levees comptees : la fiche est
        ambigue, et deviner ferait basculer des series passees d'un regime a
        l'autre sans que MB l'ait voulu. */
+    /* « PINCE » EST PARTIE LE 31/10, decision de MB. La question du
+       regime ne se pose plus : il n'y a plus de fiche a trancher. Le
+       controle mesure maintenant son ABSENCE — et il tombe si elle
+       revenait sans qu'on l'ait decide. */
     var pince = entree('Pince');
-    v.egal(pince ? A.m.colonnes(pince).join('+') : '(absente)', 'charge+reps',
-           '« Pince » n’a PAS été touchée : un pinch se tient ou se lève, et '
-         + 'deviner ferait basculer des séries passées');
+    v.egal(pince ? A.m.colonnes(pince).join('+') : '(absente)', '(absente)',
+           '« Pince » n’est plus au dictionnaire — retiree le 31/10 ; ses '
+         + 'noms restent cherchables nulle part, c’est assume');
 
     var avec = fiches().filter(function (d) { return d.colonnes; });
     /* TROIS depuis le 30/10 : « Farmer walk » a sa fiche, et un port de

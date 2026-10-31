@@ -703,25 +703,6 @@
           + 'quatre et « Fermeture de la main » en rend UN.'
     },
     {
-      id: 'pince',
-      nom: 'Pince',
-      aussi: ['Pinch', 'Pinch block'],
-      geste: 'Le pouce écrase contre les doigts, sans que la main se referme '
-           + 'sur une poignée.',
-      muscles: [
-        m('flechisseurs_doigts', 'moteur', S.fds, C.fds_doigts),
-        m('long_flechisseur_pouce', 'moteur', S.fpl, C.fpl),
-        m('court_flechisseur_pouce', 'moteur', S.fpb, C.fpb),
-        m('opposant_pouce', 'moteur', S.oppp, C.oppp),
-        m('adducteur_pouce', 'moteur', S.addp, C.addp)
-      ],
-      note: 'Aujourd’hui « Pince pouce index » propose NEUF muscles, dont '
-          + 'les extenseurs et les abducteurs du pouce — ceux qui '
-          + 'l’OUVRENT, dans un geste qui l’écrase. Même famille que « côté '
-          + 'pouce » : les mots « pouce » et « index » sont lus comme des '
-          + 'muscles.'
-    },
-    {
       id: 'ouverture-main',
       nom: 'Extenseurs à élastique',
       aussi: ['Extensor band', 'Ouverture de la main',
@@ -1380,7 +1361,7 @@
     {
       id: 'developpe-couche',
       nom: 'Développé couché',
-      aussi: ['Bench press', 'Développé barre', 'Développé haltères'],
+      aussi: ['Développé incliné', 'Incline bench press', 'Développé incliné barre', 'Développé incliné haltères', 'Bench press', 'Développé barre', 'Développé haltères'],
       geste: 'Allongé, la barre descend sur la poitrine et remonte bras '
            + 'tendus.',
       muscles: [
@@ -1389,25 +1370,6 @@
         m('triceps', 'moteur', S.tri, C.tri)
       ],
       note: 'Aujourd’hui : le pectoral seul.'
-    },
-    {
-      id: 'developpe-incline',
-      nom: 'Développé incliné',
-      aussi: ['Incline bench press', 'Développé incliné barre',
-              'Développé incliné haltères'],
-      geste: 'Le même geste, banc relevé : la charge part plus haut sur la '
-           + 'poitrine.',
-      muscles: [
-        m('grand_pectoral', 'moteur', S.pm, C.pm),
-        m('deltoide', 'moteur', S.delt, C.delt),
-        m('triceps', 'moteur', S.tri, C.tri)
-      ],
-      note: 'MÊME LISTE QUE LE COUCHÉ, ET C’EST ASSUMÉ. L’inclinaison '
-          + 'déplace la charge vers le chef CLAVICULAIRE du pectoral et le '
-          + 'deltoïde antérieur — mais le carnet ne distingue pas les chefs '
-          + 'd’un muscle, il n’a qu’une entrée « Grand pectoral ». Écrire '
-          + 'deux listes différentes serait inventer une précision que le '
-          + 'modèle n’a pas.'
     },
     {
       id: 'dips-pectoraux',
@@ -1476,8 +1438,8 @@
     },
     {
       id: 'traction',
-      nom: 'Pull up',
-      aussi: ['Traction', 'Traction pronée'],
+      nom: 'Traction',
+      aussi: ['Traction prise serrée', 'Traction prise large', 'Traction large', 'Wide grip pull up', 'Wide pull up', 'Traction supinée', 'Chin up', 'Traction prise supinée', 'Pull up', 'Traction', 'Traction pronée'],
       geste: 'Suspendu à la barre, le corps monte jusqu’à ce que le menton '
            + 'passe.',
       muscles: [
@@ -1555,143 +1517,9 @@
           + 'court, pour toutes ces écritures.'
     },
     {
-      id: 'traction-large',
-      nom: 'Traction prise large',
-      aussi: ['Traction large', 'Wide grip pull up', 'Wide pull up'],
-      geste: 'Suspendu à la barre PAUMES VERS LE MUR et les mains bien '
-           + 'écartées, le corps monte jusqu’à ce que le menton passe.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('trapeze', 'aide', S.trap, C.trap, null,
-          { source: S.tractions2017, cite: C.dickie_trapeze }),
-        m('biceps', 'aide', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'LA QUATRIÈME TRACTION DE MB, et la seule qui ait exigé un '
-          + 'MUSCLE NEUF. Tant que le carnet n’avait pas de trapèze, cette '
-          + 'entrée aurait eu une liste identique à celle de « Traction » — '
-          + 'un doublon, pas une variante. MB a autorisé l’ajout le 26/10, '
-          + 'et le trapèze est devenu le trente-septième muscle. — CE QUI '
-          + 'EST MESURÉ, ET C’EST LA SEULE DIFFÉRENCE TROUVÉE : « a wide '
-          + 'pronated grip was reported to produce significantly greater '
-          + 'middle trapezius EMG amplitude compared to narrow pronated, '
-          + 'narrow supinated and wide supinated configurations ». La même '
-          + 'phrase dit aussi ce qui NE change PAS : « with no significant '
-          + 'differences in latissimus dorsi, upper trapezius or lower '
-          + 'trapezius ». Le grand dorsal reste donc identique aux trois '
-          + 'autres tractions — l’idée courante que la prise large « fait '
-          + 'les dorsaux » n’est pas soutenue, et la revue l’écrit : « grip '
-          + 'width is not sufficiently supported as a determinant of LD EMG '
-          + 'amplitude ». — LA LIMITE, ET ELLE EST SÉRIEUSE : la mesure '
-          + 'porte sur le faisceau MOYEN du trapèze, et le carnet n’a '
-          + 'qu’UN trapèze. La gravure de Gray teinte le muscle entier, et '
-          + 'il n’existe pas de planche par faisceau dans le domaine '
-          + 'public utilisée ici. Le carnet dit donc « trapèze » là où la '
-          + 'source dit « trapèze moyen ». Même limite que les deux chefs '
-          + 'du biceps. — Le BICEPS est en « aide » comme dans toutes les '
-          + 'prises pronées, pour la raison citée chez « Traction ».'
-    },
-    {
-      id: 'traction-neutre',
-      nom: 'Traction prise serrée',
-      aussi: ['Traction neutre', 'Traction prise neutre',
-              'Neutral grip pull up'],
-      geste: 'Suspendu à deux poignées PARALLÈLES, paumes face à face, le '
-           + 'corps monte jusqu’à ce que le menton passe.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('biceps', 'aide', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'LA TROISIÈME TRACTION DE MB : « paumes face à face ». Ce qui la '
-          + 'distingue des deux autres est le BRACHIO-RADIAL, qu’aucune '
-          + 'd’elles ne porte. La base est la même que pour le Curl rising, '
-          + 'et elle est citée deux fois : la paume face à face place '
-          + 'l’avant-bras en SEMI-PRONATION, et le brachio-radial fléchit '
-          + 'le coude « when semi pronated » (Kenhub) ; c’est en prise '
-          + 'neutre qu’il est le plus activé (Bagchi, huit variantes de '
-          + 'curl). Le modèle le faisait DÉJÀ sans entrée : « Traction '
-          + 'prise marteau » propose le brachio-radial depuis le lot 5, par '
-          + 'le mot « marteau ». — LE BICEPS EST EN « AIDE », ET CE RANG '
-          + 'EST RAISONNÉ : aucune source ne compare la prise neutre à la '
-          + 'supinée sur le biceps. Je le place comme au curl marteau, par '
-          + 'cohérence, et c’est un jugement — pas une mesure. — '
-          + '« TRACTION PRISE SERRÉE » EST RANGÉE ICI, parce que MB l’a '
-          + 'définie comme « paumes face à face ». ATTENTION : dans l’usage '
-          + 'courant, « prise serrée » veut dire ÉTROITE, pas parallèle, et '
-          + 'elle désigne alors une traction pronée. C’est le carnet de MB, '
-          + 'donc c’est sa définition qui vaut — mais elle est écrite ici '
-          + 'pour qu’on ne la redécouvre pas dans six mois. — AUCUNE MESURE '
-          + 'ne compare la prise neutre aux autres sur les muscles du dos : '
-          + 'Dickie 2017 les trouve SEMBLABLES. Le dorsal et le grand rond '
-          + 'sont donc identiques aux deux autres entrées, et c’est voulu.'
-    },
-    {
-      id: 'chin-up',
-      nom: 'Chin up',
-      aussi: ['Chin ups', 'Traction supinée', 'Traction prise supinée'],
-      geste: 'Suspendu à la barre PAUME VERS SOI, le corps monte jusqu’à ce '
-           + 'que le menton passe.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('biceps', 'moteur', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'ENTRÉE NEUVE, et elle vient d’un désaccord de MB : « il y en a '
-          + 'au moins 4 différents, qui ciblent des muscles différents ». Il '
-          + 'avait raison sur le fond, et la mesure en donne TROIS sur '
-          + 'ses quatre : la pronation, la supination et la prise '
-          + 'neutre. La quatrième, la prise LARGE, attend le trapèze — '
-          + 'voir la note de « Traction ». — CE QUI SÉPARE CETTE '
-          + 'ENTRÉE DE « TRACTION » : le BICEPS y mène au lieu d’aider, et '
-          + 'le GRAND PECTORAL entre. Les deux viennent de la même citation, '
-          + 'et les deux muscles sont au carnet. C’est le premier cas où un '
-          + 'muscle change de rang entre deux variantes d’un même geste — '
-          + 'ce que MB demandait depuis le lot 4. — LE PECTORAL EST EN '
-          + '« AIDE », ET LA CITATION EST COMPARATIVE : elle dit qu’il est '
-          + 'PLUS actif en supination qu’en pronation, pas qu’il mène. '
-          + 'L’écrire « moteur » serait lui faire dire plus qu’elle ne dit. '
-          + '— « Traction supination » n’est PAS une écriture : ce nom '
-          + 'porte les mots de la rotation de l’avant-bras et propose le '
-          + 'supinateur. « Traction supinée » et « Traction prise supinée » '
-          + 'passent, elles — mesuré, pas supposé. — Les écritures de '
-          + 'LARGEUR restent chez « Traction » : la revue écrit que la '
-          + 'largeur n’est pas soutenue par les données.'
-    },
-    /* ---------- LES QUATRE TRACTIONS PARTIELLES ----------
-
-       MB, 28/10 : « il me faut 4 fiches pour la partial, partial chin up,
-       partial pull up, partial close grip et partial wide grip ». Elles
-       sont entrées au dictionnaire ce jour-là, SANS passer par ici — d'où
-       les 26 muscles que la planche comptait sans source. Aucune recherche
-       n'a été nécessaire : chacun était déjà cité 8 à 19 fois sur la
-       version pleine du même geste.
-
-       LA LISTE EST CELLE DE LA VERSION PLEINE, muscle pour muscle et rang
-       pour rang. C'est le choix du 28/10, et la recherche du 29/10 ne l'a
-       pas démenti : aucune étude EMG de la traction partielle n'existe. */
-    {
       id: 'traction-partielle',
       nom: 'Traction partielle',
-      aussi: ['Partial pull up', 'Traction partielle pronée',
+      aussi: ['Traction partielle prise serrée', 'Traction partielle prise large', 'Partial wide grip pull up', 'Traction partielle large', 'Traction partielle supinée', 'Partial chin up', 'Chin up partiel', 'Partial pull up', 'Traction partielle pronée',
               'Partial traction'],
       aussiEcartees: [
         ['Partial pullup',
@@ -1717,91 +1545,6 @@
           + 'sources : la planche comptait ses sept muscles « sans source » '
           + 'alors que chacun est cité sur « Pull up ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
           + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'L’IMPRESSION DE MB, ET CE QUE LA MESURE EN DIT. Lui : « j’ai l’impression que l’accent sur les muscles de l’avant-bras est plus fort ». AUCUNE étude EMG de la traction partielle n’existe — cherché quatre fois le 29/10. Ce qui existe mesure l’ANGLE du coude : biceps et brachio-radial culminent à 60°, et le brachio-radial est PLUS actif en PRONATION à 90° et 120° qu’en neutre ou en supination. Son impression tient donc, mais par la PRONATION tenue dans cette bande d’angle, pas par la partialité. Deux autres études tempèrent : l’une ne trouve l’effet de l’angle qu’en excentrique, l’autre aucun effet sur le rapport EMG/force.'
-    },
-    {
-      id: 'traction-partielle-supinee',
-      nom: 'Traction partielle supinée',
-      aussi: ['Partial chin up', 'Chin up partiel'],
-      geste: 'Le même geste PAUME VERS SOI, sans aller au bout de la course.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('biceps', 'moteur', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'La liste et les rangs de « Chin up » : le BICEPS y MÈNE au lieu '
-          + 'd’aider, et c’est ce qui sépare la supination de la pronation. '
-          + '— ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. ' + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. '
-          + 'EN SUPINATION, le brachio-radial monte continûment de 30° à '
-          + '120° au lieu de culminer à 60° — c’est l’autre moitié de la '
-          + 'mesure citée sur « Traction partielle ».'
-    },
-    {
-      id: 'traction-partielle-serree',
-      nom: 'Traction partielle prise serrée',
-      /* « CLOSE GRIP » EST PRIS PAR LE DEVELOPPE COUCHE, et la mesure est
-         sans appel : « Partial close grip » rend grand_pectoral, DELTOIDE
-         et TRICEPS — un developpe, pas une traction. */
-      aussi: ['Traction partielle neutre', 'Partial neutral grip pull up'],
-      aussiEcartees: [
-        ['Partial close grip pull up',
-         '« close grip » est pris par le développé couché : le nom rend '
-         + 'pectoral, deltoïde et triceps — un développé, pas une traction'],
-        ['Partial close grip', 'même piège, en pire : rien n’y dit la traction']
-      ],
-      geste: 'Le même geste MAINS RAPPROCHÉES, paumes face à face, sans '
-           + 'aller au bout de la course.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('biceps', 'aide', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'La liste et les rangs de « Traction prise serrée ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
-          + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'SANS TRAPÈZE, comme sa version pleine : la seule '
-          + 'différence mesurée de la prise LARGE porte sur le trapèze '
-          + 'moyen, que le carnet n’a pas — c’est la prise serrée qui n’en '
-          + 'porte pas, et la large qui en porte un.'
-    },
-    {
-      id: 'traction-partielle-large',
-      nom: 'Traction partielle prise large',
-      aussi: ['Partial wide grip pull up', 'Traction partielle large'],
-      aussiEcartees: [
-        ['Partial wide grip',
-         'seul, il ne dit rien au lecteur de noms ; avec « pull up » il dit '
-         + 'juste — on garde celle qui parle']
-      ],
-      geste: 'Le même geste MAINS ÉCARTÉES, sans aller au bout de la course.',
-      muscles: [
-        m('grand_pectoral', 'aide', S.pm, C.pm, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique }),
-        m('grand_dorsal', 'moteur', S.ld, C.ld),
-        m('grand_rond', 'moteur', S.tm, C.tm),
-        m('trapeze', 'aide', S.trap, C.trap, null,
-          { source: S.tractions2017, cite: C.dickie_trapeze }),
-        m('biceps', 'aide', S.bic, C.bic, null,
-          { source: S.revueLD2026, cite: C.chin_biceps }),
-        m('brachial', 'moteur', S.bra, C.bra),
-        m('brachio_radial', 'aide', S.brr, C.brr, null,
-          { source: S.tractions2017, cite: C.dickie_concentrique })
-      ],
-      note: 'La liste et les rangs de « Traction prise large ». — ' + 'CHACUNE PORTE LES MUSCLES DE SA VERSION PLEINE, décidé le 28/10 : une amplitude partielle ne RECRUTE pas un muscle de plus, elle déplace l’accent. Le dictionnaire dit ce qui travaille ; il ne dit pas combien, ni où dans la course. '
-          + 'LES RANGS SONT CEUX DE LA VERSION PLEINE, et ce sont des rangs RAISONNÉS : rien ne dit qui MÈNE une traction partielle. ' + 'LE TRAPÈZE EST CE QUI LA SÉPARE de la prise serrée, et '
-          + 'c’est la SEULE différence que Dickie 2017 trouve à la largeur : '
-          + '« a wide pronated grip was reported to produce significantly '
-          + 'greater middle trapezius EMG amplitude ». Le carnet n’a qu’un '
-          + 'trapèze unique, sans ses faisceaux.'
     },
     {
       id: 'pompes',
