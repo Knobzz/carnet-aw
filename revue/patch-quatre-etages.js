@@ -137,7 +137,62 @@
     noter('« Pince » retiree ; ' + n + ' type(s) d’outil delies');
   })();
 
+  /* ============ 1 quater. « DEVELOPPE INCLINE » SORT ============
+
+     MB, 31/10 : « on retire le developpe incline des exercices, ce dernier
+     un developpe couche avec un banc qui s'incline, donc... ».
+
+     IL A RAISON, ET C'EST L'ETAGE 3 QUI LE DIT : l'inclinaison est un
+     REGLAGE du banc, pas un mouvement. Une etude de 2020 sur cinq angles
+     (30 sujets) mesure d'ailleurs le delto\u00efde anterieur au plus haut a 60\u00b0
+     — c'est une variation continue, que deux fiches ne sauraient rendre.
+
+     SES ECRITURES SONT VERSEES dans « Developpe couche » : « Incline bench
+     press » reste cherchable, et une seance passee qui le porte continue
+     de se retrouver. */
+  (function () {
+    var i = -1;
+    (m.DICTIONNAIRE || []).forEach(function (x, k) {
+      if (x.nom === 'D\u00e9velopp\u00e9 inclin\u00e9') i = k; });
+    if (i < 0) { noter('DEVELOPPE INCLINE deja absent'); return; }
+    var abs = m.DICTIONNAIRE[i];
+    var acc = (m.DICTIONNAIRE || []).filter(function (x) {
+      return x.nom === 'D\u00e9velopp\u00e9 couch\u00e9'; })[0];
+    m.DICTIONNAIRE.splice(i, 1);
+    if (!acc) { noter('DEVELOPPE COUCHE absent \u2014 ecritures perdues'); return; }
+    acc.aussi = acc.aussi || [];
+    var n = 0;
+    [abs.nom].concat(abs.aussi || []).forEach(function (x) {
+      if (acc.aussi.indexOf(x) < 0) { acc.aussi.push(x); n++; }
+    });
+    noter('\u00ab D\u00e9velopp\u00e9 inclin\u00e9 \u00bb retire, ' + n
+          + ' ecriture(s) versee(s) dans \u00ab D\u00e9velopp\u00e9 couch\u00e9 \u00bb');
+  })();
+
+  /* ============ 1 quinquies. LES GESTES QUE MB A VALIDES ============
+     Cinq sur onze, plus le Svend press qu'il a demande a part. Les six
+     ecartes ne sont PAS poses — mais ils restent ecrits dans
+     `gestes-valides-mb.js` avec sa raison. */
+  var VAL = (A.gestesValidesMB && A.gestesValidesMB.GARDES) || [];
+  var posesVal = [], refusesVal = [];
+  VAL.forEach(function (g) {
+    var f = (m.DICTIONNAIRE || []).filter(function (x) { return x.nom === g.fiche; })[0];
+    if (!f) { refusesVal.push(g.nom + ' : fiche \u00ab ' + g.fiche + ' \u00bb absente'); return; }
+    var tous = [g.nom].concat(g.aussi || []);
+    var pris = tous.filter(function (n) { return !!m.ficheLivree(n); });
+    if (pris.length) { refusesVal.push(g.nom + ' : \u00ab ' + pris.join(', ') + ' \u00bb deja pris'); return; }
+    f.aussi = (f.aussi || []).concat(tous);
+    posesVal.push(g);
+  });
+  noter(posesVal.length + ' geste(s) valide(s) pose(s)'
+        + (refusesVal.length ? ', ' + refusesVal.length + ' refuse(s) : '
+           + refusesVal.join(' / ') : ''));
+
   var CLASSE = {};
+  posesVal.forEach(function (g) {
+    CLASSE[g.fiche + ' \u00a7 ' + g.nom] = 'geste';
+    (g.aussi || []).forEach(function (n) { CLASSE[g.fiche + ' \u00a7 ' + n] = 'syn'; });
+  });
   /* les gestes nes des absorptions, sur leur fiche d'accueil APRES renommage */
   TR.ABSORPTIONS.forEach(function (a) {
     var nomAccueil = TR.RENOMMER[a.vers] || a.vers;
@@ -164,6 +219,8 @@
     return (pr && pr.code) || 'syn';
   }
   function explDe(nom) {
+    var v = posesVal.filter(function (x) { return x.nom === nom; })[0];
+    if (v) return v;
     if (EXPL_TRACTION[nom]) return EXPL_TRACTION[nom];
     var g = poses.filter(function (x) { return x.nom === nom; })[0];
     if (g) return g;
@@ -210,7 +267,8 @@
   }
 
   function estNeuf(nom) {
-    return !!EXPL_TRACTION[nom]
+    return posesVal.some(function (x) { return x.nom === nom; })
+        || !!EXPL_TRACTION[nom]
         || poses.some(function (x) { return x.nom === nom; })
         || (pushPressEntre && Object.keys(RSS).some(function (id) {
              return id.split(' § ')[1] === nom; }));
