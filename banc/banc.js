@@ -4,8 +4,19 @@
    TOMBER ne prouve rien : ceux qui mesurent un invariant du décor plutôt
    qu'un comportement portent `[temoin]` et disent pourquoi ils tiennent.
 
-   Le banc n'écrit jamais dans le stockage : il travaille sur des états
-   fabriqués, passés en argument aux fonctions du modèle. */
+   LE BANC ECRIT DANS LE STOCKAGE, et cette phrase disait le contraire.
+
+   Elle affirmait « le banc n'écrit jamais dans le stockage : il travaille
+   sur des états fabriqués, passés en argument aux fonctions du modèle ».
+   C'était une intention, pas le code : `A.store.remplacer()` est appelé
+   cinq fois ici, et il écrit. Jusqu'au 04/11 la page hôte ne posait aucun
+   drapeau d'isolation, donc il écrivait sous 'carnet-aw-v1' — LA VRAIE CLE
+   DU CARNET. Mesure : un carnet de 12 séances tombé à 0 en ouvrant cette
+   page, pendant qu'elle affichait 1597/1597.
+
+   Ce qui protège maintenant est un drapeau (`window.__BANC_MODELE`, posé
+   par `banc/index.html` avant store.js) ET le premier bloc ci-dessous, qui
+   le mesure. Une phrase rassurante avait tenu lieu de preuve treize jours. */
 (function (A) {
   'use strict';
 
@@ -59,6 +70,45 @@
   /* ================================================================
      1. Lecture des nombres — la charge n'est pas toujours un nombre
      ================================================================ */
+
+  /* ---------------------------------------------------------------
+     L'ISOLATION DU BANC — ET ELLE PASSE AVANT TOUT LE RESTE
+
+     Ce bloc est le premier parce que si l'isolation tombe, tout ce qui
+     suit a ecrit dans le carnet de MB. Le banc d'interface a ce controle
+     depuis toujours (`banc/ihm.js` l.256) ; le banc de MODELE ne l'avait
+     pas, et store.js affirmait pourtant « et le banc la mesure ».
+
+     IL TOMBE SUR LA VERSION D'AVANT : sans `window.__BANC_MODELE` pose par
+     `banc/index.html`, `CLE` vaut 'carnet-aw-v1'. Mesure du 04/11 : 12
+     seances avant d'ouvrir cette page, 0 apres.
+     --------------------------------------------------------------- */
+  bloc('L’isolation du banc', function (v) {
+    v.vrai(A.store.CLE !== 'carnet-aw-v1',
+           'le banc n’écrit PAS sous la clé du carnet réel : il appelle '
+         + '`store.remplacer()`, qui écrit vraiment en localStorage');
+    v.egal(A.store.CLE, 'carnet-aw-banc',
+           'et c’est bien la sienne qu’on attend — posée par le drapeau '
+         + '`__BANC_MODELE` de banc/index.html, AVANT store.js');
+    /* LE TEMOIN DIT POURQUOI IL TIENT DES DEUX COTES : il ne mesure pas
+       l'isolation mais le DECOR qui la rend mesurable — cette page et le
+       carnet partagent la meme origine, donc le meme localStorage. Sans ca,
+       la cle differente ne prouverait rien. */
+    v.vrai(typeof window.localStorage === 'object' && window.localStorage !== null,
+           '[temoin] cette page voit le localStorage de l’origine du carnet : '
+         + 'sans ça, une clé différente ne prouverait aucune isolation');
+    /* ET LA PREUVE PAR L'EFFET, pas par la declaration : apres tous les
+       `remplacer()` de ce banc, la cle du carnet reel doit etre restee
+       EXACTEMENT ce qu'elle etait. On la lit, on ne la touche pas. */
+    var avant = null;
+    try { avant = window.localStorage.getItem('carnet-aw-v1'); } catch (e) {}
+    A.store.remplacer(A.store.vide());
+    var apres = null;
+    try { apres = window.localStorage.getItem('carnet-aw-v1'); } catch (e) {}
+    v.egal(apres, avant,
+           'un `store.remplacer()` ne change RIEN sous la clé du carnet réel '
+         + '— c’est l’EFFET qui est mesuré ici, pas le nom de la clé');
+  });
 
   bloc('Nombres et identité', function (v) {
     v.egal(A.m.nombre('17,5'), 17.5, 'la virgule décimale est lue');
@@ -4678,9 +4728,18 @@
         technique: '', ressenti: '', note: '', douleurs: [] }
     ];
     var r5 = rem(cinq, 30).map(function (x) { return x.id; }).sort();
-    v.egal(r5.length, 5,
-           '[temoin] ce décor fait parler CINQ remarques — sans quoi la '
-         + 'comparaison ci-dessous ne mesurerait qu’une partie de la table');
+    /* LE NOMBRE SE COMPTE, IL NE S'ECRIT PAS. Il disait « CINQ » en dur ;
+       « Ta lacune » est entree le 01/11 et il est tombe sur un produit
+       juste. Un nombre de table n'est pas un EFFET — c'est la lecon des
+       « DIX-SEPT », et le bord oppose de « un controle qu'on n'a pas vu
+       tomber ». Ce qu'il garantit reste entier : le decor fait parler
+       TOUTE la table (pas une partie), elle n'est pas vide, et aucun `id`
+       ne sort deux fois. */
+    v.vrai(surv.length > 0 && r5.length === surv.length,
+           '[temoin] ce décor fait parler TOUT ce que la table surveille — '
+         + surv.length + ' fait(s), ' + r5.length + ' remarque(s) rendue(s) '
+         + '— sans quoi la comparaison ci-dessous ne mesurerait qu’une '
+         + 'partie de la table');
     v.egal(r5.join(' · '),
            surv.map(function (x) { return x.id; }).sort().join(' · '),
            'et la table des faits surveillés les couvre EXACTEMENT : c’est '
@@ -4763,6 +4822,181 @@
     v.egal(rem(eS, 30).filter(function (x) { return x.id === 'un-seul-style'; }).length, 0,
            'UN SEUL sparring dans un autre style l’éteint : le déclencheur '
          + 'est un zéro, pas un seuil inventé');
+
+    /* ---- 4 bis. TA LACUNE : CE QU'AUCUNE SERIE NE NOURRIT ----
+
+       MB, 01/11 : « j'aimerai que dans suivi, en plus de "Ton accent", il y
+       ait un "Ta lacune" », puis « La lacune peut aussi être un mouvement
+       spécifique du AW, comme pronation, side pressure etc ».
+
+       LE DECOR EST ECRIT AVEC DES NOMS DU DICTIONNAIRE, pas avec des
+       `forces` posées à la main : le `exo()` de ce bloc les laisse vides et
+       le modèle les déduit du nom. Un décor qui poserait les forces
+       lui-même mesurerait mon écriture, pas la lecture du carnet. */
+    var eL = A.store.vide();
+    eL.seances = [{ id: 'ml1', type: 'muscu', date: jourIl(2), heure: '',
+                    note: '', douleurs: [],
+                    exercices: [exo('Wrist curl', ['fcr', 'fcu'], 4)] }];
+    var rL = rem(eL, 30).filter(function (x) { return x.id === 'lacune-charge'; })[0];
+    v.vrai(!!rL, 'du cupping seul fait paraître « Ta lacune » : le toproll '
+               + 'est à zéro quand le hook porte tout');
+    v.vrai(!!rL && rL.titre.indexOf('toproll') >= 0,
+           'et elle nomme LE STYLE MUET, pas le dominant — « Ton accent » '
+         + 'dit déjà l’autre bout (titre : ' + '"' + (rL ? rL.titre : '') + '")');
+    v.egal(rL ? rL.genre : 'x', 'lacune',
+           'elle se dit LACUNE : un manque et un raccourci ne se reçoivent '
+         + 'pas pareil');
+    v.vrai((rL && rL.exercices || []).length > 0,
+           'et elle propose des exercices du dictionnaire qui le combleraient');
+
+    /* LE STYLE PASSE DEVANT LE MOUVEMENT, ET RIEN NE LE GARDAIT.
+
+       Troisieme chute du 01/11 : branche STYLE coupee, UN SEUL controle
+       tombait sur quinze — parce que la branche MOUVEMENT prend le relais
+       sur ce meme decor et refait une remarque de meme forme. Les trois
+       controles au-dessus gardent la FORME ; celui-ci garde la REGLE.
+
+       Un style muet implique que toutes ses forces sont muettes : nommer
+       un mouvement ici dirait deux fois la meme chose, en plus etroit. */
+    var nomsMvt = (A.m.FORCES || []).map(function (f) { return f.nom.toLowerCase(); });
+    var fuite = nomsMvt.filter(function (nm) {
+      return rL && rL.titre.toLowerCase().indexOf(nm) >= 0;
+    });
+    v.egal(fuite.join(', ') || 'aucun', 'aucun',
+           'un style muet est nommé COMME STYLE, jamais par un de ses '
+         + 'mouvements : le style est l’information la plus large, et dire '
+         + 'les deux serait un reproche en double');
+
+    /* LE PRESS N'EST JAMAIS NOMME, ET C'EST LE CONTROLE QUI COMPTE.
+
+       `STYLES_AW.press.forces` est VIDE — la table le dit, sourcé : VOA
+       écrit que toproll et hook décident du CONTROLE, press et side
+       pressure de la FINITION. Comme `parStyle` ne s'incrémente que par les
+       forces d'un style, `parStyle.press` vaut TOUJOURS zéro.
+
+       Sans la garde `st.forces.length > 0`, « Ta lacune : le press »
+       paraîtrait sur TOUT carnet et ne pourrait JAMAIS disparaître : une
+       remarque qui mesure un trou de la table au lieu du carnet. C'est
+       « un contrôle qu'on n'a pas vu tomber », du côté du produit — un vert
+       qui ne peut pas rougir. Ce contrôle-ci tombe dès qu'on retire la
+       garde, et c'est pour ça qu'il est écrit. */
+    /* ---- LES DEUX STYLES NOURRIS : ON PASSE AU MOUVEMENT ----
+
+       C'est la seconde demande de MB, et elle ne se confond pas avec la
+       première : les deux styles lisibles portent des séries, et pourtant
+       quatre des six mouvements sont à zéro. */
+    eL.seances.push({ id: 'ml2', type: 'muscu', date: jourIl(1), heure: '',
+                      note: '', douleurs: [],
+                      exercices: [exo('Pronation', ['rond_pronateur'], 3)] });
+    var rM = rem(eL, 30).filter(function (x) { return x.id === 'lacune-charge'; })[0];
+    v.vrai(!!rM, 'les deux styles nourris, la remarque PARLE ENCORE — par le '
+               + 'mouvement, qui est plus fin que le style');
+    v.egal(rM ? rM.titre.indexOf('toproll') : 0, -1,
+           'elle ne parle PLUS du toproll : la pronation le nourrit, et le '
+         + 'déclencheur est un zéro, pas un « moins »');
+    v.vrai(!!rM && /rising|back pressure|side pressure|supination/i.test(rM.titre),
+           'elle nomme un MOUVEMENT à zéro (titre : "' + (rM ? rM.titre : '') + '")');
+    v.vrai(!!rM && /autre/.test(rM.texte),
+           'et elle DIT combien d’autres sont à zéro, sans les lister : taire '
+         + 'trois zéros serait un oubli, en lister trois un reproche');
+    v.egal(rM ? rM.dit : 'x', null,
+           'elle ne cite RIEN : la table des mouvements ne porte pas de '
+         + 'phrase, et on n’en fabrique pas une pour la symétrie');
+    v.vrai(!!rM && !!rM.contre
+           && rM.contre.dit.indexOf('abandoning equilibrium') >= 0,
+           'mais elle porte CE QUI LA CONTREDIT — Larratt, comme « un seul '
+         + 'style » : rien ne soutient l’équilibrage');
+    v.vrai(!!rM && (rM.demande || '').indexOf('1er novembre') >= 0,
+           'et elle dit D’OÙ elle vient : la demande de MB du 1er novembre');
+
+    /* ---- LES SIX MOUVEMENTS NOURRIS : PLUS AUCUNE LACUNE ----
+
+       La chute du déclencheur. Un carnet qui charge les six ne doit RIEN
+       s'entendre dire : si cette remarque y paraissait encore, elle aurait
+       inventé un zéro. */
+    var eT = A.store.vide();
+    eT.seances = [{ id: 'mt1', type: 'muscu', date: jourIl(1), heure: '',
+                    note: '', douleurs: [], exercices: [
+      exo('Rising', ['deltoide_ant'], 2),
+      exo('Back pressure à la poulie', ['grand_dorsal'], 2),
+      exo('Side pressure à la poulie', ['grand_pectoral'], 2),
+      exo('Supination', ['supinateur'], 2),
+      exo('Wrist curl', ['fcr'], 2),
+      exo('Pronation', ['rond_pronateur'], 2)
+    ] }];
+    var repT = A.m.repartitionStyles(eT, 30);
+    v.egal(A.m.FORCES.filter(function (f) {
+             return !(repT.parForce[f.id] || 0); }).length, 0,
+           '[temoin] ce décor nourrit LES SIX mouvements — sans quoi la '
+         + 'chute ci-dessous ne mesurerait rien');
+    v.egal(rem(eT, 30).filter(function (x) { return x.id === 'lacune-charge'; }).length, 0,
+           'et alors « Ta lacune » SE TAIT : aucun zéro à nommer, donc rien '
+         + 'à dire — une remarque qui parlerait ici aurait inventé le manque');
+
+    /* ET C'EST ICI QUE LE PRESS SE MESURE, PAS PLUS HAUT.
+
+       J'avais ecrit ce controle sur un decor ou le toproll etait muet : le
+       press n'y arrive JAMAIS en tete des muets, donc il tenait quoi qu'on
+       fasse. La chute du 01/11 a fait tomber quatre controles et pas
+       celui-la — « passe du premier coup », le signe le moins ecoute.
+
+       `eT` nourrit les six mouvements : le press y est LE SEUL style a
+       zero. Sans la garde `st.forces.length > 0`, la remarque y affiche
+       « Ta lacune : le press » — mesure, titre pour titre. Et comme
+       `parStyle.press` vaut toujours zero (ses `forces` sont vides par
+       choix source : VOA le dit hors de l'axe des six mouvements), elle ne
+       pourrait JAMAIS disparaitre. */
+    var jamaisPress = rem(eT, 30).concat(rem(eL, 30)).concat(rem(e, 30))
+      .filter(function (x) {
+        return x.id === 'lacune-charge'
+            && (x.titre || '').toLowerCase().indexOf('press') >= 0;
+      }).map(function (x) { return x.titre; });
+    v.egal(jamaisPress.join(' / ') || 'aucune', 'aucune',
+           'le PRESS n’est JAMAIS nommé en lacune, sur AUCUN des trois '
+         + 'décors : ses mouvements sont vides par choix sourcé, donc son '
+         + 'zéro ne mesure pas le carnet — sans cette garde la remarque '
+         + 'serait permanente et inévitable');
+
+    /* ---- CHAQUE MOUVEMENT A DE QUOI LE COMBLER ----
+
+       Mesuré avant d'écrire la remarque, et gardé ici : si une force
+       n'avait aucun exercice au dictionnaire, « Ta lacune » proposerait une
+       liste VIDE, ce qui se lit comme un défaut d’affichage. */
+    var sansExo = (A.m.FORCES || []).filter(function (f) {
+      return !(A.m.exercicesPourForce ? A.m.exercicesPourForce(f.id, 4) : []).length;
+    }).map(function (f) { return f.nom; });
+    v.egal(sansExo.join(', ') || 'aucun', 'aucun',
+           'les SIX mouvements ont au moins un exercice au dictionnaire : '
+         + 'aucune lacune ne se propose sans de quoi la combler');
+
+    /* ---- « Sans source. » NE DOIT JAMAIS PARAITRE SOUS UNE SOURCE ----
+
+       VU A L'ECRAN le 01/11, sur le carnet de demonstration :
+
+         Ta lacune : la back pressure
+         Toronto Armwrestling Federation — Arm wrestling techniques
+         Sans source. Tu m'as demande cette remarque le 1er novembre
+
+       `vue-suivi.js` ecrit « Sans source. » des qu'une remarque porte
+       `demande`, et il a raison — il a ete ecrit pour « un seul style »,
+       qui n'en a aucune. Le defaut etait dans le MODELE : j'avais emprunte
+       a la lacune la source qui DEFINIT un style, laquelle ne soutient pas
+       « ceci te manque ».
+
+       CE CONTROLE EST GENERAL, pas propre a « Ta lacune » : il balaie tout
+       ce que `remarques()` rend sur les decors de ce bloc. Une remarque
+       future qui refait l'emprunt le fait tomber. */
+    var contradictoires = [];
+    [cinq, eL, eT, e, eS].forEach(function (etat) {
+      rem(etat, 30).forEach(function (r) {
+        if (!r.demande) return;
+        if (r.source || r.dit) contradictoires.push(r.id);
+      });
+    });
+    v.egal(contradictoires.join(', ') || 'aucune', 'aucune',
+           'aucune remarque ne porte à la fois `demande` et une source : '
+         + 'l’écran écrit « Sans source. » sur `demande`, donc les deux '
+         + 'ensemble affichent une source ET son démenti');
 
     /* ---- LES EXERCICES PROPOSES SONT DES EXTENSEURS DU POIGNET ---- */
     var exos = A.m.exercicesPourMuscles

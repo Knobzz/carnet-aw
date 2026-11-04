@@ -15,6 +15,56 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.71.0
+
+**Ajoute « Ta lacune » dans Suivi**, en face de « Ton accent ».
+
+Le carnet nomme ce qu’aucune de tes séries ne nourrit : un **style**
+(« zéro série en toproll, quand le hook en porte neuf ») ou, si les deux
+styles sont servis, un **mouvement** — rising, back pressure, side
+pressure, supination, cupping, pronation. Et il propose les exercices de
+ton dictionnaire qui le combleraient.
+
+- **Le déclencheur est un zéro**, jamais un « moins » : « le style le moins
+  travaillé » aurait demandé un seuil que personne ne donne. Une seule
+  série dans un style l’éteint pour ce style.
+- **Elle dit d’où elle vient et ce qui la contredit.** Aucune source ne
+  recommande d’équilibrer les styles, et Larratt soutient l’inverse : c’est
+  écrit dans la remarque, comme pour « tu ne déclares que du hook ».
+- **Le press n’y apparaît jamais**, et ce n’est pas un oubli : la source le
+  place hors de l’axe des six mouvements (toproll et hook décident du
+  contrôle, press et side pressure de la finition). Son zéro ne dirait rien
+  de tes séances.
+- **Une seule lacune à la fois**, la plus large d’abord — avec le nombre des
+  autres mouvements à zéro, pour ne rien taire sans en faire une liste.
+
+**Ce que ça enlève** : rien. Aucun chiffre, aucun bloc ne disparaît de Suivi.
+
+**Corrige une perte de données, et c’est le plus important de cette version**
+
+Une page de test du projet — `banc/index.html`, publiée avec le reste du site
+— **effaçait le carnet du navigateur qui l’ouvrait**. Pas un morceau : tout.
+Elle affichait « 1597 contrôles réussis » pendant qu’elle le faisait.
+
+- **Mesuré** : un carnet de 12 séances, 14 exercices et 11 outils tombait à
+  zéro en ouvrant cette page une fois.
+- **La cause** : cette page de test écrit dans le stockage, et elle le faisait
+  sous le nom du carnet réel au lieu du sien.
+- **Depuis quand** : le 22 octobre, donc **avant la 1.66.0 aussi**.
+- **Ce qui la ferme** : la page de test a maintenant son propre stockage, et
+  le banc vérifie à chaque lancement qu’il n’écrit pas sous celui du carnet
+  — trois contrôles, qui tombent si la protection saute.
+
+**Ce qui n’est PAS en cause**, et qui a été vérifié : la montée de version
+elle-même ne perd rien (toutes les données écrites par la 1.66.0 sont relues
+par celle-ci), et la mise à jour de l’application ne touche pas au carnet.
+
+**Si tu as perdu des données** : regarde d’abord dans Réglages ▸ Sauvegarde si
+un export existe. Rien dans le carnet lui-même ne permet de revenir en
+arrière — c’est une limite connue, pas un oubli.
+
+---
+
 ## 1.70.0
 
 Le gros chantier du **dictionnaire d’exercices**, appliqué. Les 95

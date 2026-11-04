@@ -8,8 +8,17 @@
      seule ligne est ce qui empeche un banc ouvert par curiosite d'effacer un
      carnet construit sur des mois. L'isolation est STRUCTURELLE, pas une
      precaution que le banc doit penser a prendre — et le banc la mesure. */
-  /* TROIS CLES, ET AUCUNE NE SE MELANGE AU CARNET REEL.
+  /* QUATRE CLES, ET AUCUNE NE SE MELANGE AU CARNET REEL.
 
+     `__BANC_MODELE`: le banc de modele. ENTRE LE 04/11, ET IL A COUTE UN
+                      CARNET. Ce fichier affirmait que l'isolation etait
+                      « structurelle » ; elle l'etait pour le banc
+                      d'interface, qui pose son drapeau dans l'iframe qu'il
+                      construit. Le banc de MODELE n'en posait aucun, et
+                      `banc.js` appelle `remplacer()` cinq fois : ouvrir
+                      banc/index.html ecrivait sous 'carnet-aw-v1'. Mesure :
+                      12 seances avant, 0 apres, 1597/1597 affiches pendant.
+                      Defaut ne le 22/10, vu le 04/11 — treize jours.
      `__BANC_IHM`   : le banc d'interface, qui ecrit et efface sans arret.
      `__BAC_A_SABLE`: la promenade de MB — l'app ENTIERE avec un carnet de
                       demonstration, pour voir les fonctionnements sans
@@ -17,9 +26,12 @@
                       celle du banc, sinon sa promenade laisserait un decor
                       derriere elle et le banc mesurerait ce decor.
 
-     Les deux drapeaux se posent par l'hote AVANT ce fichier ; rien dans
-     l'app ne les pose, donc le carnet reel ne peut pas tomber dessus. */
-  var CLE = window.__BANC_IHM ? 'carnet-aw-banc-ihm'
+     Les drapeaux se posent par l'hote AVANT ce fichier ; rien dans l'app ne
+     les pose, donc le carnet reel ne peut pas tomber dessus. CE QUI MANQUAIT
+     N'ETAIT PAS LA REGLE, C'ETAIT UN CONTROLE QUI LA MESURE DEPUIS LE BANC
+     LUI-MEME : `A.store.CLE` est exporte pour ca. */
+  var CLE = window.__BANC_MODELE ? 'carnet-aw-banc'
+          : window.__BANC_IHM ? 'carnet-aw-banc-ihm'
           : window.__BAC_A_SABLE ? 'carnet-aw-bac'
           : 'carnet-aw-v1';
   var VERSION_DONNEES = 1;

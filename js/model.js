@@ -6400,6 +6400,25 @@
     return out;
   }
 
+  /* Les exercices du DICTIONNAIRE qui portent CE mouvement.
+
+     Meme patron que `exercicesPourStyle`, un cran plus fin : la ou celui-la
+     prend les forces d'un style, celui-ci prend UNE force. `forcesDuNom`
+     est la meme lecture dans les deux cas — rien n'est deduit du nom.
+
+     MESURE DU 01/11, qui dit que cette fonction ne rend jamais vide :
+     rising 2, back pressure 1, side pressure 1, supination 2, cupping 4,
+     pronation 4. C'est ce qui rend « Ta lacune » proposable sur les six. */
+  function exercicesPourForce(forceId, combien) {
+    if (!forceId) return [];
+    var out = [];
+    DICTIONNAIRE.forEach(function (d) {
+      if (out.length >= (combien || 4)) return;
+      if (forcesDuNom(d.nom).indexOf(forceId) >= 0) out.push(d.nom);
+    });
+    return out;
+  }
+
   /* Des SERIES de bras de fer, cochees « spécifique bras de fer ». C'est le
      decompte qui dit « il fait ce sport », independamment du nom ecrit. */
   function seriesAW(etat, depuisJours) {
@@ -6460,7 +6479,9 @@
     { id: 'dominant', genre: 'positive',
       quoi: 'ton style dominant, et ce qui le nourrit' },
     { id: 'un-seul-style', genre: 'choix',
-      quoi: 'un seul style déclaré en sparring' }
+      quoi: 'un seul style déclaré en sparring' },
+    { id: 'lacune-charge', genre: 'lacune',
+      quoi: 'un style ou un mouvement qu’AUCUNE de tes séries ne nourrit' }
   ];
 
   function remarques(etat, depuisJours) {
@@ -6569,6 +6590,118 @@
         /* LA PAGE TECHNIQUES, d'ou sort `dit` — pas la page entrainement. */
         source: SOURCES_REMARQUE.tawfTech,
         exercices: exercicesPourStyle(dominant.id, 4)
+      });
+    }
+
+    /* ---- 4 bis. TA LACUNE : CE QU'AUCUNE SERIE NE NOURRIT ----
+
+       Le pendant de « Ton accent », demande par MB le 01/11 : « en parlant
+       du style qui n'est pas travaille par exemple, ou alors un mouvement
+       specifique, quelque chose qui mets en exergue ce qui manque », puis
+       « La lacune peut aussi etre un mouvement specifique du AW, comme
+       pronation, side pressure etc ».
+
+       MEME SOURCE DE MESURE QUE « TON ACCENT » : `repartitionStyles` rend
+       deja `parStyle` ET `parForce` sur la meme fenetre. Rien de neuf n'est
+       compte ici — c'est l'autre bout du meme chiffre.
+
+       LE PRESS EST ECARTE, ET CE N'EST PAS UN OUBLI. Ses `forces` sont
+       vides parce que la source le dit hors de l'axe des six mouvements
+       (VOA, cite dans STYLES_AW). `parStyle.press` vaut donc TOUJOURS
+       zero : une lacune posee dessus ne pourrait jamais disparaitre, et
+       elle mesurerait la table au lieu du carnet. On ne regarde que les
+       styles que le carnet sait LIRE.
+
+       LE DECLENCHEUR EST UN ZERO. « Le style le moins travaille » serait un
+       seuil que personne n'a mesure. On exige qu'autre chose soit nourri,
+       sans quoi la remarque parlerait a un carnet vide. */
+    var lisibles = STYLES_AW.filter(function (st) { return st.forces.length > 0; });
+    var stylesMuets = lisibles.filter(function (st) {
+      return !((rep.parStyle || {})[st.id] || 0);
+    });
+    var forcesMuettes = FORCES.filter(function (f) {
+      return !((rep.parForce || {})[f.id] || 0);
+    });
+
+    /* LE STYLE PASSE DEVANT LE MOUVEMENT, et jamais les deux.
+
+       Un style muet implique que TOUTES ses forces sont muettes : pousser
+       les deux remarques dirait deux fois la meme chose. Le style est
+       l'information la plus large. */
+    var lacune = null;
+    if (rep.total > 0 && stylesMuets.length && stylesMuets.length < lisibles.length) {
+      var stM = stylesMuets[0];
+      lacune = {
+        titre: 'Ta lacune : le ' + stM.nom.toLowerCase(),
+        texte: 'Zéro série en ' + stM.nom.toLowerCase() + ', quand le '
+             + dominant.nom.toLowerCase() + ' en porte ' + meilleur + '. '
+             + 'Voici ce que ton dictionnaire propose pour le combler.',
+        /* PAS DE CITATION ET PAS DE SOURCE, ET C'EST MESURE A L'ECRAN.
+
+           J'avais mis le `dit` du style muet et le lien TAWF. L'ecran
+           affichait alors la source PUIS « Sans source. » — parce que
+           `demande` dit ca, a juste titre. Mais le defaut n'etait pas le
+           rendu : la definition d'un style DEFINIT LE STYLE, elle ne
+           soutient pas « ceci te MANQUE ». J'empruntais une source a une
+           autre affirmation.
+
+           CE QUI N'EST PAS PERDU : « Ton accent » porte la citation du
+           style dominant, et « Ton style — 3 mois » porte la table entiere
+           avec le meme lien. Seule une source qui ne soutenait rien s'en
+           va. */
+        dit: null,
+        source: null,
+        exercices: exercicesPourStyle(stM.id, 4)
+      };
+    } else if (rep.total > 0 && forcesMuettes.length
+               && forcesMuettes.length < FORCES.length) {
+      /* CELUI QUI A LE PLUS D'EXERCICES, donc le plus actionnable. Et on
+         DIT combien d'autres sont muets, sans les lister : taire deux
+         zeros serait le piege n° 5 applique a une remarque, en lister
+         trois en ferait un reproche. */
+      var cands = forcesMuettes.map(function (f) {
+        return { f: f, exos: exercicesPourForce(f.id, 4) };
+      });
+      cands.sort(function (a, b) { return b.exos.length - a.exos.length; });
+      var fM = cands[0];
+      var autres = forcesMuettes.length - 1;
+      lacune = {
+        titre: 'Ta lacune : la ' + fM.f.nom.toLowerCase(),
+        texte: 'Zéro série la charge sur la période'
+             + (autres > 0 ? ' — et ' + autres + ' autre'
+                 + (autres > 1 ? 's mouvements sont' : ' mouvement est')
+                 + ' aussi à zéro' : '')
+             + '. Voici ce que ton dictionnaire propose pour la combler.',
+        /* NI CITATION NI SOURCE. La table des mouvements ne porte pas de
+           `dit` — seuls les styles en ont un — et on n'en fabrique pas une
+           pour la symetrie. J'avais quand meme laisse le lien TAWF : une
+           page pointee qui ne dit RIEN de la lacune, vue a l'ecran sous un
+           « Sans source. » qui la dementait. */
+        dit: null,
+        source: null,
+        exercices: fM.exos
+      };
+    }
+
+    if (lacune) {
+      out.push({
+        id: 'lacune-charge',
+        genre: 'lacune',
+        titre: lacune.titre,
+        texte: lacune.texte,
+        dit: lacune.dit,
+        source: lacune.source,
+        demande: 'Tu m’as demandé cette remarque le 1er novembre. Aucune '
+               + 'source ne recommande d’équilibrer les styles ni les '
+               + 'mouvements : le seuil serait de moi, alors le carnet n’en '
+               + 'pose aucun et se contente du zéro.',
+        /* CE QUI LA CONTREDIT, comme pour « un seul style » — meme raison,
+           meme source. */
+        contre: {
+          dit: 'peak performance demands abandoning equilibrium entirely',
+          source: SOURCES_REMARQUE.larratt
+        },
+        exercices: lacune.exercices
       });
     }
 
@@ -6795,7 +6928,8 @@
     repartitionStyles: repartitionStyles, stylesDeclares: stylesDeclares,
     estTenue: estTenue, repartitionRegime: repartitionRegime,
     remarques: remarques, exercicesPourMuscles: exercicesPourMuscles,
-    exercicesPourStyle: exercicesPourStyle, seriesAW: seriesAW,
+    exercicesPourStyle: exercicesPourStyle,
+    exercicesPourForce: exercicesPourForce, seriesAW: seriesAW,
     EXTENSEURS_POIGNET: EXTENSEURS_POIGNET,
     SOURCES_REMARQUE: SOURCES_REMARQUE,
     stylesLisibles: stylesLisibles,

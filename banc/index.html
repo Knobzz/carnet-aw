@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Banc de recette — Carnet AW</title>
 <link rel="icon" href="../icones/icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../css/app.css?v=1.70.0">
+<link rel="stylesheet" href="../css/app.css?v=1.71.0">
 <style>
   body { padding: 18px 12px 40px; }
   .bilan { position: sticky; top: 0; z-index: 5; padding: 12px 0 10px; background: var(--fond); border-bottom: 1px solid var(--trait); margin-bottom: 14px; }
@@ -56,8 +56,21 @@
    On ajoute donc un horodatage a chaque chargement. document.write parait
    demode, mais c'est le seul moyen simple de garder l'ORDRE d'execution :
    store.js, puis model.js qui s'y appuie, puis les cas. */
+/* LE DRAPEAU D'ISOLATION, ET IL SE POSE AVANT store.js.
+
+   Sans lui, `A.store.remplacer()` — appele cinq fois par banc.js — ecrivait
+   sous 'carnet-aw-v1', LA VRAIE CLE DU CARNET. Mesure le 04/11 : ouvrir
+   cette page faisait passer un carnet de 12 seances a 0, pendant que le
+   banc affichait 1597/1597.
+
+   Il est pose ICI, dans le document, et non dans banc.js : store.js lit
+   `CLE` a son chargement, donc un drapeau pose apres arriverait trop tard.
+   C'est pour ca qu'il est dans le meme bloc que le chargeur, juste avant
+   la premiere balise. */
+window.__BANC_MODELE = true;
+
 (function () {
-  var q = '?v=1.70.0';            // gouverne par outils/version.py
+  var q = '?v=1.71.0';            // gouverne par outils/version.py
   var t = '&t=' + Date.now();    // et jamais de cache, ici
   /* `../revue/catalogue.js` est de la DONNEE, pas du code d'application :
      il se charge pour etre MESURE. C'est la source d'ou le dictionnaire
