@@ -51,6 +51,12 @@
   function vide() {
     return {
       versionDonnees: VERSION_DONNEES,
+      /* LA REVISION DE CET ETAT — qui l'a ecrit, et quand.
+
+         Elle existe pour qu'une instance sache si une AUTRE a ecrit depuis
+         sa derniere lecture. Sans elle, celle qui dort ecrase celle qui
+         travaille : le bug de MB du 01/11, reproduit le 04/11. */
+      rev: '',
       exercices: [],
       outils: [],
       programmes: [],
@@ -130,6 +136,14 @@
       }
     }
     if (typeof brut.seanceEnCoursId === 'string') d.seanceEnCoursId = brut.seanceEnCoursId;
+    /* LA REVISION TRAVERSE `normaliser`, ET C'EST VITAL.
+
+       `normaliser` est une liste blanche : une cle qu'elle ignore disparait
+       au premier rechargement. Si `rev` ne passait pas, chaque lecture la
+       perdrait, la detection de conflit ne verrait JAMAIS de difference, et
+       la garde serait morte sans que rien ne le dise. C'est le piege deja
+       paye par le dictionnaire perso et les pesees, le 28/10. */
+    if (typeof brut.rev === 'string') d.rev = brut.rev;
 
     if (brut.chrono && typeof brut.chrono === 'object'
         && typeof brut.chrono.finA === 'number' && isFinite(brut.chrono.finA)) {
@@ -170,6 +184,11 @@
     if (brut === null) { etat = vide(); return etat; }
     try {
       etat = normaliser(JSON.parse(brut));
+      /* ON RETIENT CE QU'ON VIENT DE LIRE : c'est le point de comparaison
+         de la garde de conflit. Sans cette ligne, `revConnue` resterait
+         `null` et la garde ne se declencherait jamais — elle existerait
+         sans jamais s'executer, ce qui est pire que pas de garde. */
+      revConnue = typeof etat.rev === 'string' && etat.rev ? etat.rev : null;
       /* LE DOUBLE SE POSE DES LA LECTURE, ET C'EST LA QUE TOUT SE JOUE.
 
          Premiere epreuve du filet, 04/11 : carnet charge a 12 seances,
@@ -269,7 +288,60 @@
     return remplacer(f.etat);
   }
 
+  /* LA REVISION QUE CETTE INSTANCE A LUE OU ECRITE EN DERNIER.
+
+     `null` tant qu'on n'a rien lu : une instance qui n'a jamais charge ne
+     peut pas juger d'un conflit, et elle n'ecrase donc rien a tort. */
+  var revConnue = null;
+
+  function nouvelleRev() {
+    return String(Date.now()) + '.' + Math.random().toString(36).slice(2, 8);
+  }
+
+  /* CE QUE LE DISQUE PORTE COMME REVISION, sans toucher a `etat`.
+
+     Un disque illisible rend `null`, et `null` ne declenche AUCUN conflit :
+     on ne veut pas qu'un stockage abime empeche d'enregistrer. La garde
+     protege d'un ecrasement, elle ne doit pas devenir un blocage. */
+  function revDuDisque() {
+    var brut;
+    try { brut = window.localStorage.getItem(CLE); } catch (e) { return null; }
+    if (!brut) return null;
+    try {
+      var d = JSON.parse(brut);
+      return d && typeof d.rev === 'string' && d.rev ? d.rev : null;
+    } catch (e) { return null; }
+  }
+
   function ecrire() {
+    /* ---- UNE AUTRE INSTANCE A-T-ELLE ECRIT DEPUIS NOTRE DERNIERE VUE ? ----
+
+       C'est le bug de MB, reproduit le 04/11 : une instance ouverte AVANT
+       ses saisies, reveillee puis passee en arriere-plan, ecrivait sa
+       memoire perimee par-dessus. Outils intacts (elle les avait), six
+       seances disparues (elle ne les a jamais eues).
+
+       ON NE REFUSE PAS L'ECRITURE, ON FUSIONNE. Refuser ferait perdre ce
+       que CETTE instance a en memoire ; ecraser fait perdre ce que l'autre
+       a ecrit. La fusion ne perd ni l'un ni l'autre, et c'est la regle du
+       carnet : rien ne se supprime tout seul.
+
+       LE PRIX EST REEL ET IL EST DIT : une seance supprimee dans une
+       instance peut revenir si une autre, perimee, la porte encore. Mieux
+       vaut une seance qui revient — on peut la resupprimer — qu'une qui
+       disparait sans trace. */
+    var surDisque = revDuDisque();
+    if (revConnue !== null && surDisque !== null && surDisque !== revConnue) {
+      var brutDisque = null;
+      try { brutDisque = window.localStorage.getItem(CLE); } catch (e) {}
+      if (brutDisque) {
+        try { fusionnerDans(JSON.parse(brutDisque)); } catch (e) { /* illisible : on garde ce qu'on a */ }
+      }
+    }
+
+    etat.rev = nouvelleRev();
+    revConnue = etat.rev;
+
     try {
       window.localStorage.setItem(CLE, JSON.stringify(etat));
       signaler(null);
@@ -353,7 +425,17 @@
        - rien n'est jamais supprime par un import.
      Le compte de ce qui a ete ajoute et de ce qui a ete garde est rendu, et
      l'ecran l'affiche : une fusion muette serait pire qu'un remplacement. */
+  /* `fusionner` ECRIVAIT A LA FIN, donc l'appeler depuis `ecrire()` aurait
+     boucle. Le corps vit maintenant ici, sans ecriture ; `fusionner` reste
+     ce qu'il etait (fusion + ecriture) pour l'import, et la garde de
+     conflit appelle cette version-ci. */
   function fusionner(brut) {
+    var bilan = fusionnerDans(brut);
+    bilan.ecrit = ecrire();
+    return bilan;
+  }
+
+  function fusionnerDans(brut) {
     var entrant = normaliser(brut);
     var bilan = { seancesAjoutees: 0, seancesGardees: 0, relevesAjoutes: 0,
                   programmesAjoutes: 0, programmesGardes: 0,
@@ -456,7 +538,19 @@
       bilan.peseesAjoutees = (bilan.peseesAjoutees || 0) + 1;
     });
 
-    bilan.ecrit = ecrire();
+    /* LES ROUTINES DE RECUPERATION MANQUAIENT A CETTE FUSION, et elles
+       comptent : MB en avait trois. Sans ce bloc, une routine creee dans
+       une autre instance (ou dans une sauvegarde importee) etait perdue,
+       alors que les JOURNEES de recup, elles, passaient par `seances`. La
+       moitie, encore — piege n° 5. */
+    if (!Array.isArray(etat.routinesRecup)) etat.routinesRecup = [];
+    var vuesRoutines = parId(etat.routinesRecup);
+    (entrant.routinesRecup || []).forEach(function (r) {
+      if (!r || !r.id || vuesRoutines[r.id]) return;
+      etat.routinesRecup.push(r);
+      bilan.routinesAjoutees = (bilan.routinesAjoutees || 0) + 1;
+    });
+
     return bilan;
   }
 
@@ -523,6 +617,8 @@
     filet: filet,
     restaurerFilet: restaurerFilet,
     effacerFilet: effacerFilet,
+    revConnue: function () { return revConnue; },
+    revDuDisque: revDuDisque,
     VERSION_DONNEES: VERSION_DONNEES,
     charger: charger,
     sauver: sauver,

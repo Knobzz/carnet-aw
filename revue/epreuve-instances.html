@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — deux instances du carnet</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  body { max-width: 980px; margin: 0 auto; padding: 18px; }
+  h1 { margin: 0 0 4px; }
+  .intro { color: var(--doux); margin: 0 0 16px; line-height: 1.5; }
+  .cas { border: 1px solid var(--trait); border-radius: 12px; margin: 0 0 10px; padding: 12px 14px; }
+  .cas h3 { margin: 0 0 6px; font-size: 1rem; }
+  .cas .pourquoi { color: var(--doux); font-size: .86rem; margin: 0 0 8px; line-height: 1.45; }
+  .ligne { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem;
+           padding: 2px 0; white-space: pre-wrap; }
+  .ok { color: #2e7d32; } .ko { color: #c62828; font-weight: 700; }
+  .score { font-size: 1.5rem; font-weight: 800; margin: 14px 0; }
+  iframe { position: absolute; left: -9999px; width: 390px; height: 700px; border: 0; }
+  button { font: inherit; padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Deux instances du carnet</h1>
+<p class="intro">
+  <b>Le défaut du 1<sup>er</sup> novembre, et tout ce qui lui ressemble.</b>
+  Une instance de l’app ouverte <i>avant</i> des saisies, réveillée puis passée en
+  arrière-plan, écrivait sa mémoire périmée par-dessus le carnet : les équipements
+  survivaient (elle les avait déjà), les séances disparaissaient. Sur téléphone, une
+  PWA et un onglet Chrome vivent côte à côte des jours durant.
+  <br><br>
+  Chaque cas monte de <b>vraies instances</b> de l’app dans des cadres, sur la clé du
+  bac à sable — <b>le carnet réel n’est jamais touché</b>. Les cas marqués
+  <b>[hors indication]</b> ne viennent pas du récit de MB : ils cherchent d’autres
+  façons de produire le même dégât.
+</p>
+
+<button id="go">Jouer l’épreuve</button>
+<div class="score" id="score"></div>
+<div id="sortie"></div>
+
+<div id="cadres"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+
+  function dit(texte) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + texte; casCourant.appendChild(d);
+  }
+
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+
+  /* ------------------------------------------------------------------
+     MONTER UNE INSTANCE REELLE
+
+     Le meme montage que le bac a sable : on lit index.html, on glisse
+     `__BAC_A_SABLE` AVANT store.js (qui le lit pour choisir sa cle) et un
+     <base> pour que les chemins se resolvent. Le service worker est retire
+     — il survivrait au cadre et mettrait en cache une app pointee ailleurs.
+
+     CHAQUE CADRE A SON PROPRE `App.store`, donc sa propre memoire et sa
+     propre `revConnue`. C'est ce qui permet de rejouer le defaut : un
+     module singleton dans une seule page ne le pourrait pas.
+     ------------------------------------------------------------------ */
+  var source = null;
+
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch('../index.html?t=' + Date.now()).then(function (r) { return r.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        var tete = '<base href="../">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (resoudre) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { resoudre(f.contentWindow); }, 150);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+
+  /* REMETTRE LE DECOR A ZERO — ET L'ORDRE EST TOUT.
+
+     Première écriture : on supprimait le stockage PUIS on détruisait les
+     cadres. Entre les deux, un cadre encore vivant réécrivait aussitôt — et
+     le cas suivant démarrait sur les données du précédent. Un témoin l'a
+     attrapé (« le stockage est bien vide AVANT de monter ») en affichant le
+     contenu resté là : une épreuve qui ne nettoie pas ne prouve rien.
+
+     On détruit donc les cadres D'ABORD, on laisse passer un tour pour les
+     écritures groupées déjà en vol (`sauver` regroupe sur 400 ms), et on
+     vide ensuite. */
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (resoudre) {
+      setTimeout(function () {
+        try { localStorage.removeItem('carnet-aw-bac'); } catch (e) {}
+        try { localStorage.removeItem('carnet-aw-filet'); } catch (e) {}
+        resoudre();
+      }, 500);
+    });
+  }
+
+  function enBase() {
+    try { return JSON.parse(localStorage.getItem('carnet-aw-bac') || '{}'); }
+    catch (e) { return {}; }
+  }
+
+  /* Passer un cadre en arriere-plan, comme le telephone quand on change
+     d'app : c'est LA ligne de store.js qui declenchait le degat. */
+  function arrierePlan(w) {
+    try {
+      Object.defineProperty(w.document, 'visibilityState',
+        { get: function () { return 'hidden'; }, configurable: true });
+      w.document.dispatchEvent(new w.Event('visibilitychange'));
+    } catch (e) {}
+  }
+
+  function seance(id, type, date) {
+    return { id: id, type: type, date: date, heure: '', note: '',
+             exercices: [], douleurs: [] };
+  }
+  function outil(id, nom) { return { id: id, nom: nom, slug: nom.toLowerCase(), categorie: '' }; }
+
+  function poser(w, seances, outils) {
+    var e = w.App.store.etat();
+    e.seances = seances || [];
+    e.outils = outils || [];
+    w.App.store.remplacer(e);
+  }
+
+  /* ================================================================== */
+
+  function jouer() {
+    var chaine = Promise.resolve();
+
+    /* ---- 1. LE DEFAUT DE MB, A L'IDENTIQUE ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('1. Le défaut du 1ᵉʳ novembre, à l’identique',
+          'A ouverte avant les saisies (elle a les équipements, pas les séances). '
+        + 'B saisit les 6 séances. A passe en arrière-plan. Avant correction : '
+        + 'équipements intacts, séances disparues.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w;
+        poser(A, [], [outil('o1', 'Titan Grip'), outil('o2', 'Golden Grip')]);
+        return monter();
+      }).then(function (w) {
+        B = w;
+        poser(B, [seance('s1', 'muscu', '2026-10-30'), seance('s2', 'muscu', '2026-10-31'),
+                  seance('r1', 'recup', '2026-10-29'), seance('r2', 'recup', '2026-10-30'),
+                  seance('r3', 'recup', '2026-10-31'), seance('sp1', 'sparring', '2026-10-31')],
+                 [outil('o1', 'Titan Grip'), outil('o2', 'Golden Grip')]);
+        var b = enBase();
+        egal((b.seances || []).length, 6, '[temoin] B a bien écrit les 6 séances — sans ça le cas ne mesure rien');
+        arrierePlan(A);
+        return new Promise(function (r) { setTimeout(r, 250); });
+      }).then(function () {
+        var b = enBase();
+        egal((b.seances || []).length, 6, 'les 6 séances SURVIVENT au réveil de l’instance périmée');
+        egal((b.outils || []).length, 2, 'et les équipements aussi — rien n’est perdu d’un côté ni de l’autre');
+        var types = (b.seances || []).map(function (s) { return s.type; }).sort().join(',');
+        egal(types, 'muscu,muscu,recup,recup,recup,sparring',
+             'les trois natures sont là : 2 muscu, 3 récup, 1 sparring');
+      });
+    });
+
+    /* ---- 2. pagehide, L'AUTRE PORTE ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('2. [hors indication] L’autre porte : pagehide',
+          'store.js écrit AUSSI sur `pagehide` — quand l’onglet se ferme ou que le '
+        + 'téléphone tue la page. Corriger seulement `visibilitychange` laisserait '
+        + 'la moitié du défaut en place.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w; poser(A, [], [outil('o1', 'Titan Grip')]);
+        return monter();
+      }).then(function (w) {
+        B = w;
+        poser(B, [seance('s1', 'muscu', '2026-10-30')], [outil('o1', 'Titan Grip')]);
+        egal((enBase().seances || []).length, 1, '[temoin] B a écrit sa séance');
+        try { A.dispatchEvent(new A.Event('pagehide')); } catch (e) {}
+        return new Promise(function (r) { setTimeout(r, 250); });
+      }).then(function () {
+        egal((enBase().seances || []).length, 1, 'la séance survit à un `pagehide` de l’instance périmée');
+      });
+    });
+
+    /* ---- 3. LES DEUX ONT DU NEUF ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('3. [hors indication] Les deux instances ont saisi du neuf',
+          'Le cas que « la dernière gagne » perdrait de toute façon : A saisit une '
+        + 'séance, B en saisit une autre sans savoir. Les DEUX doivent rester — '
+        + 'c’est la règle du carnet, rien ne se supprime tout seul.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w; poser(A, [], []);
+        return monter();
+      }).then(function (w) {
+        B = w;
+        poser(B, [seance('deB', 'muscu', '2026-11-01')], []);
+        var eA = A.App.store.etat();
+        eA.seances = [seance('deA', 'sparring', '2026-11-02')];
+        A.App.store.sauver(true);
+        return new Promise(function (r) { setTimeout(r, 250); });
+      }).then(function () {
+        var ids = (enBase().seances || []).map(function (s) { return s.id; }).sort().join(',');
+        egal(ids, 'deA,deB', 'les deux séances coexistent : aucune instance n’efface l’autre');
+      });
+    });
+
+    /* ---- 4. TROIS INSTANCES ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('4. [hors indication] Trois instances, en cascade',
+          'Deux suffisaient à reproduire le défaut ; rien ne dit qu’une garde qui '
+        + 'tient à deux tient à trois. Chaque instance écrit à son tour, la plus '
+        + 'ancienne en dernier.');
+      var A, B, C;
+      return monter().then(function (w) { A = w; poser(A, [], []); return monter(); })
+        .then(function (w) { B = w; return monter(); })
+        .then(function (w) {
+          C = w;
+          poser(B, [seance('b1', 'muscu', '2026-11-01')], []);
+          var eC = C.App.store.etat();
+          eC.seances = [seance('c1', 'recup', '2026-11-02')];
+          C.App.store.sauver(true);
+          arrierePlan(A);
+          return new Promise(function (r) { setTimeout(r, 300); });
+        }).then(function () {
+          var ids = (enBase().seances || []).map(function (s) { return s.id; }).sort().join(',');
+          egal(ids, 'b1,c1', 'les trois passages laissent les deux séances en place');
+        });
+    });
+
+    /* ---- 5. LES ROUTINES DE RECUP ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('5. [hors indication] Les routines de récupération',
+          'Elles ne vivent pas dans `seances` mais dans `routinesRecup`, et elles '
+        + 'manquaient à la fusion — une moitié, piège n° 5. MB en avait trois.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w; poser(A, [], []);
+        return monter();
+      }).then(function (w) {
+        B = w;
+        var eB = B.App.store.etat();
+        eB.routinesRecup = [{ id: 'rt1', nom: 'Coude', exercices: [] },
+                            { id: 'rt2', nom: 'Poignet', exercices: [] }];
+        B.App.store.sauver(true);
+        egal((enBase().routinesRecup || []).length, 2, '[temoin] B a écrit ses deux routines');
+        arrierePlan(A);
+        return new Promise(function (r) { setTimeout(r, 250); });
+      }).then(function () {
+        egal((enBase().routinesRecup || []).length, 2,
+             'les routines de récup survivent — elles entrent enfin dans la fusion');
+      });
+    });
+
+    /* ---- 6. LE CHRONO ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('6. [hors indication] Le chrono, qui écrit TOUT DE SUITE',
+          '`poserChrono` appelle `ecrire()` sans passer par le regroupement de '
+        + '`sauver`. Un repos lancé dans une instance périmée écrivait donc aussi.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w; poser(A, [], []);
+        return monter();
+      }).then(function (w) {
+        B = w;
+        poser(B, [seance('s1', 'muscu', '2026-11-01')], []);
+        egal((enBase().seances || []).length, 1, '[temoin] B a écrit sa séance');
+        A.App.store.poserChrono(Date.now() + 90000, 90, 'repos');
+        return new Promise(function (r) { setTimeout(r, 250); });
+      }).then(function () {
+        egal((enBase().seances || []).length, 1,
+             'un repos lancé dans l’instance périmée n’efface plus la séance');
+      });
+    });
+
+    /* ---- 7. UNE INSTANCE QUI N'A JAMAIS LU ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('7. [hors indication] Une instance qui démarre sur un stockage vide',
+          'La garde ne doit ni bloquer l’écriture ni fusionner au hasard quand il '
+        + 'n’y a rien à comparer. Un garde-fou qui bloque coûte aussi cher qu’un '
+        + 'qui laisse passer. — CE CAS A FAILLI ME FAIRE ÉCRIRE UNE FAUSSETÉ : il '
+        + 'est d’abord tombé, j’ai conclu que l’app pose sa révision dès le '
+        + 'démarrage, et j’ai réécrit le contrôle pour l’exiger. C’était un '
+        + 'artefact : le décor n’était pas vidé et l’instance LISAIT la révision '
+        + 'du cas précédent. Une fois le nettoyage réparé, la vérité est '
+        + 'l’inverse — sur du vide, rien n’est lu ni écrit, et la révision reste '
+        + 'nulle. Un contrôle juste peut tomber à cause d’un décor sale.');
+      egal(String(localStorage.getItem('carnet-aw-bac')), 'null',
+           '[temoin] le stockage est bien vide AVANT de monter l’instance — c’est '
+         + 'LUI qui a révélé que le décor n’était pas nettoyé entre les cas');
+      return monter().then(function (w) {
+        egal(String(w.App.store.revConnue()), 'null',
+             'sur un stockage vide, aucune révision n’est lue : la garde n’a rien à '
+           + 'comparer et ne se déclenche pas');
+        var e = w.App.store.etat();
+        e.seances = [seance('s1', 'muscu', '2026-11-01')];
+        egal(w.App.store.sauver(true), 'true', 'elle peut quand même enregistrer');
+        return new Promise(function (r) { setTimeout(r, 200); });
+      }).then(function () {
+        egal((enBase().seances || []).length, 1, 'et sa séance est bien sur le disque');
+      });
+    });
+
+    /* ---- 8. LA REVISION SURVIT A UN RECHARGEMENT ---- */
+    chaine = chaine.then(function () { return vider(); }).then(function () {
+      cas('8. [hors indication] La révision survit au rechargement',
+          '`normaliser` est une liste blanche : une clé qu’elle ignore disparaît au '
+        + 'premier rechargement. Si `rev` ne passait pas, la garde ne verrait jamais '
+        + 'de différence et serait morte sans que rien ne le dise — le piège déjà '
+        + 'payé par le dictionnaire perso et les pesées.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        poser(A, [seance('s1', 'muscu', '2026-11-01')], []);
+        var r1 = String(A.App.store.revConnue());
+        egal(r1 === 'null' ? 'vide' : 'posée', 'posée', '[temoin] une écriture pose bien une révision');
+        return monter();
+      }).then(function (w) {
+        var r2 = String(w.App.store.revConnue());
+        egal(r2 === 'null' ? 'perdue' : 'relue', 'relue',
+             'une instance neuve RELIT la révision du disque : `normaliser` la laisse passer');
+      });
+    });
+
+    chaine.then(function () {
+      scoreN.textContent = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total
+                     + ' — Épreuve deux instances';
+      return vider();
+    }).catch(function (e) {
+      scoreN.textContent = '✗ l’épreuve a planté : ' + e.message;
+      scoreN.className = 'score ko';
+      document.title = '✗ plantée — Épreuve deux instances';
+    });
+  }
+
+  document.getElementById('go').addEventListener('click', function () {
+    sortie.innerHTML = ''; total = 0; bons = 0;
+    scoreN.textContent = 'en cours…'; scoreN.className = 'score';
+    jouer();
+  });
+
+  /* On joue tout seul a l'ouverture : une epreuve qu'il faut penser a
+     lancer est une epreuve qu'on ne lance pas. */
+  jouer();
+})();
+</script>
+</body>
+</html>

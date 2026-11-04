@@ -15,6 +15,41 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.73.0
+
+**La cause de la perte du 1ᵉʳ novembre est trouvée, et elle est fermée.**
+
+Le carnet pouvait être ouvert **deux fois en même temps** — l’app installée
+sur l’écran d’accueil et un onglet du navigateur, par exemple. Chacune
+gardait le carnet en mémoire de son côté, et **chacune réécrivait tout dès
+qu’elle passait en arrière-plan**, sans jamais relire ce que l’autre avait
+enregistré entre-temps.
+
+Donc : une app restée ouverte **avant** tes saisies, réveillée des jours plus
+tard, écrasait le carnet avec sa vieille mémoire. Tes **équipements**
+survivaient — elle les avait déjà — mais tes **séances disparaissaient**.
+
+- **Reproduit** : 2 équipements et 6 séances en base, une instance périmée
+  passe en arrière-plan, il reste 2 équipements et **0 séance**.
+- **Ce qui la ferme** : chaque enregistrement porte désormais une marque.
+  Avant d’écrire, l’app relit celle du carnet : si elle a changé, une autre
+  instance est passée, et l’app **fusionne** au lieu d’écraser.
+- **Rien ne se supprime tout seul** : après fusion, les séances des deux
+  côtés sont là. Le prix, dit franchement : une séance que tu supprimes dans
+  une instance peut **revenir** si une autre, périmée, la porte encore. Mieux
+  vaut une séance à resupprimer qu’une séance perdue.
+- **Les routines de récupération** entrent enfin dans la fusion : elles n’y
+  étaient pas, et une routine créée dans une instance pouvait disparaître.
+
+**Une épreuve rejouable** vérifie tout ça dans de vraies instances :
+le cas exact du 1ᵉʳ novembre, la fermeture d’onglet, deux instances qui
+saisissent chacune du neuf, trois instances en cascade, les routines de
+récupération, un minuteur de repos, et un carnet vierge.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.72.3
 
 **Une sauvegarde de secours, et c’est le plus important de cette version.**
