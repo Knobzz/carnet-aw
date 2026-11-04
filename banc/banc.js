@@ -125,6 +125,64 @@
      04/11, et sa premiere tentative a ECHOUE (le double ne se posait qu'a
      l'ecriture, jamais a la lecture).
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     LE CACHE HORS LIGNE COUVRE-T-IL TOUT CE QUE LA PAGE CHARGE ?
+
+     `js/gestes.js` manquait a `sw.js` depuis le 31/10 : hors ligne,
+     index.html venait du cache et reclamait un script absent. C'est la
+     TROISIEME liste de scripts tenue a la main qui oublie un fichier —
+     `vue-sparring.js` dans l'hote du banc d'interface le 27/10,
+     `gestes.js` dans ce meme hote le 31/10, `gestes.js` ici.
+
+     ON NE RELIT PLUS LA LISTE, ON LA CONFRONTE. Les deux fichiers sont
+     lus sur le reseau et compares : un script ajoute a index.html sans
+     etre mis en cache fait tomber ce controle, et il le NOMME.
+     --------------------------------------------------------------- */
+  bloc('Le cache hors ligne', function (v) {
+    /* LECTURE SYNCHRONE ASSUMEE : le banc est une page de mesure, pas
+       l'app. Un `await` demanderait de rendre tout le banc asynchrone pour
+       deux fichiers de quelques kilo-octets. */
+    function lire(url) {
+      try {
+        var x = new XMLHttpRequest();
+        x.open('GET', url + '?t=' + Date.now(), false);
+        x.send(null);
+        return x.status >= 200 && x.status < 300 ? x.responseText : null;
+      } catch (e) { return null; }
+    }
+
+    var idx = lire('../index.html');
+    var sw = lire('../sw.js');
+    /* LE TEMOIN DIT POURQUOI IL TIENT : sans les deux fichiers, la
+       comparaison ci-dessous serait vacuement vraie — deux listes vides se
+       couvrent parfaitement. C'est le defaut qu'on a paye ailleurs : un
+       filtre sur du vide rend du vide. */
+    v.vrai(!!idx && !!sw,
+           '[temoin] les deux fichiers sont lisibles depuis le banc — sans '
+         + 'eux, comparer deux listes vides passerait pour une couverture');
+
+    if (idx && sw) {
+      var dansPage = [];
+      var re = /src="(js\/[a-z0-9-]+\.js)/g, m;
+      while ((m = re.exec(idx))) { if (dansPage.indexOf(m[1]) < 0) dansPage.push(m[1]); }
+
+      var dansCache = [];
+      var re2 = /'(js\/[a-z0-9-]+\.js)'/g, m2;
+      while ((m2 = re2.exec(sw))) { if (dansCache.indexOf(m2[1]) < 0) dansCache.push(m2[1]); }
+
+      v.vrai(dansPage.length >= 10,
+             '[temoin] la page charge bien une famille de scripts ('
+           + dansPage.length + ') : un motif casse rendrait une liste vide');
+
+      var oublies = dansPage.filter(function (f) { return dansCache.indexOf(f) < 0; });
+      v.egal(oublies.join(', ') || 'aucun', 'aucun',
+             'tout script charge par index.html est mis en cache par le '
+           + 'service worker : sinon il manque HORS LIGNE, la ou le carnet '
+           + 'sert le plus (' + dansPage.length + ' dans la page, '
+           + dansCache.length + ' en cache)');
+    }
+  });
+
   bloc('Le filet de sauvegarde', function (v) {
     var sub = A.store.substance;
     v.vrai(typeof sub === 'function',

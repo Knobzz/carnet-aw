@@ -3,7 +3,7 @@
    est servie depuis le cache dès que le réseau manque. Aucune donnée
    d'entraînement ne passe par ici : elle ne quitte jamais le téléphone. */
 
-var CACHE = 'carnet-aw-v1.72.1';
+var CACHE = 'carnet-aw-v1.72.2';
 
 var FICHIERS = [
   './',
@@ -12,6 +12,12 @@ var FICHIERS = [
   'js/store.js',
   'js/model.js',
   'js/ui.js',
+  /* ENTRE LE 04/11, et il manquait depuis le 31/10 23h55. Hors ligne,
+     index.html venait du cache et reclamait un script absent : l'onglet
+     des gestes cassait la ou le carnet sert le plus. Troisieme liste de
+     scripts tenue a la main qui oublie un fichier — un controle du banc
+     confronte desormais cette liste a index.html, au lieu de la relire. */
+  'js/gestes.js',
   'js/panneau.js',
   'js/vue-seance.js',
   'js/vue-recup.js',
