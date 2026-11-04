@@ -508,9 +508,19 @@ texte libre produirait un champ à moitié rempli qui ressemblerait à une
 explication sans en être une. L'écran dit « ajouté par toi, pas
 d'explication écrite ».
 
-**CE QUI RESTE, ET CE N'EST PLUS CE CHANTIER** : le matériel de l'étage 3 est
-toujours une liste en dur. Un utilisateur avec un engin absent ne peut pas
-l'ajouter. Mesuré : `MATERIEL` dans `js/panneau.js`, cinq familles.
+**CE QUE J'AVAIS ÉCRIT ICI ÉTAIT FAUX**, et MB l'a vu le 04/11 : « Ai-je la
+possibilité de rajouter un engin moi-même au besoin ? »
+
+**OUI, et depuis longtemps.** Le groupe « Équipements » du panneau porte un
+champ LIBRE avec son propre mode d'emploi — « Tape le nom puis Entrée, ou
+déplie une section. Un outil tapé ici entre aussi dans ton équipement. » Ce
+n'est pas réservé au bras de fer, et l'engin rejoint son catalogue.
+
+**CE QUI RESTE EST UN DÉTAIL D'AFFICHAGE** : un engin tapé paraît sous
+« Équipements » plutôt que dans les cases de l'étage 3. **Aucun cas réel ne
+le demande** — je n'en avais mesuré aucun, j'étais parti d'une phrase de ce
+fichier et non d'un besoin. C'est la leçon du 08/10 : proposer une option
+plus large que le problème.
 
 ### La rédaction d'origine suit, pour la mesure qu'elle porte.
 
