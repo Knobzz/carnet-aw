@@ -255,6 +255,14 @@
      On ne reinjecte pas un objet brut dans l'app : il traverse la meme porte
      que l'import, sans quoi un filet ancien ferait entrer une forme que le
      reste du code ne sait plus lire. */
+  /* EFFACER LE DOUBLE POUR DE BON. Il survit a `vider()` — c'est son
+     interet — donc « Tout effacer » ne tenait plus sa promesse. Qui prete
+     ou revend son telephone doit pouvoir ne rien laisser. */
+  function effacerFilet() {
+    try { window.localStorage.removeItem(CLE_FILET); return true; }
+    catch (e) { return false; }
+  }
+
   function restaurerFilet() {
     var f = filet();
     if (!f) return false;
@@ -514,6 +522,7 @@
     substance: substance,
     filet: filet,
     restaurerFilet: restaurerFilet,
+    effacerFilet: effacerFilet,
     VERSION_DONNEES: VERSION_DONNEES,
     charger: charger,
     sauver: sauver,

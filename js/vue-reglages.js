@@ -1346,17 +1346,46 @@
 
     /* --- remise à zéro --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Tout effacer' }));
+    /* LE TEXTE A CHANGE LE 04/11, PARCE QU'IL ETAIT DEVENU FAUX.
+
+       Depuis le filet, `vider()` laisse le double INTACT — mesure : carnet
+       a 0, double a 12 seances. C'est voulu, mais « irreversible » ne
+       l'etait plus, et une protection muette se croit absente : c'est le
+       defaut que MB a deja paye une fois. */
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Supprime programmes, séances et catalogue. Exporte d’abord : c’est irréversible.' }));
+      text: 'Supprime programmes, séances et catalogue. La sauvegarde de '
+          + 'secours, elle, SURVIT : tu pourras revenir en arrière juste '
+          + 'au-dessus. Exporte quand même avant.' }));
     hote.appendChild(A.ui.confirmer2(
       h('button', { class: 'bt bt-large bt-danger', text: 'Effacer toutes les données' }),
       'Appuyer encore pour tout effacer',
       function () {
         A.store.vider();
         A.app.appliquerTheme();
-        A.ui.toast('Carnet remis à zéro.');
+        A.ui.toast('Carnet remis à zéro. La sauvegarde de secours reste.');
         A.app.aller('programmes');
       }));
+
+    /* NE RIEN LAISSER DU TOUT — un geste DIFFERENT du precedent, et c'est
+       pour ca qu'il a son propre bouton. « Je repars de zero » et « je ne
+       veux plus rien de ce carnet sur cet appareil » ne se demandent pas
+       de la meme facon : preter son telephone, le revendre. Un seul bouton
+       qui ferait les deux obligerait a choisir sans le dire. */
+    if (A.store.filet && A.store.filet()) {
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:9px 2px',
+        text: 'Pour ne RIEN laisser sur cet appareil — prêter ou revendre '
+            + 'le téléphone — efface aussi la sauvegarde de secours. '
+            + 'Après ça, plus aucun retour en arrière.' }));
+      hote.appendChild(A.ui.confirmer2(
+        h('button', { class: 'bt bt-large bt-danger',
+                      text: 'Effacer aussi la sauvegarde de secours' }),
+        'Appuyer encore — aucun retour',
+        function () {
+          A.store.effacerFilet();
+          A.ui.toast('Sauvegarde de secours effacée.');
+          rendre(hote);
+        }));
+    }
 
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin-top:18px;text-align:center',
       text: 'Carnet AW · données locales · version ' + (window.APP_VERSION || '1.0.0') }));
