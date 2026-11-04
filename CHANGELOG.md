@@ -15,6 +15,27 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.79.0
+
+**Ajoute le geste « Développé nuque »** sous *Développé militaire*. La barre
+passe derrière la tête au lieu de descendre devant, et ça change ce qui
+travaille : **deltoïdes médial et postérieur** plutôt que le pectoral.
+
+Mesuré par EMG sur 8 culturistes à 80 % du 1-RM (Coratella et coll.,
+*Frontiers in Physiology* 2022) — une source qui **compare les deux
+variantes**, là où la fiche s’appuyait avant sur des comparateurs.
+
+L’étude ne mesure **aucun risque** de blessure, et la fiche le dit : elle
+rapporte seulement d’un autre travail que les deux variantes conviennent à
+qui a une amplitude d’épaule normale.
+
+« Behind the neck press » et « Développé nuque à la barre guidée » restent
+cherchables : un geste reste une façon d’écrire le mouvement.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.78.0
 
 **Tu peux compléter le dictionnaire toi-même.** Trois choses qui manquaient.

@@ -28,6 +28,7 @@ SOURCES = [
     ('revue/gestes-ajoutes.js', u'les 11 gestes trouves par la recherche'),
     ('revue/gestes-valides-mb.js', u'les 5 valides par MB, plus le Svend press'),
     ('revue/tractions-regroupees.js', u'les 6 gestes nes de la fusion des tractions'),
+    ('revue/geste-developpe-nuque.js', u'le dernier geste du chantier 2'),
 ]
 
 morceaux = []
@@ -76,6 +77,11 @@ AGREGATEUR = u"""
     poser(TR.RENOMMER[g.fiche] || g.fiche, g.nom, g, g.aussi);
   });
   (A.gestesValidesMB && A.gestesValidesMB.GARDES || []).forEach(function (g) {
+    poser(TR.RENOMMER[g.fiche] || g.fiche, g.nom, g, g.aussi);
+  });
+  /* LE DERNIER DU CHANTIER 2, entre le 04/11. Meme forme que les autres :
+     il vise sa fiche par son nom, et ses ecritures le suivent. */
+  (A.revue && A.revue.gesteDeveloppeNuque || []).forEach(function (g) {
     poser(TR.RENOMMER[g.fiche] || g.fiche, g.nom, g, g.aussi);
   });
   var RSS = (A.gestesAjoutes && A.gestesAjoutes.REND_SON_STATUT) || {};

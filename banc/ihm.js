@@ -6063,6 +6063,53 @@
     });
   });
 
+  /* ---------------------------------------------------------------
+     UN GESTE RESTE UNE ECRITURE
+
+     Regle decouverte a mes depens le 04/11 : en posant « Developpe nuque »
+     comme geste, j'ai retire ses trois ecritures de `aussi` pour « eviter
+     un doublon ». Les trois ne ramenaient plus rien.
+
+     LE DOUBLON N'EXISTE PAS — l'etage 2 lit `gestesDe`, jamais `aussi`. Les
+     dix gestes convertis le 31/10 le montraient deja : « Spider curl » est
+     un geste ET une ecriture de « Curl biceps ».
+
+     CE BLOC VIT ICI parce que le banc d'interface est le seul qui charge
+     `js/gestes.js` ; le banc de modele ne le charge pas.
+     --------------------------------------------------------------- */
+  bloc('Un geste reste une écriture', function (v, h) {
+    var fen = h.fen;
+    var G = fen.App.gestes, m = fen.App.m;
+    v.vrai(!!G && typeof G.gestesDe === 'function',
+           '[temoin] l’hôte porte bien la table des gestes — sans elle ce '
+         + 'bloc ne mesurerait rien');
+
+    /* ON BALAIE TOUTES LES FICHES, pas une liste ecrite a cote : une liste
+       a tenir a jour oublie, et c'est la troisieme fois aujourd'hui. */
+    var vide = fen.App.store.vide();
+    var perdus = [], combien = 0;
+    (m.DICTIONNAIRE || []).forEach(function (d) {
+      G.gestesDe(d.nom).forEach(function (g) {
+        combien += 1;
+        /* LE NOM DU GESTE, PUIS SES PROPRES ECRITURES : les deux doivent
+           ramener une fiche, sinon MB tape un mot qui ne trouve rien. */
+        [g.nom].concat(g.aussi || []).forEach(function (mot) {
+          if (!mot) return;
+          var f = m.ficheDictionnaire(mot, vide);
+          if (!f) perdus.push(d.nom + ' § ' + mot);
+        });
+      });
+    });
+
+    v.vrai(combien > 30,
+           '[temoin] le carnet porte bien une famille de gestes (' + combien
+         + ') — un zéro ici rendrait la mesure vacuement vraie');
+    v.egal(perdus.join(' | ') || 'aucun', 'aucun',
+           'chaque geste et chacune de ses écritures RAMÈNENT leur fiche : '
+         + 'un geste reste une écriture, sinon MB tape un mot qui ne trouve '
+         + 'plus rien');
+  });
+
   bloc('Barre d’onglets à 320 px', function (v, h) {
     var fen = h.fen, doc = h.doc;
 
