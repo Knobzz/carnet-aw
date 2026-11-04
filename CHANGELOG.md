@@ -15,6 +15,25 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.76.0
+
+**La sauvegarde passe en PREMIER dans les Réglages.** C’est la première
+chose que tu vois en ouvrant l’écran, avant le thème et le catalogue.
+
+**Et les textes sont raccourcis** : 1 493 → 1 056 caractères, **29 % de
+moins**, sans qu’aucune information disparaisse — les chiffres, les dates,
+le choix à l’import et les avertissements sont tous restés. Ce qui part est
+la répétition entre les trois sections.
+
+**La sauvegarde automatique prévient quand elle décroche.** Si le navigateur
+redemande l’accès au fichier (ce qu’il fait à chaque rafraîchissement sur
+certains téléphones), un bandeau le dit et un bouton le redonne. Sans ça, le
+fichier cessait d’être tenu à jour **en silence**, et tu te croyais protégé.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.75.1
 
 **Corrige une contradiction à l’écran.** Avec un fichier tenu à jour, les

@@ -631,6 +631,289 @@
     A.ui.vider(hote);
     var e = etat();
 
+    /* ================================================================
+       LA SAUVEGARDE EN PREMIER — MB, 04/11
+
+       « fait en sorte que la sauvegarde soit en premier dans les reglages
+       afin que les users y pensent ».
+
+       IL CHANGE UNE DECISION QU'IL AVAIT PRISE, et c'est ecrit ici pour
+       qu'on ne la remette pas a l'ancienne place par souci de coherence :
+       l'ordre d'avant venait de lui — « Ajouter un outil doit tomber sous
+       le pouce tout de suite, parce qu'on ajoute un outil bien plus souvent
+       qu'on n'exporte un carnet ». C'etait juste, et ca l'a ete jusqu'au
+       1er novembre, ou il a perdu six seances sans jamais avoir exporte.
+
+       Ce qu'on fait SOUVENT n'est pas ce qu'on doit voir en PREMIER quand
+       l'oubli coute un carnet.
+       ================================================================ */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde' }));
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+      /* COUPE LE 04/11 a la demande de MB. Ce qui part : « un export
+         regulier est le seul filet si… » — les deux sections suivantes le
+         disent chacune, et c'est la redondance qui alourdissait. Ce qui
+         reste : ou vivent les donnees, qu'elles ne partent nulle part, et
+         le choix a l'import. */
+      text: 'Tout vit sur ce téléphone. Rien ne part sur un serveur. '
+          + 'À l’import : fusionner (rien n’est perdu) ou remplacer.' }));
+
+    /* --- LE BOUTON QUI SAIT QUAND TU AS EXPORTE ---
+
+       MB, 04/11 : « je veux un rappel simple, comme un bouton, qui pense a
+       exporter ». Il venait de perdre six seances sans aucun export, et le
+       carnet n'en gardait aucune trace — il ne pouvait donc rien rappeler.
+
+       AUCUN SEUIL : « ca fait trop longtemps » demanderait un nombre de
+       jours que personne n'a mesure. On affiche deux FAITS — jamais
+       exporte, ou la date et le nombre de seances saisies depuis — et MB
+       decide. C'est la meme regle que « Ta lacune » et que les remarques du
+       Suivi : un zero est un fait, un seuil serait de moi. */
+    var ex = A.store.etatExport ? A.store.etatExport() : null;
+    if (ex) {
+      var ligne = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
+      /* LE FICHIER AUTOMATIQUE CHANGE CE QU'IL Y A A DIRE.
+
+         Sans cette lecture, l'ecran affichait « Jamais exporte. 6 seance(s)
+         ne tiennent que sur cet appareil. » JUSTE AU-DESSUS d'un fichier
+         tenu a jour — deux blocs ecrits chacun juste, qui se dementent une
+         fois cote a cote. Meme forme que « Sans source. » sous une source,
+         payee le matin meme.
+
+         ON N'EXIGE PAS SEULEMENT QU'IL SOIT ACTIF, mais qu'il ait VRAIMENT
+         ecrit (`le`) et qu'il ne soit pas en panne : un fichier choisi puis
+         devenu inaccessible ne protege rien, et l'alerte doit revenir. */
+      var fi = A.store.infoFichier ? A.store.infoFichier() : null;
+      var fichierTientAJour = !!(fi && fi.actif && fi.le && !fi.panne);
+
+      if (fichierTientAJour) {
+        ligne.appendChild(h('b', { text: 'Un fichier est tenu \u00e0 jour. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.jamais
+            ? 'Un export manuel reste utile pour en garder une copie ailleurs '
+            + 'que sur ce t\u00e9l\u00e9phone.'
+            : 'Dernier export manuel : '
+            + (ex.jours === 0 ? 'aujourd\u2019hui'
+             : ex.jours === 1 ? 'hier'
+             : ex.jours === null ? 'date illisible'
+             : 'il y a ' + ex.jours + ' jours') + '.'));
+      } else if (ex.jamais) {
+        ligne.appendChild(h('b', { text: 'Jamais export\u00e9. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.seances
+            ? ex.seances + ' s\u00e9ance(s) ne tiennent que sur cet appareil.'
+            : 'Rien \u00e0 sauvegarder pour l\u2019instant.'));
+      } else {
+        var quand = ex.jours === null ? 'date illisible'
+                  : ex.jours === 0 ? 'aujourd\u2019hui'
+                  : ex.jours === 1 ? 'hier'
+                  : 'il y a ' + ex.jours + ' jours';
+        ligne.appendChild(h('b', { text: 'Dernier export : ' + quand + '. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.depuis ? ex.depuis + ' s\u00e9ance(s) saisie(s) depuis.'
+                    : 'Rien de neuf depuis.'));
+      }
+      hote.appendChild(ligne);
+    }
+
+    var btExp = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px', text: 'Exporter une sauvegarde (.json)' });
+    btExp.addEventListener('click', exporter);
+    hote.appendChild(btExp);
+
+    var fich = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' });
+    fich.addEventListener('change', function () {
+      if (fich.files && fich.files[0]) importer(fich.files[0], function () { rendre(hote); });
+      fich.value = '';
+    });
+    var btImp = h('button', { class: 'bt bt-large', text: 'Importer une sauvegarde' });
+    btImp.addEventListener('click', function () { fich.click(); });
+    hote.appendChild(btImp);
+    hote.appendChild(fich);
+
+    /* --- LA SAUVEGARDE AUTOMATIQUE DANS UN FICHIER ---
+
+       MB, 04/11 : « voir organiser un export automatique qui remplace
+       l'ancien ? ». Mesure sur SON telephone avant d'ecrire une ligne : les
+       quatre etapes de revue/test-export-auto.html passent, permission
+       comprise APRES fermeture de la page.
+
+       RIEN N'EST PROPOSE SI LE NAVIGATEUR NE SAIT PAS LE FAIRE. Un reglage
+       qui ne peut pas marcher est pire que pas de reglage : on le cherche,
+       on l'essaie, et on croit que c'est soi. */
+    if (A.store.fichierPossible && A.store.fichierPossible()) {
+      hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde automatique' }));
+      var inf = A.store.infoFichier();
+
+      if (!inf.actif) {
+        hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+          text: 'Un fichier sur ton t\u00e9l\u00e9phone, r\u00e9\u00e9crit \u00e0 chaque '
+              + 'enregistrement. La seule qui survit si tu effaces les '
+              + 'donn\u00e9es du site ou changes d\u2019appareil.' }));
+        var btAct = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                  text: 'Choisir le fichier \u00e0 tenir \u00e0 jour' });
+        btAct.addEventListener('click', function () {
+          A.store.choisirFichier().then(function (r) {
+            if (r.ok) A.ui.toast('Fichier choisi. Il sera tenu \u00e0 jour tout seul.');
+            else if (r.raison === 'annule') A.ui.toast('Annul\u00e9.');
+            else A.ui.toast('\u00c9chec : ' + r.raison);
+            rendre(hote);
+          });
+        });
+        hote.appendChild(btAct);
+      } else {
+        var quandF = '\u2014';
+        if (inf.le) {
+          try {
+            var df = new Date(inf.le), zf = function (x) { return (x < 10 ? '0' : '') + x; };
+            if (!isNaN(df.getTime())) {
+              quandF = zf(df.getDate()) + '/' + zf(df.getMonth() + 1) + ' \u00e0 '
+                     + zf(df.getHours()) + 'h' + zf(df.getMinutes());
+            }
+          } catch (e) {}
+        }
+        var carteF = h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px' });
+        carteF.appendChild(h('div', {}, h('b', { text: 'Fichier : ' }), inf.nom));
+        carteF.appendChild(h('div', {}, h('b', { text: 'Derni\u00e8re \u00e9criture : ' }),
+          inf.le ? quandF : 'pas encore'));
+        hote.appendChild(carteF);
+
+        /* LA PANNE SE DIT, ET ELLE SE REPARE D'UN GESTE. Sans ce bloc, le
+           fichier cesserait d'etre tenu a jour EN SILENCE — exactement la
+           forme de perte que tout ceci existe pour empecher. */
+        if (inf.panne) {
+          hote.appendChild(h('div', { class: 'item-resume',
+            style: 'margin:0 2px 9px;color:var(--danger,#e06)',
+            text: 'Le fichier n\u2019est plus tenu \u00e0 jour : ' + inf.panne + '.' }));
+          var btPerm = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                     text: 'Redonner l\u2019acc\u00e8s au fichier' });
+          btPerm.addEventListener('click', function () {
+            A.store.redonnerPermissionFichier().then(function (ok) {
+              A.ui.toast(ok ? 'Fichier remis \u00e0 jour.' : 'Acc\u00e8s refus\u00e9.');
+              rendre(hote);
+            });
+          });
+          hote.appendChild(btPerm);
+        }
+
+        var btOub = h('button', { class: 'bt bt-large', text: 'Ne plus tenir ce fichier \u00e0 jour' });
+        A.ui.confirmer2(btOub, 'Confirmer ?', function () {
+          A.store.oublierFichier().then(function () {
+            A.ui.toast('Le fichier n\u2019est plus tenu \u00e0 jour. Il reste o\u00f9 il est.');
+            rendre(hote);
+          });
+        });
+        hote.appendChild(btOub);
+      }
+    }
+
+    /* --- LA SAUVEGARDE DE SECOURS, ET CE QU'ELLE CONTIENT ---
+
+       Nee le 04/11, apres que MB a tout perdu. Le carnet garde desormais un
+       DOUBLE a chaque enregistrement, sous une cle qui n'est pas la sienne,
+       et qu'un carnet vide ne peut pas écraser (`store.poserFilet`).
+
+       SANS CE BLOC, LE FILET NE SERT A RIEN : c'est le piege n° 5 applique a
+       un garde-fou — l'execution sans le rendu. On affiche donc DE QUAND il
+       date et CE QU'IL CONTIENT, en face du carnet courant, pour que le
+       choix se fasse sur deux chiffres et non a l'aveugle. */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde de secours' }));
+
+    var fl = A.store.filet ? A.store.filet() : null;
+    var courant = A.store.substance ? A.store.substance(A.store.etat()) : 0;
+    var seancesCourantes = (A.store.etat().seances || []).length;
+
+    if (fl) {
+      var quand = fl.le;
+      try {
+        var dd = new Date(fl.le);
+        if (!isNaN(dd.getTime())) {
+          var z = function (x) { return (x < 10 ? '0' : '') + x; };
+          quand = z(dd.getDate()) + '/' + z(dd.getMonth() + 1) + '/' + dd.getFullYear()
+                + ' a ' + z(dd.getHours()) + 'h' + z(dd.getMinutes());
+        }
+      } catch (e) {}
+
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+        text: 'Un double interne, qu\u2019un carnet vide ne peut pas '
+            + 'écraser \u2014 ce qui manquait le 1er novembre.' }));
+
+      var tbl = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
+      tbl.appendChild(h('div', {}, h('b', { text: 'Le double : ' }),
+        quand.replace(' a ', ' \u00e0 ') + ' \u2014 ' + fl.seances + ' s\u00e9ance(s), '
+        + fl.compte + ' \u00e9l\u00e9ment(s) en tout'));
+      tbl.appendChild(h('div', {}, h('b', { text: 'Ton carnet : ' }),
+        seancesCourantes + ' s\u00e9ance(s), ' + courant + ' \u00e9l\u00e9ment(s) en tout'));
+      hote.appendChild(tbl);
+
+      /* LE MOT QUI MANQUERAIT LE PLUS : restaurer REMPLACE. On le dit avant
+         le bouton, pas dans un message apres coup. */
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:0 2px 9px',
+        text: 'Restaurer REMPLACE ton carnet. Exporte avant si le tien a '
+            + 'des choses que le double n\u2019a pas.' }));
+
+      var btRest = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                 text: 'Restaurer ce double' });
+      A.ui.confirmer2(btRest, 'Remplacer mon carnet ?', function () {
+        if (A.store.restaurerFilet && A.store.restaurerFilet()) {
+          A.ui.toast('Carnet restaur\u00e9 depuis le double.');
+          /* LE MEME GESTE QUE L'IMPORT, pas un invente : le theme se
+             reapplique (il vit dans les reglages restaures), puis l'ecran
+             se redessine. J'avais ecrit `A.rendreTout()`, QUI N'EXISTE
+             PAS — le bouton aurait restaure sans rien rafraichir, et le
+             defaut ne se serait vu qu'a l'usage. */
+          A.app.appliquerTheme();
+          rendre(hote);
+        } else {
+          A.ui.toast('La restauration a \u00e9chou\u00e9 : le double est illisible.');
+        }
+      });
+      hote.appendChild(btRest);
+    } else {
+      /* PAS DE FILET N'EST PAS UNE ERREUR, et le dire evite de chercher un
+         bouton qui n'a rien a proposer. Il s'ecrira au premier
+         enregistrement d'un carnet non vide. */
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+        text: 'Aucun double pour l\u2019instant \u2014 il s\u2019\u00e9crira au prochain '
+            + 'enregistrement.' }));
+    }
+
+    /* --- état réel du stockage --- */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'État du stockage' }));
+    var taille = 0, ok = true;
+    try { taille = (window.localStorage.getItem(A.store.CLE) || '').length; } catch (err) { ok = false; }
+    var ligneDurable = h('span', { text: '…' });
+    var p = A.store.estPersistant();
+    if (p === true) ligneDurable.textContent = 'accordé';
+    else if (p === false) ligneDurable.textContent = 'refusé';
+    else ligneDurable.textContent = 'en cours…';
+
+    /* La reponse arrive en differe : on la relit une fois plutot que d'afficher
+       « en cours » pour toujours. */
+    if (p === null) {
+      setTimeout(function () {
+        var q = A.store.estPersistant();
+        ligneDurable.textContent = q === true ? 'accordé' : (q === false ? 'refusé' : 'inconnu');
+      }, 900);
+    }
+
+    var carte = h('div', { class: 'carte' }, h('div', { class: 'carte-corps' },
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Écriture' }),
+        h('span', { text: A.store.panne() ? 'en échec' : (ok ? 'fonctionne' : 'inaccessible') })),
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Stockage durable' }), ligneDurable),
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Taille des données' }),
+        h('span', { text: taille ? (taille / 1024).toFixed(1) + ' Ko' : '—' })),
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Exercices connus' }),
+        h('span', { text: String(e.exercices.length) })),
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Programmes' }),
+        h('span', { text: String(e.programmes.length) })),
+      h('div', { class: 'item-ligne' }, h('b', { text: 'Séances' }),
+        h('span', { text: String(e.seances.length) }))));
+    hote.appendChild(carte);
+    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0',
+      text: '« Durable » refusé : le navigateur peut effacer le carnet s’il '
+          + 'manque de place. L’installer depuis l’écran d’accueil l’accorde '
+          + 'presque toujours.' }));
+
+
     /* --- thème --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Thème' }));
     var puces = h('div', { class: 'enrobe' });
@@ -1213,273 +1496,6 @@
         });
       hote.appendChild(blocD.carte);
     }
-
-    hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde' }));
-    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Tout vit sur ce téléphone, dans le stockage du navigateur. Rien ne part sur un serveur. '
-          + 'Un export régulier est le seul filet si tu changes d’appareil ou si tu effaces les données du site. '
-          + 'À l’import, tu choisis : fusionner (rien n’est perdu) ou remplacer.' }));
-
-    /* --- LE BOUTON QUI SAIT QUAND TU AS EXPORTE ---
-
-       MB, 04/11 : « je veux un rappel simple, comme un bouton, qui pense a
-       exporter ». Il venait de perdre six seances sans aucun export, et le
-       carnet n'en gardait aucune trace — il ne pouvait donc rien rappeler.
-
-       AUCUN SEUIL : « ca fait trop longtemps » demanderait un nombre de
-       jours que personne n'a mesure. On affiche deux FAITS — jamais
-       exporte, ou la date et le nombre de seances saisies depuis — et MB
-       decide. C'est la meme regle que « Ta lacune » et que les remarques du
-       Suivi : un zero est un fait, un seuil serait de moi. */
-    var ex = A.store.etatExport ? A.store.etatExport() : null;
-    if (ex) {
-      var ligne = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
-      /* LE FICHIER AUTOMATIQUE CHANGE CE QU'IL Y A A DIRE.
-
-         Sans cette lecture, l'ecran affichait « Jamais exporte. 6 seance(s)
-         ne tiennent que sur cet appareil. » JUSTE AU-DESSUS d'un fichier
-         tenu a jour — deux blocs ecrits chacun juste, qui se dementent une
-         fois cote a cote. Meme forme que « Sans source. » sous une source,
-         payee le matin meme.
-
-         ON N'EXIGE PAS SEULEMENT QU'IL SOIT ACTIF, mais qu'il ait VRAIMENT
-         ecrit (`le`) et qu'il ne soit pas en panne : un fichier choisi puis
-         devenu inaccessible ne protege rien, et l'alerte doit revenir. */
-      var fi = A.store.infoFichier ? A.store.infoFichier() : null;
-      var fichierTientAJour = !!(fi && fi.actif && fi.le && !fi.panne);
-
-      if (fichierTientAJour) {
-        ligne.appendChild(h('b', { text: 'Un fichier est tenu \u00e0 jour. ' }));
-        ligne.appendChild(document.createTextNode(
-          ex.jamais
-            ? 'Un export manuel reste utile pour en garder une copie ailleurs '
-            + 'que sur ce t\u00e9l\u00e9phone.'
-            : 'Dernier export manuel : '
-            + (ex.jours === 0 ? 'aujourd\u2019hui'
-             : ex.jours === 1 ? 'hier'
-             : ex.jours === null ? 'date illisible'
-             : 'il y a ' + ex.jours + ' jours') + '.'));
-      } else if (ex.jamais) {
-        ligne.appendChild(h('b', { text: 'Jamais export\u00e9. ' }));
-        ligne.appendChild(document.createTextNode(
-          ex.seances
-            ? ex.seances + ' s\u00e9ance(s) ne tiennent que sur cet appareil.'
-            : 'Rien \u00e0 sauvegarder pour l\u2019instant.'));
-      } else {
-        var quand = ex.jours === null ? 'date illisible'
-                  : ex.jours === 0 ? 'aujourd\u2019hui'
-                  : ex.jours === 1 ? 'hier'
-                  : 'il y a ' + ex.jours + ' jours';
-        ligne.appendChild(h('b', { text: 'Dernier export : ' + quand + '. ' }));
-        ligne.appendChild(document.createTextNode(
-          ex.depuis ? ex.depuis + ' s\u00e9ance(s) saisie(s) depuis.'
-                    : 'Rien de neuf depuis.'));
-      }
-      hote.appendChild(ligne);
-    }
-
-    var btExp = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px', text: 'Exporter une sauvegarde (.json)' });
-    btExp.addEventListener('click', exporter);
-    hote.appendChild(btExp);
-
-    var fich = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' });
-    fich.addEventListener('change', function () {
-      if (fich.files && fich.files[0]) importer(fich.files[0], function () { rendre(hote); });
-      fich.value = '';
-    });
-    var btImp = h('button', { class: 'bt bt-large', text: 'Importer une sauvegarde' });
-    btImp.addEventListener('click', function () { fich.click(); });
-    hote.appendChild(btImp);
-    hote.appendChild(fich);
-
-    /* --- LA SAUVEGARDE AUTOMATIQUE DANS UN FICHIER ---
-
-       MB, 04/11 : « voir organiser un export automatique qui remplace
-       l'ancien ? ». Mesure sur SON telephone avant d'ecrire une ligne : les
-       quatre etapes de revue/test-export-auto.html passent, permission
-       comprise APRES fermeture de la page.
-
-       RIEN N'EST PROPOSE SI LE NAVIGATEUR NE SAIT PAS LE FAIRE. Un reglage
-       qui ne peut pas marcher est pire que pas de reglage : on le cherche,
-       on l'essaie, et on croit que c'est soi. */
-    if (A.store.fichierPossible && A.store.fichierPossible()) {
-      hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde automatique' }));
-      var inf = A.store.infoFichier();
-
-      if (!inf.actif) {
-        hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-          text: 'Le carnet peut tenir \u00e0 jour un fichier sur ton t\u00e9l\u00e9phone, '
-              + 'r\u00e9\u00e9crit tout seul \u00e0 chaque enregistrement. UN geste pour le '
-              + 'choisir, et plus rien ensuite. C\u2019est la seule sauvegarde qui '
-              + 'survit si tu effaces les donn\u00e9es du site ou si tu changes '
-              + 'd\u2019appareil.' }));
-        var btAct = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
-                                  text: 'Choisir le fichier \u00e0 tenir \u00e0 jour' });
-        btAct.addEventListener('click', function () {
-          A.store.choisirFichier().then(function (r) {
-            if (r.ok) A.ui.toast('Fichier choisi. Il sera tenu \u00e0 jour tout seul.');
-            else if (r.raison === 'annule') A.ui.toast('Annul\u00e9.');
-            else A.ui.toast('\u00c9chec : ' + r.raison);
-            rendre(hote);
-          });
-        });
-        hote.appendChild(btAct);
-      } else {
-        var quandF = '\u2014';
-        if (inf.le) {
-          try {
-            var df = new Date(inf.le), zf = function (x) { return (x < 10 ? '0' : '') + x; };
-            if (!isNaN(df.getTime())) {
-              quandF = zf(df.getDate()) + '/' + zf(df.getMonth() + 1) + ' \u00e0 '
-                     + zf(df.getHours()) + 'h' + zf(df.getMinutes());
-            }
-          } catch (e) {}
-        }
-        var carteF = h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px' });
-        carteF.appendChild(h('div', {}, h('b', { text: 'Fichier : ' }), inf.nom));
-        carteF.appendChild(h('div', {}, h('b', { text: 'Derni\u00e8re \u00e9criture : ' }),
-          inf.le ? quandF : 'pas encore'));
-        hote.appendChild(carteF);
-
-        /* LA PANNE SE DIT, ET ELLE SE REPARE D'UN GESTE. Sans ce bloc, le
-           fichier cesserait d'etre tenu a jour EN SILENCE — exactement la
-           forme de perte que tout ceci existe pour empecher. */
-        if (inf.panne) {
-          hote.appendChild(h('div', { class: 'item-resume',
-            style: 'margin:0 2px 9px;color:var(--danger,#e06)',
-            text: 'Le fichier n\u2019est plus tenu \u00e0 jour : ' + inf.panne + '.' }));
-          var btPerm = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
-                                     text: 'Redonner l\u2019acc\u00e8s au fichier' });
-          btPerm.addEventListener('click', function () {
-            A.store.redonnerPermissionFichier().then(function (ok) {
-              A.ui.toast(ok ? 'Fichier remis \u00e0 jour.' : 'Acc\u00e8s refus\u00e9.');
-              rendre(hote);
-            });
-          });
-          hote.appendChild(btPerm);
-        }
-
-        var btOub = h('button', { class: 'bt bt-large', text: 'Ne plus tenir ce fichier \u00e0 jour' });
-        A.ui.confirmer2(btOub, 'Confirmer ?', function () {
-          A.store.oublierFichier().then(function () {
-            A.ui.toast('Le fichier n\u2019est plus tenu \u00e0 jour. Il reste o\u00f9 il est.');
-            rendre(hote);
-          });
-        });
-        hote.appendChild(btOub);
-      }
-    }
-
-    /* --- LA SAUVEGARDE DE SECOURS, ET CE QU'ELLE CONTIENT ---
-
-       Nee le 04/11, apres que MB a tout perdu. Le carnet garde desormais un
-       DOUBLE a chaque enregistrement, sous une cle qui n'est pas la sienne,
-       et qu'un carnet vide ne peut pas écraser (`store.poserFilet`).
-
-       SANS CE BLOC, LE FILET NE SERT A RIEN : c'est le piege n° 5 applique a
-       un garde-fou — l'execution sans le rendu. On affiche donc DE QUAND il
-       date et CE QU'IL CONTIENT, en face du carnet courant, pour que le
-       choix se fasse sur deux chiffres et non a l'aveugle. */
-    hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde de secours' }));
-
-    var fl = A.store.filet ? A.store.filet() : null;
-    var courant = A.store.substance ? A.store.substance(A.store.etat()) : 0;
-    var seancesCourantes = (A.store.etat().seances || []).length;
-
-    if (fl) {
-      var quand = fl.le;
-      try {
-        var dd = new Date(fl.le);
-        if (!isNaN(dd.getTime())) {
-          var z = function (x) { return (x < 10 ? '0' : '') + x; };
-          quand = z(dd.getDate()) + '/' + z(dd.getMonth() + 1) + '/' + dd.getFullYear()
-                + ' a ' + z(dd.getHours()) + 'h' + z(dd.getMinutes());
-        }
-      } catch (e) {}
-
-      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-        text: 'Le carnet garde un double de lui-même à chaque enregistrement. '
-            + 'Il ne part sur aucun serveur, et un carnet vide ne peut pas '
-            + 'l\u2019écraser \u2014 c\u2019est ce qui manquait le 1er novembre.' }));
-
-      var tbl = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
-      tbl.appendChild(h('div', {}, h('b', { text: 'Le double : ' }),
-        quand.replace(' a ', ' \u00e0 ') + ' \u2014 ' + fl.seances + ' s\u00e9ance(s), '
-        + fl.compte + ' \u00e9l\u00e9ment(s) en tout'));
-      tbl.appendChild(h('div', {}, h('b', { text: 'Ton carnet : ' }),
-        seancesCourantes + ' s\u00e9ance(s), ' + courant + ' \u00e9l\u00e9ment(s) en tout'));
-      hote.appendChild(tbl);
-
-      /* LE MOT QUI MANQUERAIT LE PLUS : restaurer REMPLACE. On le dit avant
-         le bouton, pas dans un message apres coup. */
-      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:0 2px 9px',
-        text: 'Restaurer REMPLACE ton carnet par ce double. Si ton carnet '
-            + 'contient des choses que le double n\u2019a pas, exporte-le '
-            + 'avant.' }));
-
-      var btRest = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
-                                 text: 'Restaurer ce double' });
-      A.ui.confirmer2(btRest, 'Remplacer mon carnet ?', function () {
-        if (A.store.restaurerFilet && A.store.restaurerFilet()) {
-          A.ui.toast('Carnet restaur\u00e9 depuis le double.');
-          /* LE MEME GESTE QUE L'IMPORT, pas un invente : le theme se
-             reapplique (il vit dans les reglages restaures), puis l'ecran
-             se redessine. J'avais ecrit `A.rendreTout()`, QUI N'EXISTE
-             PAS — le bouton aurait restaure sans rien rafraichir, et le
-             defaut ne se serait vu qu'a l'usage. */
-          A.app.appliquerTheme();
-          rendre(hote);
-        } else {
-          A.ui.toast('La restauration a \u00e9chou\u00e9 : le double est illisible.');
-        }
-      });
-      hote.appendChild(btRest);
-    } else {
-      /* PAS DE FILET N'EST PAS UNE ERREUR, et le dire evite de chercher un
-         bouton qui n'a rien a proposer. Il s'ecrira au premier
-         enregistrement d'un carnet non vide. */
-      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-        text: 'Le carnet gardera un double de lui-même d\u00e8s le prochain '
-            + 'enregistrement, sous une cl\u00e9 s\u00e9par\u00e9e qu\u2019un carnet vide ne '
-            + 'peut pas \u00e9craser. Aucun double pour l\u2019instant \u2014 c\u2019est normal '
-            + 'si tu n\u2019as encore rien saisi depuis la mise \u00e0 jour.' }));
-    }
-
-    /* --- état réel du stockage --- */
-    hote.appendChild(h('div', { class: 'sous-titre', text: 'État du stockage' }));
-    var taille = 0, ok = true;
-    try { taille = (window.localStorage.getItem(A.store.CLE) || '').length; } catch (err) { ok = false; }
-    var ligneDurable = h('span', { text: '…' });
-    var p = A.store.estPersistant();
-    if (p === true) ligneDurable.textContent = 'accordé';
-    else if (p === false) ligneDurable.textContent = 'refusé';
-    else ligneDurable.textContent = 'en cours…';
-
-    /* La reponse arrive en differe : on la relit une fois plutot que d'afficher
-       « en cours » pour toujours. */
-    if (p === null) {
-      setTimeout(function () {
-        var q = A.store.estPersistant();
-        ligneDurable.textContent = q === true ? 'accordé' : (q === false ? 'refusé' : 'inconnu');
-      }, 900);
-    }
-
-    var carte = h('div', { class: 'carte' }, h('div', { class: 'carte-corps' },
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Écriture' }),
-        h('span', { text: A.store.panne() ? 'en échec' : (ok ? 'fonctionne' : 'inaccessible') })),
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Stockage durable' }), ligneDurable),
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Taille des données' }),
-        h('span', { text: taille ? (taille / 1024).toFixed(1) + ' Ko' : '—' })),
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Exercices connus' }),
-        h('span', { text: String(e.exercices.length) })),
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Programmes' }),
-        h('span', { text: String(e.programmes.length) })),
-      h('div', { class: 'item-ligne' }, h('b', { text: 'Séances' }),
-        h('span', { text: String(e.seances.length) }))));
-    hote.appendChild(carte);
-    hote.appendChild(h('div', { class: 'item-resume', style: 'margin:6px 2px 0',
-      text: '« Stockage durable » refusé veut dire que le navigateur peut effacer le carnet s’il manque de place. '
-          + 'Installer l’app depuis l’écran d’accueil l’accorde presque toujours — et un export régulier reste le seul vrai filet.' }));
 
     sectionRetour(hote);
 

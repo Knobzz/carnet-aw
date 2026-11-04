@@ -3044,10 +3044,21 @@
     return attendre(200).then(function () {
       v.vrai(vue.textContent.indexOf('Envoyer un retour') >= 0,
              'la section est là');
-      /* L'ORDRE de l'écran est une décision, pas un hasard du code —
-         « Ajouter un outil » doit tomber sous le pouce tout de suite, parce
-         qu'on ajoute un outil bien plus souvent qu'on n'exporte un carnet.
-         Un contrôle le tient, comme pour l'onglet Suivi. */
+      /* L'ORDRE de l'écran est une décision, pas un hasard du code — et
+         CELLE-CI A ETE RENVERSEE LE 04/11, par MB : « fait en sorte que la
+         sauvegarde soit en premier dans les reglages afin que les users y
+         pensent ».
+
+         SA RAISON D'AVANT ETAIT DE LUI AUSSI : « Ajouter un outil doit
+         tomber sous le pouce tout de suite, parce qu'on ajoute un outil
+         bien plus souvent qu'on n'exporte un carnet ». C'etait juste, et ca
+         l'a ete jusqu'au 1er novembre — ou il a perdu six seances sans
+         jamais avoir exporte. Ce qu'on fait SOUVENT n'est pas ce qu'on doit
+         voir en PREMIER quand l'oubli coute un carnet.
+
+         La phrase d'avant est remplacee et non ajoutee a cote : la laisser
+         sous un ordre qui la contredit ferait croire a un oubli, et
+         quelqu'un remettrait l'ancien ordre « par coherence ». */
       var titres = [];
       Array.prototype.forEach.call(vue.children, function (n) {
         if (n.classList && n.classList.contains('sous-titre')) titres.push(n.textContent);
@@ -3069,12 +3080,10 @@
            + 'chez lui (ici : ' + (sfa ? 'oui' : 'non') + ') — sans ça la liste '
            + 'attendue ci-dessous serait un pari');
       v.egal(titres.join(' · '),
-             'Thème · En salle · Mon poids · Exercices connus · Équipement · '
-           /* « LE DICTIONNAIRE DU CARNET » S'INSERE ICI le 29/10, a la
-              demande de MB, juste AVANT « Mon dictionnaire » : le livre
-              d'abord, le sien ensuite — c'est l'ordre dans lequel une
-              fiche se cherche. */
-           + 'Le dictionnaire du carnet · Mon dictionnaire · Sauvegarde · '
+             'Sauvegarde · '
+           + (sfa ? 'Sauvegarde automatique · ' : '')
+           + 'Sauvegarde de secours · État du stockage · '
+           + 'Thème · En salle · Mon poids · Exercices connus · Équipement · '
            /* « SAUVEGARDE DE SECOURS » S'INSERE ICI le 04/11, apres que MB
               a tout perdu. Sa place n'est pas libre : juste APRES
               « Sauvegarde », du plus volontaire (exporter un fichier) au
@@ -3082,15 +3091,8 @@
               l'etat de la place. La mettre AVANT l'export l'aurait fait
               passer pour la sauvegarde principale — elle depanne, elle ne
               remplace pas un fichier garde ailleurs. */
-           /* « SAUVEGARDE AUTOMATIQUE » S'INSERE ICI le 04/11, et sa place
-              n'est pas libre : entre l'export MANUEL et le filet interne.
-              Du plus volontaire au plus automatique. La mettre avant
-              l'export manuel la ferait passer pour la sauvegarde
-              principale — or elle ne marche pas sur tous les navigateurs,
-              et le bouton manuel, lui, marche toujours. */
-           + (sfa ? 'Sauvegarde automatique · ' : '')
-           + 'Sauvegarde de secours · '
-           + 'État du stockage · Envoyer un retour · Tout effacer',
+           + 'Le dictionnaire du carnet · Mon dictionnaire · '
+           + 'Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
 
       /* 7. Le bloc technique est VISIBLE EN ENTIER. On mesure sa HAUTEUR

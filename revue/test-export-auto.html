@@ -216,16 +216,32 @@
     $('b4').disabled = false;
     $('b3').disabled = false;
     return h.queryPermission({ mode: 'readwrite' }).then(function (p) {
+      /* CE VERDICT ETAIT MAL ECRIT, ET IL A INDUIT MB EN ERREUR.
+
+         Il affichait « neutre » quand la permission devait etre redemandee,
+         et le bouton ci-dessous rendait « OUI » dans les DEUX cas puisqu'il
+         la demande. Rien n'etait rouge, donc MB a lu « tout est vert » — et
+         l'automatique ne l'etait pas chez lui.
+
+         C'est un controle qui ne pouvait pas TOMBER, exactement ce que le
+         reste du projet s'interdit. Le voici reecrit : « redemander » est
+         un NON, et il se lit comme tel. */
       if (p === 'granted') {
-        dire(4, 'Le navigateur se souvient du fichier ET garde la permission '
-              + '(« granted »). Appuie pour confirmer qu’il écrit vraiment.', 'oui');
-        note('4. Apres fermeture : permission GARDEE (granted)');
+        dire(4, 'OUI — le navigateur se souvient du fichier ET garde la '
+              + 'permission (« granted »). Appuie pour confirmer qu’il écrit '
+              + 'vraiment.', 'oui');
+        note('4. Apres fermeture : permission GARDEE (granted) -> AUTOMATIQUE POSSIBLE');
       } else {
-        dire(4, 'Le fichier est retenu, mais la permission est « ' + p + '» : '
-              + 'le navigateur va te la redemander. Appuie pour voir ce qu’il '
-              + 'affiche — c’est exactement le geste qu’il faudrait refaire à '
-              + 'chaque ouverture de l’app.', 'neutre');
-        note('4. Apres fermeture : permission A REDEMANDER (' + p + ')');
+        dire(4, 'NON — la permission est « ' + p + ' » : le navigateur te la '
+              + 'redemandera à CHAQUE ouverture de l’app.\n\n'
+              + 'Un vrai export automatique est donc impossible sur ce '
+              + 'navigateur : ce serait un geste à chaque fois, soit pas mieux '
+              + 'que le bouton d’export manuel.\n\n'
+              + 'Tu peux quand même appuyer pour vérifier que l’écriture '
+              + 'marche une fois la permission redonnée — mais ça ne change '
+              + 'pas le verdict ci-dessus.', 'non');
+        note('4. Apres fermeture : permission A REDEMANDER (' + p
+           + ') -> AUTOMATIQUE IMPOSSIBLE');
       }
     });
   }).catch(function (e) {
@@ -235,8 +251,12 @@
 
   $('b4').addEventListener('click', function () {
     if (!poignee) { dire(4, 'Fais l’étape 2 d’abord.', 'neutre'); return; }
-    poignee.queryPermission({ mode: 'readwrite' }).then(function (avant) {
-      if (avant === 'granted') return 'granted';
+    /* LA PERMISSION D'AVANT SE RETIENT ICI, pas dans le `then` : elle sert
+       deux maillons plus loin, ou sa portee ne la suivrait pas. */
+    var avant = null;
+    poignee.queryPermission({ mode: 'readwrite' }).then(function (p0) {
+      avant = p0;
+      if (p0 === 'granted') return 'granted';
       return poignee.requestPermission({ mode: 'readwrite' });
     }).then(function (p) {
       if (p !== 'granted') {
@@ -246,11 +266,18 @@
       }
       return ecrire('{"apresFermeture":true,"ecrit":"' + new Date().toISOString() + '"}')
         .then(function () {
-          dire(4, 'OUI — le fichier a été réécrit après fermeture de la page.\n'
+          /* ON DIT SI LA PERMISSION A DU ETRE REDEMANDEE, sinon ce « OUI »
+             effacerait le verdict de l'etape 4 — ce qu'il faisait avant, et
+             c'est ce qui a fait lire « tout est vert » a MB. */
+          var redemandee = avant !== 'granted';
+          dire(4, (redemandee ? 'Écriture OK, MAIS il a fallu redonner la '
+                              + 'permission — donc PAS automatique.\n\n'
+                              : 'OUI — réécrit sans rien redemander.\n\n')
                 + 'Regarde sa date de modification dans tes fichiers : elle doit '
                 + 'être de maintenant, et il ne doit PAS y avoir de deuxième '
-                + 'fichier « essai-carnet (1).json ».', 'oui');
-          note('4bis. Ecriture apres fermeture : OUI');
+                + 'fichier « essai-carnet (1).json ».', redemandee ? 'non' : 'oui');
+          note('4bis. Ecriture apres fermeture : OUI'
+             + (redemandee ? ' MAIS permission redemandee (donc pas automatique)' : ''));
         });
     }).catch(function (e) {
       dire(4, 'NON — ' + (e && e.name ? e.name : 'erreur') + ' : '

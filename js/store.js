@@ -432,7 +432,11 @@
       /* ON NE DEMANDE RIEN ICI. `requestPermission` exige un geste de MB :
          l'appeler depuis une ecriture de fond echouerait, et pire,
          consommerait le droit de demander. L'ecran s'en charge. */
-      if (p !== 'granted') { etatFichier.panne = 'permission a redonner'; return false; }
+      if (p !== 'granted') {
+        etatFichier.panne = 'permission a redonner';
+        signaler(messageFichier());
+        return false;
+      }
       return poigneeFichier.createWritable().then(function (f) {
         return f.write(texte).then(function () { return f.close(); });
       }).then(function () {
@@ -456,6 +460,10 @@
       etatFichier.nom = h.name || 'carnet-aw.json';
       return h.queryPermission({ mode: 'readwrite' }).then(function (p) {
         etatFichier.panne = p === 'granted' ? '' : 'permission a redonner';
+        /* ON LE DIT TOUT DE SUITE, sans attendre une ecriture : au
+           demarrage, MB doit savoir AVANT de saisir que le fichier ne
+           suivra pas. */
+        signaler(messageFichier());
         return p === 'granted';
       });
     }).catch(function (e) {
@@ -469,12 +477,30 @@
     if (!poigneeFichier) return Promise.resolve(false);
     return poigneeFichier.requestPermission({ mode: 'readwrite' }).then(function (p) {
       etatFichier.panne = p === 'granted' ? '' : 'permission refusee';
+      signaler(messageFichier());
       if (p === 'granted') return ecrireFichier(true);
       return false;
     }).catch(function (e) {
       etatFichier.panne = (e && e.name) || 'erreur';
       return false;
     });
+  }
+
+  /* CE QU'IL Y A A DIRE DU FICHIER, ou rien.
+
+     Rend `null` quand tout va bien — c'est ce que `signaler` attend pour
+     effacer le bandeau. Un fichier qui n'a jamais ete choisi ne dit rien
+     non plus : on n'alerte pas sur une fonctionnalite non utilisee. */
+  function messageFichier() {
+    if (!etatFichier.actif || !etatFichier.panne) return null;
+    if (etatFichier.panne === 'permission a redonner') {
+      return "La sauvegarde automatique a decroche : le navigateur redemande "
+           + "l'acces au fichier. Reglages, Sauvegarde automatique, "
+           + "« Redonner l'acces » — sinon le fichier n'est plus tenu a jour.";
+    }
+    return "La sauvegarde automatique ne fonctionne plus (" + etatFichier.panne
+         + "). Ton carnet est enregistre normalement, mais le fichier ne suit "
+         + "plus : va voir dans Reglages.";
   }
 
   function infoFichier() {
@@ -549,7 +575,10 @@
 
     try {
       window.localStorage.setItem(CLE, JSON.stringify(etat));
-      signaler(null);
+      /* `signaler(null)` EFFACAIT LE BANDEAU A CHAQUE SAUVEGARDE, donc un
+         message pose par le fichier aurait vecu 400 ms. Le bandeau reflete
+         maintenant l'etat REEL : rien a dire, ou la panne du fichier. */
+      signaler(messageFichier());
       poserFilet();
       /* LE FICHIER VIENT EN DERNIER, et son echec est avale : une serie
          enregistree ne doit pas echouer parce qu'un fichier externe n'a pas

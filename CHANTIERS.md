@@ -518,6 +518,79 @@ Et la même question se pose pour le **matériel** de l'étage 3 : la liste est
 écrite en dur dans la simulation. Un utilisateur qui s'entraîne avec un engin
 absent doit pouvoir l'ajouter, sinon l'étage 3 contraint au lieu de servir.
 
+## 8. Une app qui ne dépende plus du navigateur — **OUVERT le 2026-11-04**
+
+MB, le jour où il a perdu six séances : « il faudra à terme trouver une
+solution pérenne comme le développement en dur de l'appli sur téléphone ».
+
+### CE QUI L'A OUVERT, ET C'EST MESURÉ
+
+Trois faits du 1ᵉʳ au 4 novembre, pas une impression :
+
+| | |
+|---|---|
+| **le carnet s'est vidé** | deux instances de la PWA, celle qui dormait écrasait celle qui travaillait — reproduit, puis fermé (1.73.0) |
+| **une page de test publique effaçait le carnet** | `banc/index.html` écrivait sous la vraie clé, treize jours durant (1.72.1) |
+| **la sauvegarde automatique n'est pas automatique** | Chrome redemande la permission d'écrire à **chaque rafraîchissement** chez MB |
+
+Les trois sont corrigés ou contournés. Mais les trois viennent du même
+endroit : **le navigateur ne garantit rien de ce dont un carnet a besoin** —
+ni l'unicité de l'instance, ni la persistance du stockage, ni un accès
+fichier stable.
+
+### CE QU'UNE APP NATIVE RÉSOUDRAIT, ET CE QU'ELLE NE RÉSOUDRAIT PAS
+
+**Résolu** : une seule instance (donc plus d'écrasement croisé), un fichier
+de données à elle que personne n'évince, un accès disque sans permission à
+redemander, une vraie sauvegarde automatique.
+
+**Pas résolu, et il faut le dire** : la perte reste possible si le téléphone
+est perdu ou réinitialisé — seul un export hors de l'appareil y répond, et
+il existe déjà.
+
+### CE QUE ÇA COÛTE, ET C'EST LÀ QUE LA DÉCISION SE JOUE
+
+**Ce qui disparaîtrait** — à compter avant de choisir, pas après :
+
+- **Le déploiement en une commande.** Aujourd'hui : `git push`, et trois
+  minutes plus tard le téléphone a la mise à jour. Avec un APK : une
+  signature, un transfert, une installation manuelle — ou un compte Play
+  Store (25 $, délais de revue, politique de confidentialité obligatoire).
+- **Les deux bancs tels qu'ils sont.** 1634 + 802 contrôles s'exécutent dans
+  un navigateur, en quelques secondes, sans outillage. Une app native
+  demande une chaîne de build et un émulateur — c'est l'ADR 0002 (pas de
+  build, pas de bundler) qui tombe, et c'est le choix le plus structurant du
+  projet.
+- **L'usage depuis le PC.** Le carnet s'ouvre aujourd'hui sur n'importe quel
+  écran. Une app Android ne s'ouvre que sur Android.
+
+**Les trois voies, et leur prix** — aucune n'est recommandée ici, parce que
+le prix réel demande d'être mesuré, pas estimé :
+
+| voie | ce qu'on garde | ce qu'on y perd |
+|---|---|---|
+| **WebView maison** (le code actuel dans une coque Android) | tout le code, les deux bancs | il faut quand même un build et une signature ; le stockage reste celui d'une WebView, donc le problème de fond peut rester |
+| **Capacitor / Tauri** | le code, plus un vrai accès disque natif | une chaîne de build, des dépendances à tenir à jour, l'ADR 0002 tombé |
+| **réécriture native** | rien | des mois, et le dictionnaire est à refaire |
+
+### CE QU'IL FAUT MESURER AVANT DE TRANCHER
+
+1. **Est-ce que la WebView règle vraiment le problème ?** Une WebView
+   Android a son propre stockage, mais rien ne dit qu'il échappe à
+   l'éviction. À vérifier, pas à supposer — c'est exactement l'erreur
+   commise sur `showSaveFilePicker`, crûe possible puis démenti par l'usage.
+2. **Combien de contrôles survivent ?** Les 802 du banc d'interface mesurent
+   des rectangles réels dans un navigateur. Combien tiennent dans une
+   WebView ?
+3. **Quel chemin de mise à jour ?** Sans réponse à ça, chaque correctif
+   coûtera un transfert manuel, et les correctifs sont fréquents.
+
+**Rien ne presse désormais** : les trois défauts qui ont ouvert ce chantier
+sont fermés, et le carnet porte maintenant trois protections. C'est le bon
+moment pour décider à froid.
+
+---
+
 ## Dettes mesurées, pas des chantiers
 
 Petites, nommées, et qui ne demandent qu'une décision.
