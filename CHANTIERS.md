@@ -629,6 +629,38 @@ le prix réel demande d'être mesuré, pas estimé :
 | **Capacitor / Tauri** | le code, plus un vrai accès disque natif | une chaîne de build, des dépendances à tenir à jour, l'ADR 0002 tombé |
 | **réécriture native** | rien | des mois, et le dictionnaire est à refaire |
 
+### DEUX MESURES DU 2026-11-04, ET ELLES DÉPLACENT LA QUESTION
+
+**1. La WebView ne règle PAS le problème par elle-même.**
+
+Aucune garantie officielle de persistance n'existe pour le localStorage
+d'une WebView Android : il est soumis à l'éviction, comme celui de Chrome.
+Le ticket [super-productivity#7901](https://github.com/super-productivity/super-productivity/issues/7901)
+est explicite — il demande que l'app **vérifie** le résultat de sa demande
+de persistance « plutôt que de supposer la durabilité ». Et il nomme la
+vraie issue au passage : *une éviction du stockage WebView n'effacerait pas
+une base privée à l'app.*
+
+**Donc ce qui réglerait le problème n'est pas la WebView : c'est d'écrire
+dans le stockage PRIVÉ de l'app**, hors navigateur, via un pont JavaScript.
+Une WebView sans ce pont, c'est le même carnet avec les mêmes risques, plus
+un APK à fabriquer. La ligne « WebView maison » du tableau ci-dessus
+disait « le problème de fond peut rester » : c'est **confirmé**, et la
+condition est nommée.
+
+**2. Il n'y a aucune chaîne de build sur cette machine.**
+
+`java`, `gradle`, le SDK Android et `adb` sont tous **absents**. Le prix
+d'entrée n'est donc pas « écrire une coque » mais **installer Android
+Studio, un JDK et le SDK** — plusieurs gigaoctets — avant la première ligne
+de code. Rien n'a été construit pour cette raison : une coque que MB ne peut
+pas compiler serait la moitié d'un travail.
+
+**CE QUE ÇA CHANGE POUR LA DÉCISION** : le chantier ne se joue plus sur
+« est-ce que la WebView suffit » (non) mais sur « accepte-t-on d'installer
+une chaîne Android ET d'écrire un pont de stockage ». C'est plus cher que
+ce que le tableau laissait croire, et ça se décide à froid.
+
 ### CE QU'IL FAUT MESURER AVANT DE TRANCHER
 
 1. **Est-ce que la WebView règle vraiment le problème ?** Une WebView
