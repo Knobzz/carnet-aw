@@ -512,6 +512,26 @@
     return (m && m.image) || null;
   }
 
+  /* LA VIGNETTE D'UN MUSCLE — 104 px, pour les endroits qui n'affichent
+     pas la planche en grand.
+
+     MESURE DU 04/11 : les planches pleines font ~108 Ko piece, et l'ecran
+     « Le dictionnaire du carnet » en affichait jusqu'a 15 distinctes pour
+     une seule recherche — 1,73 Mo, sur un telephone, pour des images
+     rendues en 52 px. Les vignettes pesent 198 Ko AU TOTAL.
+
+     LE CHEMIN SE DERIVE DE `image`, il ne se recopie pas : 41 chemins
+     ecrits a cote seraient 41 chances de les desynchroniser. Les fichiers
+     sont produits par `outils/vignettes-muscles.py`, a rejouer quand une
+     planche change.
+
+     Elle rend `null` quand le muscle n'a pas de planche — l'appelant
+     retombe alors sur rien, jamais sur une image cassee. */
+  function vignetteDuMuscle(id) {
+    var img = imageDuMuscle(id);
+    return img ? img.replace('icones/', 'icones/vignettes/') : null;
+  }
+
   /* Les muscles qui n'ont pas encore leur illustration propre. Les nommer
      vaut mieux que les laisser se fondre dans le lot : c'est ce qui reste
      a trouver. */
@@ -6372,12 +6392,24 @@
     seancesMuscuTriees(etat).forEach(function (se) {
       var sem = semaineDe(se.date);
       if (!par[sem]) {
-        par[sem] = { semaine: sem, aw: 0, general: 0, series: 0, seances: 0, tempsSousTension: 0 };
+        par[sem] = { semaine: sem, aw: 0, general: 0, series: 0, seances: 0,
+                     tempsSousTension: 0, poidsCorps: 0 };
         ordre.push(sem);
       }
-      var v = volumeSeance(se);
+      /* LE POIDS DU JOUR DE CETTE SEANCE, comme au Journal.
+
+         `volumeSeance` accepte ce second argument depuis la 1.52.0, et cet
+         appel-ci ne le passait pas : le graphe comptait donc ZERO au poids
+         du corps, meme sur un carnet plein de pesees. Une seance de
+         juillet garde le poids de juillet — c'est tout l'interet d'une
+         pesee datee. */
+      var v = volumeSeance(se, (poidsAuJour(etat, se.date) || {}).poids);
       par[sem].aw += v.tonnageAw;
       par[sem].general += v.tonnageGeneral;
+      /* A PART, ET JAMAIS ADDITIONNE — decision de MB du 29/10. Il a sa
+         propre cle, donc sa propre pile a l'ecran, et le total des kilos
+         souleves ne bouge pas d'un gramme. */
+      par[sem].poidsCorps += v.tonnagePoidsCorps;
       par[sem].series += v.series;
       par[sem].tempsSousTension += v.tempsSousTension;
       par[sem].seances += 1;
@@ -7152,7 +7184,8 @@
     musclesDeLaRegion: musclesDeLaRegion,
     MUSCLES_PAR_MOUVEMENT: MUSCLES_PAR_MOUVEMENT,
     muscle: muscle, nomMuscle: nomMuscle, nomCourtMuscle: nomCourtMuscle,
-    imageDuMuscle: imageDuMuscle, musclesSansImage: musclesSansImage,
+    imageDuMuscle: imageDuMuscle,
+    vignetteDuMuscle: vignetteDuMuscle, musclesSansImage: musclesSansImage,
     muscles: muscles,
     musclesProposes: musclesProposes, musclesDuNom: musclesDuNom,
     musclesDeLOutil: musclesDeLOutil, OUTILS_CONNUS: OUTILS_CONNUS,

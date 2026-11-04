@@ -15,6 +15,35 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.83.0
+
+**Les muscles du Suivi sont rangés par groupes, repliés.** La liste en comptait
+jusqu'à 41 d'affilée : elle ne se lisait plus. Chaque groupe annonce maintenant
+combien de muscles il porte et combien de séries ils ont pris, sans qu'on
+l'ouvre — et les groupes sont classés du plus sollicité au moins, comme les
+muscles à l'intérieur de chacun.
+
+**Le poids du corps apparaît dans Volume par semaine.** Tes tractions et tes
+dips comptaient à part depuis la 1.52.0, mais ce graphe ne les montrait nulle
+part : il lui manquait ta pesée. Une troisième barre, grise, les affiche
+désormais, avec leur tonnage écrit à côté du total précédé d'un « + ». **Le
+total des kilos soulevés, lui, ne change pas** — le poids du corps se voit, il
+ne s'additionne pas. Il faut une pesée pour qu'il apparaisse.
+
+**Ta taille, dans Réglages.** Elle avait été demandée en même temps que le
+poids et laissée de côté : rien ne l'aurait lue. Elle entre avec son lecteur,
+l'**IMC**, affiché sous tes pesées — avec ce qu'il faut en penser : il ne
+distingue pas le muscle du gras, donc il annonce un surpoids qui n'en est pas
+un chez quelqu'un qui tire.
+
+**Le dictionnaire montre ce que chaque mouvement travaille.** Dans *Réglages ▸
+Le dictionnaire du carnet*, chaque fiche porte les planches de ses muscles, à
+toucher pour les voir en grand. Ce ne sont pas des images du geste : les
+illustrations d'exercices libres de droits n'existent pas pour les mouvements
+de bras de fer, et celles qu'on trouve ailleurs ne sont pas réutilisables.
+
+---
+
 ## 1.82.0
 
 **Dit ce que « Remplacer » efface vraiment.** À l'import, le bouton rouge

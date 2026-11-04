@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — chantiers 3, 4, 5 et 6</title>
+<!--
+  TROIS CHANTIERS DEMANDES PAR MB LE 2026-11-04, mesures AVANT d'ecrire.
+
+  T6  LA TAILLE, DANS LE PROFIL (chantier 6). Elle avait ete demandee le
+      29/10 et volontairement NON posee : « rien dans le carnet ne la
+      lirait ». Elle entre maintenant, donc elle doit (a) traverser
+      `normaliser`, qui est une LISTE BLANCHE — une cle qu'elle ignore
+      disparait au premier rechargement — et (b) avoir un lecteur.
+
+  T5  LE POIDS DU CORPS DANS LE GRAPHE VOLUME (chantier 5).
+      `volumeParSemaine` appelle `volumeSeance(se)` SANS le poids, donc
+      `tonnagePoidsCorps` y vaut toujours zero. Et l'aide de Reglages
+      promet noir sur blanc : « ton volume par semaine ne bougera pas ».
+      Les deux moities vont ensemble — le chiffre ET la phrase.
+
+      LA DECISION DE MB DU 29/10 TIENT : le poids du corps reste A PART,
+      jamais additionne au tonnage. Une troisieme pile, donc, et un total
+      qui ne les melange pas.
+
+  T4  SUIVI ▸ MUSCLES, GROUPES ET REPLIES (chantier 4). MB, 29/10 : « il
+      faudra les classer par groupes, et que les groupes soient reduits
+      de base. Le plus sollicite apparait en premier. » Trois exigences :
+      groupes, replies a l'arrivee, et l'ordre par sollicitation CONSERVE
+      a l'interieur. 41 muscles aujourd'hui.
+
+  CE QUI SE MESURE PAR EFFET : les trois. T6 et T5 passent par le modele
+  et par un vrai cycle d'ecriture-relecture ; T4 lit le DOM REEL de
+  l'ecran Suivi, pas une declaration.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:420px;height:760px}
+ iframe{width:420px;height:760px;border:0}
+</style></head><body>
+<h1>Chantiers 3, 4, 5 et 6</h1>
+<p class="pourquoi">La taille dans le profil, le poids du corps dans le graphe, les muscles groupés et repliés.</p>
+<p class="pourquoi" id="quoi">…</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+  var CLE_FILET = 'carnet-aw-bac-filet';
+
+  /* MEME GARDE QUE L'EPREUVE DE L'IMPORT : revue/ est publie, et un
+     `srcdoc` herite de l'origine de son parent. Un seul `../`, puis un
+     nom de dossier, et l'origine resolue doit rester la notre. */
+  var RACINE = (function () {
+    var m = /[?&]racine=([^&]+)/.exec(location.search);
+    if (!m) return '../';
+    var v;
+    try { v = decodeURIComponent(m[1]); } catch (e) { return '../'; }
+    if (!/^\.\.\/[A-Za-z0-9_\-]+\/$/.test(v)) return '../';
+    try {
+      if (new URL(v, location.href).origin !== location.origin) return '../';
+    } catch (e) { return '../'; }
+    return v;
+  })();
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch(RACINE + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + RACINE + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 250);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        [CLE, CLE_FILET, CLE + '-illisible'].forEach(function (k) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+        ok();
+      }, 450);
+    });
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  /* UNE SEANCE AU POIDS DU CORPS — c'est le decor de T5. Le type de
+     charge `poids_corps` porte `tonnage: false` : son tonnage est compte
+     A PART, decision de MB du 29/10. */
+  function seancePdc(id, date) {
+    return { id: id, type: 'muscu', date: date, heure: '', note: '', douleurs: [],
+             exercices: [{ id: 'x' + id, nom: 'Traction', typeCharge: 'poids_corps',
+                           muscles: ['grand_dorsal'],
+                           series: [{ faite: true, chargeReel: '0', repsReel: '10' },
+                                    { faite: true, chargeReel: '0', repsReel: '8' }] }] };
+  }
+  /* LES IDENTIFIANTS SONT LUS, PAS DEVINES. Premiere ecriture :
+     `halteres`, `biceps_brachial`, `deltoide_anterieur` — aucun n'existe.
+     Les vrais, dans js/model.js : le type de charge chiffre est `kg`, et
+     les muscles sont `biceps`, `brachial`, `deltoide`. Un decor faux fait
+     mesurer mon ignorance du format au lieu du produit : piege n° 1, sur
+     mon propre banc, pour la deuxieme fois en deux epreuves. */
+  function seanceKg(id, date) {
+    return { id: id, type: 'muscu', date: date, heure: '', note: '', douleurs: [],
+             exercices: [{ id: 'y' + id, nom: 'Curl', typeCharge: 'kg',
+                           muscles: ['biceps'],
+                           series: [{ faite: true, chargeReel: '20', repsReel: '10' }] }] };
+  }
+
+  function jouer() {
+    document.getElementById('quoi').textContent =
+      RACINE === '../' ? 'App mesurée : le code COURANT (../).'
+                       : 'App mesurée : ' + RACINE + ' — c’est la CHUTE, jouée sur un arbre antérieur.';
+    var ch = Promise.resolve();
+
+    /* ============ T6 : LA TAILLE SURVIT-ELLE, ET QUI LA LIT ? ============ */
+    ch = ch.then(vider).then(function () {
+      cas('T6. La taille entre dans le profil — et survit-elle ?',
+          'Elle avait été demandée le 29/10 et volontairement non posée : « rien dans le carnet '
+        + 'ne la lirait ». Elle entre maintenant, donc elle doit traverser `normaliser`, qui est '
+        + 'une LISTE BLANCHE — c’est le piège déjà payé par le dictionnaire perso et les pesées '
+        + 'le 28/10 : la fonctionnalité marche tant qu’on ne recharge pas.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        e.seances = [seanceKg('t6', '2026-11-01')];
+        e.reglages.taille = 178;
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        egal(A.App.store.etat().reglages.taille, 178,
+             '[temoin] la taille est bien en mémoire avant le cycle — sans ça rien à mesurer');
+        /* LE CYCLE COMPLET : ce qui est sur le disque est relu par
+           `normaliser`. C'est la seule mesure qui vaille. */
+        var brut = localStorage.getItem(CLE);
+        egal(/"taille":178/.test(brut) ? 'écrite' : 'absente', 'écrite',
+             'elle est bien ÉCRITE sur le disque');
+        var relu = A.App.store.vide();
+        try { relu = JSON.parse(brut); } catch (e) {}
+        return monter().then(function (w2) {
+          A = w2;
+          return attendre(400);
+        });
+      }).then(function () {
+        egal(A.App.store.etat().reglages.taille, 178,
+             'et elle SURVIT au rechargement — `normaliser` la relit');
+        /* ELLE EST VALIDEE, pas recopiee telle quelle : une valeur
+           aberrante venue d'un import ne doit pas s'installer. */
+        var e = A.App.store.etat();
+        e.reglages.taille = 9999;
+        A.App.store.remplacer(e);
+        return attendre(500);
+      }).then(function () {
+        egal(A.App.store.etat().reglages.taille, null,
+             'une taille aberrante (9 999 cm) est refusée, pas stockée');
+      });
+    }).catch(rattrape);
+
+    /* ====== T6 bis : UN ECRAN LA LIT-IL VRAIMENT ? ====== */
+    ch = ch.then(vider).then(function () {
+      cas('T6 bis. Un écran lit-il la taille ?',
+          'C’est l’argument qui l’avait tenue dehors : « un champ que rien ne consomme est un '
+        + 'champ qui pourrit ». Elle entre donc AVEC son lecteur, pas avant.\n'
+        + 'On lit le DOM RÉEL de Réglages, pas une déclaration.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        e.seances = [seanceKg('t6b', '2026-11-01')];
+        e.reglages.taille = 178;
+        e.pesees = [{ id: 'p1', date: '2026-11-01', poids: 80 }];
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        A.App.app.aller('reglages');
+        return attendre(700);
+      }).then(function () {
+        var txt = A.document.body.textContent.replace(/\s+/g, ' ');
+        egal(/Mon poids/.test(txt) ? 'là' : 'absent', 'là',
+             '[temoin] on est bien dans l’écran qui porte le poids');
+        egal(A.document.querySelector('input[data-champ="taille"]') ? 'présent' : 'absent',
+             'présent', 'le champ Taille existe à l’écran');
+        var ch2 = A.document.querySelector('input[data-champ="taille"]');
+        egal(ch2 ? String(ch2.value) : '', '178',
+             'et il affiche la taille enregistrée');
+        dit('ce que l’écran dit autour : ' + (/[Tt]aille[^.]{0,120}/.exec(txt) || [''])[0].slice(0, 130));
+      });
+    }).catch(rattrape);
+
+    /* ====== T5 : LE POIDS DU CORPS ENTRE-T-IL DANS LE GRAPHE ? ====== */
+    ch = ch.then(vider).then(function () {
+      cas('T5. Le graphe Volume compte-t-il le poids du corps ?',
+          '`volumeParSemaine` appelle `volumeSeance(se)` SANS le poids : `tonnagePoidsCorps` y '
+        + 'vaut donc toujours zéro, même avec des pesées. Et l’aide de Réglages promet « ton '
+        + 'volume par semaine ne bougera pas ».\n'
+        + 'La décision de MB du 29/10 tient : le poids du corps reste À PART, jamais additionné '
+        + 'au tonnage. Une troisième pile, et un total qui ne les mélange pas.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        /* 80 kg, 18 tractions : 1 440 kg au poids du corps, et 200 kg de
+           curl. Deux chiffres qui ne peuvent pas se confondre. */
+        e.pesees = [{ id: 'p1', date: '2026-10-01', poids: 80 }];
+        e.seances = [seancePdc('s1', '2026-11-02'), seanceKg('s2', '2026-11-02')];
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        var sem = A.App.m.volumeParSemaine(A.App.store.etat(), 8);
+        egal(sem.length > 0 ? 'oui' : 'non', 'oui',
+             '[temoin] le graphe a bien une semaine à montrer');
+        var s = sem[0];
+        dit('la semaine rend : aw=' + s.aw + ' general=' + s.general
+          + ' poidsCorps=' + s.poidsCorps);
+        egal(Math.round(s.general), 200,
+             '[temoin] le curl compte bien ses 200 kg — le tonnage ordinaire est intact');
+        egal(Math.round(s.poidsCorps || 0), 1440,
+             'et le poids du corps est compté : 80 kg × 18 reps = 1 440');
+        /* IL TIENT DES DEUX COTES, ET C'EST VOULU : avant, parce que
+           rien n'etait compte au poids du corps ; apres, parce que la
+           decision du 29/10 est respectee. Il ne prouve donc RIEN sur
+           ce changement — il garde un invariant contre une regression
+           future, le jour ou quelqu'un voudra additionner les deux. */
+        egal(Math.round(s.aw + s.general), 200,
+             '[temoin] sans être additionné au tonnage — l’invariant du 29/10, '
+           + 'vrai des deux côtés : il garde, il ne prouve pas');
+      });
+    }).catch(rattrape);
+
+    /* ====== T5 bis : LA TROISIEME PILE, ET L'AIDE QUI MENTAIT ====== */
+    ch = ch.then(vider).then(function () {
+      cas('T5 bis. La pile est-elle à l’écran, et l’aide dit-elle encore le contraire ?',
+          'Jamais l’exécution sans le rendu. Et l’aide de Réglages promettait « elle n’entre dans '
+        + 'aucun tonnage : ton volume par semaine ne bougera pas » — la moitié qu’on oublie.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        e.pesees = [{ id: 'p1', date: '2026-10-01', poids: 80 }];
+        e.seances = [seancePdc('s1', '2026-11-02'), seanceKg('s2', '2026-11-02')];
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        A.App.app.aller('suivi');
+        return attendre(900);
+      }).then(function () {
+        var txt = A.document.body.textContent.replace(/\s+/g, ' ');
+        egal(/Volume par semaine/.test(txt) ? 'là' : 'absent', 'là',
+             '[temoin] le bloc Volume est bien rendu');
+        var piles = A.document.querySelectorAll('.barre-piste .pdc');
+        egal(piles.length > 0 ? 'rendue' : 'absente', 'rendue',
+             'la pile « poids du corps » est RENDUE dans la barre');
+        if (piles.length) {
+          var l = parseFloat(A.getComputedStyle(piles[0]).width);
+          dit('largeur de la pile : ' + Math.round(l) + ' px');
+          egal(l > 0 ? 'visible' : 'plate', 'visible',
+               'et elle a une largeur réelle — pas une pile à zéro');
+        }
+        egal(/poids du corps/i.test(txt) ? 'nommée' : 'muette', 'nommée',
+             'la légende la nomme');
+        return A.App.app.aller('reglages'), attendre(700);
+      }).then(function () {
+        var txt = A.document.body.textContent.replace(/\s+/g, ' ');
+        egal(/ton volume par semaine ne bougera pas/i.test(txt) ? 'ment' : 'corrigée',
+             'corrigée',
+             'et l’aide de Réglages ne promet plus le contraire');
+      });
+    }).catch(rattrape);
+
+    /* ====== T4 : LES MUSCLES SONT-ILS GROUPES ET REPLIES ? ====== */
+    ch = ch.then(vider).then(function () {
+      cas('T4. Suivi ▸ Muscles : groupés, repliés, et l’ordre conservé ?',
+          'MB, 29/10 : « il faudra les classer par groupes, et que les groupes soient réduits de '
+        + 'base. Le plus sollicité apparaît en premier. » 41 muscles aujourd’hui, sur 8 régions.\n'
+        + 'Trois exigences, et la troisième est la plus facile à perdre : l’ordre par '
+        + 'sollicitation doit tenir À L’INTÉRIEUR de chaque groupe.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        /* TROIS MUSCLES DE DEUX REGIONS, A DES CHARGES DIFFERENTES : il
+           faut que l'ordre interne soit MESURABLE, donc jamais ex aequo. */
+        e.seances = [
+          { id: 'm1', type: 'muscu', date: '2026-11-02', douleurs: [], exercices: [
+            { id: 'e1', nom: 'A', typeCharge: 'kg', muscles: ['biceps'],
+              series: [{ faite: true, chargeReel: '10', repsReel: '5' },
+                       { faite: true, chargeReel: '10', repsReel: '5' },
+                       { faite: true, chargeReel: '10', repsReel: '5' }] },
+            { id: 'e2', nom: 'B', typeCharge: 'kg', muscles: ['brachial'],
+              series: [{ faite: true, chargeReel: '10', repsReel: '5' }] },
+            { id: 'e3', nom: 'C', typeCharge: 'kg', muscles: ['deltoide'],
+              series: [{ faite: true, chargeReel: '10', repsReel: '5' },
+                       { faite: true, chargeReel: '10', repsReel: '5' }] }
+          ] }];
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        A.App.app.aller('suivi');
+        return attendre(1000);
+      }).then(function () {
+        var txt = A.document.body.textContent.replace(/\s+/g, ' ');
+        egal(/Muscles/.test(txt) ? 'là' : 'absent', 'là',
+             '[temoin] le bloc Muscles est bien rendu');
+        var groupes = A.document.querySelectorAll('.barres-muscles .muscle-groupe');
+        dit('groupes rendus : ' + groupes.length);
+        egal(groupes.length > 0 ? 'groupés' : 'à plat', 'groupés',
+             'les muscles sont rangés par groupe');
+        /* REPLIES A L'ARRIVEE — et on mesure le corps, pas l'attribut. */
+        var corps = A.document.querySelectorAll('.barres-muscles .muscle-groupe-corps');
+        var ouverts = 0;
+        for (var i = 0; i < corps.length; i++) {
+          if (corps[i].getBoundingClientRect().height > 0) ouverts += 1;
+        }
+        dit('corps de groupe visibles à l’arrivée : ' + ouverts + ' sur ' + corps.length);
+        /* « ZERO OUVERT » EST VRAI AUSSI QUAND IL N'Y A AUCUN GROUPE.
+           Premiere ecriture : `egal(ouverts, 0)` — il passait au vert sur
+           l'ancien code, qui n'a pas de groupes du tout. Un controle qui
+           ne peut pas tomber ne prouve rien ; celui-ci exige maintenant
+           qu'il y ait quelque chose a replier. */
+        egal(corps.length ? (ouverts === 0 ? 'repliés' : ouverts + ' ouverts')
+                          : 'aucun groupe à replier',
+             'repliés',
+             'et tous sont REPLIÉS à l’arrivée — mesuré au rectangle, pas à l’attribut');
+        /* L'ORDRE DES GROUPES : le plus sollicite en premier. Biceps
+           porte 4 series (3 + 1), Epaules 2. */
+        var titres = [];
+        for (var j = 0; j < groupes.length; j++) {
+          titres.push((groupes[j].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 24));
+        }
+        dit('ordre des groupes : ' + titres.join(' | '));
+        egal(/Biceps/.test(titres[0] || '') ? 'oui' : 'non', 'oui',
+             'le groupe le plus sollicité vient en premier');
+        /* L'ORDRE A L'INTERIEUR : on ouvre le premier groupe et on lit. */
+        var entete = groupes[0].querySelector('button');
+        if (entete) entete.click();
+        return attendre(300);
+      }).then(function () {
+        var g = A.document.querySelectorAll('.barres-muscles .muscle-groupe')[0];
+        var noms = [];
+        var b = g.querySelectorAll('.barre .barre-nom');
+        for (var i = 0; i < b.length; i++) noms.push(b[i].textContent.trim());
+        dit('dans le premier groupe : ' + noms.join(' > '));
+        egal(noms.length >= 2 ? 'deux' : 'un seul', 'deux',
+             '[temoin] le groupe ouvert porte bien ses deux muscles');
+        egal(/[Bb]iceps/.test(noms[0] || '') ? 'oui' : 'non', 'oui',
+             'et le plus sollicité est en tête À L’INTÉRIEUR du groupe');
+      });
+    }).catch(rattrape);
+
+    /* ====== T3 : LES PLANCHES DU DICTIONNAIRE, ET LEUR POIDS ====== */
+    ch = ch.then(vider).then(function () {
+      cas('T3. Le dictionnaire montre-t-il ce que chaque mouvement travaille ?',
+          'Le chantier 3 ne laissait qu\u2019une chose : les images par exercice. Les GIF de '
+        + 'docteur-fitness ne sont pas r\u00e9utilisables, et les bases libres d\u2019images de GESTE '
+        + 'sont toutes en partage \u00e0 l\u2019identique \u2014 sans couvrir les avant-bras, 18 des '
+        + '57 fiches.\n'
+        + 'Ce qui est livrable sans licence : les planches de CE QUE LA FICHE TRAVAILLE. '
+        + 'Reste le poids, et c\u2019est lui qui d\u00e9cide : 108 Ko la planche pleine.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        return attendre(300);
+      }).then(function () {
+        var m = A.App.m;
+        /* LA COUVERTURE — mesuree, pas supposee. */
+        var sans = m.DICTIONNAIRE.filter(function (f) {
+          return !(f.muscles || []).some(function (id) { return m.imageDuMuscle(id); });
+        });
+        dit(m.DICTIONNAIRE.length + ' fiches au dictionnaire');
+        /* IL TIENT DES DEUX COTES, et c'est tout l'interet : la
+           couverture existait DEJA avant ce chantier — c'est cette
+           mesure qui a permis de decider qu'on pouvait livrer sans
+           licence tierce. Il ne prouve donc rien sur le changement ;
+           il garde l'hypothese sur laquelle le chantier repose. */
+        egal(sans.length, 0,
+             '[temoin] chaque fiche porte au moins un muscle illustr\u00e9 \u2014 couverture enti\u00e8re');
+        /* AUCUNE PLANCHE SANS SA VIGNETTE. Le jour ou un muscle entre
+           sans qu'on rejoue l'outil, l'image ne se charge pas et rien ne
+           le dit. */
+        var avecImage = m.MUSCLES.filter(function (x) { return x.image; });
+        dit(avecImage.length + ' planches d\u00e9clar\u00e9es');
+        egal(avecImage.filter(function (x) { return !m.vignetteDuMuscle(x.id); }).length, 0,
+             '[temoin] chaque planche sait nommer sa vignette');
+        /* ET LES FICHIERS EXISTENT VRAIMENT — un chemin derive qui ne
+           pointe sur rien se lit comme une vignette manquante a l'ecran. */
+        return Promise.all(avecImage.map(function (x) {
+          return fetch('../' + m.vignetteDuMuscle(x.id) + '?t=' + Date.now())
+            .then(function (r) { return { id: x.id, ok: r.ok,
+                                          taille: +(r.headers.get('content-length') || 0) }; })
+            .catch(function () { return { id: x.id, ok: false, taille: 0 }; });
+        })).then(function (res) {
+          var ko = res.filter(function (r) { return !r.ok; });
+          egal(ko.length, 0,
+               'et le fichier existe pour chacune ('
+             + (ko.length ? ko.slice(0, 3).map(function (r) { return r.id; }).join(', ') : 'aucune manquante')
+             + ')');
+          var total2 = res.reduce(function (n, r) { return n + r.taille; }, 0);
+          dit('les ' + res.length + ' vignettes p\u00e8sent '
+            + Math.round(total2 / 1024) + ' Ko en tout, soit '
+            + Math.round(total2 / res.length / 1024 * 10) / 10 + ' Ko pi\u00e8ce');
+          /* LE SEUIL EST CELUI DU PROBLEME, pas un chiffre de moi : une
+             planche pleine fait ~108 Ko, et c'est ce poids-la qui rendait
+             l'ecran inlivrable. Une vignette doit rester un ordre de
+             grandeur en dessous. */
+          egal(total2 / res.length < 10240 ? 'l\u00e9g\u00e8res' : 'trop lourdes', 'l\u00e9g\u00e8res',
+               'chacune reste sous 10 Ko \u2014 la planche pleine en fait 108');
+        });
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = bons + ' / ' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = bons + '/' + total + ' — chantiers 3, 4, 5 et 6';
+    });
+  }
+
+  jouer();
+})();
+</script></body></html>

@@ -934,6 +934,17 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 .barre-piste i { display: block; height: 100%; }
 .barre-piste .aw { background: var(--laiton); }
 .barre-piste .gen { background: var(--bleu); }
+/* LE POIDS DU CORPS — compte a part, donc montre a part.
+
+   Deux couleurs pleines pour les deux tonnages qui s'additionnent ; un
+   gris pour celui qui ne s'additionne pas. La nuance se voit sans qu'on
+   ait besoin de la lire, et `--texte-3` existe deja dans les deux
+   themes. Chantier 5, 04/11. */
+.barre-piste .pdc { background: var(--texte-3); }
+.legende .pdc { background: var(--texte-3); }
+/* Le « +1 440 » a cote du total : plus petit et plus pale que lui, pour
+   qu'on ne lise jamais les deux comme un seul nombre. */
+.barre-val .val-pdc { color: var(--texte-3); font-size: .85em; font-weight: 400; }
 .barre-val { font-variant-numeric: tabular-nums; color: var(--texte-2); min-width: 4.2em; text-align: right; }
 
 /* Des pistes de longueurs differentes ne se comparent pas : une piste courte
@@ -1399,6 +1410,46 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   color: var(--texte-2);
   font-variant-numeric: tabular-nums;
 }
+/* LES GROUPES DE MUSCLES DU SUIVI reprennent `.equip-cat` du
+   dictionnaire — meme geste, meme apparence, un seul mecanisme a tenir.
+   Ce qui suit n'ajoute que ce qui leur est propre. Chantier 4, 04/11. */
+.muscle-groupe { margin-bottom: 7px; overflow: hidden; }
+.muscle-groupe:last-child { margin-bottom: 0; }
+/* Le total de series, lu sans ouvrir le groupe : c'est ce qui permet de
+   choisir lequel ouvrir au lieu de tous les ouvrir. */
+.muscle-groupe-total {
+  font-size: .78rem;
+  color: var(--texte-2);
+  font-variant-numeric: tabular-nums;
+}
+.muscle-groupe-corps { padding: 9px 11px 10px; }
+/* `hidden` NE SUFFIT PAS ICI, et c'est mesure.
+
+   L'attribut `hidden` pose `display: none` par la feuille du
+   navigateur — qu'une regle d'auteur portant `display` ecrase. Le
+   corps d'un groupe est aussi `.barres-serrees`, donc `display: grid`,
+   et il restait VISIBLE malgre `hidden`. Le dictionnaire ne connait
+   pas ce defaut : son corps n'a pas de `display` force.
+
+   Mesure du 04/11 : « corps de groupe visibles a l'arrivee : 2 sur 2 ».
+   Le controle le voyait parce qu'il lit le RECTANGLE et non
+   l'attribut — lire `hidden` l'aurait declare replie. */
+.muscle-groupe-corps[hidden] { display: none; }
+
+/* LES PLANCHES D'UNE FICHE DU DICTIONNAIRE — chantier 3, 04/11.
+
+   Des vignettes, pas des images pleines : la planche fait ~100 Ko et son
+   interet ici est de RECONNAITRE le muscle d'un coup d'oeil. On la voit
+   en grand d'une touche, par le chemin qui existe deja. */
+.dico-planches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+                 margin: 7px 0 2px; }
+.dico-planche-bt {
+  appearance: none; padding: 0; border: 1px solid var(--trait);
+  border-radius: var(--r-s); background: var(--fond-2);
+  line-height: 0; cursor: pointer; overflow: hidden;
+}
+.dico-planche { width: 52px; height: 52px; object-fit: cover; display: block; }
+.dico-planches-dit { margin-top: 2px; }
 .equip-chevron { transition: transform .15s ease; color: var(--texte-3); font-size: .8rem; }
 .equip-cat[aria-expanded="false"] .equip-chevron { transform: rotate(-90deg); }
 @media (prefers-reduced-motion: reduce) { .equip-chevron { transition: none; } }

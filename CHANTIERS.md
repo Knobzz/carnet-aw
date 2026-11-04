@@ -426,7 +426,33 @@ revue** et non une garde. Et le problème d'origine ne l'exige pas : garder
 trace de l'engin est une **addition**, pas une suppression. Cette option se
 décide donc pour elle-même, ou pas du tout.
 
-## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images
+## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images — **FAIT le 2026-11-04**, avec une réserve nommée
+
+**Ce qui restait** — « les images par exercice » — **est livré avec ce que le
+carnet possède déjà** : chaque fiche de *Réglages ▸ Le dictionnaire du carnet*
+montre les planches de ses muscles, à toucher pour les voir en grand.
+
+**LA MESURE QUI A DÉCIDÉ, 04/11** : les **57** fiches portent au moins un
+muscle illustré, et `musclesSansImage()` rend une liste **vide** — couverture
+entière, **sans une seule licence tierce**.
+
+**CE QUE CE N'EST PAS, et l'écran le dit** : une image du **geste**. Les
+sources libres existent (Everkinetic et ses dérivés, RepDB) mais **toutes en
+partage à l'identique** — attribution à afficher dans l'app — et **aucune ne
+couvre les gestes de bras de fer** : 18 des 57 fiches sont des avant-bras.
+C'est la décision qui reste ouverte, et elle est pour MB.
+
+**LE POIDS A ÉTÉ MESURÉ AVANT, et il a changé la livraison** : les planches
+pleines font ~108 Ko pièce et coûtaient **1,73 Mo pour une seule recherche**
+(« curl », 14 mouvements). D'où `outils/vignettes-muscles.py` : 41 vignettes de
+104 px, **198 Ko en tout**, 4,8 % du poids d'origine. Mesuré à l'écran après
+coup : **74 Ko** pour la même recherche. La planche pleine reste à une touche.
+
+---
+
+**Rédaction d'origine, gardée pour la mesure qu'elle porte.**
+
+### Le dictionnaire feuilletable, par groupe de muscles, avec images
 
 **Quand** : « plus tard, quand le dictionnaire sera déjà bien rempli »
 (MB, 2026-10-29).
@@ -478,7 +504,27 @@ Même besoin, vu d'un autre bout : un utilisateur de MB demandait le 29/10
 fer ». MB : « le chapitre photo / vidéo est à mettre de côté pour le moment,
 sans qu'on l'oublie pour autant. »
 
-## 4. Suivi ▸ Muscles : grouper, et replier par défaut
+## 4. Suivi ▸ Muscles : grouper, et replier par défaut — **FAIT le 2026-11-04**
+
+Les trois exigences de MB sont tenues et mesurées : **groupés** (8 régions),
+**repliés à l'arrivée** — mesuré au rectangle, pas à l'attribut — et l'ordre
+par sollicitation **conservé aux deux étages**, entre les groupes et à
+l'intérieur de chacun.
+
+**Le mécanisme n'est pas un second**, comme cette entrée le demandait : c'est
+celui du dictionnaire feuilletable (`equip-cat`, chevron, corps replié). Une
+entête dit, sans qu'on l'ouvre, combien de muscles et combien de séries.
+
+**UN PIÈGE MESURÉ** : `hidden` ne replie rien sur un élément qui porte
+`display: grid` — la règle d'auteur bat la feuille du navigateur. Le contrôle
+l'a vu parce qu'il lit le **rectangle** ; lire l'attribut l'aurait déclaré
+replié. Corrigé par `.muscle-groupe-corps[hidden] { display: none; }`.
+
+---
+
+**Rédaction d'origine.**
+
+### Suivi ▸ Muscles : grouper, et replier par défaut
 
 **Quand** : à suivre, dès que le nombre de muscles le rend illisible.
 
@@ -496,7 +542,27 @@ second, parallèle.
 Ce chantier grossit à chaque muscle ajouté : le lot des épaules en apporte
 six.
 
-## 5. Le poids du corps dans le graphe Volume par semaine
+## 5. Le poids du corps dans le graphe Volume par semaine — **FAIT le 2026-11-04**
+
+La question que cette entrée posait — « une troisième pile ? » — est tranchée
+**par la décision de MB du 29/10**, qui la commandait déjà : le poids du corps
+est compté **à part, jamais additionné**. Donc une troisième pile, grise, et un
+total qui reste celui des kilos soulevés, suivi d'un « + » qui dit le reste.
+
+**La cause était une ligne** : `volumeParSemaine` appelait `volumeSeance(se)`
+sans le poids, alors que la fonction l'accepte depuis la 1.52.0 et que
+`poidsAuJour` sait le rendre. Le graphe comptait donc **zéro**, même sur un
+carnet plein de pesées.
+
+**LA MOITIÉ QU'ON OUBLIE ÉTAIT UNE PHRASE** : l'aide de Réglages promettait
+« ton volume par semaine ne bougera pas ». Vraie jusqu'au 04/11, fausse dès que
+la pile apparaît. Corrigée dans le même commit.
+
+---
+
+**Rédaction d'origine.**
+
+### Le poids du corps dans le graphe Volume par semaine
 
 **Quand** : décision à prendre, pas un oubli.
 
@@ -508,7 +574,29 @@ l'appel du graphe ne le passe pas.
 L'y faire entrer veut dire décider s'il fait une **troisième pile** à côté
 d'AW et Muscu générale. C'est une question d'affichage à part entière.
 
-## 6. La taille, dans le profil
+## 6. La taille, dans le profil — **FAIT le 2026-11-04**
+
+Elle entre **avec son lecteur**, ce que cette entrée exigeait : « un champ que
+rien ne consomme est un champ qui pourrit ». Son lecteur est l'**IMC**, sous les
+pesées, et il **porte sa réserve à l'écran** — il ne distingue pas le muscle du
+gras, donc il trompe sur quelqu'un qui tire. C'est la condition qui permet de
+l'afficher, pas une précaution de style.
+
+Elle traverse `normaliser` — sans quoi elle disparaîtrait au rechargement, le
+piège payé par le dictionnaire perso et les pesées le 28/10 — et elle est
+**validée à la lecture** : 50 à 250 cm, une valeur aberrante venue d'un import
+ne s'installe pas.
+
+**LE BANC A SERVI DEUX FOIS** : son contrôle d'ordre des Réglages m'a montré
+que j'avais collé le bloc Taille **au milieu** de « Mon poids », dont l'aide et
+l'historique tombaient en dessous. Le produit a été corrigé d'abord, le contrôle
+ensuite.
+
+---
+
+**Rédaction d'origine.**
+
+### La taille, dans le profil
 
 **Quand** : le jour où un écran en a besoin.
 

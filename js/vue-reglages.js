@@ -1052,10 +1052,12 @@
        recalculé l'historique à chaque pesée. Une ligne par pesée, et c'est
        `poidsAuJour` qui rend celle qui était en vigueur un jour donné.
 
-       PAS DE TAILLE. Elle avait été demandée aussi, et je ne la pose pas :
-       RIEN dans le carnet ne la lirait. Un champ que rien ne consomme est
-       un champ qui pourrit, et c'est l'argument qui vaut ici autant
-       qu'ailleurs. Le jour où un écran en a besoin, elle entrera avec lui.
+       LA TAILLE EST ENTRÉE LE 2026-11-04, et elle est entrée AVEC SON
+       LECTEUR — ce que ce paragraphe exigeait depuis le 29/10 : « un champ
+       que rien ne consomme est un champ qui pourrit ». Son lecteur est
+       l'IMC, juste sous les pesées, et il porte sa réserve à l'écran :
+       il ne distingue pas le muscle du gras, donc il trompe sur un athlète
+       de force. C'est la condition qui permet de l'afficher.
        ================================================================ */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Mon poids' }));
 
@@ -1089,6 +1091,10 @@
           A.m.supprimerPesee(e, p.id);
           A.store.sauver(true);
           rendrePesees();
+          /* L'IMC SUIT : il est calcule sur la DERNIERE pesee, donc en
+             supprimer une le change. Sans cette ligne, l'ecran garderait
+             un chiffre calcule sur une pesee qui n'existe plus. */
+          rendreImc();
         });
         listePesees.appendChild(h('div', { class: 'item-ligne rangee' },
           h('span', { text: A.m.dateCourte(p.date) }),
@@ -1112,6 +1118,7 @@
       var ecrit = A.store.sauver(true);
       champPoids.value = '';
       rendrePesees();
+      rendreImc();            /* meme raison qu'a la suppression */
       /* MEME REGLE QU'EN FIN DE SEANCE : on lit ce que l'ecriture a rendu
          avant d'annoncer quoi que ce soit. */
       A.ui.toast(ecrit
@@ -1127,18 +1134,81 @@
     });
 
     hote.appendChild(h('div', { class: 'rangee' }, champDatePoids, champPoids, btPeser));
-    /* L'AIDE DIT CE QUE LE GESTE FAIT ET CE QU'IL NE FAIT PAS. Sans la
-       seconde moitié, MB attendrait que son volume par semaine bouge, et il
-       ne bougera pas : `poids_corps` garde `tonnage: false`, décision prise
-       à part pour ne pas réécrire des chiffres déjà lus. */
+    /* L'AIDE DIT CE QUE LE GESTE FAIT ET CE QU'IL NE FAIT PAS.
+
+       ELLE DISAIT « TON VOLUME PAR SEMAINE NE BOUGERA PAS », et c'etait
+       vrai jusqu'au 04/11 : le graphe n'envoyait pas la pesee, donc il
+       comptait zero. Depuis le chantier 5, une pesee fait apparaitre une
+       TROISIEME PILE dans Volume par semaine. La premiere moitie de la
+       phrase, elle, reste vraie et doit le rester : le poids du corps
+       n'entre toujours PAS dans le tonnage — `poids_corps` garde
+       `tonnage: false`, decision du 29/10 pour ne pas reecrire des
+       chiffres deja lus.
+
+       C'est la moitie qu'on oublie : une PHRASE. Elle se corrige dans le
+       meme commit que le chiffre, ou elle fait mentir l'ecran. */
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:8px 2px 10px',
       text: 'Une pesée par jour ; te repeser le soir corrige le matin. Elle '
           + 'sert à lire un exercice en poids du corps AU POIDS DE CE '
           + 'JOUR-LÀ — une séance de juillet garde le poids de juillet. Elle '
-          + 'n’entre dans aucun tonnage : ton volume par semaine ne bougera '
-          + 'pas.' }));
+          + 'n’entre dans aucun tonnage, mais elle fait apparaître le poids du '
+          + 'corps à part dans Suivi ▸ Volume par semaine : le total des kilos '
+          + 'soulevés, lui, ne bouge pas.' }));
     rendrePesees();
     hote.appendChild(listePesees);
+
+    /* ---- LA TAILLE, ET L'IMC QU'ELLE PERMET ----
+
+       Elle n'est PAS datée, à la différence du poids : une taille d'adulte
+       ne bouge pas, et la dater aurait fabriqué une liste que personne ne
+       remplirait. Elle vit donc dans les réglages, comme le thème.
+
+       ELLE S'ENREGISTRE A LA FRAPPE, sans bouton : il n'y a rien à
+       confirmer, et un bouton de plus sur cet écran se paie en place. */
+    var champTaille = h('input', { class: 'champ', type: 'number', min: '50',
+                                   max: '250', step: '1', inputmode: 'numeric',
+                                   placeholder: 'cm', 'data-champ': 'taille' });
+    if (e.reglages.taille) champTaille.value = String(e.reglages.taille);
+    var ligneImc = h('div', { class: 'item-resume', style: 'margin:6px 2px 10px' });
+
+    function rendreImc() {
+      A.ui.vider(ligneImc);
+      var t = e.reglages.taille;
+      var derniere = A.m.peseesTriees(e)[0];
+      if (!t) {
+        ligneImc.appendChild(h('span', { text: 'Ta taille sert à calculer l’IMC, '
+          + 'juste en dessous. Elle n’entre dans aucun tonnage.' }));
+        return;
+      }
+      if (!derniere) {
+        ligneImc.appendChild(h('span', { text: 'Taille enregistrée. L’IMC s’affichera '
+          + 'dès la première pesée.' }));
+        return;
+      }
+      var m = t / 100;
+      var imc = Math.round(derniere.poids / (m * m) * 10) / 10;
+      ligneImc.appendChild(h('b', { text: 'IMC ' + String(imc).replace('.', ',') }));
+      /* LA RESERVE EST A L'ECRAN, PAS DANS UN COMMENTAIRE. L'IMC ne
+         distingue pas le muscle du gras : sur quelqu'un qui tire, il
+         annonce un surpoids qui n'en est pas un. Un chiffre qu'on affiche
+         sans dire ce qu'il ignore vaut moins que pas de chiffre. */
+      ligneImc.appendChild(h('span', { text: ' — calculé sur ta pesée du '
+        + A.m.dateCourte(derniere.date) + '. Il ne distingue PAS le muscle du '
+        + 'gras : sur quelqu’un qui tire, il annonce un surpoids qui n’en est '
+        + 'pas un. À lire comme un repère, pas comme un verdict.' }));
+    }
+
+    champTaille.addEventListener('input', function () {
+      var cm = parseInt(String(champTaille.value), 10);
+      e.reglages.taille = (isFinite(cm) && cm >= 50 && cm <= 250) ? cm : null;
+      A.store.sauver();
+      rendreImc();
+    });
+
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Ma taille' }));
+    hote.appendChild(h('div', { class: 'rangee' }, champTaille));
+    hote.appendChild(ligneImc);
+    rendreImc();
 
     /* Le CATALOGUE vient avant l'équipement, et les deux avant le reste.
        On cherche « qu'est-ce que j'ai déjà saisi » plus souvent qu'on
@@ -1404,6 +1474,52 @@
           ? d.muscles.map(A.m.nomCourtMuscle).join(', ')
           : 'aucun — cette fiche ne remplit rien'));
       bloc.appendChild(mus);
+
+      /* ---- LES PLANCHES DE CE QU'ELLE TRAVAILLE ----
+
+         Le chantier 3 demandait « une image par exercice ». Mesure du
+         04/11 : les 57 fiches portent au moins un muscle qui a sa
+         planche, donc la couverture est entiere SANS aucune licence
+         tierce. Les sources libres d'images de GESTE existent, mais en
+         partage a l'identique et sans couvrir les avant-bras — 18 des
+         57 fiches, le coeur du bras de fer.
+
+         CE N'EST DONC PAS LE GESTE, ET L'ECRAN LE DIT : une vignette
+         muette se lirait comme une photo de l'exercice.
+
+         CINQ AU PLUS, ET LE RESTE SE COMPTE — meme regle que les
+         ecritures : une bande qui s'arrete sans le dire se lit comme
+         complete. */
+      var avecPlanche = (d.muscles || []).filter(function (id) {
+        return A.m.imageDuMuscle(id);
+      });
+      if (avecPlanche.length) {
+        var bande = h('div', { class: 'dico-planches' });
+        avecPlanche.slice(0, 5).forEach(function (id) {
+          /* LA VIGNETTE, PAS LA PLANCHE PLEINE — mesure du 04/11 :
+             1,73 Mo pour une seule recherche, contre 198 Ko pour les 41
+             vignettes reunies. La planche pleine reste a UNE TOUCHE, par
+             `voirPlanche`. */
+          var v = h('img', { class: 'dico-planche', src: A.m.vignetteDuMuscle(id),
+                             alt: A.m.nomCourtMuscle(id) + ', teinté en rouge sur le membre',
+                             /* LES PLANCHES PESENT ~100 Ko PIECE et ne sont
+                                PAS prechargees par le service worker : un
+                                groupe replie ne doit rien telecharger. */
+                             loading: 'lazy', decoding: 'async' });
+          var bt = h('button', { type: 'button', class: 'dico-planche-bt',
+                                 title: A.m.nomCourtMuscle(id) + ' — voir en grand' }, v);
+          bt.addEventListener('click', function () { A.panneau.voirPlanche(id); });
+          bande.appendChild(bt);
+        });
+        if (avecPlanche.length > 5) {
+          bande.appendChild(h('span', { class: 'item-resume',
+            text: '+' + (avecPlanche.length - 5) + ' autre(s)' }));
+        }
+        bloc.appendChild(bande);
+        bloc.appendChild(h('div', { class: 'item-resume dico-planches-dit',
+          text: 'Ce que ce mouvement travaille — pas le geste lui-même. '
+              + 'Touche une planche pour la voir en grand.' }));
+      }
       if ((d.aussi || []).length) {
         var au = h('div', { class: 'item-resume', style: 'margin-top:4px' });
         au.appendChild(h('b', { text: 'Aussi écrit : ' }));

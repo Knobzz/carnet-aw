@@ -1667,14 +1667,37 @@
         }).map(function (n) { return n.textContent; });
         v.egal(inertes.join(', '), '', 'et c’est un BOUTON, pas un texte qui fait semblant');
 
+        /* LES GROUPES SONT REPLIES DEPUIS LE CHANTIER 4, et un rectangle
+           replie vaut ZERO : « toutes les pistes commencent au meme
+           endroit » et « aucun nom coupe » passaient alors sans rien
+           mesurer. On garde d'abord la PREUVE DU REPLI, puis on ouvre
+           pour mesurer ce que ces controles mesurent vraiment. */
+        var ouvertsAvant = Array.prototype.filter.call(
+          doc.querySelectorAll('.barres-muscles .muscle-groupe-corps'),
+          function (n) { return n.getBoundingClientRect().height > 0; });
+        var totalG = doc.querySelectorAll('.barres-muscles .muscle-groupe-corps').length;
+        v.vrai(totalG > 0, 'les muscles sont rangés par groupes (' + totalG + ')');
+        v.egal(ouvertsAvant.length, 0,
+               'et tous sont repliés à l’arrivée — mesuré au rectangle, pas à l’attribut');
+        var entete1 = doc.querySelector('.barres-muscles .muscle-groupe-entete');
+        if (entete1) entete1.click();
+        return attendre(120);
+      }).then(function () {
+        var noms = doc.querySelectorAll('.barres-muscles .muscle-groupe:first-child .barre-nom');
+        v.vrai(noms.length >= 1, 'le groupe ouvert montre ses muscles');
         var coupes = Array.prototype.filter.call(
-          doc.querySelectorAll('.barres-muscles .barre > :first-child'), function (n) {
+          doc.querySelectorAll('.barres-muscles .muscle-groupe:first-child .barre > :first-child'),
+          function (n) {
             return n.scrollWidth > n.clientWidth + 1;
           }).map(function (n) { return n.textContent; });
         v.egal(coupes.join(', '), '',
                'aucun nom de muscle coupé — c’est à ça que servent les noms courts');
 
-        var pm = Array.prototype.map.call(doc.querySelectorAll('.barres-muscles .barre-piste'),
+        /* DANS LE GROUPE OUVERT : c'est la version juste de la meme
+           exigence. Une grille par groupe aligne les muscles d'un meme
+           groupe entre eux — ce qu'on compare. */
+        var pm = Array.prototype.map.call(
+          doc.querySelectorAll('.barres-muscles .muscle-groupe:first-child .barre-piste'),
           function (n) {
             var r = n.getBoundingClientRect();
             return Math.round(r.left) + '/' + Math.round(r.width);
@@ -3083,7 +3106,13 @@
              'Sauvegarde · '
            + (sfa ? 'Sauvegarde automatique · ' : '')
            + 'Sauvegarde de secours · État du stockage · '
-           + 'Thème · En salle · Mon poids · Exercices connus · Équipement · '
+           /* « MA TAILLE » S'INSERE ICI le 04/11 (chantier 6), juste APRES
+              « Mon poids » : les deux se lisent ensemble, et c'est le
+              poids qui vient en premier parce que c'est lui qui se
+              resaisit. Ce controle a servi deux fois le meme jour — il
+              m'a d'abord montre que j'avais colle le bloc Taille AU
+              MILIEU de « Mon poids ». */
+           + 'Thème · En salle · Mon poids · Ma taille · Exercices connus · Équipement · '
            /* « SAUVEGARDE DE SECOURS » S'INSERE ICI le 04/11, apres que MB
               a tout perdu. Sa place n'est pas libre : juste APRES
               « Sauvegarde », du plus volontaire (exporter un fichier) au

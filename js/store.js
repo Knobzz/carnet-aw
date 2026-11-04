@@ -107,7 +107,17 @@
                   /* La periode du Suivi. Un id, valide par le modele a la
                      lecture : un carnet d'une autre version retombe sur le
                      defaut au lieu de casser l'ecran. */
-                  periodeSuivi: '3m' },
+                  periodeSuivi: '3m',
+                  /* LA TAILLE, EN CENTIMETRES — posee le 04/11.
+
+                     Elle avait ete demandee le 29/10 et refusee, avec un
+                     bon argument : « un champ que rien ne consomme est un
+                     champ qui pourrit ». Elle entre maintenant AVEC son
+                     lecteur — l'IMC de Reglages — et pas avant.
+
+                     `null` quand elle n'est pas renseignee, jamais 0 : un
+                     zero se lit comme une valeur et ferait un IMC infini. */
+                  taille: null },
       seanceEnCoursId: null,
       chrono: null          // { finA, duree, libelle } — survit a la fermeture
     };
@@ -153,6 +163,16 @@
       if (typeof brut.reglages.periodeSuivi === 'string') {
         d.reglages.periodeSuivi = brut.reglages.periodeSuivi;
       }
+      /* ELLE TRAVERSE LA LISTE BLANCHE, sans quoi elle disparaitrait au
+         premier rechargement — le piege paye par le dictionnaire perso et
+         les pesees le 28/10, et que le banc rejoue depuis.
+
+         ET ELLE EST VALIDEE A LA LECTURE : une valeur aberrante venue d'un
+         import ou d'une saisie d'une autre version ne s'installe pas. Les
+         bornes sont celles d'un etre humain, larges expres — le carnet
+         refuse la FRAPPE, pas le gabarit, comme pour le poids. */
+      var t = +brut.reglages.taille;
+      d.reglages.taille = (isFinite(t) && t >= 50 && t <= 250) ? t : null;
     }
     if (typeof brut.seanceEnCoursId === 'string') d.seanceEnCoursId = brut.seanceEnCoursId;
     /* LA REVISION TRAVERSE `normaliser`, ET C'EST VITAL.

@@ -311,26 +311,63 @@
       return f;
     }
 
-    var max = sem.reduce(function (m, s) { return Math.max(m, s.aw + s.general); }, 0) || 1;
+    /* L'ECHELLE TIENT COMPTE DES TROIS PILES, sinon la barre la plus
+       longue deborderait de sa piste des qu'une semaine porte beaucoup de
+       poids du corps. */
+    var max = sem.reduce(function (m, s) {
+      return Math.max(m, s.aw + s.general + (s.poidsCorps || 0));
+    }, 0) || 1;
+    var avecPdc = sem.some(function (s) { return (s.poidsCorps || 0) > 0; });
     var carte = h('div', { class: 'carte' });
     var corps = h('div', { class: 'carte-corps' });
     var barres = h('div', { class: 'barres' });
 
     sem.forEach(function (s) {
+      var pdc = s.poidsCorps || 0;
       var piste = h('div', { class: 'barre-piste' },
         h('i', { class: 'aw', style: 'width:' + (s.aw / max * 100) + '%' }),
         h('i', { class: 'gen', style: 'width:' + (s.general / max * 100) + '%' }));
+      /* LA TROISIEME PILE — et elle n'apparait QUE s'il y en a.
+
+         Le poids du corps etait compte « a part » depuis le 29/10 et ne se
+         voyait nulle part dans ce graphe : `volumeParSemaine` n'envoyait
+         pas la pesee a `volumeSeance`. Il se voit maintenant, SANS entrer
+         dans le total : c'est ce que la decision de MB demande, et c'est
+         pour ca que le chiffre de droite reste celui des kilos souleves. */
+      if (pdc > 0) {
+        piste.appendChild(h('i', { class: 'pdc', style: 'width:' + (pdc / max * 100) + '%' }));
+      }
       var d = A.m.dateCourte(s.semaine).replace(/ \d{4}$/, '');
+      var val = h('span', { class: 'barre-val' },
+        h('span', { text: A.m.fmt(Math.round(s.aw + s.general)) }));
+      /* LE POIDS DU CORPS SE LIT A COTE DU TOTAL, precede d'un « + » qui
+         dit qu'il s'ajoute A LA LECTURE sans s'ajouter au compte. */
+      if (pdc > 0) {
+        val.appendChild(h('span', { class: 'val-pdc',
+                                    text: ' +' + A.m.fmt(Math.round(pdc)) }));
+      }
       barres.appendChild(h('div', { class: 'barre' },
         h('span', { class: 'tab-num', text: d }),
-        piste,
-        h('span', { class: 'barre-val', text: A.m.fmt(Math.round(s.aw + s.general)) })));
+        piste, val));
     });
 
     corps.appendChild(barres);
-    corps.appendChild(h('div', { class: 'legende' },
+    var legende = h('div', { class: 'legende' },
       h('span', {}, h('i', { style: 'background:var(--laiton)' }), 'AW'),
-      h('span', {}, h('i', { style: 'background:var(--bleu)' }), 'Muscu générale')));
+      h('span', {}, h('i', { style: 'background:var(--bleu)' }), 'Muscu générale'));
+    if (avecPdc) {
+      legende.appendChild(h('span', {}, h('i', { class: 'pdc' }), 'Poids du corps'));
+    }
+    corps.appendChild(legende);
+    if (avecPdc) {
+      /* CE QUE LE CHIFFRE DE DROITE COMPTE, ET CE QU'IL NE COMPTE PAS.
+         Sans cette ligne, « 200 +1 440 » se lit comme une soustraction
+         inexpliquee : le total paraitrait faux. */
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:8px',
+        text: 'Le chiffre de droite est le tonnage soulevé. Le « + » à côté est '
+            + 'le poids du corps de la semaine, compté à part : il se voit, il '
+            + 'ne s’additionne pas. Il a besoin d’une pesée pour exister.' }));
+    }
 
     /* Le temps sous tension ne se met PAS dans les mêmes barres : des kilos et
        des secondes ne se comparent pas, et les empiler fabriquerait une courbe
@@ -534,27 +571,106 @@
           : 'Appuie sur l’image pour la voir en grand.' }));
     }
 
-    /* --- les chiffres, muscle par muscle --- */
-    var barres = h('div', { class: 'barres barres-serrees barres-muscles', style: 'margin-top:12px' });
-    A.m.MUSCLES.slice().sort(function (a, b) {
+    /* --- les chiffres, muscle par muscle, GROUPES ET REPLIES ---
+
+       MB, 29/10 : « il faudra les classer par groupes, et que les groupes
+       soient reduits de base. Le plus sollicite apparait en premier. »
+       41 muscles sur 8 regions : a plat, la liste ne se lit plus.
+
+       L'ORDRE PAR SOLLICITATION TIENT AUX DEUX ETAGES — entre les groupes
+       (par la somme de leurs series) et a l'interieur de chacun. C'est la
+       troisieme exigence, et la plus facile a perdre en groupant. */
+    var barres = h('div', { class: 'barres-muscles', style: 'margin-top:12px' });
+
+    var classes2 = A.m.MUSCLES.slice().sort(function (a, b) {
       return (c.parMuscle[b.id] || 0) - (c.parMuscle[a.id] || 0);
-    }).forEach(function (m) {
-      var n = c.parMuscle[m.id] || 0;
-      if (!retenu(m)) return;
-      if (!n && !regionChoisie) return;
-      /* Le libellé est un BOUTON : il ouvre la planche en grand, avec le nom
-         latin, ce que le muscle fait et ce qu'il mobilise. C'est le seul
-         chemin vers le détail depuis que les zones cliquables ont été
-         retirées, et il est plus sûr : il ne suppose aucun contour. */
-      var lib = h('button', { type: 'button', class: 'barre-nom',
-                              text: m.court || m.nom, title: m.nom });
-      lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });
-      barres.appendChild(h('div', { class: 'barre' + (n ? '' : ' barre-vide') },
-        lib,
-        h('div', { class: 'barre-piste' },
-          h('i', { class: 'aw', style: 'width:' + (n ? n / maxM * 100 : 0) + '%' })),
-        h('span', { class: 'barre-val', text: n ? n + ' sér.' : 'jamais' })));
+    }).filter(function (m) {
+      if (!retenu(m)) return false;
+      return !!(c.parMuscle[m.id] || 0) || !!regionChoisie;
     });
+
+    /* On range SANS retrier : `classes2` est deja dans l'ordre de
+       sollicitation, donc chaque groupe le recoit dans cet ordre-la. */
+    var parGroupe = {}, ordreGroupes = [];
+    classes2.forEach(function (m) {
+      var g = m.groupe || 'autre';
+      if (!parGroupe[g]) { parGroupe[g] = { muscles: [], total: 0 }; ordreGroupes.push(g); }
+      parGroupe[g].muscles.push(m);
+      parGroupe[g].total += (c.parMuscle[m.id] || 0);
+    });
+    ordreGroupes.sort(function (a, b) { return parGroupe[b].total - parGroupe[a].total; });
+
+    function nomDuGroupe(id) {
+      var r = A.m.REGIONS_MUSCLE.filter(function (x) { return x.id === id; })[0];
+      return r ? r.nom : 'Autres';
+    }
+
+    ordreGroupes.forEach(function (gid) {
+      var g = parGroupe[gid];
+      var compte = h('span', { class: 'equip-compte', text: String(g.muscles.length) });
+      var chevron = h('span', { class: 'equip-chevron', 'aria-hidden': 'true', text: '\u25be' });
+      /* CE QUE L'ENTETE DIT SANS QU'ON L'OUVRE : combien de muscles, et
+         combien de series. Un groupe replie dont on ne sait rien oblige a
+         tout ouvrir pour chercher — ce qui annule le repli. */
+      var entete = h('button', { type: 'button', class: 'equip-cat muscle-groupe-entete',
+                                 'aria-expanded': 'false' },
+        /* LE CHEVRON RESTE LE DERNIER ENFANT. `.equip-cat` est un flex
+           dont le `b` porte `flex: 1` : tout ce qui suit est pousse au
+           bord droit, dans l'ordre du DOM. Un chevron qui n'est plus au
+           bord cesse d'etre le repere du repli. */
+        h('b', { text: nomDuGroupe(gid) }),
+        h('span', { class: 'muscle-groupe-total',
+                    text: g.total ? g.total + ' s\u00e9r.' : 'jamais' }),
+        compte, chevron);
+
+      /* LA GRILLE DESCEND D'UN CRAN, et c'est voulu : `.barres-serrees`
+         aligne les pistes de SES enfants. Une grille par groupe aligne
+         donc les muscles d'un meme groupe entre eux — ce qui est ce qu'on
+         compare. Le banc d'interface mesurait cet alignement sur la liste
+         a plat ; il le mesure maintenant dans un groupe ouvert. */
+      var corpsG = h('div', { class: 'barres barres-serrees muscle-groupe-corps' });
+      g.muscles.forEach(function (m) {
+        var n = c.parMuscle[m.id] || 0;
+        /* Le libellé est un BOUTON : il ouvre la planche en grand, avec le
+           nom latin, ce que le muscle fait et ce qu'il mobilise. C'est le
+           seul chemin vers le détail depuis que les zones cliquables ont
+           été retirées, et il est plus sûr : il ne suppose aucun contour. */
+        var lib = h('button', { type: 'button', class: 'barre-nom',
+                                text: m.court || m.nom, title: m.nom });
+        lib.addEventListener('click', function () { A.panneau.voirPlanche(m.id); });
+        corpsG.appendChild(h('div', { class: 'barre' + (n ? '' : ' barre-vide') },
+          lib,
+          h('div', { class: 'barre-piste' },
+            h('i', { class: 'aw', style: 'width:' + (n ? n / maxM * 100 : 0) + '%' })),
+          h('span', { class: 'barre-val', text: n ? n + ' s\u00e9r.' : 'jamais' })));
+      });
+
+      /* REPLIES DE BASE — sauf quand une region est filtree.
+
+         MB demande « reduits de base », et c'est pour la liste entiere.
+         Mais filtrer sur une region pour tomber sur un groupe ferme
+         demanderait deux gestes pour une chose qu'on vient de designer —
+         et l'ecran se lirait comme vide, le defaut que ce bloc signale
+         deja une ligne plus haut. */
+      corpsG.hidden = !regionChoisie;
+      if (regionChoisie) entete.setAttribute('aria-expanded', 'true');
+      entete.addEventListener('click', function () {
+        var o = entete.getAttribute('aria-expanded') === 'true';
+        entete.setAttribute('aria-expanded', o ? 'false' : 'true');
+        corpsG.hidden = o;
+      });
+      barres.appendChild(h('div', { class: 'carte muscle-groupe' }, entete, corpsG));
+    });
+
+    /* UNE LIGNE DIT CE QU'ON NE VOIT PAS, parce que tout est replie : sans
+       elle, un ecran de six entetes fermees ne dit pas qu'il porte 41
+       muscles. */
+    if (ordreGroupes.length) {
+      corps.appendChild(h('div', { class: 'item-resume', style: 'margin-top:10px',
+        text: classes2.length + ' muscle(s) dans ' + ordreGroupes.length
+            + ' groupe(s), du plus sollicit\u00e9 au moins. Touche un groupe pour '
+            + 'l\u2019ouvrir.' }));
+    }
     corps.appendChild(barres);
 
     /* L'insertion commune se compte, et se dit en une ligne. Elle est utile
