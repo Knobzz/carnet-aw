@@ -4368,12 +4368,62 @@
      pour un carnet ancien c'est la seule information d'ordre disponible, et
      pour un carnet recent le cas ne se presente pas, les horodatages etant
      strictement croissants. */
+  /* LE JOUR LOCAL D'UN `vuLe`, QUEL QUE SOIT SON FORMAT.
+
+     Deux formes cohabitent dans un carnet, et elles n'ont pas le meme
+     referentiel :
+
+       « 2026-11-01 »            un jour LOCAL, ecrit par `aujourdHui()`
+       « 2026-10-31T23:01:38Z »  un instant UTC, ecrit par `maintenant()`
+
+     Mesure du 01/11 a 00h01 : ces deux-la designent le MEME moment. Les
+     comparer comme des chaines mettait la date seule devant, et un outil
+     repris a l'instant se retrouvait derriere. C'etait la dette de minuit,
+     inscrite dans CHANTIERS.md, tranchee par MB le 04/11. */
+  function jourLocalDe(vuLe) {
+    var v = String(vuLe || '');
+    if (!v) return '';
+    /* Une date seule est DEJA un jour local : on n'y touche pas. La passer
+       par `new Date()` la lirait comme minuit UTC et la decalerait d'un
+       jour pour les fuseaux negatifs. */
+    if (v.length === 10) return v;
+    var t = new Date(v);
+    if (isNaN(t.getTime())) return v;
+    var z = function (n) { return (n < 10 ? '0' : '') + n; };
+    return t.getFullYear() + '-' + z(t.getMonth() + 1) + '-' + z(t.getDate());
+  }
+
   function parRecence(liste) {
     return liste
-      .map(function (x, i) { return { x: x, i: i }; })
+      .map(function (x, i) { return { x: x, i: i, j: jourLocalDe(x.vuLe) }; })
       .sort(function (a, b) {
-        var d = (b.x.vuLe || '').localeCompare(a.x.vuLe || '');
-        return d !== 0 ? d : b.i - a.i;
+        /* 1. LE JOUR LOCAL, et c'est lui qui ferme la dette de minuit. */
+        var d = b.j.localeCompare(a.j);
+        if (d !== 0) return d;
+        /* 2. A JOUR EGAL, CELUI QUI PORTE UNE HEURE PASSE DEVANT.
+
+              C'est une regle anterieure, et elle est plus juste que celle
+              que j'avais ecrite : « une date seule se classe AVANT un
+              horodatage du meme jour, puisqu'on ne sait pas a quelle heure
+              elle a ete posee ». Un horodatage porte plus d'information
+              qu'une date nue, donc il gagne.
+
+              MON PREMIER JET NE COMPARAIT QUE SI LES DEUX EN AVAIENT UNE,
+              et tombait sinon sur l'ordre d'insertion — ou la date seule
+              passait devant. Le controle de la ligne 1133 l'a dit tout de
+              suite. */
+        var ha = String(a.x.vuLe || '').length > 10;
+        var hb = String(b.x.vuLe || '').length > 10;
+        if (ha !== hb) return ha ? -1 : 1;
+
+        /* 3. LES DEUX HORODATES : l'heure departage. */
+        if (ha && hb) {
+          var h = String(b.x.vuLe).localeCompare(String(a.x.vuLe));
+          if (h !== 0) return h;
+        }
+        /* 4. SINON LE DERNIER POSE PASSE DEVANT — la regle d'origine, pour
+              les carnets anciens ou c'est la seule information d'ordre. */
+        return b.i - a.i;
       })
       .map(function (p) { return p.x; });
   }
@@ -6922,6 +6972,7 @@
     fenetreAvant: fenetreAvant, episodesDouleur: episodesDouleur,
     volumeParSemaine: volumeParSemaine, repartitionForces: repartitionForces,
     MOTS_FORCE: MOTS_FORCE, forcesDuNom: forcesDuNom,
+    jourLocalDe: jourLocalDe, parRecence: parRecence,
     forcesDeLExercice: forcesDeLExercice,
     LIEN_VOA_PRESS: LIEN_VOA_PRESS,
     STYLES_AW: STYLES_AW, styleAW: styleAW, stylesParForce: stylesParForce,

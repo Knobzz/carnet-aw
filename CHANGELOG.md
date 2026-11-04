@@ -15,6 +15,21 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.77.0
+
+**Corrige l’ordre de tes outils entre minuit et 1 h du matin.** Un outil
+repris à cette heure-là ne remontait pas en tête de tes suggestions : une
+date était lue en heure locale, l’autre en heure universelle, et la plus
+ancienne passait devant.
+
+**Rien ne change à l’écran** : aucune date affichée ne bouge. C’est la
+comparaison qui a été corrigée, pas les dates — l’autre façon de faire
+aurait fait sauter d’un jour les dates du soir.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.76.0
 
 **La sauvegarde passe en PREMIER dans les Réglages.** C’est la première

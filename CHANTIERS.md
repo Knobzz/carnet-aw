@@ -266,8 +266,45 @@ Quatre recherches web, une par bloc de muscles, **79 cas** rapportés :
 **8** autres exercices, **21** variantes mal rangées, **34** qui ne portent
 rien, **16** qu'aucune source ne tranche.
 
-Le détail est dans **`revue/RECHERCHE-2026-10-30.md`**, et MB tranche dans
-**`revue/ecremage.html`**. **Rien n'est appliqué.**
+Le détail est dans **`revue/RECHERCHE-2026-10-30.md`**, les décisions de MB
+dans **`revue/ecremage.js`**, et la planche dans **`revue/ecremage.html`**.
+
+**APPLIQUÉ LE 2026-10-30** (`59e1002`) — cette ligne disait encore « rien
+n'est appliqué » le 4 novembre, et elle m'a fait poser à MB une question
+déjà tranchée. Ce qui a été fait : **67 fiches / 356 écritures → 64 / 294**,
+51 écritures retirées, trois fiches supprimées (Gripper, Croix de fer,
+Handstand push-up), deux renommages, le cupping passé de *Wrist curl* à
+*Cup hold* (un cupping se TIENT). Supination reste : trois équipements
+pointent dessus, dont l'Iron Wrist que MB possède.
+
+### CE QU'IL RESTE — mesuré le 2026-11-04, et c'est TROIS écritures
+
+Les « en faire une variante » n'avaient pas été appliquées faute de
+mécanisme. Il existe depuis la **1.70.0**. Compté : **13 décisions**, dont
+**10 sont déjà devenues des gestes** le 31/10 (les quatre curls, les deux
+rotations d'épaule, la cubaine, les écartés Hyght, deux pompes).
+
+**Les trois qui restent, et deux posent une question neuve :**
+
+| écriture | fiche | ce qu'elle est vraiment |
+|---|---|---|
+| **Behind the neck press** | Développé militaire | un vrai **geste** — la barre derrière la nuque change l'amplitude et la contrainte d'épaule. Il lui faut une explication sourcée, comme les 38 autres. |
+| **Pec deck inversé** | Oiseau | une **machine**, pas un geste |
+| **Pec deck** | Écarté | une **machine**, pas un geste |
+
+**LA QUESTION QUE ÇA OUVRE, ET ELLE EST POUR MB** : la conception des quatre
+étages range les machines dans **Matériel** (étage 3), pas dans les gestes
+(étage 2). Les deux *Pec deck* ne peuvent donc pas « devenir des variantes »
+au sens où la planche l'entendait le 30/10 — la planche est antérieure à
+cette conception. Trois issues, aucune recommandée ici :
+
+1. **les laisser en écritures** — elles restent cherchables, l'engin se
+   choisit dans Matériel ; rien à faire, et c'est déjà l'état ;
+2. ~~ajouter « Machine » aux choix de Matériel~~ — **vérifié le 04/11 :
+   `js/panneau.js` en porte déjà une.** Rien à faire de ce côté ;
+3. **en faire des gestes quand même**, ce qui contredirait la séparation
+   geste / matériel que MB a lui-même demandée le 30/10 (« pour moi les deux
+   sont distincts pour le coup, pas de mélange »).
 
 **UNE RÉSERVE EST POSÉE D'AVANCE** : la recherche conseille de retirer six
 fiches de traction sur huit, dont **les quatre « partielle » que MB a

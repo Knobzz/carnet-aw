@@ -204,6 +204,74 @@
      produire. Ce qui se mesure ici, ce sont les garanties qui ne dependent
      pas du navigateur.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     LA DETTE DE MINUIT — un jour local contre un horodatage UTC
+
+     Mesuree le 01/11 a 00h01, tranchee par MB le 04/11 : on normalise a la
+     COMPARAISON, sans toucher aux dates affichees.
+
+     LES VALEURS SONT ECRITES EN DUR, et c'est le point : un controle qui
+     tire ses dates de l'horloge ne peut tomber qu'une heure par nuit. C'est
+     exactement ce qui a rendu cette dette si longue a voir.
+     --------------------------------------------------------------- */
+  bloc('La dette de minuit', function (v) {
+    var jl = A.m.jourLocalDe;
+    v.vrai(typeof jl === 'function', 'le modele sait ramener un `vuLe` a son jour local');
+
+    /* UNE DATE SEULE EST DEJA UN JOUR LOCAL : la passer par `new Date()` la
+       lirait comme minuit UTC et la decalerait d'un jour a l'ouest. */
+    v.egal(jl('2026-11-01'), '2026-11-01',
+           'une date seule reste telle quelle — la relire comme minuit UTC '
+         + 'la decalerait d’un jour dans les fuseaux negatifs');
+    v.egal(jl(''), '', 'une valeur vide ne devient pas une date');
+    v.egal(jl('nawak'), 'nawak', 'et une valeur illisible n’est pas inventee');
+
+    /* ---- LE CAS EXACT DU 01/11 A 00h01 ----
+
+       `aujourdHui()` rendait 2026-11-01 pendant que `maintenant()` rendait
+       2026-10-31T23:01Z. Les deux designent le meme moment ; les comparer
+       comme des chaines mettait la date seule devant.
+
+       LE DECOR DEPEND DU FUSEAU DE LA MACHINE, donc on le MESURE au lieu de
+       le supposer : le temoin dit si l'horodatage tombe bien le 01/11 en
+       heure locale. Sans ca, ce controle passerait pour une raison qui n'a
+       rien a voir avec la dette. */
+    var utcVeille = '2026-10-31T23:01:38Z';
+    v.egal(jl(utcVeille), jl('2026-11-01'),
+           '[temoin] sur cette machine, l’horodatage UTC du 31 à 23h01 tombe '
+         + 'bien le 1er novembre en heure locale (jour lu : ' + jl(utcVeille)
+         + ') — sans ça le cas ci-dessous ne mesurerait pas la dette');
+
+    if (jl(utcVeille) === jl('2026-11-01')) {
+      var liste = [
+        { id: 'ancien', nom: 'Ancien', vuLe: '2026-11-01' },
+        { id: 'repris', nom: 'Repris à l’instant', vuLe: utcVeille }
+      ];
+      var tri = A.m.parRecence(liste);
+      v.egal(tri[0].id, 'repris',
+             'l’outil repris À L’INSTANT passe devant une simple date du '
+           + 'jour : c’est la dette de minuit, et elle est fermée');
+    }
+
+    /* A JOUR EGAL, L'HEURE DEPARTAGE — quand les DEUX en portent une. */
+    var memeJour = A.m.parRecence([
+      { id: 'tot', vuLe: '2026-11-04T08:00:00Z' },
+      { id: 'tard', vuLe: '2026-11-04T09:00:00Z' }
+    ]);
+    v.egal(memeJour[0].id, 'tard',
+           'deux horodatages du même jour se départagent à l’heure');
+
+    /* ET LE DERNIER POSE PASSE DEVANT quand rien d'autre ne distingue —
+       la regle d'origine, pour les carnets anciens. */
+    var nues = A.m.parRecence([
+      { id: 'premier', vuLe: '2026-11-04' },
+      { id: 'second', vuLe: '2026-11-04' }
+    ]);
+    v.egal(nues[0].id, 'second',
+           'à dates nues égales, le dernier POSÉ passe devant — un carnet '
+         + 'nourri en une journée n’affichait sinon que ses premiers outils');
+  });
+
   bloc('La sauvegarde automatique', function (v) {
     var si = A.store.infoFichier;
     v.vrai(typeof si === 'function',
