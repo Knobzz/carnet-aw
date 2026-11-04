@@ -211,7 +211,11 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
    sens — celui de la cup. L'autre reste un raisonnement, validé par MB
    gravures sous les yeux, et aucune source ne le contredit.
 
-## 2. Les variantes, plutôt qu'un nom par engin — **OUVERT le 2026-10-30**
+## 2. Les variantes, plutôt qu'un nom par engin — **FAIT le 2026-11-04**
+
+**Il ne reste aucun travail.** Ce qui attend est **une décision de MB**, et
+son issue par défaut est déjà l'état du carnet : voir « CE QU'IL RESTE »
+plus bas, les deux *Pec deck*.
 
 **Quand** : quand le dictionnaire sera rempli. — **Il l'est : ouvert le 30/10.**
 
@@ -277,18 +281,25 @@ Handstand push-up), deux renommages, le cupping passé de *Wrist curl* à
 *Cup hold* (un cupping se TIENT). Supination reste : trois équipements
 pointent dessus, dont l'Iron Wrist que MB possède.
 
-### CE QU'IL RESTE — mesuré le 2026-11-04, et c'est TROIS écritures
+### CE QU'IL RESTE — mesuré le 2026-11-04, et c'est DEUX ÉCRITURES, sans travail
 
 Les « en faire une variante » n'avaient pas été appliquées faute de
 mécanisme. Il existe depuis la **1.70.0**. Compté : **13 décisions**, dont
-**10 sont déjà devenues des gestes** le 31/10 (les quatre curls, les deux
-rotations d'épaule, la cubaine, les écartés Hyght, deux pompes).
+**10 sont devenues des gestes** le 31/10 (les quatre curls, les deux
+rotations d'épaule, la cubaine, les écartés Hyght, deux pompes) et **une le
+04/11** — « Développé nuque », livré en **1.79.0** (`0c5ea67`).
 
-**Les trois qui restent, et deux posent une question neuve :**
+**CETTE LIGNE DISAIT « TROIS » JUSQU'AU 04/11 AU SOIR**, et elle nommait le
+geste livré « Behind the neck press » — son synonyme anglais, pas son nom.
+C'est le même défaut que celui déjà reproché à ce fichier trois paragraphes
+plus haut : un fichier d'état qui ne se met pas à jour **au moment de la
+livraison** envoie chercher du travail déjà fait, et c'est MB qui paie la
+question.
+
+**Les deux qui restent posent une question, pas un travail :**
 
 | écriture | fiche | ce qu'elle est vraiment |
 |---|---|---|
-| **Behind the neck press** | Développé militaire | un vrai **geste** — la barre derrière la nuque change l'amplitude et la contrainte d'épaule. Il lui faut une explication sourcée, comme les 38 autres. |
 | **Pec deck inversé** | Oiseau | une **machine**, pas un geste |
 | **Pec deck** | Écarté | une **machine**, pas un geste |
 
@@ -299,7 +310,9 @@ au sens où la planche l'entendait le 30/10 — la planche est antérieure à
 cette conception. Trois issues, aucune recommandée ici :
 
 1. **les laisser en écritures** — elles restent cherchables, l'engin se
-   choisit dans Matériel ; rien à faire, et c'est déjà l'état ;
+   choisit dans Matériel ; rien à faire, et **c'est l'état du carnet
+   aujourd'hui** : les deux figurent bien dans les `aussi` de *Écarté* et
+   de *Oiseau* (`js/model.js`), vérifié le 04/11 ;
 2. ~~ajouter « Machine » aux choix de Matériel~~ — **vérifié le 04/11 :
    `js/panneau.js` en porte déjà une.** Rien à faire de ce côté ;
 3. **en faire des gestes quand même**, ce qui contredirait la séparation
