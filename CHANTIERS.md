@@ -213,9 +213,9 @@ sourcée par type dans `revue/outils.js` — liens produits, citation, note.
 
 ## 2. Les variantes, plutôt qu'un nom par engin — **FAIT le 2026-11-04**
 
-**Il ne reste aucun travail.** Ce qui attend est **une décision de MB**, et
-son issue par défaut est déjà l'état du carnet : voir « CE QU'IL RESTE »
-plus bas, les deux *Pec deck*.
+**Rien ne reste.** La dernière question ouverte — les deux *Pec deck* —
+a été tranchée par MB le **2026-11-04** : « Les laisser comme ça. » Aucun
+travail n'en découle, c'était déjà l'état du carnet. Détail plus bas.
 
 **Quand** : quand le dictionnaire sera rempli. — **Il l'est : ouvert le 30/10.**
 
@@ -307,17 +307,29 @@ question.
 étages range les machines dans **Matériel** (étage 3), pas dans les gestes
 (étage 2). Les deux *Pec deck* ne peuvent donc pas « devenir des variantes »
 au sens où la planche l'entendait le 30/10 — la planche est antérieure à
-cette conception. Trois issues, aucune recommandée ici :
+cette conception. Trois issues lui ont été soumises.
 
-1. **les laisser en écritures** — elles restent cherchables, l'engin se
-   choisit dans Matériel ; rien à faire, et **c'est l'état du carnet
-   aujourd'hui** : les deux figurent bien dans les `aussi` de *Écarté* et
-   de *Oiseau* (`js/model.js`), vérifié le 04/11 ;
-2. ~~ajouter « Machine » aux choix de Matériel~~ — **vérifié le 04/11 :
-   `js/panneau.js` en porte déjà une.** Rien à faire de ce côté ;
-3. **en faire des gestes quand même**, ce qui contredirait la séparation
-   geste / matériel que MB a lui-même demandée le 30/10 (« pour moi les deux
-   sont distincts pour le coup, pas de mélange »).
+### **TRANCHÉ PAR MB LE 2026-11-04 : « Les laisser comme ça. »**
+
+C'est l'issue 1, et elle ne demande aucun travail : c'était déjà l'état du
+carnet. Les deux écritures restent dans les `aussi` de *Écarté* et de
+*Oiseau* (`js/model.js`, vérifié le 04/11), donc cherchables ; l'engin se
+choisit dans **Matériel**, dont les choix portent déjà « Machine »
+(`js/panneau.js`, vérifié le 04/11).
+
+**Ce que cette décision confirme** : la séparation geste / matériel que MB
+avait demandée le 30/10 — « pour moi les deux sont distincts pour le coup,
+pas de mélange » — tient aussi quand une planche antérieure disait le
+contraire. Une machine ne devient pas un geste parce qu'une liste l'avait
+rangée là.
+
+**Les trois issues, pour mémoire :**
+
+1. ✅ **les laisser en écritures** — **CHOISIE** ;
+2. ~~ajouter « Machine » aux choix de Matériel~~ — sans objet, elle y est
+   déjà (`js/panneau.js`, 04/11) ;
+3. ~~en faire des gestes quand même~~ — **écartée** : contredirait la
+   séparation geste / matériel.
 
 **UNE RÉSERVE EST POSÉE D'AVANCE** : la recherche conseille de retirer six
 fiches de traction sur huit, dont **les quatre « partielle » que MB a
