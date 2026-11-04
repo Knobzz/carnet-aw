@@ -15,6 +15,40 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.72.3
+
+**Une sauvegarde de secours, et c’est le plus important de cette version.**
+
+Le carnet garde désormais **un double de lui-même**, sur ton appareil, sous
+un nom séparé. Il se pose dès que tu ouvres l’app, pas seulement quand tu
+saisis quelque chose.
+
+- **Un carnet vide ne peut pas l’écraser.** C’est sa seule règle, et c’est
+  un fait, pas un réglage : si ce qui veut s’enregistrer ne contient rien et
+  que le double contient quelque chose, le double reste.
+- **Il se restaure depuis Réglages ▸ Sauvegarde de secours**, qui affiche de
+  quand il date et ce qu’il contient, en face de ton carnet actuel — pour
+  que tu choisisses sur deux chiffres, pas à l’aveugle.
+- **Il ne peut pas te nuire** : il s’écrit après ton carnet, son échec est
+  sans conséquence, et si la place manque **il est sacrifié** pour que ta
+  saisie passe.
+- Il ne remplace pas un export : il dépanne le jour où tu n’y as pas pensé.
+
+**« Tout effacer » dit maintenant la vérité.** Depuis le double, ce bouton
+n’effaçait plus tout — et ne le disait pas. L’écran l’annonce, et un second
+bouton efface aussi le double, pour ne rien laisser si tu prêtes ou revends
+le téléphone.
+
+**Corrige l’onglet des gestes hors ligne.** Un fichier manquait à la liste
+des fichiers gardés pour le mode hors connexion : en salle, sans réseau,
+les façons d’exécuter un mouvement ne s’affichaient pas. C’est la
+troisième fois qu’une liste tenue à la main oublie un fichier ; un contrôle
+la compare désormais à la page au lieu de la relire.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.71.0
 
 **Ajoute « Ta lacune » dans Suivi**, en face de « Ton accent ».
