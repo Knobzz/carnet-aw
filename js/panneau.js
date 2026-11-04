@@ -468,7 +468,15 @@
            Les seuls GESTES, pas les ecritures d'engin : celles-ci
            faisaient les doublons que MB a vus le 30/10, et l'engin se
            choisit maintenant a l'etage 3. */
-        var gestes = G ? G.gestesDe(ficheOuverte) : [];
+        /* LES MIENS AVEC LES LIVRES, depuis le 04/11 (chantier 7).
+
+           `G.gestesDe` ne lit que la table LIVREE : une ecriture ajoutee
+           par MB etait cherchable mais n'apparaissait PAS ici. La fusion
+           vit dans le modele — `gestesDuNom` — pour que le banc puisse la
+           mesurer. */
+        var gestes = A.m.gestesDuNom
+          ? A.m.gestesDuNom(ficheOuverte, etat())
+          : (G ? G.gestesDe(ficheOuverte) : []);
         zoneVariantes.appendChild(h('div', { class: 'item-resume',
           style: 'margin:10px 2px 4px', text: gestes.length
             ? '2 — La façon de l’exécuter · ' + gestes.length + ' connue(s)'
@@ -490,17 +498,91 @@
         /* L'EXPLICATION DU GESTE CHOISI, ou celle du mouvement quand on est
            sur le nom simple. Une absence se DIT, elle ne se laisse pas
            vide : MB a vu « Barre au front » ne rien afficher. */
-        var xp = null;
-        if (G) {
+        var xp = null, aMoi = null;
+        if (choisi && choisi !== ficheOuverte) {
+          aMoi = gestes.filter(function (g) {
+            return g.deMoi && g.nom === choisi; })[0] || null;
+        }
+        if (G && !aMoi) {
           if (choisi && choisi !== ficheOuverte) {
             xp = G.gestesDe(ficheOuverte).filter(function (g) {
               return g.nom === choisi; })[0] || null;
           }
           if (!xp) xp = G.explicationDe(ficheOuverte);
         }
-        zoneVariantes.appendChild(xp ? blocExplication(xp)
-          : h('div', { class: 'item-resume', style: 'margin:4px 2px;opacity:.7',
-              text: 'Pas encore d’explication écrite pour ce mouvement.' }));
+        /* UN GESTE A MOI NE SE PRESENTE PAS COMME LES 38 LIVRES.
+
+           C'est la question que le chantier 7 laissait ouverte. Il n'a pas
+           d'explication et on n'en invente aucune : l'ecran le DIT. Laisser
+           le bloc vide le ferait passer pour un oubli du carnet, et MB a
+           deja vu « Barre au front » ne rien afficher. */
+        zoneVariantes.appendChild(
+          aMoi
+            ? h('div', { class: 'item-resume', style: 'margin:4px 2px;opacity:.75',
+                text: 'Ajouté par toi. Pas d’explication écrite — les '
+                    + 'explications du carnet citent toutes une source, et '
+                    + 'celle-ci n’en a pas.' })
+            : xp ? blocExplication(xp)
+            : h('div', { class: 'item-resume', style: 'margin:4px 2px;opacity:.7',
+                text: 'Pas encore d’explication écrite pour ce mouvement.' }));
+
+        /* ---- AJOUTER UNE FACON DE L'ECRIRE ----
+
+           Le manque 2 du chantier 7 : le bouton d'ajout au dictionnaire se
+           cachait des que la fiche etait livree, et il n'y avait AUCUN
+           chemin pour completer « Curl biceps ». Celui-ci parait sur toute
+           fiche — sur une livree, le modele cree un complement plutot que
+           d'y toucher. */
+        /* UN CHAMP EN LIGNE, PAS UNE BOITE DE DIALOGUE.
+
+           `A.ui.demanderTexte` N'EXISTE PAS — verifie avant d'ecrire cette
+           ligne, et `A.ui.feuille` ne sert qu'a CHOISIR, pas a saisir.
+           `window.prompt` est banni ici depuis que `feuille` le remplace.
+           Un champ qui se revele sous les puces evite d'inventer une API et
+           garde le geste la ou il se fait. */
+        var saisie = h('input', { type: 'text', class: 'champ',
+                                  placeholder: 'Une autre façon de l’écrire',
+                                  hidden: true, style: 'margin:6px 2px 2px' });
+        var btPlus = h('button', { type: 'button', class: 'bt',
+                                   style: 'margin:6px 2px 2px;font-size:.86rem',
+                                   text: '+ une façon de l’écrire' });
+        btPlus.addEventListener('click', function () {
+          saisie.hidden = false;
+          btPlus.hidden = true;
+          saisie.focus();
+        });
+        saisie.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter') { ev.preventDefault(); poserEcriture(saisie.value); }
+          if (ev.key === 'Escape') { saisie.hidden = true; btPlus.hidden = false; }
+        });
+        /* SORTIR DU CHAMP SANS RIEN ECRIRE LE REFERME : un champ ouvert et
+           vide sous les puces se lit comme un travail en cours. */
+        saisie.addEventListener('blur', function () {
+          if (!saisie.value.trim()) { saisie.hidden = true; btPlus.hidden = false; }
+        });
+        zoneVariantes.appendChild(btPlus);
+        zoneVariantes.appendChild(saisie);
+
+        function poserEcriture(v) {
+          var nom = String(v || '').trim();
+          if (!nom) return;
+          var r = A.m.ajouterEcriture(etat(), ficheOuverte, nom);
+          if (r.ok) {
+            A.store.sauver(true);
+            A.ui.toast('« ' + nom + ' » ajouté.');
+            rendreVariantes();
+            return;
+          }
+          /* LE REFUS DIT SA RAISON, et nomme la fiche qui a pris
+             l'ecriture : sans ca MB chercherait ou elle est passee. */
+          A.ui.toast(
+            r.raison === 'deja' ? '« ' + nom + ' » y est déjà.'
+            : r.raison === 'prise'
+              ? '« ' + nom + ' » désigne déjà « '
+                + (r.fiche ? r.fiche.nom : 'un autre mouvement') + ' ».'
+            : r.raison === 'vide' ? 'Écris un nom.'
+            : 'Impossible d’ajouter ici (' + r.raison + ').');
+        }
 
         /* ---- 3. LE MATERIEL ----
            `exo.outils` porte le materiel ET l'equipement de bras de fer.

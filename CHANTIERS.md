@@ -493,7 +493,26 @@ a trois lecteurs (Réglages, la séance, le Journal).
 
 ---
 
-## 7. Compléter le dictionnaire soi-même — **OUVERT le 2026-10-31**
+## 7. Compléter le dictionnaire soi-même — **CLOS le 2026-11-04 (1.78.0)**
+
+**LES TROIS MANQUES SONT FAITS**, modèle et écran. Et le chantier se trompait
+sur un point : il disait « un geste est une entrée de `aussi` ». Ce l'était
+avant la 1.70.0 ; depuis, un geste est une entrée de `PAR_FICHE`, la table
+livrée de `js/gestes.js` — qui ne connaît pas l'état. Une écriture ajoutée
+était donc cherchable mais invisible à l'étage 2. `gestesDuNom(fiche, etat)`
+fusionne les deux, et un geste à moi porte `deMoi` sans explication.
+
+**LA QUESTION OUVERTE EST TRANCHÉE** : on ne réclame PAS d'explication à MB.
+Les 38 livrées citent toutes une fédération ou une étude ; lui demander un
+texte libre produirait un champ à moitié rempli qui ressemblerait à une
+explication sans en être une. L'écran dit « ajouté par toi, pas
+d'explication écrite ».
+
+**CE QUI RESTE, ET CE N'EST PLUS CE CHANTIER** : le matériel de l'étage 3 est
+toujours une liste en dur. Un utilisateur avec un engin absent ne peut pas
+l'ajouter. Mesuré : `MATERIEL` dans `js/panneau.js`, cinq familles.
+
+### La rédaction d'origine suit, pour la mesure qu'elle porte.
 
 **Quand** : avec le chantier 2, dont il est la suite naturelle.
 

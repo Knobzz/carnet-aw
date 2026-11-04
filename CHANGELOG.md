@@ -15,6 +15,32 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.78.0
+
+**Tu peux compléter le dictionnaire toi-même.** Trois choses qui manquaient.
+
+- **Ajouter une façon d’écrire un mouvement**, même livré : sous les gestes
+  d’un exercice, *« + une façon de l’écrire »*. Avant, le bouton se cachait
+  dès que la fiche venait du carnet, et il n’y avait aucun chemin.
+- **Un geste que tu ajoutes le dit** : « Ajouté par toi. Pas d’explication
+  écrite », plutôt qu’un blanc qui passerait pour un oubli du carnet. Les
+  explications livrées citent toutes une source ; la tienne n’en a pas, et
+  c’est dit.
+- **Tes fiches apparaissent enfin quand tu feuillettes.** Elles sortaient de
+  la recherche mais d’aucune liste parcourue. Un groupe **« Les miennes »**
+  paraît en dernier, et seulement si tu en as.
+
+**Le dictionnaire du carnet n’est jamais modifié.** Ce que tu ajoutes vit à
+côté : une version qui remplace le dictionnaire ne peut pas effacer ton
+travail. Et si une version finit par livrer ce que tu avais ajouté, le
+carnet te le **dit** au lieu de le retirer tout seul.
+
+**Tes ajouts se voient et se retirent** dans Réglages ▸ Mon dictionnaire.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.77.0
 
 **Corrige l’ordre de tes outils entre minuit et 1 h du matin.** Un outil

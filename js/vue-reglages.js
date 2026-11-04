@@ -1396,11 +1396,83 @@
     rendreDico();
 
     hote.appendChild(h('div', { class: 'sous-titre', text: 'Mon dictionnaire' }));
-    var fiches = A.m.dictionnairePerso(e);
+    /* LES COMPLEMENTS NE SONT PAS DES FICHES, et cette ligne les prenait.
+
+       Depuis le 04/11, `dictionnairePerso` contient aussi les complements —
+       ceux qui ajoutent une ecriture a une fiche livree. Ils n'ont pas de
+       `nom`, ils portent `complete` : la liste en aurait affiche une vide.
+       Defaut introduit par mon propre travail, vu en relisant l'ecran. */
+    var toutPerso = A.m.dictionnairePerso(e);
+    var fiches = toutPerso.filter(function (f) { return f && !f.complete; });
+    var ajouts = toutPerso.filter(function (f) { return f && f.complete; });
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
       text: 'Les exercices que tu as versés toi-même. Une fiche rend ses '
           + 'muscles, et rien d’autre — comme une fiche livrée. Elle se '
           + 'crée depuis la fiche d’exercice, sous les muscles.' }));
+
+    /* --- CE QUE J'AI AJOUTE AUX FICHES LIVREES ---
+
+       Sans ce bloc, une faute de frappe dans une ecriture serait
+       DEFINITIVE : elle resterait cherchable a vie, et elle occuperait le
+       nom pour toutes les autres fiches, puisque « la meme ecriture ne
+       designe pas deux mouvements ».
+
+       Il ne parait que s'il y a quelque chose a montrer. */
+    if (ajouts.length) {
+      var carteAj = h('div', { class: 'carte' });
+      var corpsAj = h('div', { class: 'carte-corps' });
+      corpsAj.appendChild(h('div', { class: 'item-resume',
+        text: 'Des façons d’écrire que tu as ajoutées à des mouvements du '
+            + 'carnet. Elles s’ajoutent à sa fiche sans la remplacer.' }));
+      ajouts.forEach(function (c) {
+        (c.aussi || []).forEach(function (ec) {
+          var ligne = h('div', { class: 'item-ligne', style: 'gap:8px' });
+          ligne.appendChild(h('span', {},
+            h('b', { text: ec }),
+            document.createTextNode(' \u2014 sous ' + c.complete)));
+          var sup = h('button', { class: 'bt bt-petit', text: 'Retirer' });
+          A.ui.confirmer2(sup, '\u2713 ?', function () {
+            A.m.retirerEcriture(e, ec);
+            A.store.sauver(true);
+            A.ui.toast('« ' + ec + ' » retiré.');
+            rendre(hote);
+          });
+          ligne.appendChild(sup);
+          corpsAj.appendChild(ligne);
+        });
+      });
+      carteAj.appendChild(corpsAj);
+      hote.appendChild(carteAj);
+    }
+
+    /* --- LES COMPLEMENTS QUE LA VERSION A RATTRAPES ---
+
+       Meme famille que les homonymes ci-dessous, meme endroit : le carnet
+       NOMME ce qui ne sert plus au lieu de l'effacer tout seul. Effacer en
+       silence effacerait le travail de MB sans qu'il le sache. */
+    var morts = A.m.complementsInutiles ? A.m.complementsInutiles(e) : [];
+    morts.forEach(function (mo) {
+      var cm = h('div', { class: 'carte' });
+      var co = h('div', { class: 'carte-corps' });
+      co.appendChild(h('div', { class: 'remarque-titre',
+        text: 'Un ajout ne sert plus \u00e0 rien' }));
+      co.appendChild(h('div', { class: 'item-resume',
+        text: 'Ce que tu avais ajout\u00e9 \u00e0 « ' + (mo.fiche.complete || '?')
+            + ' » : ' + mo.pourquoi + '. Rien n\u2019est cass\u00e9 \u2014 tu peux le '
+            + 'laisser ou le retirer.' }));
+      var sm = h('button', { class: 'bt bt-petit', text: 'Retirer cet ajout' });
+      A.ui.confirmer2(sm, '\u2713 ?', function () {
+        (mo.fiche.aussi || []).slice().forEach(function (ec) {
+          A.m.retirerEcriture(e, ec);
+        });
+        A.store.sauver(true);
+        A.ui.toast('Ajout retir\u00e9.');
+        rendre(hote);
+      });
+      co.appendChild(sm);
+      cm.appendChild(co);
+      hote.appendChild(cm);
+    });
 
     /* --- LES HOMONYMES, s'il y en a --- */
     var conflits = A.m.conflitsDictionnaire(e);

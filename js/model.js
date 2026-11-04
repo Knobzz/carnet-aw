@@ -3012,6 +3012,51 @@
     return touche;
   }
 
+  /* LES GESTES D'UNE FICHE — les livres ET les miens.
+
+     L'etage 2 lisait `A.gestes.gestesDe(fiche)`, une table LIVREE qui ne
+     connait pas l'etat : une ecriture ajoutee par MB etait cherchable mais
+     n'apparaissait PAS comme geste. C'etait le coeur du chantier 7, et le
+     chantier lui-meme se trompait en disant « un geste est une entree de
+     `aussi` » — ca l'etait avant la 1.70.0, plus depuis.
+
+     UN GESTE A MOI PORTE `deMoi` ET AUCUNE EXPLICATION. C'est la reponse a
+     la question laissee ouverte : « un geste cree sans explication ne doit
+     pas se presenter comme les quatorze qui en ont une ». L'ecran le dit au
+     lieu d'afficher un vide qui passerait pour un oubli du carnet.
+
+     ON NE RECLAME PAS D'EXPLICATION A MB : les 38 livrees citent toutes une
+     federation ou une etude. Lui demander un texte libre produirait un
+     champ a moitie rempli qui ressemblerait a une explication sans en etre
+     une.
+
+     `A.gestes` PEUT ETRE ABSENT — le banc de modele ne charge pas
+     `js/gestes.js`. La fonction rend alors les miens seuls, ce qui est
+     exactement ce qu'il peut mesurer, et c'est dit ici plutot que suppose. */
+  function gestesDuNom(nomFiche, etat) {
+    var livres = (A.gestes && A.gestes.gestesDe) ? A.gestes.gestesDe(nomFiche) : [];
+    var sortie = livres.slice();
+    var vus = {};
+    sortie.forEach(function (g) { vus[slug(g.nom)] = 1; });
+    vus[slug(nomFiche)] = 1;
+
+    /* MES ECRITURES VIENNENT DE DEUX ENDROITS, et c'est la meme chose vue
+       de deux cotes : le `aussi` de MA fiche, ou celui d'un complement qui
+       nomme une fiche livree. */
+    var sf = slug(nomFiche);
+    dictionnairePerso(etat).forEach(function (f) {
+      if (!f) return;
+      var vise = f.complete ? slug(f.complete) : slug(f.nom);
+      if (vise !== sf) return;
+      (f.aussi || []).forEach(function (a) {
+        if (!a || vus[slug(a)]) return;
+        vus[slug(a)] = 1;
+        sortie.push({ nom: a, deMoi: true });
+      });
+    });
+    return sortie;
+  }
+
   function supprimerDuDictionnaire(etat, id) {
     var l = dictionnairePerso(etat);
     for (var i = 0; i < l.length; i++) {
@@ -7205,6 +7250,7 @@
     DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
     dictionnairePerso: dictionnairePerso, ficheLivree: ficheLivree,
     ajouterEcriture: ajouterEcriture, retirerEcriture: retirerEcriture,
+    gestesDuNom: gestesDuNom,
     complementsDe: complementsDe, complementsInutiles: complementsInutiles,
     ajouterAuDictionnaire: ajouterAuDictionnaire,
     supprimerDuDictionnaire: supprimerDuDictionnaire,
