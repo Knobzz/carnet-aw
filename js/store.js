@@ -319,6 +319,169 @@
              depuis: Math.max(0, n - (+d.seances || 0)) };
   }
 
+  /* ================================================================
+     LA SAUVEGARDE AUTOMATIQUE DANS UN FICHIER
+
+     Demandee par MB le 04/11, apres avoir perdu six seances sans aucun
+     export. Mesuree AVANT d'etre ecrite, sur son telephone : son Chrome
+     garde la permission d'ecriture apres fermeture de la page, donc
+     « automatique » veut vraiment dire automatique chez lui.
+
+     ELLE NE REMPLACE RIEN. Le double de secours couvre l'ecrasement, ce
+     fichier couvre l'effacement des donnees du site et le changement
+     d'appareil, le bouton d'export couvre le reste et marche partout.
+     ================================================================ */
+  var BASE_FICHIER = 'carnet-aw-fichier', MAGASIN_FICHIER = 'poignees';
+  var poigneeFichier = null;       /* la poignee, une fois reprise */
+  var minuteurFichier = null;      /* le regroupement, large */
+  var etatFichier = { actif: false, nom: '', le: '', panne: '' };
+
+  function baseFichier() {
+    return new Promise(function (ok, ko) {
+      if (typeof indexedDB !== 'object' || !indexedDB) { ko(new Error('pas d IndexedDB')); return; }
+      var r = indexedDB.open(BASE_FICHIER, 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore(MAGASIN_FICHIER); };
+      r.onsuccess = function () { ok(r.result); };
+      r.onerror = function () { ko(r.error); };
+    });
+  }
+
+  function rangerPoignee(h) {
+    return baseFichier().then(function (db) {
+      return new Promise(function (ok, ko) {
+        var t = db.transaction(MAGASIN_FICHIER, 'readwrite');
+        if (h) t.objectStore(MAGASIN_FICHIER).put(h, 'carnet');
+        else t.objectStore(MAGASIN_FICHIER).delete('carnet');
+        t.oncomplete = function () { ok(true); };
+        t.onerror = function () { ko(t.error); };
+      });
+    });
+  }
+
+  function reprendrePoignee() {
+    return baseFichier().then(function (db) {
+      return new Promise(function (ok, ko) {
+        var t = db.transaction(MAGASIN_FICHIER, 'readonly');
+        var q = t.objectStore(MAGASIN_FICHIER).get('carnet');
+        q.onsuccess = function () { ok(q.result || null); };
+        q.onerror = function () { ko(q.error); };
+      });
+    });
+  }
+
+  /* LE SUPPORT SE MESURE, IL NE SE SUPPOSE PAS. Un navigateur sans l'API
+     ne doit voir AUCUNE proposition : offrir un reglage qui ne peut pas
+     marcher est pire que ne rien offrir. */
+  function fichierPossible() {
+    return typeof window.showSaveFilePicker === 'function'
+        && typeof indexedDB === 'object' && indexedDB !== null;
+  }
+
+  /* CHOISIR LE FICHIER — le seul geste, et il n'arrive qu'une fois.
+     Doit etre appele DEPUIS un geste de MB : le navigateur refuse le
+     selecteur sans activation. */
+  function choisirFichier() {
+    if (!fichierPossible()) return Promise.resolve({ ok: false, raison: 'non supporte' });
+    return window.showSaveFilePicker({
+      suggestedName: 'carnet-aw.json',
+      types: [{ description: 'Carnet AW', accept: { 'application/json': ['.json'] } }]
+    }).then(function (h) {
+      poigneeFichier = h;
+      etatFichier = { actif: true, nom: h.name || 'carnet-aw.json', le: '', panne: '' };
+      return rangerPoignee(h).then(function () { return ecrireFichier(true); });
+    }).then(function () {
+      return { ok: true, nom: etatFichier.nom };
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return { ok: false, raison: 'annule' };
+      etatFichier.panne = (e && e.name) || 'erreur';
+      return { ok: false, raison: etatFichier.panne };
+    });
+  }
+
+  function oublierFichier() {
+    poigneeFichier = null;
+    etatFichier = { actif: false, nom: '', le: '', panne: '' };
+    return rangerPoignee(null).catch(function () { return false; });
+  }
+
+  /* ECRIRE — et son echec ne remonte JAMAIS jusqu'a la saisie.
+
+     La panne est RANGEE dans `etatFichier.panne` pour que l'ecran puisse la
+     dire. Un fichier supprime, une carte retiree, une permission revoquee :
+     tout cela arrive, et rien de tout cela ne doit empecher d'enregistrer
+     une serie. C'est la lecon du filet, qui avait failli devenir la cause
+     de ce qu'il previent. */
+  function ecrireFichier(tout_de_suite) {
+    if (!poigneeFichier) return Promise.resolve(false);
+    if (!tout_de_suite) {
+      /* REGROUPEMENT LARGE : le carnet se sauve toutes les 400 ms pendant
+         la saisie. Ecrire un fichier a ce rythme n'apporte rien et use le
+         stockage. Trois secondes apres la derniere ecriture suffisent. */
+      if (minuteurFichier) clearTimeout(minuteurFichier);
+      minuteurFichier = setTimeout(function () {
+        minuteurFichier = null;
+        ecrireFichier(true);
+      }, 3000);
+      return Promise.resolve(true);
+    }
+    var texte;
+    try { texte = JSON.stringify(etat, null, 2); }
+    catch (e) { etatFichier.panne = 'donnees illisibles'; return Promise.resolve(false); }
+
+    return poigneeFichier.queryPermission({ mode: 'readwrite' }).then(function (p) {
+      /* ON NE DEMANDE RIEN ICI. `requestPermission` exige un geste de MB :
+         l'appeler depuis une ecriture de fond echouerait, et pire,
+         consommerait le droit de demander. L'ecran s'en charge. */
+      if (p !== 'granted') { etatFichier.panne = 'permission a redonner'; return false; }
+      return poigneeFichier.createWritable().then(function (f) {
+        return f.write(texte).then(function () { return f.close(); });
+      }).then(function () {
+        etatFichier.le = new Date().toISOString();
+        etatFichier.panne = '';
+        return true;
+      });
+    }).catch(function (e) {
+      etatFichier.panne = (e && e.name) || 'erreur';
+      return false;
+    });
+  }
+
+  /* REPRENDRE LA POIGNEE AU DEMARRAGE, sans rien demander. */
+  function reprendreFichier() {
+    if (!fichierPossible()) return Promise.resolve(false);
+    return reprendrePoignee().then(function (h) {
+      if (!h) return false;
+      poigneeFichier = h;
+      etatFichier.actif = true;
+      etatFichier.nom = h.name || 'carnet-aw.json';
+      return h.queryPermission({ mode: 'readwrite' }).then(function (p) {
+        etatFichier.panne = p === 'granted' ? '' : 'permission a redonner';
+        return p === 'granted';
+      });
+    }).catch(function (e) {
+      etatFichier.panne = (e && e.name) || 'erreur';
+      return false;
+    });
+  }
+
+  /* REDONNER LA PERMISSION — depuis un geste de MB, et de la seulement. */
+  function redonnerPermissionFichier() {
+    if (!poigneeFichier) return Promise.resolve(false);
+    return poigneeFichier.requestPermission({ mode: 'readwrite' }).then(function (p) {
+      etatFichier.panne = p === 'granted' ? '' : 'permission refusee';
+      if (p === 'granted') return ecrireFichier(true);
+      return false;
+    }).catch(function (e) {
+      etatFichier.panne = (e && e.name) || 'erreur';
+      return false;
+    });
+  }
+
+  function infoFichier() {
+    return { possible: fichierPossible(), actif: etatFichier.actif,
+             nom: etatFichier.nom, le: etatFichier.le, panne: etatFichier.panne };
+  }
+
   function effacerFilet() {
     try { window.localStorage.removeItem(CLE_FILET); return true; }
     catch (e) { return false; }
@@ -388,6 +551,11 @@
       window.localStorage.setItem(CLE, JSON.stringify(etat));
       signaler(null);
       poserFilet();
+      /* LE FICHIER VIENT EN DERNIER, et son echec est avale : une serie
+         enregistree ne doit pas echouer parce qu'un fichier externe n'a pas
+         repondu. Regroupe sur 3 s — le carnet, lui, se sauve toutes les
+         400 ms pendant la saisie. */
+      try { ecrireFichier(false); } catch (e) {}
       return true;
     } catch (e) {
       var plein = e && (e.name === 'QuotaExceededError' || e.code === 22);
@@ -661,6 +829,12 @@
     effacerFilet: effacerFilet,
     noterExport: noterExport,
     etatExport: etatExport,
+    fichierPossible: fichierPossible,
+    choisirFichier: choisirFichier,
+    oublierFichier: oublierFichier,
+    reprendreFichier: reprendreFichier,
+    redonnerPermissionFichier: redonnerPermissionFichier,
+    infoFichier: infoFichier,
     revConnue: function () { return revConnue; },
     revDuDisque: revDuDisque,
     VERSION_DONNEES: VERSION_DONNEES,

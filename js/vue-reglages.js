@@ -1267,6 +1267,84 @@
     hote.appendChild(btImp);
     hote.appendChild(fich);
 
+    /* --- LA SAUVEGARDE AUTOMATIQUE DANS UN FICHIER ---
+
+       MB, 04/11 : « voir organiser un export automatique qui remplace
+       l'ancien ? ». Mesure sur SON telephone avant d'ecrire une ligne : les
+       quatre etapes de revue/test-export-auto.html passent, permission
+       comprise APRES fermeture de la page.
+
+       RIEN N'EST PROPOSE SI LE NAVIGATEUR NE SAIT PAS LE FAIRE. Un reglage
+       qui ne peut pas marcher est pire que pas de reglage : on le cherche,
+       on l'essaie, et on croit que c'est soi. */
+    if (A.store.fichierPossible && A.store.fichierPossible()) {
+      hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde automatique' }));
+      var inf = A.store.infoFichier();
+
+      if (!inf.actif) {
+        hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+          text: 'Le carnet peut tenir \u00e0 jour un fichier sur ton t\u00e9l\u00e9phone, '
+              + 'r\u00e9\u00e9crit tout seul \u00e0 chaque enregistrement. UN geste pour le '
+              + 'choisir, et plus rien ensuite. C\u2019est la seule sauvegarde qui '
+              + 'survit si tu effaces les donn\u00e9es du site ou si tu changes '
+              + 'd\u2019appareil.' }));
+        var btAct = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                  text: 'Choisir le fichier \u00e0 tenir \u00e0 jour' });
+        btAct.addEventListener('click', function () {
+          A.store.choisirFichier().then(function (r) {
+            if (r.ok) A.ui.toast('Fichier choisi. Il sera tenu \u00e0 jour tout seul.');
+            else if (r.raison === 'annule') A.ui.toast('Annul\u00e9.');
+            else A.ui.toast('\u00c9chec : ' + r.raison);
+            rendre(hote);
+          });
+        });
+        hote.appendChild(btAct);
+      } else {
+        var quandF = '\u2014';
+        if (inf.le) {
+          try {
+            var df = new Date(inf.le), zf = function (x) { return (x < 10 ? '0' : '') + x; };
+            if (!isNaN(df.getTime())) {
+              quandF = zf(df.getDate()) + '/' + zf(df.getMonth() + 1) + ' \u00e0 '
+                     + zf(df.getHours()) + 'h' + zf(df.getMinutes());
+            }
+          } catch (e) {}
+        }
+        var carteF = h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px' });
+        carteF.appendChild(h('div', {}, h('b', { text: 'Fichier : ' }), inf.nom));
+        carteF.appendChild(h('div', {}, h('b', { text: 'Derni\u00e8re \u00e9criture : ' }),
+          inf.le ? quandF : 'pas encore'));
+        hote.appendChild(carteF);
+
+        /* LA PANNE SE DIT, ET ELLE SE REPARE D'UN GESTE. Sans ce bloc, le
+           fichier cesserait d'etre tenu a jour EN SILENCE — exactement la
+           forme de perte que tout ceci existe pour empecher. */
+        if (inf.panne) {
+          hote.appendChild(h('div', { class: 'item-resume',
+            style: 'margin:0 2px 9px;color:var(--danger,#e06)',
+            text: 'Le fichier n\u2019est plus tenu \u00e0 jour : ' + inf.panne + '.' }));
+          var btPerm = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                     text: 'Redonner l\u2019acc\u00e8s au fichier' });
+          btPerm.addEventListener('click', function () {
+            A.store.redonnerPermissionFichier().then(function (ok) {
+              A.ui.toast(ok ? 'Fichier remis \u00e0 jour.' : 'Acc\u00e8s refus\u00e9.');
+              rendre(hote);
+            });
+          });
+          hote.appendChild(btPerm);
+        }
+
+        var btOub = h('button', { class: 'bt bt-large', text: 'Ne plus tenir ce fichier \u00e0 jour' });
+        A.ui.confirmer2(btOub, 'Confirmer ?', function () {
+          A.store.oublierFichier().then(function () {
+            A.ui.toast('Le fichier n\u2019est plus tenu \u00e0 jour. Il reste o\u00f9 il est.');
+            rendre(hote);
+          });
+        });
+        hote.appendChild(btOub);
+      }
+    }
+
     /* --- LA SAUVEGARDE DE SECOURS, ET CE QU'ELLE CONTIENT ---
 
        Nee le 04/11, apres que MB a tout perdu. Le carnet garde desormais un

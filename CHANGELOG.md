@@ -15,6 +15,35 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.75.0
+
+**Une sauvegarde automatique dans un fichier.** Le carnet peut tenir à jour
+un fichier sur ton téléphone, réécrit tout seul à chaque enregistrement.
+**Un geste pour le choisir, et plus rien ensuite.**
+
+Réglages ▸ Sauvegarde automatique ▸ *Choisir le fichier à tenir à jour*.
+
+**Tu as maintenant trois protections, et elles ne couvrent pas la même
+chose** — c’est voulu, aucune ne remplace les autres :
+
+| | ce qu’elle sauve |
+|---|---|
+| le **double de secours** | un écrasement, une fausse manœuvre |
+| le **fichier automatique** | l’effacement des données du site, le changement d’appareil |
+| l’**export manuel** | tout le reste, et il marche partout |
+
+- **Elle ne peut pas te nuire** : elle s’écrit après le carnet, et si le
+  fichier a disparu ou que l’accès a sauté, **ta saisie passe quand même**.
+  L’écran le dit, et un bouton redonne l’accès.
+- **Elle n’apparaît que si ton navigateur sait le faire.** Un réglage qui ne
+  peut pas marcher se cherche, s’essaie, et on croit que c’est soi.
+- **Le fichier est réécrit, pas dupliqué** : tu n’auras jamais
+  `carnet-aw (1).json`, `(2)`, `(3)`…
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.74.0
 
 **Le bouton d’export sait maintenant quand tu as exporté pour la dernière

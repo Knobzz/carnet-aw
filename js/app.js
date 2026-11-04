@@ -3,7 +3,7 @@
   'use strict';
   var h = A.ui.h;
 
-  window.APP_VERSION = '1.74.0';
+  window.APP_VERSION = '1.75.0';
 
   var ONGLETS = [
     { id: 'seance',     nom: 'Séance',    icone: 'M7 7v10M17 7v10M7 12h10M3 9.5v5M21 9.5v5' },
@@ -96,6 +96,13 @@
   function demarrer() {
     A.store.charger();
     A.store.demanderPersistance();
+    /* LA POIGNEE DU FICHIER SE REPREND AU DEMARRAGE, sans rien demander.
+
+       Elle vit en IndexedDB, donc sa lecture est asynchrone : on ne la fait
+       pas attendre par l'app. Si la permission tient, la premiere ecriture
+       du carnet ira aussi dans le fichier ; sinon l'ecran de Reglages
+       propose de la redonner, et ce geste-la est a MB. */
+    if (A.store.reprendreFichier) A.store.reprendreFichier();
     A.store.surPanne(function () { if (hote) majAlerte(); });
     appliquerTheme();
     if (window.matchMedia) {

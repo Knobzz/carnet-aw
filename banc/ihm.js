@@ -3056,6 +3056,18 @@
          réglage de la personne, pas du carnet, et il se saisit rarement —
          il n'a donc rien à faire au-dessus du catalogue, qu'on ouvre tout
          le temps. */
+      /* LA LISTE DEPEND DU NAVIGATEUR DEPUIS LE 04/11.
+
+         « Sauvegarde automatique » n'apparait que si `showSaveFilePicker`
+         et IndexedDB existent : offrir un reglage qui ne peut pas marcher
+         est pire que ne rien offrir. On LIT donc la condition dans l'hote
+         plutot que de figer une liste unique — sans quoi ce controle
+         tomberait sur un navigateur sans l'API, pour un produit juste. */
+      var sfa = h.fen.App.store.fichierPossible && h.fen.App.store.fichierPossible();
+      v.vrai(typeof sfa === 'boolean',
+             '[temoin] l’hôte sait dire si le fichier automatique est possible '
+           + 'chez lui (ici : ' + (sfa ? 'oui' : 'non') + ') — sans ça la liste '
+           + 'attendue ci-dessous serait un pari');
       v.egal(titres.join(' · '),
              'Thème · En salle · Mon poids · Exercices connus · Équipement · '
            /* « LE DICTIONNAIRE DU CARNET » S'INSERE ICI le 29/10, a la
@@ -3070,6 +3082,13 @@
               l'etat de la place. La mettre AVANT l'export l'aurait fait
               passer pour la sauvegarde principale — elle depanne, elle ne
               remplace pas un fichier garde ailleurs. */
+           /* « SAUVEGARDE AUTOMATIQUE » S'INSERE ICI le 04/11, et sa place
+              n'est pas libre : entre l'export MANUEL et le filet interne.
+              Du plus volontaire au plus automatique. La mettre avant
+              l'export manuel la ferait passer pour la sauvegarde
+              principale — or elle ne marche pas sur tous les navigateurs,
+              et le bouton manuel, lui, marche toujours. */
+           + (sfa ? 'Sauvegarde automatique · ' : '')
            + 'Sauvegarde de secours · '
            + 'État du stockage · Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');

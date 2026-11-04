@@ -191,6 +191,61 @@
      n'en gardait aucune trace — il ne pouvait rien rappeler, pas par
      choix mais par ignorance.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     LA SAUVEGARDE AUTOMATIQUE DANS UN FICHIER
+
+     Demandee par MB le 04/11 : « un export automatique qui remplace
+     l'ancien ». Mesuree AVANT d'etre ecrite, sur son telephone, avec
+     revue/test-export-auto.html — les quatre etapes au vert, permission
+     comprise apres fermeture de la page.
+
+     CE BLOC NE JOUE PAS LE CYCLE COMPLET, et c'est dit : le selecteur de
+     fichier ne s'ouvre QUE sur un geste humain, qu'un banc ne peut pas
+     produire. Ce qui se mesure ici, ce sont les garanties qui ne dependent
+     pas du navigateur.
+     --------------------------------------------------------------- */
+  bloc('La sauvegarde automatique', function (v) {
+    var si = A.store.infoFichier;
+    v.vrai(typeof si === 'function',
+           'le carnet sait dire ou en est son fichier — sans ca l’ecran ne '
+         + 'pourrait rien afficher');
+
+    /* LE SUPPORT SE MESURE, IL NE SE SUPPOSE PAS. Un navigateur sans l'API
+       ne doit voir AUCUNE proposition : un reglage qui ne peut pas marcher
+       se cherche, s’essaie, et on croit que c’est soi. */
+    var possible = A.store.fichierPossible();
+    v.vrai(typeof possible === 'boolean',
+           'le support se MESURE (ici : ' + (possible ? 'disponible' : 'absent')
+         + '), il n’est jamais suppose');
+    v.egal(si().possible, possible, 'et l’ecran lit la meme mesure que le modele');
+
+    /* ---- RIEN DE CHOISI : rien d'actif, et AUCUNE panne inventee ---- */
+    var i0 = si();
+    v.egal(i0.actif, false, 'tant qu’aucun fichier n’est choisi, rien n’est actif');
+    v.egal(i0.panne, '', 'et aucune panne n’est annoncee : il n’y a rien qui casse');
+    v.egal(i0.nom, '', 'ni nom de fichier invente');
+
+    /* ---- L'ECRITURE DU CARNET NE DEPEND PAS DU FICHIER ----
+
+       C'est LE controle de ce bloc. Le filet avait failli devenir la cause
+       de ce qu'il previent ; le fichier est un cran plus expose encore —
+       une carte retiree, un fichier supprime, une permission revoquee. Rien
+       de tout cela ne doit empecher d'enregistrer une serie.
+
+       On mesure l'EFFET : une ecriture de carnet rend `true` et la donnee
+       est bien sur le disque, alors qu'aucun fichier n'est branche. */
+    var e = A.store.vide();
+    e.seances = [{ id: 'x', type: 'muscu', date: '2026-11-04', exercices: [], douleurs: [] }];
+    v.egal(A.store.remplacer(e), true,
+           'le carnet s’enregistre meme sans fichier branche');
+    v.egal((A.store.etat().seances || []).length, 1,
+           'et la seance est bien la : le fichier ne peut pas faire echouer '
+         + 'une saisie');
+    v.egal(si().panne, '',
+           'et cette ecriture n’a invente aucune panne de fichier');
+
+  });
+
   bloc('Le rappel d’export', function (v) {
     var ee = A.store.etatExport;
     v.vrai(typeof ee === 'function', 'le carnet sait dire où en sont ses exports');
