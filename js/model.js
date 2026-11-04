@@ -2882,8 +2882,18 @@
   function ficheDictionnaire(nom, etat) {
     var s = slug(nom);
     if (!s) return null;
-    return chercherFiche(dictionnairePerso(etat), s)
-        || chercherFiche(DICTIONNAIRE, s);
+    /* ON CHERCHE DANS LE FONDS, et non dans `DICTIONNAIRE` brut.
+
+       Depuis le 04/11, une fiche a moi peut COMPLETER une fiche livree :
+       ses ecritures n'existent que dans la copie enrichie que
+       `fondsDictionnaire` fabrique. En lisant `DICTIONNAIRE` directement,
+       une ecriture ajoutee par MB rendait `undefined` — mesure du 04/11,
+       et c'etait tout le manque 2 : ajouter une ecriture ne sert a rien si
+       elle ne ramene pas sa fiche.
+
+       L'ORDRE EST CELUI DU FONDS — mes fiches d'abord, puis les livrees —
+       donc « ma fiche passe devant la fiche livree » tient telle quelle. */
+    return chercherFiche(fondsDictionnaire(etat), s);
   }
 
   function ficheLivree(nom) {
@@ -2924,6 +2934,82 @@
     if (part) f.colonnes = part;
     l.push(f);
     return f;
+  }
+
+  /* AJOUTER UNE ECRITURE — le manque 1, et il valait pour les deux cas.
+
+     `aussi` existait sur chaque fiche a moi et RIEN n'ecrivait jamais
+     dedans : le champ restait vide a vie. C'est ce qui bloquait le
+     « nouveau geste » que MB demande, puisqu'un geste est une entree de
+     `aussi`.
+
+     SUR UNE FICHE LIVREE, on cree un COMPLEMENT plutot que d'y toucher —
+     voir `livreeEnrichie`. L'appelant n'a pas a savoir lequel des deux cas
+     il est dans : il donne un nom de fiche et une ecriture.
+
+     RIEN N'EST ECRASE : une ecriture deja presente (sur la fiche, ses
+     `aussi`, ou un complement) rend `deja` et ne cree pas de doublon. */
+  function ajouterEcriture(etat, nomFiche, ecriture) {
+    var e = String(ecriture || '').trim();
+    var sf = slug(nomFiche), se = slug(e);
+    if (!sf || !se) return { ok: false, raison: 'vide' };
+
+    /* LA MEME ECRITURE NE PEUT PAS DESIGNER DEUX MOUVEMENTS. On cherche
+       dans TOUT le fonds, pas seulement dans la fiche visee : sinon
+       « Spider curl » pourrait etre ajoute sous deux fiches, et la
+       recherche en choisirait une au hasard de l'ordre. */
+    var porteuse = chercherFiche(fondsDictionnaire(etat), se);
+    if (porteuse) {
+      return slug(porteuse.nom) === sf
+        ? { ok: false, raison: 'deja', fiche: porteuse }
+        : { ok: false, raison: 'prise', fiche: porteuse };
+    }
+
+    var mienne = chercherFiche(dictionnairePerso(etat).filter(function (f) {
+      return f && !f.complete;
+    }), sf);
+    if (mienne) {
+      mienne.aussi = (mienne.aussi || []).concat([e]);
+      return { ok: true, ou: 'ma fiche', fiche: mienne };
+    }
+
+    var liv = ficheLivree(nomFiche);
+    if (!liv) return { ok: false, raison: 'fiche inconnue' };
+
+    var comp = complementsDe(etat, sf)[0];
+    if (comp) {
+      comp.aussi = (comp.aussi || []).concat([e]);
+      return { ok: true, ou: 'complément', fiche: comp };
+    }
+    comp = { id: uid('dic'), complete: liv.nom, aussi: [e],
+             creeLe: aujourdHui(), aMoi: true };
+    dictionnairePerso(etat).push(comp);
+    return { ok: true, ou: 'complément neuf', fiche: comp };
+  }
+
+  /* RETIRER UNE ECRITURE QUE J'AI AJOUTEE — et seulement celles-la.
+
+     Une ecriture LIVREE ne se retire pas par ici : elle reviendrait a la
+     version suivante, et l'ecran promettrait une suppression qui ne tient
+     pas. Le carnet a deja `ignorer` pour ne plus voir une proposition. */
+  function retirerEcriture(etat, ecriture) {
+    var se = slug(ecriture);
+    if (!se) return false;
+    var touche = false;
+    dictionnairePerso(etat).forEach(function (f) {
+      if (!f || !Array.isArray(f.aussi)) return;
+      var avant = f.aussi.length;
+      f.aussi = f.aussi.filter(function (a) { return slug(a) !== se; });
+      if (f.aussi.length !== avant) touche = true;
+    });
+    /* UN COMPLEMENT VIDE N'A PLUS DE RAISON D'ETRE : il ne porte pas de nom
+       a lui, donc il ne designe plus rien. Une fiche A MOI, elle, reste —
+       elle a un nom et des muscles. */
+    var l = dictionnairePerso(etat);
+    for (var i = l.length - 1; i >= 0; i--) {
+      if (l[i] && l[i].complete && !(l[i].aussi || []).length) l.splice(i, 1);
+    }
+    return touche;
   }
 
   function supprimerDuDictionnaire(etat, id) {
@@ -4481,8 +4567,85 @@
      taper « reverse wrist » doit trouver « Wrist curl inverse ». */
   /* LES DEUX FONDS, LES MIENNES D'ABORD. Elles passent devant pour la meme
      raison que dans `ficheDictionnaire` : MB les a ecrites expres. */
+  /* LES COMPLEMENTS — la troisieme relation, entree le 2026-11-04.
+
+     Une fiche a moi qui porte `complete: '<slug d'une livree>'` n'a pas de
+     nom a elle : elle AJOUTE des ecritures a cette fiche livree. Elle ne la
+     masque pas, elle ne la remplace pas.
+
+     POURQUOI PAS ECRIRE DANS LA FICHE LIVREE : `DICTIONNAIRE` est remplace
+     a chaque version. Une ecriture ajoutee dedans disparaitrait a la
+     suivante, en silence — et c'est exactement le genre de perte que ce
+     carnet passe ses versions a fermer.
+
+     ON NE MUTE JAMAIS LA FICHE LIVREE : on en rend une COPIE enrichie.
+     `DICTIONNAIRE` est partage par tous les appels, et une mutation y
+     survivrait a l'etat qui l'a causee — deux carnets dans deux onglets, et
+     les ecritures de l'un apparaitraient chez l'autre. */
+  function complementsDe(etat, sl) {
+    return dictionnairePerso(etat).filter(function (f) {
+      return f && f.complete && slug(f.complete) === sl;
+    });
+  }
+
+  function livreeEnrichie(d, etat) {
+    var comp = complementsDe(etat, slug(d.nom));
+    if (!comp.length) return d;
+    var aussi = (d.aussi || []).slice();
+    var vus = {};
+    aussi.forEach(function (a) { vus[slug(a)] = 1; });
+    comp.forEach(function (f) {
+      (f.aussi || []).forEach(function (a) {
+        /* PAS DE DOUBLON : si la version livre plus tard l'ecriture que MB
+           avait ajoutee, elle ne doit pas paraitre deux fois. Le complement
+           devient alors inutile, et `complementsInutiles` le dit. */
+        if (!a || vus[slug(a)]) return;
+        vus[slug(a)] = 1;
+        aussi.push(a);
+      });
+    });
+    /* COPIE PLATE, et c'est assez : on ne change que `aussi`, et les autres
+       champs sont lus, jamais ecrits, par ceux qui recoivent cette fiche. */
+    var copie = {};
+    for (var k in d) if (Object.prototype.hasOwnProperty.call(d, k)) copie[k] = d[k];
+    copie.aussi = aussi;
+    copie.complete_par = comp.length;
+    return copie;
+  }
+
   function fondsDictionnaire(etat) {
-    return dictionnairePerso(etat).concat(DICTIONNAIRE);
+    /* LES COMPLEMENTS NE SONT PAS DES FICHES : ils ne paraissent jamais
+       seuls, ils enrichissent celle qu'ils nomment. Les lister ici les
+       ferait apparaitre au parcours avec un nom vide. */
+    var miennes = dictionnairePerso(etat).filter(function (f) {
+      return f && !f.complete;
+    });
+    var livrees = DICTIONNAIRE.map(function (d) { return livreeEnrichie(d, etat); });
+    return miennes.concat(livrees);
+  }
+
+  /* UN COMPLEMENT DEVENU INUTILE SE DIT, il ne se supprime pas tout seul.
+
+     Le jour ou une version livre l'ecriture que MB avait ajoutee, son
+     complement ne sert plus a rien. Le retirer en silence effacerait son
+     travail sans qu'il le sache ; le garder sans le dire laisserait une
+     entree morte dans ses Reglages. Le carnet le NOMME, comme il nomme les
+     conflits d'homonymes — meme regle, meme ecran. */
+  function complementsInutiles(etat) {
+    var morts = [];
+    dictionnairePerso(etat).forEach(function (f) {
+      if (!f || !f.complete) return;
+      var liv = ficheLivree(f.complete);
+      if (!liv) { morts.push({ fiche: f, pourquoi: 'la fiche qu’il complète n’existe plus' }); return; }
+      var dedans = {};
+      (liv.aussi || []).forEach(function (a) { dedans[slug(a)] = 1; });
+      dedans[slug(liv.nom)] = 1;
+      var restantes = (f.aussi || []).filter(function (a) { return a && !dedans[slug(a)]; });
+      if (!restantes.length) {
+        morts.push({ fiche: f, pourquoi: 'la version livre maintenant tout ce qu’il ajoutait' });
+      }
+    });
+    return morts;
   }
 
   function suggestionsDictionnaire(q, dejaVus, etat) {
@@ -4558,15 +4721,42 @@
      par famille. Avec une saisie, c'est celui de la recherche, le mieux
      placé devant : les deux ordres disent quelque chose de différent, et
      aucun ne remplace l'autre. */
+  /* MES FICHES ENTRENT DANS LE PARCOURS le 2026-11-04 (chantier 7, manque 3).
+
+     Les deux branches ne lisaient que `DICTIONNAIRE` : une fiche que MB
+     cree sortait de la RECHERCHE (par `suggestionsDictionnaire`, qui lit le
+     fonds complet) mais d'AUCUNE des listes qu'on feuillette. Il pouvait
+     donc creer un exercice et ne le retrouver nulle part en parcourant.
+
+     ON EMPLOIE `fondsDictionnaire`, qui existait deja et que la recherche
+     utilise : perso d'abord, puis livrees. Et on DEDOUBLONNE PAR SLUG, avec
+     la meme regle qu'elle — « une fiche a moi masque son homonyme livre,
+     sans quoi la liste en montrerait deux du meme nom et MB ne saurait pas
+     laquelle il choisit ». Le conflit, lui, se dit dans les Reglages. */
+  function fondsSansHomonyme(etat) {
+    var vus = {}, sortie = [];
+    fondsDictionnaire(etat).forEach(function (d) {
+      var cle = slug(d.nom);
+      if (vus[cle]) return;
+      vus[cle] = 1;
+      sortie.push(d);
+    });
+    return sortie;
+  }
+
   function fichesDuDictionnaire(etat, saisie) {
     var q = slugCherche(saisie || '');
-    if (!q) return DICTIONNAIRE.slice();
+    var fonds = fondsSansHomonyme(etat);
+    if (!q) return fonds;
     var vus = {}, sortie = [];
     suggestionsDictionnaire(q, [], etat || {}).forEach(function (x) {
       var nom = x.entree || x.nom;
       if (vus[nom]) return;
       vus[nom] = 1;
-      DICTIONNAIRE.forEach(function (d) { if (d.nom === nom) sortie.push(d); });
+      /* ON CHERCHE DANS LE FONDS, plus seulement dans les livrees : c'est
+         exactement le defaut — la recherche trouvait la fiche perso, et
+         cette boucle ne savait pas la retrouver pour l'afficher. */
+      fonds.forEach(function (d) { if (d.nom === nom) sortie.push(d); });
     });
     return sortie;
   }
@@ -4593,7 +4783,7 @@
      même discipline que `musclesDeLaRegion`. */
   function fichesParGroupe(etat, saisie) {
     var l = fichesDuDictionnaire(etat, saisie);
-    return GROUPES_DICO.map(function (r) {
+    var groupes = GROUPES_DICO.map(function (r) {
       return {
         id: r.id,
         nom: r.nom,
@@ -4604,6 +4794,30 @@
         fiches: l.filter(function (d) { return d.groupe === r.id; })
       };
     });
+
+    /* ---- « LES MIENNES » — un groupe qui n'existe que s'il y en a ----
+
+       Entré le 2026-11-04 (chantier 7, manque 3). Une fiche que MB crée ne
+       porte aucun `groupe`, et les 57 livrées en portent toutes un : elle
+       tombait donc hors de tous les groupes, invisible au parcours.
+
+       ON NE DEDUIT RIEN DE SES MUSCLES. Ils portent un groupe, mais celui
+       du SUIVI (`torse_av`…), pas celui du dictionnaire — mesure du 04/11 :
+       `musclesDeLaRegion('biceps')` rend zéro. Faire le pont demanderait
+       41 rattachements que MB n'a pas choisis, et le commentaire ci-dessus
+       refuse déjà cette déduction pour les fiches livrées.
+
+       IL NE COUTE RIEN QUAND IL EST VIDE : pas de fiche à soi, pas de
+       groupe, pas un caractère à l'écran. Et il vient EN DERNIER — les six
+       groupes du carnet sont ce qu'on feuillette, le sien est une réserve.
+
+       LE JOUR OU MB VOUDRA RANGER SES FICHES DANS LES SIX, il faudra le lui
+       DEMANDER à la création : c'est sa décision, pas une évidence. */
+    var miennes = l.filter(function (d) { return !d.groupe; });
+    if (miennes.length) {
+      groupes.push({ id: 'a_moi', nom: 'Les miennes', fiches: miennes });
+    }
+    return groupes;
   }
 
   /* Le nom lisible d'un groupe, pour un ecran qui n'a que l'identifiant. */
@@ -6990,6 +7204,8 @@
     joursDeLaFenetre: joursDeLaFenetre,
     DICTIONNAIRE: DICTIONNAIRE, entreeDictionnaire: entreeDictionnaire,
     dictionnairePerso: dictionnairePerso, ficheLivree: ficheLivree,
+    ajouterEcriture: ajouterEcriture, retirerEcriture: retirerEcriture,
+    complementsDe: complementsDe, complementsInutiles: complementsInutiles,
     ajouterAuDictionnaire: ajouterAuDictionnaire,
     supprimerDuDictionnaire: supprimerDuDictionnaire,
     conflitsDictionnaire: conflitsDictionnaire,

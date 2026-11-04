@@ -214,6 +214,190 @@
      tire ses dates de l'horloge ne peut tomber qu'une heure par nuit. C'est
      exactement ce qui a rendu cette dette si longue a voir.
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     MES FICHES DANS LE PARCOURS — chantier 7, manque 3
+
+     « Un exercice que j'ai cree n'apparait dans aucune des listes qu'on
+     feuillette » : il sortait de la RECHERCHE (qui lit le fonds complet)
+     mais jamais du PARCOURS, qui ne lisait que `DICTIONNAIRE`.
+     --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     AJOUTER UNE ECRITURE — chantier 7, manques 1 et 2
+
+     1. « `aussi` existe, il reste vide a vie » : rien n'ecrivait dedans.
+     2. « On ne peut rien ajouter a une fiche LIVREE » : il fallait une
+        troisieme relation, a cote de « masque » et « ignore ».
+
+     Les deux sont le meme geste vu de deux cotes, et c'est pour ca qu'une
+     seule fonction les sert : `ajouterEcriture(etat, fiche, ecriture)`.
+     --------------------------------------------------------------- */
+  bloc('Ajouter une écriture', function (v) {
+    var m = A.m;
+
+    /* ---- SUR MA PROPRE FICHE — le manque 1 ---- */
+    var e = A.store.vide();
+    var f = m.ajouterAuDictionnaire(e, 'Curl du dimanche', ['biceps_brachial'], ['charge', 'reps']);
+    v.egal((f.aussi || []).length, 0,
+           '[temoin] une fiche neuve naît avec `aussi` VIDE — c’était son '
+         + 'état à vie avant le 04/11');
+    var r = m.ajouterEcriture(e, 'Curl du dimanche', 'Curl du dimanche matin');
+    v.egal(r.ok, true, 'une écriture s’ajoute à ma fiche');
+    v.egal((f.aussi || []).join(','), 'Curl du dimanche matin',
+           'et elle arrive VRAIMENT dans `aussi` : le champ cesse d’être mort');
+    v.egal((m.ficheDictionnaire('Curl du dimanche matin', e) || {}).nom, 'Curl du dimanche',
+           'la chercher ramène ma fiche');
+
+    /* ---- SUR UNE FICHE LIVREE — le manque 2 ---- */
+    var e2 = A.store.vide();
+    var r2 = m.ajouterEcriture(e2, 'Curl biceps', 'Curl du mercredi');
+    v.egal(r2.ok, true,
+           'une écriture s’ajoute à une fiche LIVRÉE : avant, le bouton se '
+         + 'cachait et il n’y avait AUCUN chemin');
+    v.egal((e2.dictionnairePerso || []).length, 1, 'un complément est né');
+    v.egal(((e2.dictionnairePerso || [])[0] || {}).complete, 'Curl biceps',
+           'et il NOMME la fiche qu’il complète — c’est la troisième '
+         + 'relation, à côté de « masque » et « ignore »');
+
+    var livree = m.DICTIONNAIRE.filter(function (d) { return d.nom === 'Curl biceps'; })[0];
+    v.vrai(!!livree, '[temoin] « Curl biceps » est bien une fiche livrée');
+
+    /* ---- ET L'ECRITURE RAMENE SA FICHE ----
+       Tout le manque 2 tenait la : `ficheDictionnaire` lisait
+       `DICTIONNAIRE` brut, donc l'ecriture ajoutee rendait `undefined`. */
+    var trouvee = m.ficheDictionnaire('Curl du mercredi', e2);
+    v.egal(trouvee ? trouvee.nom : 'RIEN', 'Curl biceps',
+           'chercher l’écriture ajoutée ramène LA FICHE LIVRÉE, pas un '
+         + 'doublon portant un autre nom');
+    v.vrai(!!trouvee && (trouvee.muscles || []).length > 0,
+           'et elle porte les muscles de la livrée : le complément ajoute '
+         + 'une écriture, il ne refait pas la fiche');
+
+    /* LE CONTROLE QUI COMPTE LE PLUS : la fiche livree n'est pas mutee.
+
+       `DICTIONNAIRE` est partage par tous les appels. Une ecriture ajoutee
+       dedans survivrait a l'etat qui l'a causee — deux carnets dans deux
+       onglets, et les ecritures de l'un paraitraient chez l'autre.
+
+       IL EST ICI, ET PAS PLUS HAUT. Pose juste apres `ajouterEcriture`, il
+       NE POUVAIT PAS TOMBER : `livreeEnrichie` n'est appelee que par
+       `fondsDictionnaire`, et au premier ajout le complement n'existe pas
+       encore. La mutation n'aurait eu lieu qu'au passage suivant dans le
+       fonds — c'est-a-dire au `ficheDictionnaire` ci-dessus. Verifie par
+       la chute, apres l'avoir ecrit faux. */
+    v.egal((livree.aussi || []).indexOf('Curl du mercredi'), -1,
+           'la fiche LIVRÉE n’est jamais mutée, MEME apres une lecture du '
+         + 'fonds : `DICTIONNAIRE` est partagé, une écriture ajoutée dedans '
+         + 'fuirait vers les autres carnets');
+
+    /* ---- UN COMPLEMENT N'EST PAS UNE FICHE ---- */
+    v.egal(m.fichesDuDictionnaire(e2, '').length, m.DICTIONNAIRE.length,
+           'un complément ne paraît PAS au parcours : il n’a pas de nom à '
+         + 'lui, il s’y afficherait vide');
+    v.egal(m.fichesParGroupe(e2, '').filter(function (g) {
+             return g.id === 'a_moi'; }).length, 0,
+           'ni dans « Les miennes »');
+
+    /* ---- LA MEME ECRITURE NE DESIGNE PAS DEUX MOUVEMENTS ---- */
+    var r3 = m.ajouterEcriture(e2, 'Pompes', 'Curl du mercredi');
+    v.egal(r3.ok, false, 'la même écriture ne peut pas désigner deux mouvements');
+    v.egal(r3.raison, 'prise', 'et le refus dit POURQUOI');
+    v.egal(r3.fiche ? r3.fiche.nom : '', 'Curl biceps',
+           'en nommant celle qui la porte déjà — sans ça MB chercherait');
+
+    var r4 = m.ajouterEcriture(e2, 'Curl biceps', 'Curl du mercredi');
+    v.egal(r4.raison, 'deja',
+           'et la réajouter au même endroit ne fait pas de doublon');
+
+    /* ---- RETIRER CE QUE J'AI AJOUTE ---- */
+    v.egal(m.retirerEcriture(e2, 'Curl du mercredi'), true, 'je peux la retirer');
+    v.egal((e2.dictionnairePerso || []).length, 0,
+           'et le complément VIDE s’en va : il ne porte pas de nom, donc il '
+         + 'ne désigne plus rien');
+    v.egal(m.ficheDictionnaire('Curl du mercredi', e2), null,
+           'la recherche ne la trouve plus');
+
+    /* ---- UN COMPLEMENT DEVENU INUTILE SE DIT ----
+       Le jour ou une version livre l'ecriture ajoutee, son complement ne
+       sert plus. Le retirer en silence effacerait le travail de MB sans
+       qu'il le sache. */
+    var e3 = A.store.vide();
+    var ecritureDejaLivree = (livree.aussi || [])[0];
+    v.vrai(!!ecritureDejaLivree,
+           '[temoin] « Curl biceps » porte au moins une autre écriture — '
+         + 'sans ça le cas ci-dessous ne mesurerait rien');
+    e3.dictionnairePerso = [{ id: 'c1', complete: 'Curl biceps',
+                              aussi: [ecritureDejaLivree], aMoi: true }];
+    var morts = m.complementsInutiles(e3);
+    v.egal(morts.length, 1,
+           'un complément que la version a rattrapé est NOMMÉ comme inutile');
+    v.vrai(morts.length > 0 && /livre maintenant/.test(morts[0].pourquoi),
+           'et le carnet dit pourquoi, au lieu de l’effacer en silence');
+  });
+
+  bloc('Mes fiches au parcours', function (v) {
+    var m = A.m;
+
+    /* [temoin] le decor : une fiche a moi, et une seule. */
+    var e = A.store.vide();
+    m.ajouterAuDictionnaire(e, 'Curl du dimanche', ['biceps_brachial'], ['charge', 'reps']);
+    v.egal((e.dictionnairePerso || []).length, 1,
+           '[temoin] une fiche à moi existe dans le décor — sans ça les '
+         + 'contrôles ci-dessous mesureraient une liste sans elle');
+
+    /* ---- ELLE SORT DU PARCOURS ---- */
+    var parcours = m.fichesDuDictionnaire(e, '');
+    var noms = parcours.map(function (d) { return d.nom; });
+    v.vrai(noms.indexOf('Curl du dimanche') >= 0,
+           'ma fiche apparaît dans le parcours : avant, elle sortait de la '
+         + 'recherche mais d’AUCUNE liste qu’on feuillette');
+    v.egal(parcours.length, m.DICTIONNAIRE.length + 1,
+           'et elle s’ajoute aux livrées sans en chasser une');
+
+    /* ---- ELLE SORT AUSSI DE LA RECHERCHE DANS LE PARCOURS ---- */
+    var cherche = m.fichesDuDictionnaire(e, 'dimanche');
+    v.egal(cherche.length ? cherche[0].nom : 'rien', 'Curl du dimanche',
+           'et une saisie la retrouve : la boucle cherchait dans les livrées '
+         + 'seules, donc elle ne savait pas l’afficher');
+
+    /* ---- LE GROUPE « LES MIENNES » ---- */
+    var pg = m.fichesParGroupe(e, '');
+    var mien = pg.filter(function (g) { return g.id === 'a_moi'; })[0];
+    v.vrai(!!mien, 'un groupe « Les miennes » paraît : une fiche à moi ne '
+                 + 'porte aucun `groupe`, et les 57 livrées en portent un');
+    v.egal(mien ? mien.fiches.length : 0, 1, 'et ma fiche y est');
+    v.egal(pg[pg.length - 1].id, 'a_moi',
+           'il vient EN DERNIER : les six groupes du carnet sont ce qu’on '
+         + 'feuillette, le mien est une réserve');
+
+    /* ---- ET IL N'EXISTE PAS QUAND IL EST VIDE ----
+       C'est ce qui le rend gratuit : pas de fiche a soi, pas un caractere
+       a l'ecran. Un groupe vide affiche serait pire que pas de groupe. */
+    var vide = A.store.vide();
+    var pg0 = m.fichesParGroupe(vide, '');
+    v.egal(pg0.filter(function (g) { return g.id === 'a_moi'; }).length, 0,
+           'sans fiche à moi, le groupe N’EXISTE PAS — c’est ce qui le rend '
+         + 'gratuit pour qui n’en crée aucune');
+    v.egal(pg0.length, m.GROUPES_DICO.length,
+           'et l’écran retrouve exactement ses six groupes');
+
+    /* ---- UNE FICHE A MOI MASQUE SON HOMONYME LIVRE ----
+       La regle vient de `suggestionsDictionnaire` : « sans quoi la liste en
+       montrerait deux du meme nom et MB ne saurait pas laquelle il
+       choisit ». Le parcours doit la tenir aussi. */
+    var e2 = A.store.vide();
+    var livree = m.DICTIONNAIRE[0].nom;
+    m.ajouterAuDictionnaire(e2, livree, ['biceps_brachial'], ['charge', 'reps']);
+    var p2 = m.fichesDuDictionnaire(e2, '');
+    var combien = p2.filter(function (d) { return d.nom === livree; }).length;
+    v.egal(combien, 1,
+           'un homonyme de fiche livrée n’apparaît QU’UNE FOIS dans le '
+         + 'parcours (« ' + livree + ' ») — deux lignes du même nom et on ne '
+         + 'sait plus laquelle on choisit');
+    v.egal(p2.length, m.DICTIONNAIRE.length,
+           'et le compte ne bouge pas : la mienne REMPLACE la livrée, elle '
+         + 'ne s’y ajoute pas');
+  });
+
   bloc('La dette de minuit', function (v) {
     var jl = A.m.jourLocalDe;
     v.vrai(typeof jl === 'function', 'le modele sait ramener un `vuLe` a son jour local');
