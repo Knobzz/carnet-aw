@@ -1234,7 +1234,32 @@
     var ex = A.store.etatExport ? A.store.etatExport() : null;
     if (ex) {
       var ligne = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
-      if (ex.jamais) {
+      /* LE FICHIER AUTOMATIQUE CHANGE CE QU'IL Y A A DIRE.
+
+         Sans cette lecture, l'ecran affichait « Jamais exporte. 6 seance(s)
+         ne tiennent que sur cet appareil. » JUSTE AU-DESSUS d'un fichier
+         tenu a jour — deux blocs ecrits chacun juste, qui se dementent une
+         fois cote a cote. Meme forme que « Sans source. » sous une source,
+         payee le matin meme.
+
+         ON N'EXIGE PAS SEULEMENT QU'IL SOIT ACTIF, mais qu'il ait VRAIMENT
+         ecrit (`le`) et qu'il ne soit pas en panne : un fichier choisi puis
+         devenu inaccessible ne protege rien, et l'alerte doit revenir. */
+      var fi = A.store.infoFichier ? A.store.infoFichier() : null;
+      var fichierTientAJour = !!(fi && fi.actif && fi.le && !fi.panne);
+
+      if (fichierTientAJour) {
+        ligne.appendChild(h('b', { text: 'Un fichier est tenu \u00e0 jour. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.jamais
+            ? 'Un export manuel reste utile pour en garder une copie ailleurs '
+            + 'que sur ce t\u00e9l\u00e9phone.'
+            : 'Dernier export manuel : '
+            + (ex.jours === 0 ? 'aujourd\u2019hui'
+             : ex.jours === 1 ? 'hier'
+             : ex.jours === null ? 'date illisible'
+             : 'il y a ' + ex.jours + ' jours') + '.'));
+      } else if (ex.jamais) {
         ligne.appendChild(h('b', { text: 'Jamais export\u00e9. ' }));
         ligne.appendChild(document.createTextNode(
           ex.seances

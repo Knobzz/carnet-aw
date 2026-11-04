@@ -15,6 +15,18 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.75.1
+
+**Corrige une contradiction à l’écran.** Avec un fichier tenu à jour, les
+Réglages affichaient quand même « Jamais exporté. 6 séance(s) ne tiennent
+que sur cet appareil » — juste au-dessus du fichier en question. Le rappel
+lit maintenant l’état du fichier, et dit « Un fichier est tenu à jour ».
+
+L’alerte **revient** si ce fichier n’a jamais été écrit ou s’il est en
+panne : un fichier choisi puis devenu inaccessible ne protège rien.
+
+---
+
 ## 1.75.0
 
 **Une sauvegarde automatique dans un fichier.** Le carnet peut tenir à jour

@@ -244,6 +244,30 @@
     v.egal(si().panne, '',
            'et cette ecriture n’a invente aucune panne de fichier');
 
+    /* ---- CE QUI EST ECRIT DOIT POUVOIR ETRE RELU ----
+
+       Le fichier automatique et l'export manuel ecrivent le meme texte
+       aujourd'hui. Rien ne le GARDE : qu'un des deux gagne un enrobage ou
+       un entete, et le fichier tenu a jour cesse d'etre reimportable — ce
+       qui ne se verrait QUE le jour ou MB en aurait besoin.
+
+       L'IMPORT EXIGE EXACTEMENT DEUX CHOSES, lues dans vue-reglages.js :
+       `seances` et `programmes` sont des tableaux. On mesure celles-la. */
+    var ecrit = JSON.stringify(A.store.etat(), null, 2);
+    var relu = null;
+    try { relu = JSON.parse(ecrit); } catch (err) { relu = null; }
+    v.vrai(!!relu, 'ce que le carnet ecrit se relit comme du JSON');
+    v.vrai(!!relu && Array.isArray(relu.seances) && Array.isArray(relu.programmes),
+           'et il passe les DEUX exigences de l’import — sans elles, le '
+         + 'fichier tenu à jour serait refusé par « Importer une sauvegarde »');
+
+    /* ET LE CYCLE COMPLET REND LE MEME CARNET, pas seulement une forme
+       acceptable : on relit ce qu'on vient d'ecrire et on recompte. */
+    var avant = A.store.substance(A.store.etat());
+    A.store.remplacer(relu);
+    v.egal(A.store.substance(A.store.etat()), avant,
+           'un aller-retour par le fichier ne perd RIEN : ' + avant
+         + ' élément(s) avant, autant après');
   });
 
   bloc('Le rappel d’export', function (v) {
