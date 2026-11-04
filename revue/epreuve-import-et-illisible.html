@@ -137,7 +137,32 @@
      mesure du 04/11, et ce sont ses temoins qui l ont dit. */
   var RACINE = (function () {
     var m = /[?&]racine=([^&]+)/.exec(location.search);
-    return m ? decodeURIComponent(m[1]) : '../';
+    if (!m) return '../';
+    var v;
+    try { v = decodeURIComponent(m[1]); } catch (e) { return '../'; }
+    /* ET ELLE NE PEUT DESIGNER QUE CE DEPOT.
+
+       Cette page repond en 200 sur knobzz.github.io, et la racine sert a
+       `fetch`, a `<base href>` et a un `srcdoc` — qui HERITE de l'origine
+       de son parent. Un lien forge vers un autre site aurait fait
+       executer du HTML tiers sous l'origine du carnet, avec acces au
+       `localStorage` qui le porte.
+
+       DEUX GARDES, parce qu'elles n'attrapent pas la meme chose : la
+       forme (aucun ':', '//', guillemet ni '<' ne passe, donc rien a
+       injecter dans l'attribut) et l'ORIGINE RESOLUE, qui attrape ce que
+       la forme n'a pas prevu. Un refus retombe sur le code courant. */
+    /* UN SEUL `../`, et c'est la seule forme qui existe : de `revue/` a
+       la racine du depot, puis un dossier d'arbre monte. Ma premiere
+       ecriture acceptait `(?:\.\.\/)+` et laissait donc passer
+       `../../../etc/` — hors du depot. Pas exploitable (meme origine,
+       404 sur Pages), mais plus large que l'usage, et c'est l'essai qui
+       l'a dit, pas ma relecture. */
+    if (!/^\.\.\/[A-Za-z0-9_\-]+\/$/.test(v)) return '../';
+    try {
+      if (new URL(v, location.href).origin !== location.origin) return '../';
+    } catch (e) { return '../'; }
+    return v;
   })();
 
   var source = null;
