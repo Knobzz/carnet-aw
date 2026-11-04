@@ -1231,6 +1231,81 @@
     hote.appendChild(btImp);
     hote.appendChild(fich);
 
+    /* --- LA SAUVEGARDE DE SECOURS, ET CE QU'ELLE CONTIENT ---
+
+       Nee le 04/11, apres que MB a tout perdu. Le carnet garde desormais un
+       DOUBLE a chaque enregistrement, sous une cle qui n'est pas la sienne,
+       et qu'un carnet vide ne peut pas écraser (`store.poserFilet`).
+
+       SANS CE BLOC, LE FILET NE SERT A RIEN : c'est le piege n° 5 applique a
+       un garde-fou — l'execution sans le rendu. On affiche donc DE QUAND il
+       date et CE QU'IL CONTIENT, en face du carnet courant, pour que le
+       choix se fasse sur deux chiffres et non a l'aveugle. */
+    hote.appendChild(h('div', { class: 'sous-titre', text: 'Sauvegarde de secours' }));
+
+    var fl = A.store.filet ? A.store.filet() : null;
+    var courant = A.store.substance ? A.store.substance(A.store.etat()) : 0;
+    var seancesCourantes = (A.store.etat().seances || []).length;
+
+    if (fl) {
+      var quand = fl.le;
+      try {
+        var dd = new Date(fl.le);
+        if (!isNaN(dd.getTime())) {
+          var z = function (x) { return (x < 10 ? '0' : '') + x; };
+          quand = z(dd.getDate()) + '/' + z(dd.getMonth() + 1) + '/' + dd.getFullYear()
+                + ' a ' + z(dd.getHours()) + 'h' + z(dd.getMinutes());
+        }
+      } catch (e) {}
+
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+        text: 'Le carnet garde un double de lui-même à chaque enregistrement. '
+            + 'Il ne part sur aucun serveur, et un carnet vide ne peut pas '
+            + 'l\u2019écraser \u2014 c\u2019est ce qui manquait le 1er novembre.' }));
+
+      var tbl = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
+      tbl.appendChild(h('div', {}, h('b', { text: 'Le double : ' }),
+        quand.replace(' a ', ' \u00e0 ') + ' \u2014 ' + fl.seances + ' s\u00e9ance(s), '
+        + fl.compte + ' \u00e9l\u00e9ment(s) en tout'));
+      tbl.appendChild(h('div', {}, h('b', { text: 'Ton carnet : ' }),
+        seancesCourantes + ' s\u00e9ance(s), ' + courant + ' \u00e9l\u00e9ment(s) en tout'));
+      hote.appendChild(tbl);
+
+      /* LE MOT QUI MANQUERAIT LE PLUS : restaurer REMPLACE. On le dit avant
+         le bouton, pas dans un message apres coup. */
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:0 2px 9px',
+        text: 'Restaurer REMPLACE ton carnet par ce double. Si ton carnet '
+            + 'contient des choses que le double n\u2019a pas, exporte-le '
+            + 'avant.' }));
+
+      var btRest = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px',
+                                 text: 'Restaurer ce double' });
+      A.ui.confirmer2(btRest, 'Remplacer mon carnet ?', function () {
+        if (A.store.restaurerFilet && A.store.restaurerFilet()) {
+          A.ui.toast('Carnet restaur\u00e9 depuis le double.');
+          /* LE MEME GESTE QUE L'IMPORT, pas un invente : le theme se
+             reapplique (il vit dans les reglages restaures), puis l'ecran
+             se redessine. J'avais ecrit `A.rendreTout()`, QUI N'EXISTE
+             PAS — le bouton aurait restaure sans rien rafraichir, et le
+             defaut ne se serait vu qu'a l'usage. */
+          A.app.appliquerTheme();
+          rendre(hote);
+        } else {
+          A.ui.toast('La restauration a \u00e9chou\u00e9 : le double est illisible.');
+        }
+      });
+      hote.appendChild(btRest);
+    } else {
+      /* PAS DE FILET N'EST PAS UNE ERREUR, et le dire evite de chercher un
+         bouton qui n'a rien a proposer. Il s'ecrira au premier
+         enregistrement d'un carnet non vide. */
+      hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
+        text: 'Le carnet gardera un double de lui-même d\u00e8s le prochain '
+            + 'enregistrement, sous une cl\u00e9 s\u00e9par\u00e9e qu\u2019un carnet vide ne '
+            + 'peut pas \u00e9craser. Aucun double pour l\u2019instant \u2014 c\u2019est normal '
+            + 'si tu n\u2019as encore rien saisi depuis la mise \u00e0 jour.' }));
+    }
+
     /* --- état réel du stockage --- */
     hote.appendChild(h('div', { class: 'sous-titre', text: 'État du stockage' }));
     var taille = 0, ok = true;

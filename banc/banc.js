@@ -110,6 +110,81 @@
          + '— c’est l’EFFET qui est mesuré ici, pas le nom de la clé');
   });
 
+  /* ---------------------------------------------------------------
+     LE FILET — ce qui decide qu'un etat peut ecraser le double
+
+     Ne le 04/11, apres que MB a tout perdu : le carnet garde un double de
+     lui-meme, et UN CARNET VIDE NE PEUT PAS L'ECRASER. Toute cette
+     protection tient a `substance()` — si elle rendait zero sur un carnet
+     plein, le double ne se poserait jamais et rien ne le dirait.
+
+     CE BLOC NE JOUE PAS LE CYCLE COMPLET, et c'est dit dans le fichier qui
+     l'accompagne : `poserFilet()` sort des que `CLE` n'est pas celle du
+     carnet reel — sa garde meme. Un banc ne peut pas jouer le cycle sans
+     desarmer ce qu'il veut prouver. Le cycle a ete mesure a la main le
+     04/11, et sa premiere tentative a ECHOUE (le double ne se posait qu'a
+     l'ecriture, jamais a la lecture).
+     --------------------------------------------------------------- */
+  bloc('Le filet de sauvegarde', function (v) {
+    var sub = A.store.substance;
+    v.vrai(typeof sub === 'function',
+           'le carnet sait peser ce qu’il a de perdable — sans ça, aucune '
+         + 'garde n’est possible');
+
+    v.egal(sub(A.store.vide()), 0,
+           'un carnet VIDE pèse zéro : c’est le fait sur lequel toute la '
+         + 'protection repose, et le seul seuil que le carnet s’autorise');
+    v.egal(sub(null), 0, 'et rien du tout aussi — pas d’exception sur `null`');
+    v.egal(sub('carnet'), 0, 'ni sur une chaîne : un état qui n’en est pas un pèse zéro');
+
+    /* CHAQUE CHAMP COMPTE, ET ON LE PROUVE UN PAR UN.
+
+       C'est le controle qui aurait rattrape un nom de champ devine : un
+       `seance` au singulier, un `peses` mal orthographie, et `substance`
+       rendrait zero sur un carnet plein. Le filet ne se poserait jamais, et
+       l'ecran dirait « aucun double » sans qu'on sache pourquoi. */
+    var champs = ['seances', 'exercices', 'outils', 'programmes',
+                  'routinesRecup', 'pesees', 'releves', 'dictionnairePerso'];
+    var muets = [];
+    champs.forEach(function (k) {
+      var e = A.store.vide();
+      if (!Array.isArray(e[k])) { muets.push(k + ' (absent de vide())'); return; }
+      e[k] = [{ id: 'x' }];
+      if (sub(e) !== 1) muets.push(k + ' (pesé ' + sub(e) + ')');
+    });
+    v.egal(muets.join(', ') || 'aucun', 'aucun',
+           'les HUIT champs perdables pèsent chacun : un nom deviné rendrait '
+         + 'zéro sur un carnet plein, et le double ne se poserait jamais');
+
+    /* ET LA SOMME, parce qu'un champ qui pese seul peut etre ecrase par le
+       suivant si on recopie mal. */
+    var plein = A.store.vide();
+    plein.seances = [{ id: 'a' }, { id: 'b' }];
+    plein.exercices = [{ id: 'c' }];
+    plein.pesees = [{ id: 'd' }, { id: 'e' }, { id: 'f' }];
+    v.egal(sub(plein), 6,
+           'et ils s’additionnent : 2 séances + 1 exercice + 3 pesées = 6');
+
+    /* LE FILET N'APPARTIENT PAS AU BANC, et c'est ce qui l'empeche d'etre
+       ecrase en mesurant. Le defaut du 22/10 etait exactement celui-la, un
+       cran plus haut : une page de test qui ecrit sous la cle du carnet. */
+    v.vrai(A.store.CLE_FILET !== A.store.CLE,
+           'le double ne vit pas sous la clé de ce banc : mesurer ne peut '
+         + 'pas l’écraser');
+    v.egal(A.store.CLE_FILET, 'carnet-aw-filet',
+           'et il porte son propre nom, hors des clés de l’app');
+    /* L'EFFET, pas la declaration : apres tout ce bloc, le banc n'a pose
+       aucun double. `poserFilet` sort sur `CLE !== 'carnet-aw-v1'`. */
+    var dejaLa = null;
+    try { dejaLa = window.localStorage.getItem('carnet-aw-filet'); } catch (e) {}
+    A.store.remplacer(plein);
+    var apres = null;
+    try { apres = window.localStorage.getItem('carnet-aw-filet'); } catch (e) {}
+    v.egal(apres, dejaLa,
+           'un `remplacer()` depuis le banc ne pose ni ne touche AUCUN '
+         + 'double — c’est l’effet qui est mesuré, pas la clé');
+  });
+
   bloc('Nombres et identité', function (v) {
     v.egal(A.m.nombre('17,5'), 17.5, 'la virgule décimale est lue');
     v.egal(A.m.nombre('25'), 25, 'un entier est lu');

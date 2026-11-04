@@ -3063,6 +3063,14 @@
               d'abord, le sien ensuite — c'est l'ordre dans lequel une
               fiche se cherche. */
            + 'Le dictionnaire du carnet · Mon dictionnaire · Sauvegarde · '
+           /* « SAUVEGARDE DE SECOURS » S'INSERE ICI le 04/11, apres que MB
+              a tout perdu. Sa place n'est pas libre : juste APRES
+              « Sauvegarde », du plus volontaire (exporter un fichier) au
+              plus automatique (le double que le carnet garde seul), puis
+              l'etat de la place. La mettre AVANT l'export l'aurait fait
+              passer pour la sauvegarde principale — elle depanne, elle ne
+              remplace pas un fichier garde ailleurs. */
+           + 'Sauvegarde de secours · '
            + 'État du stockage · Envoyer un retour · Tout effacer',
              'l’ordre des Réglages : le catalogue puis l’équipement, tout en haut');
 

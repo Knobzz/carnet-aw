@@ -34,6 +34,18 @@
           : window.__BANC_IHM ? 'carnet-aw-banc-ihm'
           : window.__BAC_A_SABLE ? 'carnet-aw-bac'
           : 'carnet-aw-v1';
+  /* LE FILET : un double du carnet, sous une cle QUI N'EST PAS LA SIENNE.
+
+     Ne le 04/11, apres que MB a tout perdu. Il existe pour une raison
+     precise : la perte vient d'un ECRASEMENT PAR DU VIDE, et rien dans le
+     carnet ne permettait de revenir en arriere. Il ne remplace pas une
+     sauvegarde exportee — il la rend moins indispensable le jour ou on n'y
+     a pas pense.
+
+     ELLE NE DEPEND PAS DE `CLE` : le filet n'appartient qu'au carnet reel.
+     Les bancs et le bac a sable n'en ecrivent aucun, sans quoi mesurer
+     ecraserait le filet — le meme defaut, un cran plus bas. */
+  var CLE_FILET = 'carnet-aw-filet';
   var VERSION_DONNEES = 1;
 
   function vide() {
@@ -158,6 +170,23 @@
     if (brut === null) { etat = vide(); return etat; }
     try {
       etat = normaliser(JSON.parse(brut));
+      /* LE DOUBLE SE POSE DES LA LECTURE, ET C'EST LA QUE TOUT SE JOUE.
+
+         Premiere epreuve du filet, 04/11 : carnet charge a 12 seances,
+         « FILET : AUCUN ». `poserFilet()` n'etait appele que par `ecrire()`
+         — or LIRE un carnet n'est pas l'ecrire. Entre la mise a jour et la
+         premiere saisie, il n'y avait aucun double, et c'est justement la
+         fenetre ou l'on ouvre des pages sans rien saisir. L'ecrasement du
+         01/11 est arrive dans cette fenetre : le filet n'aurait rien sauve.
+
+         Il aurait pourtant PARU marcher — les fonctions existent, l'ecran
+         s'affiche, le code se relit juste. Seule l'epreuve l'a dit.
+
+         LA GARDE DU ZERO VAUT AUSSI ICI : `poserFilet` sort si l'etat lu
+         n'a aucune substance, donc un carnet vide ou illisible n'ecrase
+         jamais un double valable. C'est pour ca que l'appel est DANS le
+         `try`, apres un `normaliser` reussi, et pas dans le `catch`. */
+      poserFilet();
     } catch (e) {
       signaler("Les données enregistrées sont illisibles. Rien n'a été effacé : "
              + "exporte une sauvegarde depuis Réglages avant toute nouvelle saisie.");
@@ -166,13 +195,97 @@
     return etat;
   }
 
+  /* CE QUE L'ETAT PORTE DE PERDABLE, compte sur ses VRAIS champs.
+
+     La liste est celle de `vide()`, moins ce qui se recalcule ou ne fait mal
+     a personne : `reglages` (trois preferences), `chrono` (un repos en
+     cours), `seanceEnCoursId` (un pointeur). Ce qui reste est ce qu'on
+     pleure. Les noms sont LUS dans `vide()`, pas devines — un champ invente
+     rendrait zero sur un carnet plein, et le filet ne se poserait jamais. */
+  function substance(e) {
+    if (!e || typeof e !== 'object') return 0;
+    var n = 0;
+    ['seances', 'exercices', 'outils', 'programmes', 'routinesRecup',
+     'pesees', 'releves', 'dictionnairePerso'].forEach(function (k) {
+      if (Array.isArray(e[k])) n += e[k].length;
+    });
+    return n;
+  }
+
+  /* LE DOUBLE, ET SA SEULE GARDE EST UN ZERO.
+
+     « Si le nouveau est beaucoup plus petit » serait un seuil de moi, et le
+     carnet n'en pose aucun. Ce qui se mesure ici est un FAIT : un etat sans
+     aucune substance n'ecrase jamais un filet qui en a. C'est precisement ce
+     qui aurait sauve MB le 01/11 — l'etat ecrit par le banc etait VIDE.
+
+     Son echec est AVALE : une saisie reussie ne doit pas echouer parce que
+     son double n'a pas tenu. */
+  function poserFilet() {
+    if (CLE !== 'carnet-aw-v1') return;      /* ni banc, ni bac a sable */
+    if (!substance(etat)) return;            /* LE ZERO, et rien d'autre */
+    try {
+      window.localStorage.setItem(CLE_FILET, JSON.stringify({
+        le: new Date().toISOString(),
+        versionApp: String(A.VERSION || ''),
+        etat: etat
+      }));
+    } catch (e) { /* le filet ne nuit JAMAIS a la sauvegarde */ }
+  }
+
+  /* CE QUE LE FILET CONTIENT, pour que l'ecran le DISE avant de proposer
+     quoi que ce soit. Il rend `null` quand il n'y a rien, et jamais un objet
+     a moitie : un filet illisible vaut pas de filet. */
+  function filet() {
+    var brut = null;
+    try { brut = window.localStorage.getItem(CLE_FILET); } catch (e) { return null; }
+    if (!brut) return null;
+    var d;
+    try { d = JSON.parse(brut); } catch (e) { return null; }
+    if (!d || !d.etat || typeof d.etat !== 'object') return null;
+    var n = substance(d.etat);
+    if (!n) return null;
+    return { le: String(d.le || ''), versionApp: String(d.versionApp || ''),
+             compte: n, octets: brut.length,
+             seances: (d.etat.seances || []).length,
+             etat: d.etat };
+  }
+
+  /* RESTAURER — et c'est un `remplacer`, donc ca passe par `normaliser`.
+     On ne reinjecte pas un objet brut dans l'app : il traverse la meme porte
+     que l'import, sans quoi un filet ancien ferait entrer une forme que le
+     reste du code ne sait plus lire. */
+  function restaurerFilet() {
+    var f = filet();
+    if (!f) return false;
+    return remplacer(f.etat);
+  }
+
   function ecrire() {
     try {
       window.localStorage.setItem(CLE, JSON.stringify(etat));
       signaler(null);
+      poserFilet();
       return true;
     } catch (e) {
       var plein = e && (e.name === 'QuotaExceededError' || e.code === 22);
+      /* LE STOCKAGE EST PLEIN : LE FILET EST SACRIFIE, PAS LA SAISIE.
+
+         Mieux vaut perdre le double que la serie qu'on vient de faire. On
+         retire le filet, on reessaie UNE fois, et on ne le repose pas dans
+         la foulee — il reviendra a la prochaine ecriture si la place y est.
+         Sans ca, le filet pourrait etre la cause meme d'une saisie perdue :
+         un garde-fou qui provoque ce qu'il previent. */
+      if (plein) {
+        try {
+          window.localStorage.removeItem(CLE_FILET);
+          window.localStorage.setItem(CLE, JSON.stringify(etat));
+          signaler("Le stockage était plein : la sauvegarde de secours a "
+                 + "été retirée pour garder ta saisie. Exporte une "
+                 + "sauvegarde depuis Réglages, puis fais de la place.");
+          return true;
+        } catch (e2) { /* vraiment plein : on tombe dans le message ci-dessous */ }
+      }
       signaler(plein
         ? "Le stockage est plein : la dernière saisie n'a PAS été enregistrée. "
         + "Exporte une sauvegarde, puis fais de la place."
@@ -397,6 +510,10 @@
 
   A.store = {
     CLE: CLE,
+    CLE_FILET: CLE_FILET,
+    substance: substance,
+    filet: filet,
+    restaurerFilet: restaurerFilet,
     VERSION_DONNEES: VERSION_DONNEES,
     charger: charger,
     sauver: sauver,
