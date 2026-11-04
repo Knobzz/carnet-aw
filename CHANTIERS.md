@@ -426,7 +426,11 @@ revue** et non une garde. Et le problème d'origine ne l'exige pas : garder
 trace de l'engin est une **addition**, pas une suppression. Cette option se
 décide donc pour elle-même, ou pas du tout.
 
-## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images — **FAIT le 2026-11-04**, avec une réserve nommée
+## 3. Le dictionnaire feuilletable, par groupe de muscles, avec images — **CLOS le 2026-11-04**
+
+**Rien ne reste.** La seule question ouverte — chercher de vraies images
+de **geste** — a été tranchée par MB le **2026-11-04** : « Non, ça suffit. »
+Les planches de muscles sont donc le visuel définitif de ce chantier.
 
 **Ce qui restait** — « les images par exercice » — **est livré avec ce que le
 carnet possède déjà** : chaque fiche de *Réglages ▸ Le dictionnaire du carnet*
@@ -440,7 +444,19 @@ entière, **sans une seule licence tierce**.
 sources libres existent (Everkinetic et ses dérivés, RepDB) mais **toutes en
 partage à l'identique** — attribution à afficher dans l'app — et **aucune ne
 couvre les gestes de bras de fer** : 18 des 57 fiches sont des avant-bras.
-C'est la décision qui reste ouverte, et elle est pour MB.
+
+### **TRANCHÉ PAR MB LE 2026-11-04 : « Non, ça suffit. »**
+
+Pas de recherche d'images de geste. Les planches de muscles restent le visuel
+de ce chantier, et **c'est une décision, pas un report** : on ne rouvre pas la
+question au prochain lot. Ce qu'elle évite, nommément — une dépendance à une
+source en partage à l'identique, une ligne d'attribution à tenir dans l'app,
+et 18 fiches d'avant-bras qui seraient restées sans image de toute façon.
+
+Cohérent avec ce que MB disait déjà le 29/10 : « le chapitre photo / vidéo est
+à mettre de côté pour le moment, sans qu'on l'oublie pour autant. » Le visuel
+qu'il réclamait existe désormais ; c'est la **photo du geste** qui ne viendra
+pas.
 
 **LE POIDS A ÉTÉ MESURÉ AVANT, et il a changé la livraison** : les planches
 pleines font ~108 Ko pièce et coûtaient **1,73 Mo pour une seule recherche**
