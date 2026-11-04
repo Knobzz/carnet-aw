@@ -562,7 +562,24 @@
        vaut une seance qui revient — on peut la resupprimer — qu'une qui
        disparait sans trace. */
     var surDisque = revDuDisque();
-    if (revConnue !== null && surDisque !== null && surDisque !== revConnue) {
+    /* `null` COMPTE COMME UNE VALEUR, et c'est tout le correctif du 04/11.
+
+       La condition exigeait une revision DES DEUX COTES. Deux relectures
+       et une mesure (revue/mesure-garde-desarmee.html) ont montre que
+       chacune des deux exigences ouvrait un trou :
+
+         `revConnue !== null` -> une instance ouverte sur un carnet VIDE
+             n'etait jamais gardee. Mesure : 6 seances et 2 equipements
+             passes a ZERO. C'est l'etat d'un carnet apres une perte.
+
+         `surDisque !== null` -> une instance d'avant 1.73 reecrit sans la
+             cle `rev` (son `normaliser` ne la relit pas), et la garde se
+             coupait alors pour TOUTES les instances. Mesure : 2 -> 1.
+
+       `revConnue === null` ne dit pas « je suis seule » : il dit « je n'ai
+       rien lu, ou j'ai lu un carnet sans revision ». Pareil pour le
+       disque. Ce sont des raisons de se mefier, pas d'ecraser. */
+    if (surDisque !== revConnue) {
       var brutDisque = null;
       try { brutDisque = window.localStorage.getItem(CLE); } catch (e) {}
       if (brutDisque) {
@@ -688,13 +705,60 @@
       return m;
     }
 
-    var vusSeances = parId(etat.seances);
-    entrant.seances.forEach(function (s) {
-      if (!s || !s.id) return;
-      if (vusSeances[s.id]) { bilan.seancesGardees += 1; return; }
-      etat.seances.push(s);
-      bilan.seancesAjoutees += 1;
-    });
+    /* OU EST L'ELEMENT, pas seulement s'il y est : pour le remplacer par
+       une version plus fournie, il faut sa place. */
+    function placesParId(liste) {
+      var m = {};
+      liste.forEach(function (x, i) { if (x && x.id) m[x.id] = i; });
+      return m;
+    }
+
+    /* COMPTER CE QU'UN ELEMENT PORTE VRAIMENT.
+
+       Un grain = une valeur non vide, comptee recursivement. Une seance a
+       trois exercices de deux series pese plus qu'une seance vide portant
+       le meme id. C'est ce qui permet de trancher un conflit sans inventer
+       d'horodatage — et un horodatage neuf devrait etre relu par
+       `normaliser`, sans quoi il disparaitrait au rechargement. */
+    function grains(x) {
+      if (x === null || x === undefined || x === '') return 0;
+      if (Array.isArray(x)) {
+        var n = 0;
+        x.forEach(function (y) { n += grains(y); });
+        return n;
+      }
+      if (typeof x === 'object') {
+        var n = 0;
+        Object.keys(x).forEach(function (k) { n += grains(x[k]); });
+        return n;
+      }
+      return 1;
+    }
+
+    /* A ID EGAL, LA VERSION LA PLUS FOURNIE GAGNE.
+
+       Mesure du 04/11 : sans ceci, une instance endormie vidait une seance
+       de ses 3 exercices en la laissant en place. Le prix — un element
+       supprime qui revient — est celui que `ecrire` assume deja juste
+       au-dessus, et pour la meme raison : on peut resupprimer, on ne peut
+       pas deviner ce qui a disparu. */
+    function garderLePlusFourni(liste, places, entrants, bilanAjout, bilanGarde) {
+      entrants.forEach(function (x) {
+        if (!x || !x.id) return;
+        var i = places[x.id];
+        if (i === undefined) {
+          places[x.id] = liste.length;
+          liste.push(x);
+          bilan[bilanAjout] += 1;
+          return;
+        }
+        if (grains(x) > grains(liste[i])) liste[i] = x;
+        bilan[bilanGarde] += 1;
+      });
+    }
+
+    garderLePlusFourni(etat.seances, placesParId(etat.seances), entrant.seances,
+                       'seancesAjoutees', 'seancesGardees');
 
     /* Les releves suivent la meme regle que les seances : l'identite est
        l'id, rien n'est jamais supprime par un import. */
@@ -706,13 +770,8 @@
       bilan.relevesAjoutes = (bilan.relevesAjoutes || 0) + 1;
     });
 
-    var vusProgrammes = parId(etat.programmes);
-    entrant.programmes.forEach(function (p) {
-      if (!p || !p.id) return;
-      if (vusProgrammes[p.id]) { bilan.programmesGardes += 1; return; }
-      etat.programmes.push(p);
-      bilan.programmesAjoutes += 1;
-    });
+    garderLePlusFourni(etat.programmes, placesParId(etat.programmes), entrant.programmes,
+                       'programmesAjoutes', 'programmesGardes');
 
     /* Les catalogues se fusionnent par slug : ce sont des aides a la saisie,
        pas des donnees. Un doublon n'y serait que du bruit. */

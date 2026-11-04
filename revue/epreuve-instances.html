@@ -96,6 +96,12 @@
                        .then(function (h) { source = h; return h; }))
       .then(function (html) {
         html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        /* ON MESURE LE DISQUE, PAS LE CACHE. Les `?v=<version>` d'index.html
+           sont stables d'un run a l'autre : le navigateur resservait sa
+           reponse en cache. Le 04/11, une chute jouee en remplacant
+           js/store.js a rendu 18/18 parce que l'iframe lisait le store
+           COURANT depuis le cache. On rend chaque URL unique. */
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
         var tete = '<base href="../">'
                  + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
         html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);

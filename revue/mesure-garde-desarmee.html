@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesure — la garde est-elle désarmée ?</title>
+<!--
+  LA MESURE DES DEUX TROUS QUE TROIS RELECTURES ONT DESIGNES, 2026-11-04.
+
+  R1 : une instance qui demarre sur un carnet VIDE garde `revConnue = null`.
+       La garde de store.js exige `revConnue !== null`. Donc desarmee.
+       C'EST LA SITUATION DU SOIR : le carnet de MB est vide apres la perte.
+
+  R2 : une VRAIE instance de 1.72.3, servie sous /_mesure_avant/ (meme
+       origine, donc meme localStorage), ecrit. Son `normaliser` ne relit
+       pas `rev` -> la cle disparait du disque -> `surDisque === null` ->
+       la garde des instances NEUVES se coupe a son tour.
+
+  RIEN N'EST SIMULE : les deux instances sont de vraies pages de l'app.
+  C'est la difference avec une chute qui reconstruit le defaut a la main.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:420px;height:700px}
+ iframe{width:420px;height:700px;border:0}
+</style></head><body>
+<h1>La garde est-elle désarmée&nbsp;?</h1>
+<p class="pourquoi">Trois relectures indépendantes ont désigné le même mécanisme. Ces deux cas le mesurent avec de vraies instances — dont une vraie 1.72.3, servie sous la même origine.</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+
+  /* MONTER UNE INSTANCE REELLE. `racine` dit QUELLE app : '../' pour le
+     code courant, '../_mesure_avant/' pour la vraie 1.72.3. Les deux sont
+     servies par la meme origine, donc elles partagent le localStorage —
+     c'est ce qui permet de les faire se rencontrer. */
+  var sources = {};
+  function monter(racine) {
+    var r = racine || '../';
+    return (sources[r] ? Promise.resolve(sources[r])
+                       : fetch(r + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                           .then(function (h) { sources[r] = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        /* ON MESURE LE DISQUE, PAS LE CACHE. Les `?v=<version>` d'index.html
+           sont stables d'un run a l'autre : le navigateur resservait sa
+           reponse en cache. Le 04/11, une chute jouee en remplacant
+           js/store.js a rendu 18/18 parce que l'iframe lisait le store
+           COURANT depuis le cache. On rend chaque URL unique. */
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + r + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 250);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        try { localStorage.removeItem('carnet-aw-bac'); } catch (e) {}
+        try { localStorage.removeItem('carnet-aw-filet'); } catch (e) {}
+        ok();
+      }, 500);
+    });
+  }
+  function enBase() {
+    try { return JSON.parse(localStorage.getItem('carnet-aw-bac') || '{}'); }
+    catch (e) { return {}; }
+  }
+  function arrierePlan(w) {
+    try {
+      Object.defineProperty(w.document, 'visibilityState',
+        { get: function () { return 'hidden'; }, configurable: true });
+      w.document.dispatchEvent(new w.Event('visibilitychange'));
+    } catch (e) {}
+  }
+  function seance(id, type, date) {
+    return { id: id, type: type, date: date, heure: '', note: '', exercices: [], douleurs: [] };
+  }
+  function outil(id, nom) { return { id: id, nom: nom, slug: nom.toLowerCase(), categorie: '' }; }
+  function poser(w, seances, outils) {
+    var e = w.App.store.etat();
+    e.seances = seances || []; e.outils = outils || [];
+    w.App.store.remplacer(e);
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  /* UN CAS QUI PLANTE EST UN ECHEC, PAS UN SILENCE. L'epreuve des instances
+     s'arretait au premier plantage et taisait tous les cas suivants. */
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  function jouer() {
+    var ch = Promise.resolve();
+
+    /* ---------- R1 : LA SITUATION DU SOIR ---------- */
+    ch = ch.then(vider).then(function () {
+      cas('R1. Carnet VIDE au depart — la situation du soir',
+          'A ouvre l’appli sur un carnet vide (l’etat du carnet apres la perte) : elle n’a '
+        + 'aucune revision connue. B saisit ensuite 6 seances. A passe en arriere-plan.\n'
+        + 'Si la garde exige une revision connue, elle est desarmee et A ecrase tout.');
+      var A, B;
+      return monter().then(function (w) { A = w; return monter(); }).then(function (w) {
+        B = w;
+        egal(String(A.App.store.revConnue()), 'null',
+             '[temoin] A n’a bien AUCUNE revision connue — c’est la condition du cas');
+        poser(B, [seance('s1', 'muscu', '2026-11-04'), seance('s2', 'muscu', '2026-11-04'),
+                  seance('s3', 'recup', '2026-11-04'), seance('s4', 'recup', '2026-11-04'),
+                  seance('s5', 'recup', '2026-11-04'), seance('s6', 'sparring', '2026-11-04')],
+                 [outil('o1', 'Poignee'), outil('o2', 'Sangle')]);
+        return attendre(700);
+      }).then(function () {
+        egal((enBase().seances || []).length, 6, '[temoin] B a bien ecrit ses 6 seances');
+        arrierePlan(A);
+        return attendre(900);
+      }).then(function () {
+        egal((enBase().seances || []).length, 6,
+             'les 6 seances SURVIVENT alors que A n’avait aucune revision connue');
+        egal((enBase().outils || []).length, 2,
+             'et les equipements aussi');
+      });
+    }).catch(rattrape);
+
+    /* ---------- R2 : UNE VRAIE INSTANCE DE 1.72.3 ---------- */
+    ch = ch.then(vider).then(function () {
+      cas('R2. Une vraie instance 1.72.3 retire la cle `rev`',
+          'L’ancien code ne relit pas `rev` : en reecrivant, il la supprime du disque. La garde '
+        + 'des instances NEUVES exige `surDisque !== null` — elle se coupe donc pour tout le monde.\n'
+        + 'L’ancienne app est servie sous /_mesure_avant/ : meme origine, donc meme stockage.');
+      var N1, VIEILLE, N2;
+      /* L’ARBRE D’AVANT N’EST PAS VERSIONNE : on le genere, on ne le commite
+         pas. S’il manque, le cas le DIT au lieu de planter. */
+      return fetch('../_mesure_avant/index.html?t=' + Date.now())
+        .then(function (r) { return r.ok; }, function () { return false; })
+        .then(function (present) {
+          if (!present) {
+            egal('absent', 'absent',
+                 '[temoin] l’arbre d’avant n’est pas monte \u2014 CE CAS N’EST PAS JOUE');
+            dit('pour le monter :  git archive 3af2f3d^ | tar -x -C _mesure_avant');
+            dit('(dossier genere, volontairement hors du depot)');
+            return null;
+          }
+          return monter();
+        }).then(function (w) {
+        if (!w) return null;
+        N1 = w;
+        poser(N1, [seance('n1', 'muscu', '2026-11-04')], [outil('o1', 'Poignee')]);
+        return attendre(700);
+      }).then(function () {
+        if (!N1) return null;
+        var rev1 = enBase().rev;
+        egal(rev1 ? 'posee' : 'absente', 'posee',
+             '[temoin] une instance NEUVE pose bien une revision sur le disque');
+        dit('revision posee : ' + String(rev1).slice(0, 18));
+        return monter('../_mesure_avant/');
+      }).then(function (w) {
+        if (!N1) return null;
+        VIEILLE = w;
+        egal(typeof VIEILLE.App.store.revDuDisque, 'undefined',
+             '[temoin] l’instance montee est BIEN l’ancienne — elle ignore la garde');
+        VIEILLE.App.store.sauver(true);
+        return attendre(700);
+      }).then(function () {
+        if (!N1) return null;
+        var apres = enBase();
+        egal((apres.seances || []).length, 1,
+             '[temoin] l’ancienne instance n’a pas perdu la seance elle-meme');
+        /* [temoin] L'ANCIEN CODE EFFACE `rev`, ET IL LE FERA TOUJOURS :
+           1.72.3 est livre, son `normaliser` ne relit pas la cle, et on ne
+           reecrit pas du code deja chez les gens. Ce qui doit tenir, c'est
+           que cet effacement ne cause plus de perte — le controle juste
+           apres le mesure, et c'est LUI qui est passe de rouge a vert. */
+        egal(apres.rev ? 'encore la' : 'EFFACEE', 'EFFACEE',
+             '[temoin] l’ancien code efface bien `rev` \u2014 c’est le decor du '
+           + 'cas, pas un defaut a corriger : la garde doit tenir SANS elle');
+        return monter();
+      }).then(function (w) {
+        if (!N1) return null;
+        N2 = w;
+        poser(N1, [seance('n1', 'muscu', '2026-11-04'), seance('n2', 'sparring', '2026-11-04')],
+                  [outil('o1', 'Poignee')]);
+        return attendre(700);
+      }).then(function () {
+        if (!N1) return null;
+        egal((enBase().seances || []).length, 2, '[temoin] N1 a bien ecrit la seconde seance');
+        arrierePlan(N2);
+        return attendre(900);
+      }).then(function () {
+        if (!N1) return null;
+        egal((enBase().seances || []).length, 2,
+             'les 2 seances survivent APRES le passage de l’ancien code');
+      });
+    }).catch(rattrape);
+
+    /* ---------- R3 : LA FUSION GARDE-T-ELLE LES MODIFICATIONS ? ---------- */
+    ch = ch.then(vider).then(function () {
+      cas('R3. Une seance remplie des deux cotes \u2014 la soiree de sport',
+          'La garde recupere les id ABSENTS de la memoire. Mais une seance qu’on remplit '
+        + 'serie apres serie n’est pas un ajout : c’est une MODIFICATION d’un id deja '
+        + 'present des deux cotes.\nA et B ont tous deux la seance. B y met 3 exercices. '
+        + 'A dort avec la version vide, puis passe en arriere-plan.');
+      var A, B;
+      return monter().then(function (w) {
+        A = w;
+        poser(A, [seance('m1', 'muscu', '2026-11-04')], [outil('o1', 'Poignee')]);
+        return attendre(700);
+      }).then(function () {
+        /* B monte APRES : elle lit la seance vide, exactement comme A. */
+        return monter();
+      }).then(function (w) {
+        B = w;
+        var e = B.App.store.etat();
+        var s1 = (e.seances || [])[0];
+        egal(s1 ? s1.id : 'absente', 'm1',
+             '[temoin] B a bien lu la MEME seance que A \u2014 c’est la condition du cas');
+        s1.exercices = [{ id: 'e1', nom: 'Curl', series: [{ poids: 20, reps: 10 }] },
+                        { id: 'e2', nom: 'Pronation', series: [{ poids: 12, reps: 12 }] },
+                        { id: 'e3', nom: 'Side pressure', series: [{ poids: 15, reps: 8 }] }];
+        B.App.store.remplacer(e);
+        return attendre(700);
+      }).then(function () {
+        var s1 = (enBase().seances || [])[0] || {};
+        egal((s1.exercices || []).length, 3, '[temoin] B a bien ecrit ses 3 exercices');
+        arrierePlan(A);
+        return attendre(900);
+      }).then(function () {
+        var s1 = (enBase().seances || [])[0] || {};
+        egal((s1.exercices || []).length, 3,
+             'les 3 exercices SURVIVENT \u2014 la fusion garde la version la plus fournie, '
+           + 'pas celle de l’instance qui ecrit');
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total + ' — Mesure garde';
+      return vider();
+    });
+  }
+  jouer();
+})();
+</script></body></html>
