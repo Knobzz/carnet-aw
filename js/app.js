@@ -3,7 +3,7 @@
   'use strict';
   var h = A.ui.h;
 
-  window.APP_VERSION = '1.81.0';
+  window.APP_VERSION = '1.82.0';
 
   var ONGLETS = [
     { id: 'seance',     nom: 'Séance',    icone: 'M7 7v10M17 7v10M7 12h10M3 9.5v5M21 9.5v5' },
@@ -55,7 +55,11 @@
     var msg = A.store.panne();
     if (!msg) { if (alerteN) { alerteN.remove(); alerteN = null; } return; }
     if (!alerteN) {
-      alerteN = h('div', { class: 'alerte', role: 'alert' }, h('strong', { text: 'Enregistrement' }), h('span'));
+      /* LES DEUX CLASSES : `alerte` pour l'apparence, `bandeau-panne`
+         pour le role — celui qui doit rester visible quoi qu'il arrive.
+         L'avertissement de la feuille d'import, lui, ne prend que la
+         premiere et reste dans son flux. */
+      alerteN = h('div', { class: 'alerte bandeau-panne', role: 'alert' }, h('strong', { text: 'Enregistrement' }), h('span'));
       hote.parentNode.insertBefore(alerteN, hote);
     }
     alerteN.lastChild.textContent = msg;

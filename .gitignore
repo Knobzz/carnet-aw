@@ -22,3 +22,7 @@ __pycache__/
 # le reste est propre a la machine.
 .claude/*
 !.claude/launch.json
+
+# arbres antérieurs montés pour jouer une chute — jamais commités
+_mesure_avant/
+_avant_*/

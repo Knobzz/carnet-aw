@@ -15,6 +15,53 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.82.0
+
+**Dit ce que « Remplacer » efface vraiment.** À l'import, le bouton rouge
+annonçait « effacer N séance(s) ». Il effaçait en réalité **tout** : les
+équipements, le catalogue, les fiches de ton dictionnaire, les pesées, les
+relevés de douleur, les routines de récup. L'écran les nomme maintenant un par
+un, chiffrés des deux côtés (« 3 équipements → 0 »), **avant** que tu choisisses.
+L'avertissement paraît dès qu'il y a quelque chose à perdre, et plus seulement
+quand une séance d'ici est plus récente.
+
+**Un carnet illisible n'est plus écrasé tout seul.** Si les données enregistrées
+deviennent illisibles — une écriture coupée par le téléphone, par exemple —
+l'app l'affichait, puis la première bascule vers une autre application écrivait
+un carnet vide par-dessus. Le texte d'origine, souvent réparable, disparaissait
+sans que personne ait rien demandé. Il est désormais **conservé à part**, et une
+écriture que tu n'as pas demandée ne peut plus remplacer un carnet par du vide.
+
+**Un import raté ne laisse plus un carnet fantôme.** Quand le stockage refusait
+d'écrire, l'écran disait « rien n'a été remplacé » tout en affichant déjà le
+nouveau carnet. Il revient maintenant à ce qui est réellement enregistré.
+
+**Le rappel d'export ne recule plus** quand tu fusionnes une sauvegarde qui a
+été exportée plus récemment que ce carnet.
+
+## 1.81.0
+
+**La sauvegarde de secours ne recule plus.** Elle ne refusait que le carnet
+complètement vide — un carnet *appauvri* (une séance vidée de ses exercices)
+la remplaçait donc, dans l'enregistrement même qui abîmait le carnet. Elle
+garde maintenant la version la plus fournie.
+
+**« Enregistré » ne se dit plus sans avoir regardé.** Quand le stockage
+refusait, l'écran annonçait quand même « Séance enregistrée ». Il dit
+maintenant ce qui s'est passé, et le bandeau d'alerte reste visible même quand
+on fait défiler la page.
+
+**Le fichier de sauvegarde automatique ne se laisse plus remplacer par un
+carnet vide**, et le texte de « Tout effacer » dit enfin qu'il survit.
+
+## 1.80.0
+
+**Deux carnets ouverts en même temps ne s'effacent plus l'un l'autre.** Une
+page laissée ouverte avant tes saisies, réveillée puis repassée en
+arrière-plan, écrivait sa mémoire périmée par-dessus. Les deux côtés sont
+maintenant fusionnés : rien ne disparaît, et à identité égale c'est la version
+la plus fournie qui est gardée.
+
 ## 1.79.0
 
 **Ajoute le geste « Développé nuque »** sous *Développé militaire*. La barre

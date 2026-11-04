@@ -68,6 +68,22 @@
          hoiste le rendait indefini au debut de ce gestionnaire. */
       var fraicheur = A.store.compareFraicheur(brut);
 
+      /* CE QUE LE REMPLACEMENT EMPORTE, NOMME FAMILLE PAR FAMILLE.
+
+         Le libelle ne chiffrait que les seances alors que `normaliser`
+         reconstruit tout. Les familles viennent du store, qui les lit
+         dans `vide()` — pas d'une liste recopiee ici, qui se
+         desynchroniserait a la premiere cle ajoutee. */
+      var pertes = A.store.pertesDuRemplacement(brut);
+      /* Le « s » se pose apres le PREMIER mot : « fiches du dictionnaire »,
+         pas « fiche du dictionnaires ». */
+      function pluriel(n, nom) {
+        if (n <= 1) return n + ' ' + nom;
+        var i = nom.indexOf(' ');
+        return n + ' ' + (i < 0 ? nom + 's' : nom.slice(0, i) + 's' + nom.slice(i));
+      }
+      var detail = pertes.map(function (p) { return pluriel(p.ici, p.nom); }).join(', ');
+
       /* Remplacer est previsible mais destructeur. Fusionner garde les deux
          cotes. Les deux restent offerts — mais la fusion vient en premier, et
          le remplacement dit CE QU'IL EFFACE, chiffre, avant d'etre choisi. */
@@ -94,7 +110,13 @@
             }
             A.ui.toast(dit);
           } },
-        { nom: 'Remplacer — effacer ' + e.seances.length + ' séance(s) d’ici',
+        /* LA PORTEE, PAS LA LISTE. Le libelle disait « effacer N
+           seance(s) d'ici » et `normaliser` reconstruit tout : ce qui
+           manquait etait la PORTEE. La liste, elle, vit dans l'alerte
+           juste au-dessus — mesure du rendu, 04/11 : la mettre ici aussi
+           donnait un bouton de 95 px sur trois lignes qui repetait
+           l'alerte mot pour mot. */
+        { nom: 'Remplacer — effacer TOUT ce qui est ici',
           classe: 'bt-danger', action: function () {
             A.ui.feuille(fraicheur.courantPlusRecent
               ? 'Ce carnet a du plus récent que la sauvegarde'
@@ -115,17 +137,49 @@
       ];
 
       var titre = 'Sauvegarde : ' + resume;
-      if (fraicheur.courantPlusRecent) {
-        titre = 'Attention — ce carnet est plus récent';
-        options.unshift(null);
-      }
+      /* UNE PERTE QUI N'EST PAS UNE SEANCE EST UNE PERTE QUAND MEME.
+
+         L'avertissement ne tenait qu'aux dates de seances : un carnet
+         riche en equipements, fiches et pesees, sans seance plus
+         recente, n'en recevait aucun — et remplacer les emportait tous.
+         Mesure du 04/11. */
+      /* DES QU'IL Y A QUELQUE CHOSE A PERDRE, ON LE DIT.
+
+         La condition etait « une seance plus recente, ou une perte
+         nette ». C'est l'alerte qui porte le detail maintenant, donc elle
+         doit paraitre chaque fois que ce carnet contient quelque chose —
+         sinon le detail n'existe nulle part. Sur un carnet vide, rien ne
+         s'affiche : il n'y a rien a perdre. */
+      var alerter = pertes.length > 0;
+      if (fraicheur.courantPlusRecent) titre = 'Attention — ce carnet est plus récent';
+      else if (fraicheur.perdDuContenu) titre = 'Attention — remplacer perdrait du contenu';
+      if (alerter) options.unshift(null);
       A.ui.feuille(titre, options);
-      if (fraicheur.courantPlusRecent) {
+      if (alerter) {
         var f = document.querySelector('.popo-feuille');
-        if (f) f.insertBefore(h('div', { class: 'alerte',
-          text: 'Ici : séances jusqu’au ' + A.m.dateCourte(fraicheur.courant)
-              + '. Dans la sauvegarde : jusqu’au ' + (fraicheur.importe ? A.m.dateCourte(fraicheur.importe) : 'aucune')
-              + '. Remplacer perdrait ce qui est plus récent.' }), f.children[1]);
+        var dit = '';
+        if (fraicheur.courantPlusRecent) {
+          dit = 'Ici : séances jusqu’au ' + A.m.dateCourte(fraicheur.courant)
+              + '. Dans la sauvegarde : jusqu’au '
+              + (fraicheur.importe ? A.m.dateCourte(fraicheur.importe) : 'aucune') + '. ';
+        }
+        /* ON NOMME CE QUI NE REVIENDRA PAS, chiffre des deux cotes : « 3
+           équipements → 0 » ne se lit pas comme « 3 → 3 ». */
+        if (fraicheur.pertesNettes && fraicheur.pertesNettes.length) {
+          dit += 'Remplacer perdrait : '
+               + fraicheur.pertesNettes.map(function (p) {
+                   return pluriel(p.ici, p.nom) + ' → ' + p.reste;
+                 }).join(', ') + '. ';
+        } else {
+          /* AUCUNE PERTE NETTE N'EST PAS « AUCUNE PERTE » : le remplacement
+             efface bien tout ce qui est ici, la sauvegarde se trouve juste
+             en remettre autant. On le dit, chiffre, plutot que de se taire
+             et de laisser croire que le bouton rouge ne touche rien. */
+          dit += 'Remplacer efface tout ce qui est ici (' + detail
+               + ') et remet ce que porte la sauvegarde. ';
+        }
+        dit += 'Fusionner ne perd rien.';
+        if (f) f.insertBefore(h('div', { class: 'alerte', text: dit }), f.children[1]);
       }
     };
     fr.readAsText(fichier);

@@ -1033,14 +1033,16 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
    qu'on croit ici. Le controle, lui, lisait `position` : une DECLARATION,
    pas un EFFET. Il est passe au vert sur un bandeau qui disparaissait.
    Il mesure maintenant le rectangle apres un vrai defilement. */
+/* L'AVERTISSEMENT DANS SON FLUX — c'est son role d'origine.
+
+   Il a ete `fixed` pendant une version, parce que le bandeau de panne
+   porte la meme classe et qu'il, LUI, doit flotter. Mesure a l'ecran le
+   04/11, cadre de 390 px : l'avertissement de la feuille d'import
+   s'affichait alors tout en haut, a 450 px du bouton rouge qu'il
+   qualifie, par-dessus l'ecran Reglages. Aucune epreuve ne le disait —
+   elles lisaient `position`, et `position` etait bien celle demandee.
+   Le flottement appartient maintenant a `.bandeau-panne`, et a lui seul. */
 .alerte {
-  position: fixed;
-  top: calc(8px + env(safe-area-inset-top));
-  left: 12px;
-  right: 12px;
-  max-width: 400px;
-  margin: 0 auto;
-  z-index: 201;
   background: var(--tendon-doux);
   border: 1px solid var(--tendon);
   color: var(--tendon);
@@ -1050,6 +1052,23 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   margin-bottom: 10px;
 }
 .alerte strong { display: block; }
+
+/* LE BANDEAU DE PANNE, ET LUI SEUL, EST ARRACHE AU FLUX.
+
+   Il annonce que le carnet n'a PAS ete enregistre : un panneau ouvert ou
+   six crans de molette ne doivent pas l'emporter. Mesure du 03/11 : en
+   `static` il partait a -256 px, et le toast disait « enregistre »
+   par-dessus. `sticky` ne suffisait pas — il se declarait bien, et il
+   disparaissait quand meme. */
+.bandeau-panne {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  max-width: 400px;
+  margin: 0 auto 10px;
+  z-index: 201;
+}
 
 /* ---------- toast ---------- */
 

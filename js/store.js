@@ -53,6 +53,9 @@
      pareil. `carnet-aw-filet` garde son nom tel quel — le changer perdrait
      le double deja pose chez MB. */
   var CLE_FILET = (CLE === 'carnet-aw-v1') ? 'carnet-aw-filet' : CLE + '-filet';
+  /* LA MISE DE COTE D'UN CARNET ILLISIBLE. Elle se deduit comme le filet :
+     un carnet, sa quarantaine, jamais de melange entre le reel et un banc. */
+  var CLE_QUARANTAINE = CLE + '-illisible';
   var VERSION_DONNEES = 1;
 
   function vide() {
@@ -230,6 +233,21 @@
          `try`, apres un `normaliser` reussi, et pas dans le `catch`. */
       poserFilet();
     } catch (e) {
+      /* LE BRUT ILLISIBLE EST MIS DE COTE, et c'est la seule chance qui
+         reste.
+
+         Un JSON tronque — une ecriture interrompue par un telephone qui
+         tue l'onglet — est souvent reparable : il manque une accolade. Le
+         message disait « Rien n'a ete efface », et c'etait vrai A CET
+         INSTANT ; la mesure du 04/11 a montre que le premier `pagehide`
+         le rendait faux. On copie donc la chaine AVANT tout, et la copie
+         ne s'ecrase jamais elle-meme : une seconde lecture ratee ne doit
+         pas remplacer le brut d'origine par ce qui l'a suivi. */
+      try {
+        if (!window.localStorage.getItem(CLE_QUARANTAINE)) {
+          window.localStorage.setItem(CLE_QUARANTAINE, brut);
+        }
+      } catch (e2) { /* plus de place : on ne fait pas echouer la lecture */ }
       signaler("Les données enregistrées sont illisibles. Rien n'a été effacé : "
              + "exporte une sauvegarde depuis Réglages avant toute nouvelle saisie.");
       etat = vide();
@@ -610,7 +628,42 @@
     } catch (e) { return null; }
   }
 
-  function ecrire() {
+  /* `voulu` = CE GESTE VIENT DE L'UTILISATEUR.
+
+     Seuls `vider()`, `remplacer()` et `poserChrono()` le passent. Les
+     ecritures de fond — les 400 ms d'une saisie, le `pagehide`, le
+     `visibilitychange` — ne le passent pas, et c'est ce qui permet a la
+     garde ci-dessous de les distinguer. Un geste explicite peut tout
+     effacer ; une ecriture de fond, non. */
+  function ecrire(voulu) {
+    /* ---- UN VIDE QUE PERSONNE N'A DEMANDE N'ECRASE PAS UN CARNET ----
+
+       C'est la garde du filet, appliquee au carnet lui-meme, et elle
+       manquait precisement la ou elle compte le plus : quand `charger()`
+       a echoue, `etat` est vide et le disque porte encore tout.
+
+       MESURE DU 04/11 : la cle portait un JSON tronque ; un seul
+       `pagehide` — ce qu'un telephone fait tout seul en basculant vers
+       une autre app — la remplaçait par un etat vide. La chaine brute,
+       seule trace reparable, disparaissait, et le bandeau « Rien n'a ete
+       efface » devenait muet au moment exact ou tout venait d'etre
+       efface.
+
+       CE N'EST PAS UN SEUIL : zero d'un cote, du contenu de l'autre. Un
+       « Tout effacer » voulu passe quand meme — `vider()` retire la cle
+       AVANT d'ecrire, et il passe `voulu`. */
+    if (!voulu && !substance(etat)) {
+      var brutLa = null;
+      try { brutLa = window.localStorage.getItem(CLE); } catch (e) {}
+      if (brutLa && brutLa.length > 2) {
+        /* ON NE TOUCHE PAS A `panne` : le message qui dit pourquoi le
+           carnet est illisible doit rester a l'ecran. C'est l'autre
+           moitie du defaut mesure — la garde sans le message laisserait
+           l'utilisateur devant un carnet vide sans explication. */
+        return false;
+      }
+    }
+
     /* ---- UNE AUTRE INSTANCE A-T-ELLE ECRIT DEPUIS NOTRE DERNIERE VUE ? ----
 
        C'est le bug de MB, reproduit le 04/11 : une instance ouverte AVANT
@@ -722,7 +775,9 @@
      il doit se retrouver au retour, pas disparaitre. */
   function poserChrono(finA, duree, libelle) {
     etat.chrono = finA ? { finA: finA, duree: duree || 0, libelle: libelle || '' } : null;
-    ecrire();
+    /* `voulu` : poser un repos est un geste, et il doit tenir meme sur un
+       carnet encore sans substance — la toute premiere seance. */
+    ecrire(true);
   }
 
   function chronoEnCours() {
@@ -734,12 +789,30 @@
   function vider() {
     etat = vide();
     try { window.localStorage.removeItem(CLE); } catch (e) {}
-    ecrire();
+    /* `voulu` : c'est le seul endroit ou ecrire un carnet vide est le geste
+       demande. La garde de `ecrire` ne doit pas bloquer un effacement que
+       l'utilisateur a confirme deux fois. */
+    ecrire(true);
   }
 
+  /* LA MEMOIRE NE CHANGE QUE SI L'ECRITURE A TENU.
+
+     Mesure du 04/11 : avec un stockage qui refuse, la memoire portait le
+     nouvel etat (1 seance, 0 equipement, 0 fiche) et le disque l'ancien
+     (2 seances) — et l'ecran annonçait « Rien n'a ete remplace en
+     memoire ». Le message etait faux, et l'ecran montrait un carnet qui
+     n'existait nulle part : ni en memoire durable, ni sur le disque.
+
+     On revient donc a l'etat d'avant, revision comprise : c'est celui que
+     le disque porte, et celui que l'utilisateur voyait. `restaurerFilet`
+     passe par ici, il est corrige du meme coup. */
   function remplacer(nouvelEtat) {
+    var avant = etat, avantRev = revConnue;
     etat = normaliser(nouvelEtat);
-    return ecrire();
+    if (ecrire(true)) return true;
+    etat = avant;
+    revConnue = avantRev;
+    return false;
   }
 
   /* Fusion d'une sauvegarde dans le carnet courant.
@@ -895,6 +968,35 @@
        une autre instance (ou dans une sauvegarde importee) etait perdue,
        alors que les JOURNEES de recup, elles, passaient par `seances`. La
        moitie, encore — piege n° 5. */
+    /* LE RAPPEL D'EXPORT NE RECULE PAS.
+
+       Mesure du 04/11 : une sauvegarde portant un export du 4 novembre
+       fusionnee dans un carnet dont le dernier export datait du
+       1er janvier laissait le rappel au 1er janvier. Conclusion : le
+       rappel reclame un export DEJA fait, et l'utilisateur apprend a ne
+       plus le lire.
+
+       LES TROIS AUTRES CHAMPS HORS FUSION RESTENT DEHORS, et la mesure
+       dit pourquoi :
+
+         `reglages` — « ce qui est sous les doigts fait foi » est la regle
+             ecrite de cette fusion. Un import ne doit pas changer le
+             theme de l'ecran qu'on regarde.
+         `chrono` — un repos en cours appartient a l'instance qui le vit.
+             Le rapporter ferait apparaitre un minuteur que personne n'a
+             lance ici.
+         `seanceEnCoursId` — la seance elle-meme fusionne (mesure : 3
+             seances sur 3). Seul le pointeur ne passe pas, et la seance
+             se retrouve dans le Journal au lieu d'etre « en cours » :
+             rien n'est perdu. Le rapporter ouvrirait une seance que
+             l'utilisateur n'a pas commencee ici — plus couteux que le
+             defaut. */
+    if (entrant.dernierExport && entrant.dernierExport.le
+        && (!etat.dernierExport || !etat.dernierExport.le
+            || entrant.dernierExport.le > etat.dernierExport.le)) {
+      etat.dernierExport = entrant.dernierExport;
+    }
+
     if (!Array.isArray(etat.routinesRecup)) etat.routinesRecup = [];
     var vuesRoutines = parId(etat.routinesRecup);
     (entrant.routinesRecup || []).forEach(function (r) {
@@ -904,6 +1006,39 @@
     });
 
     return bilan;
+  }
+
+  /* CE QU'UN REMPLACEMENT EMPORTE, FAMILLE PAR FAMILLE.
+
+     Le bouton annonçait « effacer N seance(s) d'ici », et `remplacer`
+     passe par `normaliser`, qui reconstruit TOUT. Mesure du 04/11 : un
+     carnet de 2 seances, 3 equipements, 2 fiches de dictionnaire, 2
+     pesees et 1 routine de recup se vidait sur un libelle qui ne parlait
+     que des 2 seances.
+
+     LES FAMILLES SONT LUES DANS `vide()`, pas devinees — une cle inventee
+     rendrait zero sur un carnet plein, et l'ecran se tairait a nouveau.
+     On ne rend que les familles presentes ICI : annoncer « 0 pesee
+     perdue » a qui n'en a aucune serait du bruit.
+
+     `reste` dit ce que la sauvegarde remet en echange, pour que la perte
+     NETTE soit lisible : 3 equipements contre 0 n'est pas la meme chose
+     que 3 contre 3. */
+  function pertesDuRemplacement(brut) {
+    var e = normaliser(brut);
+    var familles = [['seances', 'séance'], ['programmes', 'programme'],
+                    ['outils', 'équipement'], ['exercices', 'exercice du catalogue'],
+                    ['dictionnairePerso', 'fiche du dictionnaire'],
+                    ['pesees', 'pesée'], ['releves', 'relevé'],
+                    ['routinesRecup', 'routine de récup']];
+    var out = [];
+    familles.forEach(function (f) {
+      var ici = Array.isArray(etat[f[0]]) ? etat[f[0]].length : 0;
+      if (!ici) return;
+      out.push({ cle: f[0], nom: f[1], ici: ici,
+                 reste: Array.isArray(e[f[0]]) ? e[f[0]].length : 0 });
+    });
+    return out;
   }
 
   /* De quand date la sauvegarde, et le carnet courant a-t-il du plus recent
@@ -916,8 +1051,20 @@
     }
     var ici = derniere(etat.seances);
     var la = derniere((brut && brut.seances) || []);
+    /* L'AVERTISSEMENT NE TENAIT QU'AUX DATES DE SEANCES.
+
+       Mesure du 04/11 : un carnet riche en equipements, fiches et pesees,
+       sans seance plus recente, ne declenchait AUCUN avertissement — et
+       remplacer les emportait tous. Une famille que la sauvegarde ne
+       remet pas est une perte nette, qu'il y ait une seance recente ou
+       non. */
+    var nettes = pertesDuRemplacement(brut).filter(function (p) {
+      return p.reste < p.ici;
+    });
     return { courant: ici, importe: la,
-             courantPlusRecent: !!(ici && (!la || ici > la)) };
+             courantPlusRecent: !!(ici && (!la || ici > la)),
+             pertesNettes: nettes,
+             perdDuContenu: nettes.length > 0 };
   }
 
   /* Un navigateur de telephone EVINCE le stockage d'un site quand la place
@@ -993,6 +1140,8 @@
     remplacer: remplacer,
     fusionner: fusionner,
     compareFraicheur: compareFraicheur,
+    pertesDuRemplacement: pertesDuRemplacement,
+    CLE_QUARANTAINE: CLE_QUARANTAINE,
     vide: vide,
     etat: function () { return etat; },
     panne: function () { return panne; },

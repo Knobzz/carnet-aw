@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — l'import et le carnet illisible</title>
+<!--
+  LES CINQ CONSTATS DE RANG MOYEN DE L'AUDIT DU 04/11.
+
+  Les trois de rang haut sont fermes (revue/epreuve-pertes-silencieuses.html,
+  1.81.0). Restaient cinq constats que plusieurs relectures avaient designes
+  et qu'AUCUNE mesure n'avait encore touches. Cette epreuve les mesure
+  AVANT tout correctif — c'est l'ordre, et c'est ce qui dit lesquels sont
+  reels.
+
+  M1  « REMPLACER » EFFACE PLUS QUE SON LIBELLE. Le bouton annonce
+      « effacer N seance(s) d'ici ». `remplacer()` passe par `normaliser()`,
+      qui reconstruit TOUT : equipements, catalogue, dictionnaire perso,
+      pesees, releves, routines de recup, programmes. Et l'avertissement de
+      fraicheur ne compare QUE les dates de seances : un carnet riche en
+      fiches et sans seance recente ne declenche rien.
+
+  M2  UN CARNET ILLISIBLE EST ECRASE SANS AUCUN GESTE. `charger()` tombe
+      dans son `catch`, pose `etat = vide()` et le DIT — puis le premier
+      `pagehide` ou `visibilitychange` ecrit ce vide par-dessus. La chaine
+      brute, seule trace recuperable d'un JSON tronque, disparait, et le
+      bandeau « Rien n'a ete efface » s'en va avec elle.
+
+  M3  UN REMPLACEMENT QUI ECHOUE LAISSE LA MEMOIRE FAUSSE. `remplacer()`
+      affecte `etat` AVANT de savoir si l'ecriture passe. L'ecran annonce
+      alors « Rien n'a ete remplace en memoire » — et c'est faux : la
+      memoire porte le nouvel etat, le disque l'ancien.
+
+  M4  CE QUE LA FUSION NE TOUCHE PAS (constat mesure, sans attente) :
+      `reglages`, `chrono`, `seanceEnCoursId`, `dernierExport`. Mesure
+      d'abord, decision ensuite — la gravite n'est pas supposee ici.
+
+  M5  LA PLACE OCCUPEE (constat mesure, sans attente) : le filet double
+      l'occupation, et rien n'avertit avant le plein. On compte avant de
+      proposer quoi que ce soit.
+
+  LA CHUTE, JOUEE SUR LE COMMIT 156d6de (arbre complet servi sous
+  _avant_1810/) : 11/22, onze controles tombent. LES ONZE QUI TIENNENT
+  SONT TOUS DES [temoin], chacun etiquete, aucun controle nu — c'est la
+  lecture par bloc, et c'est elle qui dit que l'epreuve mesure du neuf.
+
+  UNE DES CHUTES EST UN TEMOIN, et c'est normal : son DECOR est neuf.
+  « l'avertissement est bien dans la feuille » suppose qu'un avertissement
+  s'affiche — avant, il ne paraissait que si une seance d'ici etait plus
+  recente, et les deux carnets du decor portent la meme date. L'epreuve
+  compte donc 22 controles sur l'ancien code contre 23 sur le courant :
+  le controle de rectangle qui le suit n'y est jamais atteint.
+
+  ET LE RENDU A RATTRAPE L'EPREUVE, une fois de plus : le controle de
+  rectangle n'existait pas, l'avertissement s'affichait a 450 px de la
+  feuille qu'il explique, et rien ne le disait — `.alerte` servait deux
+  roles et je n'avais regarde que l'autre. Voir css/app.css.
+
+  CE QUI SE MESURE PAR EFFET, ET CE QUI NE LE PEUT PAS : M1 passe par le
+  VRAI ecran — l'entree de fichier de Reglages reçoit un `File` construit,
+  et c'est la FEUILLE RENDUE qu'on lit. M2 et M3 jouent sur de vraies
+  instances. M4 et M5 n'ont pas d'attente : ce sont des constats chiffres.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:420px;height:700px}
+ iframe{width:420px;height:700px;border:0}
+</style></head><body>
+<h1>L’import, et le carnet illisible</h1>
+<p class="pourquoi">Les cinq constats de rang moyen de l’audit du 4 novembre, mesurés avant tout correctif.</p>
+<p class="pourquoi" id="quoi">…</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  /* UN CAS QUI PLANTE EST UN ECHEC, PAS UN SILENCE. */
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+  var CLE_FILET = 'carnet-aw-bac-filet';
+  var CLE_QUAR = 'carnet-aw-bac-illisible';
+
+  /* QUELLE APP ON MESURE, ET L'ECRAN LE DIT.
+
+     Une chute ne se joue pas en remplaçant un fichier : le `?v=` sert
+     alors la reponse en cache et la mesure devient muette — paye le
+     04/11. Elle se joue en servant l'ARBRE COMPLET du commit d'avant,
+     dont les URL diffèrent.
+
+       git archive 156d6de | tar -x -C _avant_1810
+       .../epreuve-import-et-illisible.html?racine=../_avant_1810/
+
+     SON PROPRE DOSSIER, et ce n est pas un detail : _mesure_avant/
+     appartient a mesure-garde-desarmee.html, qui y attend la VRAIE
+     1.72.3. Y poser un autre arbre fait tomber ses deux temoins —
+     mesure du 04/11, et ce sont ses temoins qui l ont dit. */
+  var RACINE = (function () {
+    var m = /[?&]racine=([^&]+)/.exec(location.search);
+    return m ? decodeURIComponent(m[1]) : '../';
+  })();
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch(RACINE + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        /* ON MESURE LE DISQUE, PAS LE CACHE — voir mesure-garde-desarmee. */
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + RACINE + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 250);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        [CLE, CLE_FILET, CLE_QUAR].forEach(function (k) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+        ok();
+      }, 500);
+    });
+  }
+  function brutEnBase() {
+    try { return localStorage.getItem(CLE); } catch (e) { return null; }
+  }
+  function enBase() {
+    try { return JSON.parse(brutEnBase() || '{}'); } catch (e) { return {}; }
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  function seancePleine(id) {
+    return { id: id, type: 'muscu', date: '2026-11-04', heure: '', note: '', douleurs: [],
+             exercices: [{ id: 'e1', nom: 'Curl', series: [{ poids: 20, reps: 10 }] },
+                         { id: 'e2', nom: 'Pronation', series: [{ poids: 12, reps: 12 }] },
+                         { id: 'e3', nom: 'Side pressure', series: [{ poids: 15, reps: 8 }] }] };
+  }
+
+  /* UN CARNET COMME CELUI DE MB : pas que des seances. C'est tout l'objet
+     de M1 — ce que « Remplacer » emporte en plus de ce qu'il annonce. */
+  function carnetRiche(A) {
+    var e = A.App.store.vide();
+    e.seances = [seancePleine('m-a'), seancePleine('m-b')];
+    e.programmes = [{ id: 'pr1', nom: 'Bloc force', jours: [] }];
+    e.outils = [{ id: 'o1', nom: 'Poignee', slug: 'poignee', categorie: '' },
+                { id: 'o2', nom: 'Sangle', slug: 'sangle', categorie: '' },
+                { id: 'o3', nom: 'Table', slug: 'table', categorie: '' }];
+    e.exercices = [{ id: 'x1', nom: 'Curl marteau', slug: 'curl-marteau', categorie: '' },
+                   { id: 'x2', nom: 'Cupping', slug: 'cupping', categorie: '' }];
+    e.dictionnairePerso = [{ id: 'd1', nom: 'Mon crochet', texte: 'note' },
+                           { id: 'd2', nom: 'Ma pronation', texte: 'note' }];
+    e.pesees = [{ id: 'p1', date: '2026-10-01', poids: 80 },
+                { id: 'p2', date: '2026-11-01', poids: 81 }];
+    /* FORMAT LU DANS js/model.js:6096, pas devine : `normaliserReleves`
+       exige une `zone` et ecarte tout le reste en silence. Ma premiere
+       ecriture inventait `{exercice, valeur}` — la famille « releve »
+       disparaissait donc du decor, et l'epreuve mesurait mon ignorance du
+       format au lieu du produit. Piege n° 1, sur mon propre banc. */
+    e.releves = [{ id: 'r1', date: '2026-11-01', zone: 'coude',
+                   cote: 'droit', intensite: 3 }];
+    e.routinesRecup = [{ id: 'rr1', nom: 'Coudes', gestes: [] }];
+    return e;
+  }
+
+  function jouer() {
+    document.getElementById('quoi').textContent =
+      RACINE === '../' ? 'App mesurée : le code COURANT (' + RACINE + ').'
+                       : 'App mesurée : ' + RACINE + ' — c’est la CHUTE, jouée sur un arbre antérieur.';
+    var ch = Promise.resolve();
+
+    /* ========= M1 : « REMPLACER » DIT-IL TOUT CE QU'IL EFFACE ? ========= */
+    ch = ch.then(vider).then(function () {
+      cas('M1. « Remplacer » annonce-t-il tout ce qu’il emporte ?',
+          'Le bouton ne chiffre que les séances. `remplacer()` passe par `normaliser()`, '
+        + 'qui reconstruit TOUT : équipements, catalogue, dictionnaire perso, pesées, '
+        + 'relevés, routines de récup. Et l’avertissement de fraîcheur ne compare que les '
+        + 'dates de séances.\n'
+        + 'CE CAS PASSE PAR LE VRAI ÉCRAN : un `File` est posé sur l’entrée de fichier de '
+        + 'Réglages, et c’est la feuille RENDUE qu’on lit.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(carnetRiche(A));
+        return attendre(600);
+      }).then(function () {
+        var e = A.App.store.etat();
+        egal((e.seances || []).length + '/' + (e.outils || []).length + '/'
+           + (e.dictionnairePerso || []).length + '/' + (e.pesees || []).length,
+             '2/3/2/2',
+             '[temoin] le carnet porte bien 2 séances, 3 équipements, 2 fiches, 2 pesées');
+        A.App.app.aller('reglages');
+        return attendre(500);
+      }).then(function () {
+        var inp = A.document.querySelector('input[type=file]');
+        egal(inp ? 'présente' : 'absente', 'présente',
+             '[temoin] l’entrée de fichier est bien dans l’écran Réglages');
+        /* LA SAUVEGARDE IMPORTEE EST PAUVRE, et c'est le point : elle n'a
+           ni equipement, ni fiche, ni pesee. Les remplacer par elle les
+           efface tous. */
+        var sauv = JSON.stringify({ seances: [seancePleine('venue-dailleurs')],
+                                    programmes: [] });
+        var dt = new A.DataTransfer();
+        dt.items.add(new A.File([sauv], 'sauvegarde.json', { type: 'application/json' }));
+        inp.files = dt.files;
+        inp.dispatchEvent(new A.Event('change'));
+        return attendre(600);
+      }).then(function () {
+        var feuille = A.document.querySelector('.popo-feuille');
+        egal(feuille ? 'ouverte' : 'fermée', 'ouverte',
+             '[temoin] la feuille d’import s’ouvre bien');
+        var txt = (feuille ? feuille.textContent : '').replace(/\s+/g, ' ');
+        dit('ce que l’écran dit : ' + txt.slice(0, 260));
+        egal(/2 séance/.test(txt) ? 'dit' : 'tu', 'dit',
+             '[temoin] il annonce bien les 2 séances — c’est le seul chiffre qu’il donnait');
+        egal(/3 équipement|3 outil/.test(txt) ? 'dit' : 'tu', 'dit',
+             'il annonce AUSSI les 3 équipements, que `normaliser` emporte');
+        egal(/2 fiche/.test(txt) ? 'dit' : 'tu', 'dit',
+             'et les 2 fiches du dictionnaire perso');
+        egal(/2 pesée/.test(txt) ? 'dit' : 'tu', 'dit',
+             'et les 2 pesées');
+        egal(/routine|récup/i.test(txt) ? 'dit' : 'tu', 'dit',
+             'et la routine de récup');
+        /* LE RELEVE AUSSI, maintenant que le decor est au vrai format. */
+        egal(/1 relevé/.test(txt) ? 'dit' : 'tu', 'dit',
+             'et le relevé de douleur');
+
+        /* ET IL EST LA OU ON LE LIT. Le rendu, pas la declaration.
+
+           `.alerte` servait deux choses : le bandeau de panne, qui doit
+           flotter, et cet avertissement-ci, qui doit rester colle au
+           bouton rouge. Passer la classe en `position: fixed` pour le
+           premier a envoye le second tout en haut de l'ecran, a 450 px
+           de la feuille — vu dans le bac a sable le 04/11, et mesure par
+           AUCUNE epreuve : elles lisaient `position`, qui etait bien
+           celle demandee. On mesure donc le RECTANGLE. */
+        var al = feuille.querySelector('.alerte');
+        egal(al ? 'présent' : 'absent', 'présent',
+             '[temoin] l’avertissement est bien dans la feuille — sans lui rien à mesurer');
+        if (al) {
+          var ra = al.getBoundingClientRect(), rf = feuille.getBoundingClientRect();
+          dit('avertissement : haut ' + Math.round(ra.top) + ', feuille : haut '
+            + Math.round(rf.top) + ' — écart ' + Math.round(ra.top - rf.top) + ' px');
+          egal(ra.top >= rf.top - 2 && ra.bottom <= rf.bottom + 2 ? 'dedans' : 'détaché',
+               'dedans',
+               'et il est RENDU dans la feuille, collé au bouton qu’il qualifie');
+        }
+      });
+    }).catch(rattrape);
+
+    /* ===== M2 : UN CARNET ILLISIBLE SURVIT-IL A UN PAGEHIDE ? ===== */
+    ch = ch.then(vider).then(function () {
+      cas('M2. Un carnet illisible survit-il à un passage en arrière-plan ?',
+          '`charger()` tombe dans son `catch`, pose `etat = vide()` et affiche « Rien n’a été '
+        + 'effacé ». Puis le premier `pagehide` écrit ce vide par-dessus : la chaîne brute, '
+        + 'seule trace récupérable d’un JSON tronqué, disparaît sans aucun geste.\n'
+        + 'Il suffit de basculer vers une autre app — ce que fait un téléphone tout seul.');
+      /* UN JSON TRONQUE, la forme exacte d'une ecriture interrompue. */
+      var tronque = '{"seances":[{"id":"a","date":"2026-11-03","exercices":[{"id":"e1","nom":"Curl"';
+      try { localStorage.setItem(CLE, tronque); } catch (e) {}
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        return attendre(400);
+      }).then(function () {
+        egal(A.App.store.panne() ? 'dit' : 'muet', 'dit',
+             '[temoin] l’app dit bien que les données sont illisibles');
+        dit('message : ' + String(A.App.store.panne()).slice(0, 80));
+        egal(A.App.store.substance(A.App.store.etat()), 0,
+             '[temoin] et sa mémoire est vide — c’est la condition du cas');
+        /* LE GESTE QUE PERSONNE NE FAIT : le telephone bascule. */
+        A.dispatchEvent(new A.Event('pagehide'));
+        return attendre(400);
+      }).then(function () {
+        var b = brutEnBase();
+        dit('la clé porte maintenant : ' + String(b).slice(0, 90));
+        egal(b === tronque ? 'intacte' : 'réécrite', 'intacte',
+             'le carnet illisible n’est PAS écrasé par un vide que personne n’a demandé');
+        egal(String(localStorage.getItem(CLE_QUAR) || '').indexOf('"seances"') >= 0 ? 'gardé' : 'perdu',
+             'gardé',
+             'et le brut illisible est mis de côté, pour qu’il reste récupérable');
+        egal(A.App.store.panne() ? 'dit' : 'muet', 'dit',
+             'le bandeau « rien n’a été effacé » est toujours là, et il dit vrai');
+      });
+    }).catch(rattrape);
+
+    /* ===== M3 : UN REMPLACEMENT RATE LAISSE-T-IL LA MEMOIRE FAUSSE ? ===== */
+    ch = ch.then(vider).then(function () {
+      cas('M3. Un remplacement qui échoue laisse-t-il la mémoire fausse ?',
+          '`remplacer()` affecte `etat` AVANT de savoir si l’écriture passe. L’écran annonce '
+        + 'alors « Rien n’a été remplacé en mémoire » — et c’est faux : la mémoire porte le '
+        + 'nouvel état, le disque l’ancien. L’écran montre un carnet qui n’existe nulle part.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(carnetRiche(A));
+        return attendre(600);
+      }).then(function () {
+        egal((A.App.store.etat().seances || []).length, 2,
+             '[temoin] le carnet porte bien ses 2 séances avant qu’on casse l’écriture');
+        /* ON CASSE L'ECRITURE DANS CE CADRE SEULEMENT. */
+        A.Storage.prototype.setItem = function () {
+          var err = new Error('quota');
+          err.name = 'QuotaExceededError';
+          throw err;
+        };
+        var pauvre = A.App.store.vide();
+        pauvre.seances = [seancePleine('venue-dailleurs')];
+        var r = A.App.store.remplacer(pauvre);
+        egal(String(r), 'false', '[temoin] le remplacement annonce bien son échec');
+        return attendre(200);
+      }).then(function () {
+        var e = A.App.store.etat();
+        egal((e.seances || []).length, 2,
+             'la mémoire est revenue au carnet d’avant — l’écran ne montre plus un carnet fantôme');
+        egal((e.outils || []).length + '/' + (e.dictionnairePerso || []).length,
+             '3/2',
+             'et tout le reste avec : équipements et fiches sont toujours là');
+        egal((enBase().seances || []).length, 2,
+             '[temoin] le disque, lui, n’a jamais bougé');
+      });
+    }).catch(rattrape);
+
+    /* ===== M4 : CE QUE LA FUSION NE TOUCHE PAS (CONSTAT) ===== */
+    ch = ch.then(vider).then(function () {
+      cas('M4. Ce que la fusion ne touche pas — constat chiffré, sans attente',
+          'La fusion travaille sur des LISTES. `reglages`, `chrono`, `seanceEnCoursId` et '
+        + '`dernierExport` n’y entrent pas. On mesure ce que ça coûte AVANT de décider '
+        + 'quoi que ce soit — aucune attente ici, seulement des chiffres.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = carnetRiche(A);
+        e.dernierExport = { le: '2026-01-01T00:00:00.000Z', seances: 1 };
+        e.reglages.theme = 'sombre';
+        A.App.store.remplacer(e);
+        return attendre(600);
+      }).then(function () {
+        /* UNE AUTRE INSTANCE, PLUS AVANCEE SUR CES QUATRE CHAMPS. */
+        var venu = A.App.store.vide();
+        venu.seances = [seancePleine('venu')];
+        venu.dernierExport = { le: '2026-11-04T00:00:00.000Z', seances: 9 };
+        venu.seanceEnCoursId = 'venu';
+        venu.reglages.theme = 'clair';
+        venu.chrono = { finA: Date.now() + 60000, duree: 60, libelle: 'repos' };
+        var b = A.App.store.fusionner(venu);
+        dit('la fusion a ajouté ' + b.seancesAjoutees + ' séance(s) — le contenu passe bien');
+        var e = A.App.store.etat();
+        dit('dernierExport après fusion : ' + JSON.stringify(e.dernierExport)
+          + '  (le venu : 2026-11-04, 9 séances)');
+        dit('seanceEnCoursId : ' + JSON.stringify(e.seanceEnCoursId) + '  (le venu : "venu")');
+        dit('theme : ' + e.reglages.theme + '  (le venu : clair)');
+        dit('chrono : ' + JSON.stringify(e.chrono) + '  (le venu : un repos de 60 s)');
+        egal((e.seances || []).length, 3,
+             '[temoin] les séances, elles, fusionnent bien — c’est ce qui rend le constat lisible');
+      });
+    }).catch(rattrape);
+
+    /* ===== M5 : LA PLACE OCCUPEE (CONSTAT) ===== */
+    ch = ch.then(vider).then(function () {
+      cas('M5. La place occupée par le carnet et par son double — constat chiffré',
+          'Le filet double l’occupation, et rien n’avertit avant le plein. `ecrire()` sacrifie '
+        + 'déjà le filet quand le quota saute — le pire cas est donc tenu. Ce qui manque est '
+        + 'un avertissement AVANT. On compte d’abord : proposer un seuil sans l’avoir mesuré '
+        + 'serait un seuil de moi.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        /* UN CARNET DE LA TAILLE D'UNE ANNEE : 150 seances de 3 exercices. */
+        var e = A.App.store.vide();
+        for (var i = 0; i < 150; i++) {
+          var s = seancePleine('s' + i);
+          s.date = '2026-' + (1 + (i % 12) < 10 ? '0' : '') + (1 + (i % 12)) + '-'
+                 + (1 + (i % 28) < 10 ? '0' : '') + (1 + (i % 28));
+          e.seances.push(s);
+        }
+        A.App.store.remplacer(e);
+        return attendre(800);
+      }).then(function () {
+        var oc = (brutEnBase() || '').length;
+        var of = (localStorage.getItem(CLE_FILET) || '').length;
+        dit('150 séances de 3 exercices — carnet : ' + oc + ' octets, double : ' + of);
+        dit('les deux ensemble : ' + (oc + of) + ' octets, soit '
+          + ((oc + of) / 1048576 * 100).toFixed(2) + ' % d’un quota de 1 Mio, '
+          + ((oc + of) / 5242880 * 100).toFixed(2) + ' % d’un quota de 5 Mio');
+        dit('une année pleine de ce rythme pèse donc ~' + ((oc + of) / 1024).toFixed(0) + ' Kio');
+        egal(of > 0 ? 'posé' : 'absent', 'posé',
+             '[temoin] le double est bien posé — sans lui le compte ne voudrait rien dire');
+        return A.App.store.placeDisponible();
+      }).then(function (est) {
+        dit('ce que le navigateur annonce : ' + (est
+          ? (est.usage || 0) + ' octets utilisés sur ' + (est.quota || 0) + ' annoncés'
+          : 'rien (estimate indisponible)'));
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = bons + ' / ' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = bons + '/' + total + ' — import et illisible';
+    });
+  }
+
+  jouer();
+})();
+</script></body></html>
