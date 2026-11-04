@@ -15,6 +15,23 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.74.0
+
+**Le bouton d’export sait maintenant quand tu as exporté pour la dernière
+fois.** Juste au-dessus de lui, une ligne dit l’un ou l’autre :
+
+- « **Jamais exporté.** 12 séance(s) ne tiennent que sur cet appareil. »
+- « **Dernier export : il y a 6 jours.** 3 séance(s) saisie(s) depuis. »
+
+**Aucun seuil, et c’est voulu.** Le carnet ne te dira jamais « ça fait trop
+longtemps » : il faudrait un nombre de jours que personne n’a mesuré. Il
+affiche deux faits, tu décides. C’est la même règle que les remarques du
+Suivi.
+
+**Ce que ça enlève** : rien.
+
+---
+
 ## 1.73.0
 
 **La cause de la perte du 1ᵉʳ novembre est trouvée, et elle est fermée.**

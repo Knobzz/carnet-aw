@@ -183,6 +183,62 @@
     }
   });
 
+  /* ---------------------------------------------------------------
+     LE RAPPEL D'EXPORT — deux faits, et aucun seuil
+
+     MB, 04/11, apres avoir perdu six seances sans aucun export : « je veux
+     un rappel simple, comme un bouton, qui pense a exporter ». Le carnet
+     n'en gardait aucune trace — il ne pouvait rien rappeler, pas par
+     choix mais par ignorance.
+     --------------------------------------------------------------- */
+  bloc('Le rappel d’export', function (v) {
+    var ee = A.store.etatExport;
+    v.vrai(typeof ee === 'function', 'le carnet sait dire où en sont ses exports');
+
+    /* ---- RIEN D'EXPORTE : le zero qui a coute six seances ---- */
+    var e0 = A.store.vide();
+    e0.seances = [{ id: 'a' }, { id: 'b' }];
+    A.store.remplacer(e0);
+    var r0 = ee();
+    v.egal(r0.jamais, true,
+           'tant que rien n’a été exporté, le carnet le DIT — une date par '
+         + 'défaut ferait croire à un export qui n’a pas eu lieu');
+    v.egal(r0.depuis, 2, 'et les deux séances comptent comme non sauvegardées');
+
+    /* ---- APRES UN EXPORT : le compteur repart de zero ---- */
+    A.store.noterExport();
+    var r1 = ee();
+    v.egal(r1.jamais, false, 'après un export, le carnet le sait');
+    v.egal(r1.depuis, 0,
+           'et « depuis » retombe à zéro : il compte les séances AJOUTÉES, '
+         + 'pas le total — sinon il dirait « 2 depuis » juste après un export');
+    v.egal(r1.jours, 0, 'l’export vient d’avoir lieu : zéro jour');
+
+    /* ---- UNE SEANCE DE PLUS : le compteur avance d'UN ---- */
+    var e1 = A.store.etat();
+    e1.seances.push({ id: 'c' });
+    v.egal(ee().depuis, 1, 'une séance de plus, et « depuis » vaut 1');
+
+    /* ---- MOINS DE SEANCES QU'A L'EXPORT : jamais de negatif ----
+       On supprime deux seances apres un export de trois. Sans la garde,
+       le carnet afficherait « -2 séance(s) saisie(s) depuis ». */
+    var e2 = A.store.etat();
+    e2.seances = [{ id: 'a' }];
+    v.egal(ee().depuis, 0,
+           'supprimer des séances après un export ne donne JAMAIS un compte '
+         + 'négatif — « -2 séance(s) saisie(s) depuis » ne veut rien dire');
+
+    /* ---- IL TRAVERSE LA LISTE BLANCHE ----
+       `normaliser` est une liste blanche : une cle qu'elle ignore disparait
+       au premier rechargement. Sans ce controle, le rappel repartirait de
+       zero a chaque ouverture, EN SILENCE. */
+    var brut = JSON.parse(JSON.stringify(A.store.etat()));
+    A.store.remplacer(brut);
+    v.egal(ee().jamais, false,
+           'la trace du dernier export SURVIT à un cycle complet : sans ça, '
+         + 'le rappel repartirait de zéro à chaque ouverture, sans un mot');
+  });
+
   bloc('Le filet de sauvegarde', function (v) {
     var sub = A.store.substance;
     v.vrai(typeof sub === 'function',

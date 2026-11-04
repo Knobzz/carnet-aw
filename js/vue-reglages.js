@@ -27,6 +27,9 @@
       document.body.appendChild(a);
       a.click();
       setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
+      /* ON NOTE APRES LE TELECHARGEMENT, jamais avant : un export qu'on
+         croit fait est pire que pas d'export du tout. */
+      if (A.store.noterExport) A.store.noterExport();
       A.ui.toast('Sauvegarde exportée.');
     } catch (err) {
       A.ui.toast('Le navigateur a refusé le téléchargement.');
@@ -1216,6 +1219,39 @@
       text: 'Tout vit sur ce téléphone, dans le stockage du navigateur. Rien ne part sur un serveur. '
           + 'Un export régulier est le seul filet si tu changes d’appareil ou si tu effaces les données du site. '
           + 'À l’import, tu choisis : fusionner (rien n’est perdu) ou remplacer.' }));
+
+    /* --- LE BOUTON QUI SAIT QUAND TU AS EXPORTE ---
+
+       MB, 04/11 : « je veux un rappel simple, comme un bouton, qui pense a
+       exporter ». Il venait de perdre six seances sans aucun export, et le
+       carnet n'en gardait aucune trace — il ne pouvait donc rien rappeler.
+
+       AUCUN SEUIL : « ca fait trop longtemps » demanderait un nombre de
+       jours que personne n'a mesure. On affiche deux FAITS — jamais
+       exporte, ou la date et le nombre de seances saisies depuis — et MB
+       decide. C'est la meme regle que « Ta lacune » et que les remarques du
+       Suivi : un zero est un fait, un seuil serait de moi. */
+    var ex = A.store.etatExport ? A.store.etatExport() : null;
+    if (ex) {
+      var ligne = h('div', { class: 'item-resume', style: 'margin:0 2px 9px' });
+      if (ex.jamais) {
+        ligne.appendChild(h('b', { text: 'Jamais export\u00e9. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.seances
+            ? ex.seances + ' s\u00e9ance(s) ne tiennent que sur cet appareil.'
+            : 'Rien \u00e0 sauvegarder pour l\u2019instant.'));
+      } else {
+        var quand = ex.jours === null ? 'date illisible'
+                  : ex.jours === 0 ? 'aujourd\u2019hui'
+                  : ex.jours === 1 ? 'hier'
+                  : 'il y a ' + ex.jours + ' jours';
+        ligne.appendChild(h('b', { text: 'Dernier export : ' + quand + '. ' }));
+        ligne.appendChild(document.createTextNode(
+          ex.depuis ? ex.depuis + ' s\u00e9ance(s) saisie(s) depuis.'
+                    : 'Rien de neuf depuis.'));
+      }
+      hote.appendChild(ligne);
+    }
 
     var btExp = h('button', { class: 'bt bt-large', style: 'margin-bottom:8px', text: 'Exporter une sauvegarde (.json)' });
     btExp.addEventListener('click', exporter);

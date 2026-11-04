@@ -51,6 +51,15 @@
   function vide() {
     return {
       versionDonnees: VERSION_DONNEES,
+      /* LE DERNIER EXPORT — sa date, et ou en etait le carnet.
+
+         Le carnet n'en gardait aucune trace, donc il ne pouvait rien
+         rappeler : pas par choix, par ignorance. `seances` retient combien
+         il y en avait AU MOMENT de l'export, ce qui permet de dire
+         « N depuis » sans inventer de seuil. `null` tant que rien n'a ete
+         exporte — et ce zero-la est le fait le plus parlant. */
+      dernierExport: null,
+
       /* LA REVISION DE CET ETAT — qui l'a ecrit, et quand.
 
          Elle existe pour qu'une instance sache si une AUTRE a ecrit depuis
@@ -144,6 +153,13 @@
        la garde serait morte sans que rien ne le dise. C'est le piege deja
        paye par le dictionnaire perso et les pesees, le 28/10. */
     if (typeof brut.rev === 'string') d.rev = brut.rev;
+    /* IL TRAVERSE LA LISTE BLANCHE, sans quoi il disparaitrait au premier
+       rechargement et le rappel repartirait de zero a chaque ouverture —
+       le piege paye par le dictionnaire perso et les pesees le 28/10. */
+    if (brut.dernierExport && typeof brut.dernierExport === 'object') {
+      d.dernierExport = { le: String(brut.dernierExport.le || ''),
+                          seances: +brut.dernierExport.seances || 0 };
+    }
 
     if (brut.chrono && typeof brut.chrono === 'object'
         && typeof brut.chrono.finA === 'number' && isFinite(brut.chrono.finA)) {
@@ -277,6 +293,32 @@
   /* EFFACER LE DOUBLE POUR DE BON. Il survit a `vider()` — c'est son
      interet — donc « Tout effacer » ne tenait plus sa promesse. Qui prete
      ou revend son telephone doit pouvoir ne rien laisser. */
+  /* NOTER L'EXPORT. Appele par l'ecran APRES un telechargement reussi,
+     jamais avant : un export qu'on croit fait est pire que pas d'export. */
+  function noterExport() {
+    etat.dernierExport = { le: new Date().toISOString(),
+                           seances: (etat.seances || []).length };
+    return ecrire();
+  }
+
+  /* CE QU'IL Y A A DIRE SUR LES EXPORTS, en FAITS et sans seuil.
+
+     `jamais` : aucun export, et c'est le cas qui a coute six seances a MB.
+     `depuis` : combien de seances se sont ajoutees depuis le dernier. Un
+     nombre, pas un jugement — c'est MB qui decide si c'est beaucoup. */
+  function etatExport() {
+    var d = etat.dernierExport;
+    var n = (etat.seances || []).length;
+    if (!d || !d.le) return { jamais: true, seances: n, depuis: n, jours: null };
+    var jours = null;
+    try {
+      var t = new Date(d.le).getTime();
+      if (!isNaN(t)) jours = Math.floor((Date.now() - t) / 86400000);
+    } catch (e) {}
+    return { jamais: false, le: d.le, jours: jours, seances: n,
+             depuis: Math.max(0, n - (+d.seances || 0)) };
+  }
+
   function effacerFilet() {
     try { window.localStorage.removeItem(CLE_FILET); return true; }
     catch (e) { return false; }
@@ -617,6 +659,8 @@
     filet: filet,
     restaurerFilet: restaurerFilet,
     effacerFilet: effacerFilet,
+    noterExport: noterExport,
+    etatExport: etatExport,
     revConnue: function () { return revConnue; },
     revDuDisque: revDuDisque,
     VERSION_DONNEES: VERSION_DONNEES,
