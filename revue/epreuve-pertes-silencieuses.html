@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — les pertes silencieuses</title>
+<!--
+  LES TROIS DEFAUTS QUE L'AUDIT DU 04/11 A LAISSES OUVERTS.
+
+  Les quatre relectures de ce jour ont ferme la garde de conflit
+  (revue/mesure-garde-desarmee.html). Trois constats restaient, designes
+  par plusieurs relecteurs et jamais mesures :
+
+  F1  LE FILET EST UN MIROIR. `poserFilet` ne refuse que le ZERO exact.
+      Un carnet appauvri — une seance videe de ses exercices — a encore
+      de la « substance » (une seance = 1) et ecrase donc le double. La
+      seule copie de secours disparait dans l'ecriture meme qui abime le
+      carnet.
+
+  F2  L'ECHEC D'ECRITURE EST INVISIBLE. `sauver()` sans `immediat` rend
+      `true` sans rien avoir ecrit, les appelants ne regardent pas ce
+      retour, et le bandeau d'alerte vit dans le flux de la page : un
+      panneau ouvert le recouvre pendant que le toast dit « enregistre ».
+
+  F3  LE FICHIER AUTOMATIQUE N'A AUCUNE GARDE DE SUBSTANCE, la ou le
+      filet en a une. « Tout effacer » le remplace donc par un carnet
+      vide, et le texte de Reglages ne promet que la survie du filet.
+
+  LA CHUTE, JOUEE SUR LE COMMIT 41e1b58 : 6/16, dix controles tombent.
+
+  DEUX DES CHUTES SONT DES TEMOINS, et c'est normal : leur DECOR est neuf.
+  « le filet porte bien les 3 exercices » suppose qu'un filet existe en bac
+  a sable — avant, `poserFilet` sortait sur la cle et n'en posait aucun.
+  « la garde existe comme fonction » suppose `fichierPeutRecevoir`, qui
+  n'existait pas. Ces deux cas ne sont pas mesurables sur l'ancien code :
+  ils n'y mesuraient rien, ils n'y tenaient pas non plus. C'est ecrit ici
+  pour qu'on ne relise pas ces deux rouges comme des defauts.
+
+  CE QUE CETTE EPREUVE MESURE, ET CE QU'ELLE NE MESURE PAS : F1 et F2 se
+  jouent sur de VRAIES instances. F3 n'a pas de poignee de fichier sans
+  geste humain : sa garde est mesuree comme fonction pure, plus UN
+  controle de source — etiquete comme tel — qui verifie qu'elle est
+  bien appelee. Un controle de source dit la presence, jamais l'effet.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:420px;height:700px}
+ iframe{width:420px;height:700px;border:0}
+</style></head><body>
+<h1>Les pertes silencieuses</h1>
+<p class="pourquoi">Trois constats que l’audit du 4 novembre a laissés ouverts : le filet qui s’écrase lui-même, l’échec d’écriture qu’on ne voit pas, le fichier automatique sans garde.</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  /* UN CAS QUI PLANTE EST UN ECHEC, PAS UN SILENCE. */
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+  var CLE_FILET = 'carnet-aw-bac-filet';
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch('../index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        /* ON MESURE LE DISQUE, PAS LE CACHE — voir mesure-garde-desarmee. */
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="../">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 250);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        try { localStorage.removeItem(CLE); } catch (e) {}
+        try { localStorage.removeItem(CLE_FILET); } catch (e) {}
+        ok();
+      }, 500);
+    });
+  }
+  function enBase() {
+    try { return JSON.parse(localStorage.getItem(CLE) || '{}'); } catch (e) { return {}; }
+  }
+  function filetEnBase() {
+    try { return JSON.parse(localStorage.getItem(CLE_FILET) || 'null'); } catch (e) { return null; }
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  function seancePleine(id) {
+    return { id: id, type: 'muscu', date: '2026-11-04', heure: '', note: '', douleurs: [],
+             exercices: [{ id: 'e1', nom: 'Curl', series: [{ poids: 20, reps: 10 }] },
+                         { id: 'e2', nom: 'Pronation', series: [{ poids: 12, reps: 12 }] },
+                         { id: 'e3', nom: 'Side pressure', series: [{ poids: 15, reps: 8 }] }] };
+  }
+  function seanceVide(id) {
+    return { id: id, type: 'muscu', date: '2026-11-04', heure: '', note: '',
+             douleurs: [], exercices: [] };
+  }
+  function exosDuFilet() {
+    var f = filetEnBase();
+    var s = f && f.etat && (f.etat.seances || [])[0];
+    return s ? (s.exercices || []).length : -1;
+  }
+
+  function jouer() {
+    var ch = Promise.resolve();
+
+    /* ================= F1 : LE FILET EST-IL UN MIROIR ? ================= */
+    ch = ch.then(vider).then(function () {
+      cas('F1. Un carnet appauvri écrase-t-il le filet ?',
+          'La seule garde du filet est le ZERO exact. Une séance vidée de ses exercices '
+        + 'compte encore pour 1 de substance : le double est donc remplacé par la version '
+        + 'abimée, dans l’écriture même qui abime le carnet.\n'
+        + 'C’est la forme exacte du 1ᵉʳ novembre : les équipements tenaient, le contenu non.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.etat();
+        e.seances = [seancePleine('f1')];
+        e.outils = [{ id: 'o1', nom: 'Poignee', slug: 'poignee', categorie: '' }];
+        A.App.store.remplacer(e);
+        return attendre(700);
+      }).then(function () {
+        egal(exosDuFilet(), 3,
+             '[temoin] le filet porte bien les 3 exercices — sans ça le cas ne mesure rien');
+        /* LE CARNET S'APPAUVRIT : la seance reste, son contenu part. */
+        var e = A.App.store.etat();
+        e.seances = [seanceVide('f1')];
+        A.App.store.remplacer(e);
+        return attendre(700);
+      }).then(function () {
+        egal((enBase().seances || [])[0].exercices.length, 0,
+             '[temoin] le carnet est bien appauvri — c’est la condition du cas');
+        egal(A.App.store.substance(A.App.store.etat()) > 0 ? 'oui' : 'non', 'oui',
+             '[temoin] et sa substance reste NON NULLE : le zéro ne l’aurait pas attrapé');
+        egal(exosDuFilet(), 3,
+             'le filet garde la version la plus fournie — un carnet appauvri ne l’écrase pas');
+      });
+    }).catch(rattrape);
+
+    /* ============ F2 : L'ECHEC D'ECRITURE SE VOIT-IL ? ============ */
+    ch = ch.then(vider).then(function () {
+      cas('F2. Le stockage refuse d’écrire — le sait-on ?',
+          '`sauver()` sans `immediat` rend `true` sans avoir rien écrit, et aucun appelant ne '
+        + 'regarde ce retour. Le bandeau d’alerte vit dans le flux de la page : un panneau '
+        + 'ouvert le recouvre pendant que le toast annonce « enregistré ».');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.etat();
+        e.seances = [seancePleine('f2')];
+        A.App.store.remplacer(e);
+        return attendre(700);
+      }).then(function () {
+        egal((enBase().seances || []).length, 1, '[temoin] l’écriture marche AVANT qu’on la casse');
+        /* ON CASSE L'ECRITURE DANS CE CADRE SEULEMENT : chaque fenetre a
+           ses propres prototypes, la page parente n'est pas touchee. */
+        A.Storage.prototype.setItem = function () {
+          var err = new Error('quota');
+          err.name = 'QuotaExceededError';
+          throw err;
+        };
+        var r = A.App.store.sauver(true);
+        egal(String(r), 'false', 'une écriture refusée rend bien `false`');
+        return attendre(300);
+      }).then(function () {
+        egal(A.App.store.panne() ? 'dit' : 'muet', 'dit',
+             'la panne est annoncée, et non avalée');
+        dit('message : ' + String(A.App.store.panne()).slice(0, 70));
+        /* L'ECRITURE DIFFEREE DOIT DIRE NON ELLE AUSSI. C'est le chemin
+           reel d'une saisie : `sauver()` sans argument, toutes les 400 ms. */
+        var differe = A.App.store.sauver();
+        egal(String(differe), 'false',
+             'une écriture DIFFÉRÉE annonce aussi l’échec — c’est le chemin d’une saisie');
+        return attendre(300);
+      }).then(function () {
+        /* ET L'ALERTE DOIT ETRE VISIBLE PAR-DESSUS UN PANNEAU. */
+        var al = A.document.querySelector('.alerte');
+        egal(al ? 'affichee' : 'absente', 'affichee', 'le bandeau d’alerte est bien à l’écran');
+        if (!al) return;
+        var st = A.getComputedStyle(al);
+        /* ON MESURE L'EFFET, PAS LA DECLARATION.
+
+           Ce controle lisait `position` et se contentait de « sticky ». Le
+           style calcule disait bien « sticky », et le bandeau partait quand
+           meme — -256 px apres six crans de molette, vu a l'ecran. `sticky`
+           colle au conteneur de defilement le plus proche, qui n'etait pas
+           celui qu'on croyait. Un drapeau bien declare peut n'avoir aucun
+           effet : on fait donc defiler POUR DE VRAI et on regarde ou le
+           rectangle a atterri. */
+        /* LE CADRE DOIT POUVOIR DEFILER, SINON LA MESURE NE VAUT RIEN.
+
+           Premier jet : l'iframe fait 700 px et le contenu tenait dedans,
+           donc `scrollTo` ne bougeait pas d'un pixel et le bandeau restait
+           en haut par simple immobilite. Le temoin « la page a bien
+           defile » l'a dit tout de suite — 0 px. On retrecit le cadre pour
+           qu'il y ait vraiment de quoi defiler. */
+        A.frameElement.style.height = '240px';
+        A.scrollTo(0, 400);
+        return attendre(250).then(function () {
+          var r = al.getBoundingClientRect();
+          dit('apres defilement de ' + A.scrollY + ' px, haut du bandeau : ' + Math.round(r.top));
+          egal(A.scrollY > 0 ? 'a defile' : 'immobile', 'a defile',
+               '[temoin] la page a bien defile — sans ça le cas ne mesure rien');
+          egal(r.top >= -2 && r.top < 140 ? 'tenu' : 'parti (' + Math.round(r.top) + ' px)', 'tenu',
+               'le bandeau est TOUJOURS à l’écran après défilement — mesuré sur sa '
+             + 'position réelle, pas sur `position: …`');
+          A.scrollTo(0, 0);
+        }).then(function () {
+        var zAl = parseInt(st.zIndex, 10) || 0;
+        var zPan = 0;
+        Array.prototype.forEach.call(A.document.styleSheets, function (f) {
+          var r; try { r = f.cssRules; } catch (e) { return; }
+          Array.prototype.forEach.call(r || [], function (x) {
+            if (x.selectorText && /(^|,|\s)\.panneau(\s|,|$|\.|:)/.test(x.selectorText)
+                && x.style && x.style.zIndex) zPan = Math.max(zPan, parseInt(x.style.zIndex, 10) || 0);
+          });
+        });
+        dit('z-index : alerte ' + zAl + ' · panneau ' + zPan);
+        egal(zAl > zPan ? 'au-dessus' : 'dessous', 'au-dessus',
+             'et il passe AU-DESSUS d’un panneau ouvert — sinon il est caché pile quand on saisit');
+        });
+      });
+    }).catch(rattrape);
+
+    /* ============ F3 : LE FICHIER AUTOMATIQUE A-T-IL UNE GARDE ? ============ */
+    ch = ch.then(vider).then(function () {
+      cas('F3. Le fichier automatique refuse-t-il un carnet vide ?',
+          'Le filet a une garde du zéro, le fichier externe n’en avait aucune : « Tout effacer » '
+        + 'le remplaçait par un carnet vide, et le texte de Réglages ne promet que la survie '
+        + 'du filet.\nSans geste humain il n’y a pas de poignée de fichier : la garde est mesurée '
+        + 'comme fonction pure, plus un contrôle de SOURCE qui vérifie qu’elle est appelée.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var S = A.App.store;
+        egal(typeof S.fichierPeutRecevoir, 'function',
+             '[temoin] la garde existe comme fonction — sans elle rien n’est mesurable');
+        if (typeof S.fichierPeutRecevoir !== 'function') return;
+        egal(String(S.fichierPeutRecevoir(S.vide())), 'false',
+             'un carnet VIDE ne part pas dans le fichier');
+        var plein = S.vide();
+        plein.seances = [seancePleine('f3')];
+        egal(String(S.fichierPeutRecevoir(plein)), 'true',
+             '[temoin] et un carnet qui porte quelque chose y va bien — la garde ne bloque pas tout');
+        return fetch('../js/store.js?t=' + Date.now()).then(function (r) { return r.text(); });
+      }).then(function (src) {
+        if (!src) return;
+        /* [source] CE CONTROLE DIT LA PRESENCE, PAS L'EFFET. Une fonction
+           pure juste mais jamais appelee ne protegerait rien ; faute de
+           poignee, c'est la seule verification possible ici, et elle est
+           etiquetee pour qu'on ne la lise pas comme une preuve de rendu. */
+        egal(/if \(!fichierPeutRecevoir\(etat\)\)/.test(src) ? 'appelee' : 'JAMAIS appelee',
+             'appelee',
+             '[source] `ecrireFichier` appelle bien la garde — dit la présence, pas l’effet');
+      });
+    }).catch(rattrape);
+
+    /* ====== F4 : LES TOASTS CONTREDISENT-ILS ENCORE LE BANDEAU ? ====== */
+    ch = ch.then(function () {
+      cas('F4. « Enregistr\u00e9 » ne se dit plus sans avoir regard\u00e9',
+          'Le bandeau disait vrai, le toast disait le contraire, et c\u2019est le toast qu\u2019on voit. '
+        + 'Les deux annonces d\u2019enregistrement lisent maintenant le retour de `sauver`.\n'
+        + 'CE CAS MESURE LA SOURCE, pas le rendu : ces toasts vivent dans des closures de vue. '
+        + 'L\u2019effet, lui, est mesur\u00e9 en F2 sur une vraie instance.');
+      return Promise.all([
+        fetch('../js/vue-seance.js?t=' + Date.now()).then(function (r) { return r.text(); }),
+        fetch('../js/vue-reglages.js?t=' + Date.now()).then(function (r) { return r.text(); })
+      ]).then(function (src) {
+        var seance = src[0], reglages = src[1];
+        egal(/A\.ui\.toast\('S\u00e9ance enregistr\u00e9e/.test(seance) ? 'nu' : 'conditionne',
+             'conditionne',
+             '[source] la fin de s\u00e9ance n\u2019annonce plus rien sans condition');
+        egal(/var ecrit = A\.store\.sauver\(true\)/.test(seance) ? 'lu' : 'ignore', 'lu',
+             '[source] elle lit le retour de `sauver`');
+        egal(/var ecrit = A\.store\.sauver\(true\)/.test(reglages) ? 'lu' : 'ignore', 'lu',
+             '[source] la pes\u00e9e aussi');
+        egal(/fichier auto SURVIVENT/.test(reglages) ? 'dit' : 'tu', 'dit',
+             '[source] « Tout effacer » dit que le fichier auto survit, maintenant que c\u2019est vrai');
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = (bons === total ? '✓ ' : '✗ ') + bons + '/' + total
+                     + ' — Pertes silencieuses';
+      return vider();
+    });
+  }
+  jouer();
+})();
+</script></body></html>

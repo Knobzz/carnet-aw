@@ -42,10 +42,17 @@
      sauvegarde exportee — il la rend moins indispensable le jour ou on n'y
      a pas pense.
 
-     ELLE NE DEPEND PAS DE `CLE` : le filet n'appartient qu'au carnet reel.
-     Les bancs et le bac a sable n'en ecrivent aucun, sans quoi mesurer
-     ecraserait le filet — le meme defaut, un cran plus bas. */
-  var CLE_FILET = 'carnet-aw-filet';
+     ELLE SUIT `CLE`, ET LA REELLE NE BOUGE PAS. La premiere ecriture de
+     cette regle refusait tout filet hors du carnet reel, pour que mesurer
+     n'ecrase pas le vrai double. L'intention etait bonne, la conclusion
+     trop large : plus aucune epreuve ne pouvait voir le filet, et la seule
+     protection du carnet contre une perte n'etait couverte par rien. Trois
+     relectures ont trouve le meme jour qu'elle ne garde que du zero exact.
+
+     Le carnet reglait deja ce probleme en DERIVANT sa cle. Le filet fait
+     pareil. `carnet-aw-filet` garde son nom tel quel — le changer perdrait
+     le double deja pose chez MB. */
+  var CLE_FILET = (CLE === 'carnet-aw-v1') ? 'carnet-aw-filet' : CLE + '-filet';
   var VERSION_DONNEES = 1;
 
   function vide() {
@@ -237,6 +244,32 @@
      cours), `seanceEnCoursId` (un pointeur). Ce qui reste est ce qu'on
      pleure. Les noms sont LUS dans `vide()`, pas devines — un champ invente
      rendrait zero sur un carnet plein, et le filet ne se poserait jamais. */
+  /* COMPTER CE QU'UN ETAT PORTE VRAIMENT.
+
+     Un grain = une valeur non vide, comptee recursivement. Une seance a
+     trois exercices de deux series pese plus qu'une seance vide portant le
+     meme id — et `substance`, qui compte des LONGUEURS DE LISTES, ne voit
+     aucune difference entre les deux. C'est exactement par la que le filet
+     se faisait ecraser.
+
+     Ne pas l'inventer sous forme d'horodatage : une cle neuve absente de
+     `normaliser` disparait au rechargement. Les grains se mesurent sur ce
+     qui existe deja. */
+  function grains(x) {
+    if (x === null || x === undefined || x === '') return 0;
+    if (Array.isArray(x)) {
+      var n = 0;
+      x.forEach(function (y) { n += grains(y); });
+      return n;
+    }
+    if (typeof x === 'object') {
+      var n = 0;
+      Object.keys(x).forEach(function (k) { n += grains(x[k]); });
+      return n;
+    }
+    return 1;
+  }
+
   function substance(e) {
     if (!e || typeof e !== 'object') return 0;
     var n = 0;
@@ -257,8 +290,27 @@
      Son echec est AVALE : une saisie reussie ne doit pas echouer parce que
      son double n'a pas tenu. */
   function poserFilet() {
-    if (CLE !== 'carnet-aw-v1') return;      /* ni banc, ni bac a sable */
-    if (!substance(etat)) return;            /* LE ZERO, et rien d'autre */
+    /* PLUS DE SORTIE SUR LA CLE : chaque carnet a SON filet (voir
+       CLE_FILET). Mesurer le bac a sable n'approche pas le double reel. */
+    if (!substance(etat)) return;            /* le zero, d'abord */
+
+    /* ET LE FILET NE RECULE PAS.
+
+       Le zero seul ne suffisait pas : mesure du 04/11, une seance videe de
+       ses 3 exercices garde une substance de 1, et remplacait donc le
+       double par la version abimee — dans l'ecriture MEME qui abimait le
+       carnet. La seule copie de secours partait avec l'original.
+
+       CE N'EST PAS UN SEUIL, et c'est la reserve que portait la premiere
+       ecriture de cette garde : « si le nouveau est beaucoup plus petit »
+       aurait ete un seuil de moi. « Strictement moins fourni » est une
+       comparaison, du meme genre que le zero, en plus fin.
+
+       LE PRIX : apres une suppression voulue, le double reste a l'etat
+       d'avant jusqu'a ce que le carnet repasse au-dessus. C'est le role
+       d'une copie de secours — etre un peu en arriere, jamais devant. */
+    var ancien = filet();
+    if (ancien && ancien.etat && grains(etat) < grains(ancien.etat)) return;
     try {
       window.localStorage.setItem(CLE_FILET, JSON.stringify({
         le: new Date().toISOString(),
@@ -411,8 +463,22 @@
      tout cela arrive, et rien de tout cela ne doit empecher d'enregistrer
      une serie. C'est la lecon du filet, qui avait failli devenir la cause
      de ce qu'il previent. */
+  /* LE FICHIER EXTERNE MERITE LA MEME GARDE QUE LE FILET.
+
+     Il n'en avait AUCUNE : « Tout effacer » ecrivait le carnet vide par
+     -dessus, et le texte de Reglages ne promettait que la survie du filet.
+     Une seule copie, ecrasee sur place, sans retour arriere.
+
+     Fonction a part et PURE pour qu'une epreuve puisse la jouer : sans
+     geste humain il n'y a pas de poignee de fichier, donc pas d'autre
+     moyen de la mesurer. */
+  function fichierPeutRecevoir(e) {
+    return substance(e) > 0;
+  }
+
   function ecrireFichier(tout_de_suite) {
     if (!poigneeFichier) return Promise.resolve(false);
+    if (!fichierPeutRecevoir(etat)) return Promise.resolve(false);
     if (!tout_de_suite) {
       /* REGROUPEMENT LARGE : le carnet se sauve toutes les 400 ms pendant
          la saisie. Ecrire un fichier a ce rythme n'apporte rien et use le
@@ -634,11 +700,21 @@
   /* Écriture groupée : la saisie d'une série ne doit pas sérialiser tout l'état
      à chaque frappe. Au plus une écriture toutes les 400 ms, plus une écriture
      immédiate dès que la page passe en arrière-plan. */
+  /* UNE ECRITURE DIFFEREE NE PROMET PAS CE QU'ELLE IGNORE.
+
+     Elle rendait `true` sans rien avoir ecrit — et c'est le chemin REEL
+     d'une saisie : chaque serie validee appelle `sauver()` sans argument.
+     Quand la derniere ecriture a echoue (stockage plein, navigation
+     privee), rien ne le disait a l'appelant, et l'ecran annoncait
+     « enregistre » pendant que le carnet ne recevait rien.
+
+     On ne peut pas predire l'ecriture a venir ; on peut dire qu'une panne
+     est DEJA connue. C'est ce que fait ce retour. */
   function sauver(immediat) {
     if (minuteur) { clearTimeout(minuteur); minuteur = null; }
     if (immediat) return ecrire();
     minuteur = setTimeout(function () { minuteur = null; ecrire(); }, 400);
-    return true;
+    return !panne;
   }
 
   /* Le repos en cours est ecrit tout de suite : si le systeme tue la page
@@ -711,28 +787,6 @@
       var m = {};
       liste.forEach(function (x, i) { if (x && x.id) m[x.id] = i; });
       return m;
-    }
-
-    /* COMPTER CE QU'UN ELEMENT PORTE VRAIMENT.
-
-       Un grain = une valeur non vide, comptee recursivement. Une seance a
-       trois exercices de deux series pese plus qu'une seance vide portant
-       le meme id. C'est ce qui permet de trancher un conflit sans inventer
-       d'horodatage — et un horodatage neuf devrait etre relu par
-       `normaliser`, sans quoi il disparaitrait au rechargement. */
-    function grains(x) {
-      if (x === null || x === undefined || x === '') return 0;
-      if (Array.isArray(x)) {
-        var n = 0;
-        x.forEach(function (y) { n += grains(y); });
-        return n;
-      }
-      if (typeof x === 'object') {
-        var n = 0;
-        Object.keys(x).forEach(function (k) { n += grains(x[k]); });
-        return n;
-      }
-      return 1;
     }
 
     /* A ID EGAL, LA VERSION LA PLUS FOURNIE GAGNE.
@@ -912,6 +966,8 @@
     CLE: CLE,
     CLE_FILET: CLE_FILET,
     substance: substance,
+    grains: grains,
+    fichierPeutRecevoir: fichierPeutRecevoir,
     filet: filet,
     restaurerFilet: restaurerFilet,
     effacerFilet: effacerFilet,

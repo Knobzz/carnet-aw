@@ -1055,11 +1055,15 @@
       }
       var quand = champDatePoids.value || A.m.aujourdHui();
       A.m.poserPesee(e, quand, kg);
-      A.store.sauver(true);
+      var ecrit = A.store.sauver(true);
       champPoids.value = '';
       rendrePesees();
-      A.ui.toast('Pesée du ' + A.m.dateCourte(quand) + ' enregistrée. Elle ne '
-               + 'change aucun tonnage.');
+      /* MEME REGLE QU'EN FIN DE SEANCE : on lit ce que l'ecriture a rendu
+         avant d'annoncer quoi que ce soit. */
+      A.ui.toast(ecrit
+        ? 'Pesée du ' + A.m.dateCourte(quand) + ' enregistrée. Elle ne '
+          + 'change aucun tonnage.'
+        : 'Pesée PAS enregistrée : ' + (A.store.panne() || 'le stockage a refusé') + '.');
     }
     btPeser.addEventListener('click', enregistrerPesee);
     /* Entrée valide : sur un téléphone, viser le bouton après avoir tapé
@@ -1580,16 +1584,16 @@
        l'etait plus, et une protection muette se croit absente : c'est le
        defaut que MB a deja paye une fois. */
     hote.appendChild(h('div', { class: 'item-resume', style: 'margin:-3px 2px 9px',
-      text: 'Supprime programmes, séances et catalogue. La sauvegarde de '
-          + 'secours, elle, SURVIT : tu pourras revenir en arrière juste '
-          + 'au-dessus. Exporte quand même avant.' }));
+      text: 'Supprime programmes, séances et catalogue. Le double de '
+          + 'secours ET le fichier auto SURVIVENT : tu pourras revenir en '
+          + 'arrière juste au-dessus. Exporte quand même avant.' }));
     hote.appendChild(A.ui.confirmer2(
       h('button', { class: 'bt bt-large bt-danger', text: 'Effacer toutes les données' }),
       'Appuyer encore pour tout effacer',
       function () {
         A.store.vider();
         A.app.appliquerTheme();
-        A.ui.toast('Carnet remis à zéro. La sauvegarde de secours reste.');
+        A.ui.toast('Carnet remis à zéro. Le double et le fichier auto restent.');
         A.app.aller('programmes');
       }));
 

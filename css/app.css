@@ -1015,7 +1015,32 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
 
 /* ---------- bandeau d'alerte persistance ---------- */
 
+/* LE BANDEAU D'ENREGISTREMENT DOIT SE VOIR, SINON IL NE SERT A RIEN.
+
+   Il etait dans le flux (`static`, sans z-index) : il partait des qu'on
+   faisait defiler, et le panneau plein ecran (z-index 80) le recouvrait —
+   donc il etait cache exactement pendant qu'on saisit une seance, le seul
+   moment ou il a quelque chose a dire. Pendant ce temps le toast, lui,
+   annonçait « enregistre ».
+
+   201 passe au-dessus de tout ce que porte cette feuille : panneau 80,
+   toast 70, barre 60.
+
+   FIXE, ET PAS `sticky` : la premiere ecriture posait `position: sticky`,
+   le style calcule rendait bien « sticky », et le bandeau partait quand
+   meme — mesure a l'ecran, -256 px apres six crans de molette. `sticky`
+   colle au conteneur de defilement le plus proche, qui n'est pas celui
+   qu'on croit ici. Le controle, lui, lisait `position` : une DECLARATION,
+   pas un EFFET. Il est passe au vert sur un bandeau qui disparaissait.
+   Il mesure maintenant le rectangle apres un vrai defilement. */
 .alerte {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+  z-index: 201;
   background: var(--tendon-doux);
   border: 1px solid var(--tendon);
   color: var(--tendon);

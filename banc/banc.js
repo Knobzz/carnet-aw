@@ -610,14 +610,27 @@
     v.egal(sub(plein), 6,
            'et ils s’additionnent : 2 séances + 1 exercice + 3 pesées = 6');
 
-    /* LE FILET N'APPARTIENT PAS AU BANC, et c'est ce qui l'empeche d'etre
-       ecrase en mesurant. Le defaut du 22/10 etait exactement celui-la, un
-       cran plus haut : une page de test qui ecrit sous la cle du carnet. */
+    /* LE FILET DU BANC N'EST PAS CELUI DU CARNET, et c'est ce qui empeche
+       de l'ecraser en mesurant. Le defaut du 22/10 etait exactement
+       celui-la, un cran plus haut : une page de test qui ecrit sous la cle
+       du carnet.
+
+       CE CONTROLE EXIGEAIT LE NOM LITTERAL `carnet-aw-filet`, y compris
+       DEPUIS LE BANC. Il tenait parce que `poserFilet` sortait alors sur la
+       cle et n'ecrivait jamais ici — mais il figeait une valeur, pas un
+       effet, et il interdisait de rendre le filet mesurable. Le 04/11, le
+       filet s'est mis a suivre `CLE` comme le carnet le fait deja ; ce qu'il
+       faut verifier est plus fort qu'avant : d'ici, on ne doit PAS pouvoir
+       nommer le double reel. */
     v.vrai(A.store.CLE_FILET !== A.store.CLE,
            'le double ne vit pas sous la clé de ce banc : mesurer ne peut '
          + 'pas l’écraser');
-    v.egal(A.store.CLE_FILET, 'carnet-aw-filet',
-           'et il porte son propre nom, hors des clés de l’app');
+    v.vrai(A.store.CLE_FILET !== 'carnet-aw-filet',
+           'et il ne porte PAS le nom du double réel : depuis ce banc, le '
+         + 'filet du carnet est hors d’atteinte');
+    v.egal(A.store.CLE_FILET, A.store.CLE + '-filet',
+           'il se déduit de la clé du carnet — un carnet, un double, jamais '
+         + 'de mélange');
     /* L'EFFET, pas la declaration : apres tout ce bloc, le banc n'a pose
        aucun double. `poserFilet` sort sur `CLE !== 'carnet-aw-v1'`. */
     var dejaLa = null;

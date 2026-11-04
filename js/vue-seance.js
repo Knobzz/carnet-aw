@@ -615,8 +615,19 @@
         etat().seanceEnCoursId = null;
         A.ui.chrono.arreter();
         A.ui.garderEcranAllume(false);
-        A.store.sauver(true);
-        A.ui.toast('Séance enregistrée dans le journal.');
+        /* ON REGARDE CE QUE L'ECRITURE A RENDU.
+
+           Le toast annonçait « enregistree » sans jamais lire ce retour :
+           stockage plein ou bloque, la seance s'affichait quand meme dans
+           le Journal — elle vient de la MEMOIRE — et rien ne disait qu'elle
+           n'existait nulle part. On va au Journal dans les deux cas : la
+           seance est bien la sous les yeux. Ce qui change, c'est qu'on dit
+           la verite sur ce qui est ecrit. */
+        var ecrit = A.store.sauver(true);
+        A.ui.toast(ecrit
+          ? 'Séance enregistrée dans le journal.'
+          : 'PAS enregistrée : ' + (A.store.panne() || 'le stockage a refusé')
+            + '. Exporte avant de fermer l’app.');
         A.app.aller('journal');
       };
       if (v.seriesFaites < v.series) {
