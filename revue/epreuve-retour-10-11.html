@@ -567,6 +567,24 @@
              'et le geste dit en quoi il diff\u00e8re de la d\u00e9viation radiale de sa fiche');
         egal(g && (g.source || '').length > 40 ? 'sourc\u00e9' : 'sans source', 'sourc\u00e9',
              'il cite ses sources, comme les 38 autres');
+
+        /* ---- R10 : L'ECRAN NE DIT PLUS « CE QUE CA CHANGE » ----
+
+           MB, 10/11 : « trop de blabla [...] synthetise ». Mesure :
+           40 gestes, 15 013 caracteres, dont 3 637 pour ce bloc (24 %).
+           Le champ RESTE dans les donnees ; c'est l'AFFICHAGE qui part.
+
+           ET LA NUANCE SURVIT : elle ne tenait que la, et sans elle
+           l'ecran laisserait croire que le lift est la deviation
+           radiale de sa fiche. Elle est passee dans le texte du geste. */
+        egal(g && (g.change || '').length > 0 ? 'gardé' : 'perdu', 'gardé',
+             '[temoin] le champ `change` reste dans les données — il revient d’une ligne');
+        egal(g && /biceps/i.test(g.faire || '') ? 'dans le geste' : 'absente',
+             'dans le geste',
+             'et la nuance est passée dans le texte du geste');
+        egal(g && (g.faire || '').length < 320 ? 'concis' : (g.faire || '').length + ' car.',
+             'concis',
+             'qui reste court — 375 caractères est la moyenne des 40 gestes');
       });
     }).catch(rattrape);
 

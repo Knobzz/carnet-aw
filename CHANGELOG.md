@@ -15,6 +15,16 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.86.0
+
+**Les explications des gestes sont plus courtes.** Le bloc « Ce que ça change »
+ne s'affiche plus : l'essentiel tient dans le texte du geste, et ce qui y
+était n'est pas perdu — il peut revenir. Les deux lifts à la ceinture, livrés
+en 1.85.0, étaient les plus longs des quarante : ils sont revenus dans la
+moyenne.
+
+---
+
 ## 1.85.0
 
 **Le matériel de salle n'entre plus dans ton équipement.** Une poulie, un banc,

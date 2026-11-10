@@ -456,12 +456,20 @@
           style: 'margin:7px 2px;line-height:1.45;white-space:normal' });
         p.appendChild(h('div', { class: 'remarque-titre', text: 'Le geste' }));
         p.appendChild(h('div', { text: xp.faire }));
-        if (xp.change) {
-          p.appendChild(h('div', { class: 'remarque-titre',
-                                   style: 'margin-top:5px',
-                                   text: 'Ce que ça change' }));
-          p.appendChild(h('div', { text: xp.change }));
-        }
+        /* PLUS DE BLOC « CE QUE CA CHANGE » — MB, 10/11 : « trop de
+           blabla [...] la ya trop d'info, synthetise ».
+
+           MESURE : 40 gestes, 15 013 caracteres d'explication. Ce bloc
+           en portait 3 637, soit 24 % de ce qu'on lit. Il reste DANS LES
+           DONNEES (`g.change`), donc il revient en decommentant ces
+           lignes — les 40 phrases ne sont pas perdues, elles ne sont
+           plus affichees.
+
+           CE QU'ON PERD, ET IL FAUT LE SAVOIR : la phrase qui disait en
+           quoi un geste differe de sa fiche. Quand cette nuance est le
+           SEUL moyen de ne pas confondre deux mouvements, elle passe
+           desormais dans le texte du geste lui-meme. */
+        /* if (xp.change) { ... } — retire le 10/11, voir ci-dessus. */
         if (xp.source) {
           p.appendChild(h('div', { style: 'margin-top:4px;opacity:.65;'
             + 'font-style:italic', text: xp.source }));

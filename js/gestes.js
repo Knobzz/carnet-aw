@@ -1304,18 +1304,25 @@
          anglaises ; MB dit « rising lift ». Les deux mènent ici. */
       aussi: ['Riser lift', 'Rising lift', 'Belt riser lift',
               'Rising à la ceinture de judo'],
-      faire: 'Accroupi ou assis, coude calé contre le genou comme un curl '
-           + 'concentration, bras à 90°. Une ceinture de judo passe SUR '
-           + 'l’articulation du dessus des doigts, lestée à l’autre bout. '
-           + 'On monte en tournant les phalanges vers le haut.',
+      /* COURT, ET LA NUANCE DEDANS. Premiere ecriture : 862 caracteres,
+         le plus long des 40 gestes, contre 375 de moyenne — c'est cet
+         ecran que MB a vu en disant « trop d'info ».
+
+         LA NUANCE RESTE, parce qu'elle est le seul moyen de ne pas
+         confondre deux mouvements : la fiche « Rising » est une
+         deviation radiale du poignet, ce lift-ci est biceps + pronation.
+         Elle tenait dans « Ce que ca change », qui ne s'affiche plus. */
+      faire: 'Coude calé contre le genou, bras à 90°, une ceinture lestée '
+           + 'passant SUR le dessus des doigts. On monte en tournant les '
+           + 'phalanges vers le haut — biceps et pronation, pas la '
+           + 'déviation radiale de la fiche.',
       change: 'Ce n’est PAS la déviation radiale de la fiche : les sources '
             + 'décrivent un effort de biceps et de pronation, le coude '
             + 'fixé, et non une inclinaison du poignet vers le pouce. '
             + 'C’est le geste qui sert à rester au-dessus de l’adversaire.',
-      garde: 'La source conseille d’ajouter environ 2 kg toutes les deux '
-           + 'semaines, et pas davantage, pour limiter le risque. Aucune '
-           + 'source primaire de Devon Larratt n’a été trouvée : la '
-           + 'position vient de guides spécialisés, pas de lui.',
+      garde: 'Ajouter environ 2 kg toutes les deux semaines, pas plus. '
+           + 'Aucune source primaire de Devon Larratt : la position vient '
+           + 'de guides spécialisés.',
       source: 'Grip Gladiators (position et montée) ; Gegns Gym (sangle sur '
             + 'l’articulation du dessus) ; Golden Grip (ceinture de judo + '
             + 'pin de charge) ; Armwrestling World (« rising is bicep driven »)'
@@ -1325,17 +1332,17 @@
       nom: 'Pronation lift à la ceinture',
       aussi: ['Pronation lift', 'Belt pronation lift',
               'Pronation à la ceinture de judo'],
-      faire: 'Même position que le rising lift — accroupi ou assis, coude '
-           + 'contre le genou, bras à 90° — mais la ceinture fait le tour '
-           + 'de l’EXTÉRIEUR de la main, côté petit doigt. On tourne '
+      /* MEME REGLE QUE LE RISING LIFT : court, et ce qui les separe
+         dedans — c'est l'endroit ou passe la sangle, pas la position. */
+      faire: 'Même position que le rising lift, mais la ceinture fait le '
+           + 'tour de l’EXTÉRIEUR de la main, côté petit doigt. On tourne '
            + 'l’avant-bras contre la charge.',
       change: 'C’est le point d’application qui sépare les deux lifts, pas '
             + 'la position du corps : sur l’articulation du dessus, la '
             + 'charge demande de monter ; autour du petit doigt, elle '
             + 'demande de tourner.',
-      garde: 'Même progression prudente que le rising lift. Et le couple '
-           + 'est plus long qu’à la poulie : commencer bien plus léger que '
-           + 'ce qu’on tire debout.',
+      garde: 'Même progression que le rising lift, et plus léger encore : '
+           + 'le bras de levier est plus long qu’à la poulie.',
       source: 'Gegns Gym (sangle autour de l’extérieur de la main, côté '
             + 'petit doigt) ; Grip Gladiators (position du coude au genou) ; '
             + 'Golden Grip (ceinture de judo + pin de charge)'
