@@ -569,8 +569,19 @@
     {
       id: 'deviation-radiale',
       nom: 'Rising',
+      /* LES CINQ DERNIERES PORTENT LE GESTE DU 10/11 — « Rising lift a la
+         ceinture », demande par MB. Un geste n'est cherchable que s'il est
+         AUSSI une ecriture de sa fiche : c'est la regle que « Spider curl »
+         et « Developpe nuque » suivent deja.
+
+         ATTENTION A LA NUANCE, elle est dans le geste : cette fiche-ci est
+         une DEVIATION RADIALE, et le lift de Larratt est decrit par ses
+         sources comme biceps + pronation. Ce n'est pas le meme mouvement,
+         et l'etage 2 le dit. */
       aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation',
-              'Cable rising', 'Rising à la poulie'],
+              'Cable rising', 'Rising à la poulie',
+              'Rising lift à la ceinture', 'Riser lift', 'Rising lift', 'Belt riser lift',
+              'Rising à la ceinture de judo'],
       geste: 'Le poignet penche vers le pouce, sans se plier ni se tendre.',
       muscles: [
         m('fcr', 'deduit', S.fcr, null,
@@ -645,8 +656,18 @@
     {
       id: 'pronation',
       nom: 'Pronation',
+      /* LES QUATRE DERNIERES PORTENT LE GESTE DU 10/11 — « Pronation
+         lift a la ceinture », meme regle que « Rising » plus haut :
+         un geste n'est cherchable que s'il est aussi une ecriture.
+
+         Ici la fiche et le lift travaillent bien la MEME chose — la
+         pronation — et ce qui change est le point d'application :
+         la sangle fait le tour de l'exterieur de la main, cote petit
+         doigt, au lieu de tirer a la poulie. */
       aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie',
-              'Cable pronation'],
+              'Cable pronation',
+              'Pronation lift à la ceinture', 'Pronation lift', 'Belt pronation lift',
+              'Pronation à la ceinture de judo'],
       geste: 'L’avant-bras tourne : la paume va vers le bas.',
       muscles: [
         m('rond_pronateur', 'moteur', S.pt, C.pt),

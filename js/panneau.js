@@ -329,6 +329,27 @@
          geste — le défaut déjà payé sur les colonnes, puis sur la
          recherche. */
       function prendre(it) {
+        /* LES ETAGES SUIVENT CE QU'ON VIENT DE CHOISIR — correctif du
+           10/11, et il ferme DEUX constats de MB d'un coup.
+
+           L'autocompletion pose `champ.value` sans emettre `input`
+           (js/ui.js), et cet evenement est le seul qui tenait
+           `ficheOuverte` a jour. Selon ce qu'on avait tape avant, il
+           restait donc `null` — aucun etage, donc pas d'acces au
+           Materiel — ou PERIME : l'ecran montrait les gestes de la
+           fiche precedente sous le nom d'une autre.
+
+           Mesure du 10/11 : champ « Wrist curl cote petit doigt », qui
+           n'a AUCUN geste, et l'ecran affichait encore « Wrist curl
+           derriere le dos ».
+
+           C'est ici que ca se repare, et pas dans `ui.js` : ce
+           `prendre` est deja « ce qu'on fait d'un exercice choisi, par
+           quelque chemin que ce soit ». Le reparer dans
+           l'autocompletion aurait touche aussi le champ des outils, qui
+           n'a pas d'etages. */
+        majFicheOuverte(it.nom || champNom.value);
+
         /* Une entrée du dictionnaire ne remplit QUE les muscles — décision
            de MB, 2026-10-23. Le type de charge, le côté, la prise et les
            outils restent ce qu'ils étaient : on ne décide rien à sa place,
@@ -336,6 +357,9 @@
         if (it.duDictionnaire) {
           exo.muscles = A.m.muscles(it);
           rafraichirMuscles();
+          /* LE RENDU, PAS SEULEMENT L'ETAT : `majFicheOuverte` change ce
+             que l'ecran DOIT montrer, il ne le montre pas. */
+          rendreVariantes();
           return;
         }
         /* Reprendre un nom connu reprend ses attributs : on ne les resaisit pas. */
@@ -357,6 +381,10 @@
         if (selForces) rafraichirForces();
         rafraichirOutils();
         rafraichirStructures();
+        /* APRES `exo.outils`, ET C'EST POURQUOI CE N'EST PAS EN TETE :
+           cette branche REMPLACE les outils de l'exercice, et l'etage 3
+           les affiche. Redessiner avant aurait montre les precedents. */
+        rendreVariantes();
       }
 
       /* ---------- PARCOURIR LE DICTIONNAIRE ----------
@@ -410,30 +438,13 @@
          « faut trouver autre chose car on a machine.... ». Les trois
          objets sont Poulie, Elastique, Machine, et une poulie est une
          machine au sens courant. */
-      var MATERIEL = [
-        { cat: 'Barres', items: [{ nom: 'Barre' }, { nom: 'Barre EZ' },
-          { nom: 'Barre guidée' }, { nom: 'Landmine' }] },
-        { cat: 'Poids libres', items: [{ nom: 'Haltères' },
-          { nom: 'Kettlebell' }, { nom: 'Disque' }] },
-        { cat: 'Machines et élastiques', items: [
-          { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
-          { nom: 'Élastique' }, { nom: 'Machine' }] },
-        { cat: 'Appuis', items: [
-          { nom: 'Banc', reglages: ['plat', 'incliné 15°', 'incliné 30°',
-                                    'incliné 45°', 'décliné'] },
-          { nom: 'Pupitre' }, { nom: 'Chaise' }, { nom: 'Barre fixe' },
-          { nom: 'Au sol' }] },
-        { cat: 'Position du corps', items: [{ nom: 'Debout' },
-          { nom: 'Assis' }, { nom: 'Couché' }, { nom: 'À genoux' },
-          { nom: 'Unilatéral' }] }
-      ];
-      var TOUT_MATERIEL = {};
-      MATERIEL.forEach(function (g) {
-        g.items.forEach(function (it) { TOUT_MATERIEL[it.nom] = it; });
-      });
-      function estMateriel(nom) {
-        return !!TOUT_MATERIEL[String(nom).split(' · ')[0]];
-      }
+      /* LA TABLE VIT DANS LE MODELE DEPUIS LE 10/11, et cet ecran la
+         lit. Elle etait ici, dans cette closure : le versement au
+         catalogue ne pouvait donc pas distinguer le materiel de salle de
+         l'equipement, et tout entrait dans « Le mien ». Une seconde copie
+         aurait diverge a la premiere entree ajoutee. */
+      var MATERIEL = A.m.MATERIEL_SALLE;
+      var estMateriel = A.m.estMaterielDeSalle;
 
       /* L'ETAT D'OUVERTURE DES CATEGORIES SURVIT AU RE-RENDU, qui a lieu a
          chaque clic : sans lui, poser une puce refermait la categorie
@@ -456,6 +467,21 @@
             + 'font-style:italic', text: xp.source }));
         }
         return p;
+      }
+
+      /* QUELLE FICHE L'ECRAN REGARDE, d'apres ce que le champ porte.
+
+         Un seul endroit decide, et les trois chemins y passent : la
+         frappe, le dictionnaire, et l'autocompletion. Avant le 10/11 le
+         troisieme n'y passait pas, et `ficheOuverte` restait `null` ou
+         perime — les constats 2 et 5 de MB.
+
+         ELLE REND LE NOM DE BASE, jamais l'ecriture choisie : taper
+         « Cable wrist curl » doit ouvrir les gestes de « Wrist curl ».
+         C'est `ficheDictionnaire` qui le sait, pas moi. */
+      function majFicheOuverte(nom) {
+        var f = A.m.ficheDictionnaire(String(nom || '').trim(), etat());
+        ficheOuverte = (f && f.nom) || null;
       }
 
       function rendreVariantes() {
@@ -610,6 +636,39 @@
           zoneVariantes.appendChild(pm);
         }
 
+        /* ---- CE QU'ON CHOISIT LE PLUS, AVANT LES CATEGORIES ----
+
+           Idee de MB, 10/11. Mesure : 19 entrees, 2 atteignables sans
+           deplier — les 17 autres coutent deux clics et demandent de se
+           rappeler leur categorie. Ces puces-ci en coutent UN.
+
+           ELLES N'APPARAISSENT QUE S'IL Y A UN HISTORIQUE : sur un carnet
+           neuf, une section « le plus choisi » vide serait une promesse
+           non tenue, et elle pousserait les categories vers le bas pour
+           rien. */
+        var frequents = A.m.materielLePlusChoisi(etat(), 6, mat);
+        if (frequents.length) {
+          zoneVariantes.appendChild(h('div', { class: 'item-resume',
+            style: 'margin:8px 2px 3px;opacity:.75',
+            text: 'Le plus souvent choisi' }));
+          var pf = h('div', { class: 'puces' });
+          frequents.forEach(function (x) {
+            /* LE COMPTE EST DIT. Une liste « la plus choisie » dont on ne
+               voit pas les chiffres demande de croire sur parole, et deux
+               materiels a une seance paraitraient alors des habitudes. */
+            var b = h('button', { type: 'button', class: 'puce',
+              title: x.nom + ' \u2014 ' + x.fois + ' s\u00e9ance(s)' },
+              h('span', { text: x.nom }),
+              h('span', { class: 'puce-compte', text: ' ' + x.fois }));
+            b.addEventListener('click', function () {
+              exo.outils = (exo.outils || []).concat([x.nom]);
+              rendreVariantes();
+            });
+            pf.appendChild(b);
+          });
+          zoneVariantes.appendChild(pf);
+        }
+
         MATERIEL.forEach(function (g) {
           var dedans = g.items.filter(function (it) {
             return mat.some(function (x) { return x.split(' · ')[0] === it.nom; });
@@ -704,18 +763,47 @@
         rendreDico();
       }
 
+      /* LE DICTIONNAIRE CHERCHE PAR LUI-MEME — correctif du 10/11.
+
+         Il filtrait sur `champNom`, ce qui aide tant qu'on tape et
+         enferme des qu'un exercice est choisi : le champ porte alors un
+         nom complet, et le dictionnaire ne montrait plus qu'une ligne.
+         MB : « je suis stuck avec l'exo choisi ».
+
+         Meme motif que *Reglages > Le dictionnaire du carnet*, qui a son
+         champ a lui depuis la 1.57.0. Une seule facon de chercher dans le
+         dictionnaire, pas deux.
+
+         IL SURVIT AU RE-RENDU : `rendreDico` ne vide que la LISTE. Le
+         recreer a chaque frappe lui ferait perdre le focus au premier
+         caractere — et on ne pourrait toujours pas chercher. */
+      var champDico = h('input', { type: 'text', class: 'champ',
+        placeholder: 'Chercher dans le dictionnaire\u2026',
+        'aria-label': 'Chercher dans le dictionnaire' });
+      var listeDico = h('div');
+      /* IL NAIT CACHE. `rendreDico` le cache aussi, mais il n'est
+         appele qu'au clic sur le bouton : a la creation, le champ
+         restait visible sous l'etage 3, dictionnaire ferme. Vu a
+         l'ecran le 10/11 — aucune epreuve ne pouvait le dire, elles
+         ouvrent toutes le dictionnaire avant de regarder. */
+      champDico.hidden = true;
+      zoneDico.appendChild(champDico);
+      zoneDico.appendChild(listeDico);
+      champDico.addEventListener('input', function () { rendreDico(); });
+
       function rendreDico() {
-        A.ui.vider(zoneDico);
+        A.ui.vider(listeDico);
+        champDico.hidden = !dicoOuvert;
         if (!dicoOuvert) return;
-        var q = champNom.value.trim();
+        var q = champDico.value.trim();
         var groupes = A.m.fichesParGroupe(etat(), q);
         var lignes = groupes.reduce(function (n, g) { return n + g.fiches.length; }, 0);
         if (!lignes) {
-          zoneDico.appendChild(h('div', { class: 'item-resume',
+          listeDico.appendChild(h('div', { class: 'item-resume',
             text: 'Aucun mouvement ne correspond à « ' + q + ' ».' }));
           return;
         }
-        zoneDico.appendChild(h('div', { class: 'item-resume',
+        listeDico.appendChild(h('div', { class: 'item-resume',
           style: 'margin:6px 2px',
           text: (q ? lignes + ' mouvement(s) pour « ' + q + ' »'
                    : A.m.DICTIONNAIRE.length + ' mouvements')
@@ -762,37 +850,58 @@
             entete.setAttribute('aria-expanded', o ? 'false' : 'true');
             corps.hidden = o;
           });
-          zoneDico.appendChild(h('div', { class: 'carte dico-groupes' }, entete, corps));
+          listeDico.appendChild(h('div', { class: 'carte dico-groupes' }, entete, corps));
         });
       }
 
       btDico.addEventListener('click', function () {
         dicoOuvert = !dicoOuvert;
+        if (dicoOuvert) {
+          /* ON REPREND CE QUI EST TAPE SEULEMENT SI RIEN N'EST CHOISI.
+
+             On cherchait : le filtre continue le geste, c'est le confort
+             d'avant. Une fiche est deja reconnue : on vient voir AUTRE
+             CHOSE, et le champ s'ouvre vide. C'est tout le constat du
+             10/11. */
+          champDico.value = ficheOuverte ? '' : champNom.value.trim();
+        }
         libelleDico();
         rendreDico();
+        if (dicoOuvert) champDico.focus();
       });
       /* TAPER FILTRE CE QUI EST OUVERT, et n'ouvre rien tout seul : le
          bouton reste la seule porte. */
       champNom.addEventListener('input', function () {
-        if (dicoOuvert) rendreDico();
+        /* LE DICTIONNAIRE NE SUIT PLUS CE CHAMP : il a le sien. Le laisser
+           suivre reproduirait l'enfermement a la premiere frappe. */
         /* CE QU'ON TAPE DÉCIDE AUSSI DES VARIANTES. Taper le nom d'une
            fiche les ouvre sans passer par le dictionnaire ; taper autre
            chose les referme, sans quoi elles resteraient à proposer les
            variantes d'un mouvement qu'on a quitté. */
-        var f = A.m.ficheDictionnaire(champNom.value.trim(), etat());
-        var base = f && f.nom;
-        if (base !== ficheOuverte) { ficheOuverte = base || null; }
+        /* MEME REGLE QUE LES DEUX AUTRES CHEMINS : une seule ecriture.
+           Elle etait recopiee ici, et une troisieme fois plus bas. */
+        majFicheOuverte(champNom.value);
         rendreVariantes();
       });
       libelleDico();
+      /* LE DICTIONNAIRE S'OUVRE SOUS LE BOUTON QUI L'APPELLE.
+
+         MB, 10/11 : « tu me fais pop le dico en dessous de 3- materiel,
+         j'aimerai que ce soit plus smooth ». L'ordre etait `btDico`, puis
+         les etages 2 et 3, puis le dictionnaire : il s'ouvrait donc
+         apres tout le materiel, a plusieurs ecrans du bouton — et sur un
+         telephone, on ne voyait rien se passer.
+
+         Les etages passent dessous. Ils ne bougent pas quand le
+         dictionnaire est ferme, et quand il s'ouvre ils descendent : on
+         voit ce qu'on vient de demander, la ou on a appuye. */
       gNom.appendChild(btDico);
-      gNom.appendChild(zoneVariantes);
       gNom.appendChild(zoneDico);
+      gNom.appendChild(zoneVariantes);
       /* Le panneau peut s'ouvrir sur un exercice DÉJÀ nommé — quand on le
          modifie. Ses variantes doivent être là d'emblée. */
       (function () {
-        var f = A.m.ficheDictionnaire((champNom.value || '').trim(), etat());
-        ficheOuverte = (f && f.nom) || null;
+        majFicheOuverte(champNom.value);
         rendreVariantes();
       })();
 
@@ -1728,7 +1837,21 @@
          Le banc le cherchait par le mot « dictionnaire » et attrapait la
          LIGNE D'AUTOCOMPLETION, qui porte le jeton « mon dictionnaire » :
          deux controles mesuraient alors un element qui n'etait pas celui-la. */
-      var btDico = h('button', { type: 'button', class: 'bt bt-dico',
+      /* IL NE S'APPELLE PLUS `btDico`, ET C'EST UN CORRECTIF. 10/11.
+
+         Ce nom etait DEJA pris, 1 400 lignes plus haut, par le bouton
+         « Parcourir le dictionnaire ». Meme fonction, meme portee : le
+         `var` d'ici hoistait et gagnait partout, donc `libelleDico()`
+         ecrivait « Masquer le dictionnaire » sur CE bouton-ci — cache
+         la plupart du temps — pendant que le vrai gardait « Parcourir ▾ »
+         dictionnaire ouvert.
+
+         Trouve en comptant les boutons RENDUS, pas en relisant le
+         fichier : ni l'une ni l'autre declaration n'est fausse a sa
+         place, c'est leur coexistence qui l'est.
+
+         Le nom dit maintenant ce qu'il fait : il AJOUTE une fiche. */
+      var btAjoutDico = h('button', { type: 'button', class: 'bt bt-dico',
                                  style: 'margin-top:7px;width:100%' });
 
       function majAideMuscles() {
@@ -1780,7 +1903,7 @@
       function majBtDico(lesMuscles) {
         var nom = champNom.value.trim();
         var l = lesMuscles || A.m.muscles(exo);
-        if (!nom || !l.length) { btDico.hidden = true; return; }
+        if (!nom || !l.length) { btAjoutDico.hidden = true; return; }
 
         var mienne = A.m.dictionnairePerso(etat()).filter(function (f) {
           return A.m.slug(f.nom) === A.m.slug(nom);
@@ -1788,18 +1911,18 @@
         if (mienne) {
           var pareil = (mienne.muscles || []).slice().sort().join(',')
                      === l.slice().sort().join(',');
-          btDico.hidden = false;
-          btDico.disabled = pareil;
-          btDico.textContent = pareil
+          btAjoutDico.hidden = false;
+          btAjoutDico.disabled = pareil;
+          btAjoutDico.textContent = pareil
             ? 'Déjà dans ton dictionnaire'
             : 'Mettre à jour ta fiche (' + l.length + ' muscles)';
           return;
         }
-        if (A.m.ficheLivree(nom)) { btDico.hidden = true; return; }
+        if (A.m.ficheLivree(nom)) { btAjoutDico.hidden = true; return; }
 
-        btDico.hidden = false;
-        btDico.disabled = false;
-        btDico.textContent = 'Ajouter « ' + nom + ' » à ton dictionnaire';
+        btAjoutDico.hidden = false;
+        btAjoutDico.disabled = false;
+        btAjoutDico.textContent = 'Ajouter « ' + nom + ' » à ton dictionnaire';
       }
 
       function rafraichirMuscles() {
@@ -1830,7 +1953,7 @@
           : 'Proposé — à vérifier : les directions de poussée ne sont pas des actions articulaires.');
       });
 
-      btDico.addEventListener('click', function () {
+      btAjoutDico.addEventListener('click', function () {
         var nom = champNom.value.trim();
         var l = A.m.muscles(exo);
         if (!nom || !l.length) return;
@@ -1861,7 +1984,7 @@
       var grMuscles = A.ui.groupe('Muscles sollicités', ouCaTire);
       grMuscles.appendChild(boiteMuscles);
       grMuscles.appendChild(btProposer);
-      grMuscles.appendChild(btDico);
+      grMuscles.appendChild(btAjoutDico);
       grMuscles.appendChild(aideMuscles);
       c.appendChild(grMuscles);
 
@@ -1901,7 +2024,11 @@
         exo.nom = nom;
         exo.slug = A.m.slug(nom);
         exo.consigne = champConsigne.value;
-        (exo.outils || []).forEach(function (o) { A.m.majCatalogueOutils(etat(), o); });
+        /* MEME REGLE QU'AU MODELE : le materiel de salle reste sur la
+           seance et n'entre pas dans l'inventaire. MB, 10/11. */
+        (exo.outils || []).forEach(function (o) {
+          if (!A.m.estMaterielDeSalle(o)) A.m.majCatalogueOutils(etat(), o);
+        });
         if (!exo.structures) exo.structures = [];
         A.m.majCatalogue(etat(), exo);
         return true;

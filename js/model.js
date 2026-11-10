@@ -1314,7 +1314,16 @@
       muscles: ['rond_pronateur', 'ecrl', 'ecrb', 'ecu',
                 'extenseurs_doigts'] },
     { nom: 'Rising', groupe: 'avant_bras',
-      aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation', 'Cable rising', 'Rising à la poulie'],
+      /* LES QUATRE DERNIERES ECRITURES PORTENT LE GESTE DU 10/11.
+
+         Un geste n'est cherchable que s'il est AUSSI une ecriture de sa
+         fiche — c'est la regle que « Spider curl » et « Developpe nuque »
+         suivent deja. Mesure du 10/11 : sans elles, l'etage 2 montrait
+         bien « Rising lift a la ceinture » et taper son nom ne menait
+         nulle part. Aucun doublon a l'ecran : l'etage 2 lit `gestesDe`,
+         jamais `aussi`. */
+      aussi: ['Rising avec élastique', 'Déviation radiale', 'Inclinaison radiale', 'Radial deviation', 'Cable rising', 'Rising à la poulie',
+              'Rising lift à la ceinture', 'Riser lift', 'Rising lift', 'Belt riser lift', 'Rising à la ceinture de judo'],
       muscles: ['fcr', 'ecrl', 'ecrb'] },
     { nom: 'Déviation ulnaire', groupe: 'avant_bras',
       /* « CHOP » ENTRE LE 28/10 — MB : « on peut egalement un "Nom connu"
@@ -1343,7 +1352,10 @@
       aussi: ['Déviation ulnaire avec élastique', 'Chop', 'Cable Chop', 'Déviation cubitale', 'Inclinaison ulnaire', 'Ulnar deviation', 'Déviation ulnaire au cable', 'Déviation ulnaire à la poulie'],
       muscles: ['fcu', 'ecu'] },
     { nom: 'Pronation', groupe: 'avant_bras',
-      aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie', 'Cable pronation'],
+      /* MEME REGLE QUE « Rising » juste au-dessus : le geste du 10/11 est
+         aussi une ecriture, sans quoi son nom ne lirait rien. */
+      aussi: ['Pronation avec élastique', 'Poignée de pronation', 'Pronation à la poulie', 'Cable pronation',
+              'Pronation lift à la ceinture', 'Pronation lift', 'Belt pronation lift', 'Pronation à la ceinture de judo'],
       muscles: ['rond_pronateur', 'carre_pronateur'] },
     { nom: 'Supination', groupe: 'avant_bras',
       aussi: ['Supination à la poulie', 'Supination avec haltère', 'Supination avec élastique', 'Cable supination'],
@@ -3803,7 +3815,13 @@
       if (exo.reglages) e.reglages = reglagesDe(exo);
       e.vuLe = maintenant();
     }
-    (exo.outils || []).forEach(function (o) { majCatalogueOutils(etat, o); });
+    /* LE MATERIEL DE SALLE N'ENTRE PAS DANS L'INVENTAIRE — MB, 10/11.
+       Une barre ou un banc se trouve partout ; il n'appartient a
+       personne. L'equipement, lui, se possede, et c'est lui qui fait
+       « Le mien ». La seance garde les deux dans `exo.outils`. */
+    (exo.outils || []).forEach(function (o) {
+      if (!estMaterielDeSalle(o)) majCatalogueOutils(etat, o);
+    });
     return e;
   }
 
@@ -3973,6 +3991,107 @@
       if ((o.reglages || []).length) return o;
     }
     return null;
+  }
+
+  /* ---------- LE MATERIEL DE SALLE, ET POURQUOI IL EST A PART ----------
+
+     MB, 10/11 : « seuls les equipements par marques que je selectionne
+     peuvent s'y rajouter, les equipements dans 3- ne se rajoutent pas. »
+
+     `exo.outils` porte deux choses que rien ne distinguait au moment
+     d'alimenter le catalogue : le MATERIEL DE SALLE (une barre, une
+     poulie, un banc — ce qu'on trouve partout, qu'on ne possede pas) et
+     l'EQUIPEMENT de bras de fer (Fat Gripz, Iron Wrist — ce qu'on
+     possede, et qui fait l'inventaire).
+
+     CETTE TABLE VIVAIT DANS UNE CLOSURE DE `panneau.js`, donc ni le
+     modele ni le banc ne pouvaient s'en servir : le versement au
+     catalogue prenait tout. Elle est ici pour qu'il n'y ait qu'UN
+     mecanisme, et qu'il soit mesurable.
+
+     ELLE EST LA MEME QUE CELLE DE L'ECRAN — l'etage 3 la lit ici
+     desormais. Deux copies auraient diverge a la premiere entree
+     ajoutee, et le defaut ne se serait vu qu'a l'usage. */
+  var MATERIEL_SALLE = [
+    { cat: 'Barres', items: [{ nom: 'Barre' }, { nom: 'Barre EZ' },
+      { nom: 'Barre guidée' }, { nom: 'Landmine' }] },
+    { cat: 'Poids libres', items: [{ nom: 'Haltères' },
+      { nom: 'Kettlebell' }, { nom: 'Disque' }] },
+    { cat: 'Machines et élastiques', items: [
+      { nom: 'Poulie', reglages: ['haute', 'basse', 'vis-à-vis'] },
+      { nom: 'Élastique' }, { nom: 'Machine' }] },
+    { cat: 'Appuis', items: [
+      { nom: 'Banc', reglages: ['plat', 'incliné 15°', 'incliné 30°',
+                                'incliné 45°', 'décliné'] },
+      /* LA TABLE DE BRAS DE FER — demandee par MB le 10/11.
+
+         LE MOT ETAIT LIBRE, verifie avant de l'ecrire : aucune table dans
+         cette liste, aucune dans les 20 types d'`OUTILS_CONNUS`, aucune
+         dans les ecritures du dictionnaire. C'est la regle du doublon,
+         que MB a du rappeler quatre fois.
+
+         ELLE EST DU MATERIEL DE SALLE, pas de l'equipement : on
+         s'entraine dessus au club sans la posseder. Elle n'entre donc pas
+         dans « Le mien » — ce que MB a demande le matin meme.
+
+         PAS DE REGLAGE « debout / assis » : les deux sont deja dans
+         « Position du corps », et les repeter ici ferait le doublon
+         qu'on evite. */
+      { nom: 'Table de bras de fer' },
+      { nom: 'Pupitre' }, { nom: 'Chaise' }, { nom: 'Barre fixe' },
+      { nom: 'Au sol' }] },
+    { cat: 'Position du corps', items: [{ nom: 'Debout' },
+      { nom: 'Assis' }, { nom: 'Couché' }, { nom: 'À genoux' },
+      { nom: 'Unilatéral' }] }
+  ];
+  var _indexMateriel = {};
+  MATERIEL_SALLE.forEach(function (g) {
+    g.items.forEach(function (it) { _indexMateriel[it.nom] = it; });
+  });
+
+  /* UN NOM PORTE PARFOIS SON REGLAGE : « Poulie · basse », « Banc ·
+     incliné 30° ». C'est l'objet AVANT le « · » qui decide. */
+  function estMaterielDeSalle(nom) {
+    return !!_indexMateriel[String(nom).split(' · ')[0]];
+  }
+
+  /* LE MATERIEL LE PLUS CHOISI, compte sur les seances. Idee de MB,
+     10/11, et elle va avec le fait que ce materiel n'entre plus dans
+     l'inventaire : il fallait un autre endroit ou le retrouver.
+
+     LE REGLAGE COMPTE DANS L'IDENTITE — « Poulie · basse » et
+     « Poulie · haute » sont deux gestes differents, et c'est le nom
+     COMPLET qu'on repose d'un clic. Les confondre rendrait une
+     suggestion qu'il faudrait regler a la main, donc deux clics au lieu
+     d'un : l'inverse de ce qu'on cherche.
+
+     IL SE DERIVE, IL NE SE STOCKE PAS. Une cle neuve dans l'etat
+     disparaitrait au rechargement si `normaliser` ne la relisait pas
+     (piege du 28/10) ; ce compte-ci n'a rien a faire survivre, puisque
+     les seances portent deja la donnee.
+
+     `exclus` retire ce que l'exercice porte DEJA : le proposer serait du
+     bruit, il est affiche juste au-dessus comme « pose ». */
+  function materielLePlusChoisi(etat, combien, exclus) {
+    var compte = {}, vus = {};
+    (exclus || []).forEach(function (x) { vus[String(x)] = 1; });
+    ((etat && etat.seances) || []).forEach(function (se) {
+      (se.exercices || []).forEach(function (ex) {
+        (ex.outils || []).forEach(function (o) {
+          if (!estMaterielDeSalle(o)) return;
+          if (vus[String(o)]) return;
+          compte[o] = (compte[o] || 0) + 1;
+        });
+      });
+    });
+    return Object.keys(compte)
+      .sort(function (a, b) {
+        /* A egalite, l'ordre alphabetique : sans lui, deux materiels a
+           une seule seance changeraient de place d'un rendu a l'autre. */
+        return (compte[b] - compte[a]) || a.localeCompare(b);
+      })
+      .slice(0, combien || 6)
+      .map(function (nom) { return { nom: nom, fois: compte[nom] }; });
   }
 
   function majCatalogueOutils(etat, nom, categorie) {
@@ -7227,6 +7346,8 @@
     joursDepuis: joursDepuis, joursEntre: joursEntre, semaineDe: semaineDe,
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,
+    MATERIEL_SALLE: MATERIEL_SALLE, estMaterielDeSalle: estMaterielDeSalle,
+    materielLePlusChoisi: materielLePlusChoisi,
     categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie,
     outilAMoi: outilAMoi, SANS_CATEGORIE: SANS_CATEGORIE,
     ZONES_RESSENTIES: ZONES_RESSENTIES, zoneRessentie: zoneRessentie,

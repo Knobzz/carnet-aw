@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — le retour du 10 novembre</title>
+<!--
+  LES CINQ CONSTATS D'USAGE DE MB, 2026-11-10, mesures AVANT correctif.
+
+  R1  LE MATERIEL DE SALLE ENTRAIT DANS « LE MIEN ». `exo.outils` porte
+      deux choses — le materiel de salle de l'etage 3 (barre, poulie,
+      banc : 19 entrees) et l'equipement de bras de fer. Les DEUX
+      versements au catalogue (panneau.js:1904 et model.js:3806) les
+      prenaient tous. MB : « seuls les equipements par marques que je
+      selectionne peuvent s'y rajouter ».
+
+  R2+R5  UNE SEULE CAUSE, DEUX SYMPTOMES. `champ.value = it.nom` dans
+      js/ui.js pose la valeur SANS emettre `input`, et c'est cet
+      evenement qui tenait `ficheOuverte` a jour. Selon ce qu'on avait
+      tape avant, il restait `null` — aucun etage, donc pas d'acces au
+      Materiel — ou PERIME : l'ecran montrait les gestes de la fiche
+      precedente sous le nom d'une autre.
+
+      MESURE : champ « Wrist curl cote petit doigt », qui n'a AUCUN
+      geste, et l'ecran affichait « Wrist curl derriere le dos ».
+
+  R3  LE DICTIONNAIRE ETAIT ENFERME. Il filtrait sur `champNom`, ce qui
+      aide tant qu'on tape et bloque des qu'un exercice est choisi.
+      Mesure : UN groupe, UNE fiche proposee. MB : « je suis stuck ».
+
+  R6  L'HISTOIRE DU MATERIEL LE PLUS CHOISI — idee de MB. Elle va avec
+      R1 : le materiel n'entrant plus dans l'inventaire, il fallait un
+      autre endroit ou le retrouver. Mesure qui la justifie : 19 entrees,
+      2 atteignables sans deplier.
+
+  CE QUI SE MESURE PAR EFFET : les cinq. R1 passe par le modele et par
+  une validation reelle ; R2, R3 et R5 lisent le DOM du vrai panneau,
+  apres de vrais clics.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:420px;height:820px}
+ iframe{width:420px;height:820px;border:0}
+</style></head><body>
+<h1>Le retour du 10 novembre</h1>
+<p class="pourquoi">Cinq constats d’usage, mesurés avant tout correctif.</p>
+<p class="pourquoi" id="quoi">…</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+
+  /* Meme garde que les autres epreuves : revue/ est publie, et un
+     `srcdoc` herite de l'origine de son parent. */
+  var RACINE = (function () {
+    var m = /[?&]racine=([^&]+)/.exec(location.search);
+    if (!m) return '../';
+    var v;
+    try { v = decodeURIComponent(m[1]); } catch (e) { return '../'; }
+    if (!/^\.\.\/[A-Za-z0-9_\-]+\/$/.test(v)) return '../';
+    try {
+      if (new URL(v, location.href).origin !== location.origin) return '../';
+    } catch (e) { return '../'; }
+    return v;
+  })();
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch(RACINE + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + RACINE + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 300);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        [CLE, CLE + '-filet', CLE + '-illisible'].forEach(function (k) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+        ok();
+      }, 420);
+    });
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  /* OUVRIR LE PANNEAU D'AJOUT D'EXERCICE, par les VRAIS boutons. */
+  function ouvrirAjout(A) {
+    var d = A.document;
+    A.App.app.aller('seance');
+    return attendre(800).then(function () {
+      var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+        return /Démarrer une séance libre/.test(x.textContent); })[0];
+      if (b) b.click();
+      return attendre(900);
+    }).then(function () {
+      var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+        return /\+ ?Ajouter un exercice/.test(x.textContent); })[0];
+      if (b) b.click();
+      return attendre(900);
+    }).then(function () { return d.querySelector('.panneau'); });
+  }
+  function champNomDe(pan) {
+    return [].slice.call(pan.querySelectorAll('input')).filter(function (i) {
+      return /Curl marteau/.test(i.placeholder || ''); })[0];
+  }
+  function etagesDe(pan) {
+    return (pan.textContent || '').replace(/\s+/g, ' ').match(/\d — [^·]+/g) || [];
+  }
+  function pucesDe(pan) {
+    return [].slice.call(pan.querySelectorAll('.dico-variante')).map(function (b) {
+      return b.textContent.trim(); });
+  }
+  function taper(A, champ, texte) {
+    champ.focus();
+    champ.value = texte;
+    champ.dispatchEvent(new A.Event('input', { bubbles: true }));
+    return attendre(650);
+  }
+
+  function jouer() {
+    document.getElementById('quoi').textContent =
+      RACINE === '../' ? 'App mesurée : le code COURANT (../).'
+                       : 'App mesurée : ' + RACINE + ' — c’est la CHUTE, jouée sur un arbre antérieur.';
+    var ch = Promise.resolve();
+
+    /* ===== R1 : LE MATERIEL DE SALLE ENTRE-T-IL DANS « LE MIEN » ? ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R1. Le matériel de salle entre-t-il dans ton équipement ?',
+          'MB, 10/11 : « seuls les équipements par marques que je sélectionne peuvent s’y '
+        + 'rajouter, les équipements dans 3- ne se rajoutent pas. »\n'
+        + 'Une barre ou un banc se trouve partout ; il n’appartient à personne. L’équipement, '
+        + 'lui, se possède — et c’est lui qui fait l’inventaire.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        A.App.store.remplacer(e);
+        return attendre(500);
+      }).then(function () {
+        /* ON NE SORT PAS QUAND LA FONCTION MANQUE.
+
+           Premiere ecriture : `if (typeof ... !== 'function') return;`.
+           Sur l'ancien code on sortait AVANT d'appeler `majCatalogue` — le
+           catalogue restait vide, et « la poulie n'y est pas » devenait
+           vrai par accident. Le decor n'etait pas pose, et deux controles
+           le lisaient comme une reussite. C'est la chute qui l'a dit. */
+        var sait = typeof A.App.m.estMaterielDeSalle === 'function';
+        egal(sait ? 'oui' : 'non', 'oui',
+             'le modèle sait distinguer le matériel de salle de l’équipement');
+        egal(sait && A.App.m.estMaterielDeSalle('Poulie · basse') ? 'oui' : 'non', 'oui',
+             'une poulie réglée en est — le « · » ne le cache pas');
+        egal(sait && A.App.m.estMaterielDeSalle('Fat Gripz') ? 'oui' : 'non', 'non',
+             '[temoin] et un Fat Gripz n’en est pas — sans ça le filtre prendrait tout');
+        /* L'EFFET, pas la declaration : on valide un exercice qui porte
+           les deux, et on regarde le catalogue. */
+        var e = A.App.store.etat();
+        A.App.m.majCatalogue(e, { id: 'x1', nom: 'Curl', slug: 'curl',
+          outils: ['Poulie · basse', 'Banc · incliné 30°', 'Fat Gripz'] });
+        A.App.store.sauver(true);
+        return attendre(500);
+      }).then(function () {
+        var noms = (A.App.store.etat().outils || []).map(function (o) { return o.nom; });
+        dit('le catalogue porte : ' + (noms.join(', ') || '(rien)'));
+        egal(noms.indexOf('Fat Gripz') >= 0 ? 'oui' : 'non', 'oui',
+             '[temoin] l’équipement de bras de fer entre bien — c’est ce qu’on garde');
+        egal(noms.indexOf('Poulie · basse') >= 0 ? 'entrée' : 'restée dehors',
+             'restée dehors', 'la poulie n’entre PAS dans ton équipement');
+        egal(noms.indexOf('Banc · incliné 30°') >= 0 ? 'entré' : 'resté dehors',
+             'resté dehors', 'le banc non plus');
+        egal(noms.length, 1, 'et le catalogue ne porte que le seul équipement possédé');
+      });
+    }).catch(rattrape);
+
+    /* ===== R2 + R5 : LES ETAGES SUIVENT-ILS L'AUTOCOMPLETION ? ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R2 + R5. Les étages suivent-ils ce qu’on choisit dans la liste ?',
+          'L’autocomplétion pose `champ.value` sans émettre `input`, et c’est cet événement '
+        + 'qui tenait `ficheOuverte` à jour. Deux symptômes, une cause.\n'
+        + 'On tape « Wrist curl » (qui a un geste), puis on clique « Wrist curl côté petit '
+        + 'doigt » DANS LA LISTE — une fiche qui n’en a AUCUN.');
+      var A, pan, champ;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(400);
+      }).then(function () { return ouvrirAjout(A); }).then(function (p) {
+        pan = p;
+        egal(pan ? 'ouvert' : 'fermé', 'ouvert', '[temoin] le panneau d’ajout s’ouvre');
+        champ = champNomDe(pan);
+        return taper(A, champ, 'Wrist curl');
+      }).then(function () {
+        egal(pucesDe(pan).length >= 2 ? 'oui' : 'non', 'oui',
+             '[temoin] « Wrist curl » montre bien ses gestes — c’est la condition du cas');
+        dit('puces : ' + pucesDe(pan).join(' | '));
+        var l = [].slice.call(A.document.querySelectorAll('.ac-item, [role="option"]'));
+        egal(l.length >= 2 ? 'oui' : 'non', 'oui',
+             '[temoin] la liste propose bien plusieurs fiches');
+        var c = l.filter(function (x) { return /petit doigt/i.test(x.textContent); })[0];
+        if (c) c.click();
+        return attendre(800);
+      }).then(function () {
+        var nom = champ.value;
+        var vrais = (A.App.m.gestesDuNom(nom, A.App.store.etat()) || []).length;
+        dit('champ : « ' + nom + ' » — ses vrais gestes : ' + vrais);
+        egal(vrais, 0, '[temoin] cette fiche n’a bien AUCUN geste');
+        egal(pucesDe(pan).length, 0,
+             'l’écran ne montre plus les gestes de la fiche précédente');
+        var et = etagesDe(pan);
+        var txtP = (pan.textContent || '').replace(/\s+/g, ' ');
+        dit('étages rendus : ' + (et.join(' | ') || '(aucun)'));
+        /* IL TIENT DES DEUX COTES, et c'est la raison d'etre de celui
+           qui le suit : sur l'ancien code la zone garde le rendu de la
+           fiche precedente, donc « 3 — Materiel » est bien la — pour
+           l'AUTRE mouvement. Celui-ci dit la PRESENCE, le suivant dit
+           la JUSTESSE. Seuls les deux ensemble mesurent R2. */
+        egal(/3 — Matériel/.test(et.join(' ')) ? 'là' : 'absent', 'là',
+             '[temoin] le Matériel est rendu — présence seule, la justesse '
+           + 'se mesure à la ligne suivante');
+        /* ET IL EST CELUI DE LA BONNE FICHE.
+
+           Le controle d'au-dessus passait sur l'ancien code, parce que la
+           zone GARDE le rendu de la fiche precedente : « 3 — Materiel »
+           etait bien la, mais pour l'AUTRE mouvement. Il mesurait la
+           presence d'un texte, pas sa justesse — et c'est exactement le
+           defaut que MB a decrit.
+
+           L'etage 2 ANNONCE ce qu'il a trouve : « N connue(s) » ou « ce
+           mouvement n'en a pas d'autre ». C'est un EFFET, et il distingue
+           les deux fiches. */
+        egal(/n’en a pas d’autre/.test(txtP) ? 'la bonne fiche' : 'celle d’avant',
+             'la bonne fiche',
+             'et les étages parlent de la fiche CHOISIE, pas de la précédente');
+      });
+    }).catch(rattrape);
+
+    /* ===== R3 : LE DICTIONNAIRE RESTE-T-IL CHERCHABLE ? ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R3. Le dictionnaire reste-t-il cherchable après un choix ?',
+          'MB : « je suis stuck avec l’exo choisi ». Le dictionnaire filtrait sur le champ du '
+        + 'nom : utile tant qu’on tape, enfermant dès qu’un exercice est choisi.');
+      var A, pan, champ;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(400);
+      }).then(function () { return ouvrirAjout(A); }).then(function (p) {
+        pan = p;
+        champ = champNomDe(pan);
+        return taper(A, champ, 'Wrist curl côté petit doigt');
+      }).then(function () {
+        egal(champ.value, 'Wrist curl côté petit doigt',
+             '[temoin] un exercice est bien choisi — c’est la condition du cas');
+        /* LE CHAMP DU DICTIONNAIRE NE SE MONTRE PAS AVANT QU'ON OUVRE.
+           Premiere ecriture : il naissait visible, et un « Chercher
+           dans le dictionnaire… » flottait sous l'etage 3, dictionnaire
+           ferme. Vu a l'ecran, mesure par rien — toutes les epreuves
+           ouvrent le dictionnaire avant de regarder. */
+        var cd0 = [].slice.call(pan.querySelectorAll('input')).filter(function (i) {
+          return /Chercher dans le dictionnaire/.test(i.placeholder || ''); })[0];
+        egal(cd0 ? (cd0.getBoundingClientRect().height > 0 ? 'visible' : 'caché')
+                 : 'absent', 'caché',
+             'et le champ du dictionnaire reste caché tant qu’on ne l’ouvre pas');
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return /Parcourir le dictionnaire/.test(x.textContent); })[0];
+        if (b) b.click();
+        return attendre(900);
+      }).then(function () {
+        var fiches = pan.querySelectorAll('.dico-choix').length;
+        var groupes = pan.querySelectorAll('.dico-groupes').length;
+        dit('le dictionnaire propose ' + fiches + ' fiche(s) dans ' + groupes + ' groupe(s)');
+        egal(fiches > 10 ? 'tout' : fiches + ' seulement', 'tout',
+             'il propose tout le dictionnaire, pas la seule fiche choisie');
+        /* ET IL A SON PROPRE CHAMP : c'est ce qui permet de chercher
+           autre chose sans toucher au nom de l'exercice. */
+        var cd = pan.querySelector('.dico-groupes') ? null : null;
+        var champs = [].slice.call(pan.querySelectorAll('input')).filter(function (i) {
+          return /Chercher dans le dictionnaire/.test(i.placeholder || ''); });
+        egal(champs.length, 1, 'et il porte SON champ de recherche');
+        if (champs.length) {
+          champs[0].value = 'curl';
+          champs[0].dispatchEvent(new A.Event('input', { bubbles: true }));
+        }
+        return attendre(700);
+      }).then(function () {
+        var n = pan.querySelectorAll('.dico-choix').length;
+        dit('après avoir cherché « curl » : ' + n + ' fiche(s)');
+        egal(n > 1 ? 'cherche' : 'bloqué', 'cherche',
+             'y chercher filtre la liste…');
+        /* IL TIENT DES DEUX COTES, et c'est voulu : l'ancien code ne
+           touchait pas non plus au nom. Il garde un invariant contre une
+           regression — le champ du dictionnaire ne doit JAMAIS piloter
+           celui de l'exercice — il ne prouve rien sur ce changement. */
+        egal(champNomDe(pan).value, 'Wrist curl côté petit doigt',
+             '[temoin] …sans toucher au nom de l’exercice en cours — vrai des '
+           + 'deux côtés : il garde, il ne prouve pas');
+      });
+    }).catch(rattrape);
+
+    /* ===== R6 : LE MATERIEL LE PLUS CHOISI ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R6. L’étage 3 commence-t-il par ce qu’on choisit le plus ?',
+          'Idée de MB, 10/11. Mesure qui la justifie : 19 entrées dans cinq catégories '
+        + 'repliées, 2 atteignables sans déplier.\n'
+        + 'Elle va avec R1 : le matériel n’entrant plus dans l’inventaire, il fallait un '
+        + 'autre endroit où le retrouver.');
+      var A, pan;
+      return monter().then(function (w) {
+        A = w;
+        var e = A.App.store.vide();
+        /* TROIS SEANCES, DES COMPTES DIFFERENTS : il faut que l'ordre
+           soit mesurable, donc jamais ex aequo sur le premier. */
+        function se(id, outils) {
+          return { id: id, type: 'muscu', date: '2026-11-0' + id, douleurs: [],
+                   exercices: [{ id: 'e' + id, nom: 'X', typeCharge: 'kg',
+                                 outils: outils, series: [] }] };
+        }
+        e.seances = [se(1, ['Poulie · basse', 'Banc · plat', 'Fat Gripz']),
+                     se(2, ['Poulie · basse', 'Banc · plat']),
+                     se(3, ['Poulie · basse'])];
+        A.App.store.remplacer(e);
+        return attendre(500);
+      }).then(function () {
+        egal(typeof A.App.m.materielLePlusChoisi, 'function',
+             'le modèle sait compter ce qui est le plus choisi');
+        if (typeof A.App.m.materielLePlusChoisi !== 'function') return;
+        var top = A.App.m.materielLePlusChoisi(A.App.store.etat(), 6, []);
+        dit('compté : ' + top.map(function (x) { return x.nom + ' (' + x.fois + ')'; }).join(', '));
+        egal(top.length, 2, 'seul le matériel de salle est compté, pas l’équipement');
+        egal(top[0] && top[0].nom, 'Poulie · basse', 'le plus choisi vient en premier');
+        egal(top[0] && top[0].fois, 3, 'et son compte est juste');
+        /* LE REGLAGE FAIT PARTIE DE L'IDENTITE : « Poulie · basse » et
+           « Poulie · haute » se reposent differemment. */
+        var e2 = A.App.store.etat();
+        e2.seances[0].exercices[0].outils.push('Poulie · haute');
+        A.App.store.sauver(true);
+        return attendre(400);
+      }).then(function () {
+        var top = A.App.m.materielLePlusChoisi(A.App.store.etat(), 6, []);
+        var noms = top.map(function (x) { return x.nom; });
+        egal(noms.indexOf('Poulie · haute') >= 0 && noms.indexOf('Poulie · basse') >= 0
+             ? 'deux' : 'confondues', 'deux',
+             'haute et basse comptent séparément — on les repose d’un clic');
+        /* ET CE QUI EST DEJA POSE NE SE REPROPOSE PAS. */
+        var sansLaBasse = A.App.m.materielLePlusChoisi(A.App.store.etat(), 6,
+                                                       ['Poulie · basse']);
+        egal(sansLaBasse.map(function (x) { return x.nom; }).indexOf('Poulie · basse'),
+             -1, 'ce que l’exercice porte déjà n’est pas reproposé');
+        return ouvrirAjout(A);
+      }).then(function (p) {
+        pan = p;
+        var champ = champNomDe(pan);
+        return taper(A, champ, 'Wrist curl');
+      }).then(function () {
+        var txt = (pan.textContent || '').replace(/\s+/g, ' ');
+        egal(/Le plus souvent choisi/.test(txt) ? 'là' : 'absent', 'là',
+             'et l’écran le montre, en tête de l’étage 3');
+        var puces = [].slice.call(pan.querySelectorAll('.puce-compte'));
+        egal(puces.length > 0 ? 'chiffré' : 'muet', 'chiffré',
+             'chaque puce dit combien de séances la portent');
+      });
+    }).catch(rattrape);
+
+    /* ===== R7 : LE DICTIONNAIRE S'OUVRE SOUS SON BOUTON ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R7. Le dictionnaire s\u2019ouvre-t-il sous le bouton qui l\u2019appelle ?',
+          'MB, 10/11 : \u00ab tu me fais pop le dico en dessous de 3- mat\u00e9riel, j\u2019aimerai '
+        + 'que ce soit plus smooth \u00bb. L\u2019ordre du DOM mettait les \u00e9tages 2 et 3 ENTRE le '
+        + 'bouton et le dictionnaire : il s\u2019ouvrait \u00e0 plusieurs \u00e9crans de l\u00e0, et sur un '
+        + 't\u00e9l\u00e9phone on ne voyait rien se passer.\n'
+        + 'On mesure la DISTANCE en pixels, pas l\u2019ordre des n\u0153uds.');
+      var A, pan;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(400);
+      }).then(function () { return ouvrirAjout(A); }).then(function (p) {
+        pan = p;
+        return taper(A, champNomDe(pan), 'Wrist curl');
+      }).then(function () {
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return /Parcourir le dictionnaire/.test(x.textContent); })[0];
+        egal(b ? 'l\u00e0' : 'absent', 'l\u00e0', '[temoin] le bouton est bien l\u00e0');
+        if (b) b.click();
+        return attendre(900);
+      }).then(function () {
+        /* LE BOUTON, PAS UNE SUGGESTION. Premiere ecriture :
+           `/dictionnaire/i` sur tous les boutons — or les items de
+           l'autocompletion portent le jeton « dictionnaire ». Je
+           mesurais la distance entre une SUGGESTION et le champ, d'ou
+           un « -26 px » impossible dans un flux normal. Le produit
+           etait juste ; c'est le controle qui tombait a tort.
+
+           Il vise le libelle EXACT, et exige un rectangle non nul :
+           un bouton cache rend 0 et fausserait la mesure pareil. */
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return /^(Parcourir|Masquer) le dictionnaire/.test(x.textContent.trim())
+              && x.getBoundingClientRect().height > 0; })[0];
+        var cd = [].slice.call(pan.querySelectorAll('input')).filter(function (i) {
+          return /Chercher dans le dictionnaire/.test(i.placeholder || ''); })[0];
+        egal(cd ? 'l\u00e0' : 'absent', 'l\u00e0', '[temoin] le champ du dictionnaire est rendu');
+        var d = Math.round(cd.getBoundingClientRect().top - b.getBoundingClientRect().bottom);
+        dit('du bas du bouton au haut du champ : ' + d + ' px');
+        /* LE SEUIL VIENT DU PROBLEME : les etages 2 et 3 qui s'intercalaient
+           font plusieurs CENTAINES de pixels. « Juste dessous » tient en une
+           marge, pas en un ecran. */
+        egal(d >= 0 && d < 80 ? 'juste dessous' : d + ' px plus bas',
+             'juste dessous',
+             'le dictionnaire s\u2019ouvre juste sous son bouton');
+        /* ET LE BOUTON DIT QU'IL PEUT REFERMER.
+
+           Defaut trouve le 10/11, ANTERIEUR a ce lot : `panneau.js`
+           declarait DEUX `var btDico` dans la meme closure — celui-ci et
+           le bouton « Ajouter a ton dictionnaire », 1 400 lignes plus
+           bas. Le second hoistait et gagnait, donc le libelle « Masquer »
+           partait sur un bouton cache, et celui-ci restait a
+           « Parcourir » meme dictionnaire ouvert.
+
+           Aucune epreuve ne le voyait : toutes CLIQUENT le bouton,
+           aucune ne lisait ce qu'il dit apres. */
+        egal(/^Masquer/.test(b.textContent.trim()) ? 'dit Masquer'
+                                                   : b.textContent.trim(),
+             'dit Masquer',
+             'et le bouton annonce qu\u2019il peut refermer');
+        egal(b.getAttribute('aria-expanded'), 'true',
+             'il le dit aussi aux lecteurs d\u2019\u00e9cran');
+        var txt = pan.textContent || '';
+        var mat = txt.indexOf('3 \u2014 Mat\u00e9riel');
+        var dico = txt.indexOf('mouvements \u2014 chacun dans le groupe');
+        egal(dico >= 0 && mat >= 0 && dico < mat ? 'oui' : 'non', 'oui',
+             'et le Mat\u00e9riel passe dessous \u2014 il n\u2019a pas disparu');
+      });
+    }).catch(rattrape);
+
+    /* ===== R8 : LA TABLE DE BRAS DE FER ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R8. La table de bras de fer est-elle dans le Mat\u00e9riel ?',
+          'Demand\u00e9e par MB le 10/11. V\u00e9rifi\u00e9 avant de l\u2019\u00e9crire : aucune table n\u2019existait, '
+        + 'ni dans le mat\u00e9riel, ni dans les 20 types d\u2019outils connus, ni dans les '
+        + '\u00e9critures.\n'
+        + 'Elle est du MAT\u00c9RIEL DE SALLE : on s\u2019entra\u00eene dessus au club sans la poss\u00e9der, '
+        + 'donc elle n\u2019entre pas dans \u00ab Le mien \u00bb \u2014 ce que MB a demand\u00e9 le matin m\u00eame.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(400);
+      }).then(function () {
+        var appuis = (A.App.m.MATERIEL_SALLE.filter(function (g) {
+          return g.cat === 'Appuis'; })[0] || { items: [] })
+          .items.map(function (i) { return i.nom; });
+        dit('Appuis : ' + appuis.join(', '));
+        egal(appuis.indexOf('Table de bras de fer') >= 0 ? 'l\u00e0' : 'absente', 'l\u00e0',
+             'la table est dans les Appuis');
+        egal(A.App.m.estMaterielDeSalle('Table de bras de fer') ? 'oui' : 'non', 'oui',
+             'et elle compte comme mat\u00e9riel de salle');
+        var e = A.App.store.etat();
+        A.App.m.majCatalogue(e, { id: 't1', nom: 'Toproll', slug: 'toproll',
+          outils: ['Table de bras de fer', 'Fat Gripz'] });
+        A.App.store.sauver(true);
+        return attendre(400);
+      }).then(function () {
+        var noms = (A.App.store.etat().outils || []).map(function (o) { return o.nom; });
+        dit('le catalogue porte : ' + (noms.join(', ') || '(rien)'));
+        egal(noms.indexOf('Table de bras de fer') >= 0 ? 'entr\u00e9e' : 'rest\u00e9e dehors',
+             'rest\u00e9e dehors', 'elle n\u2019entre pas dans ton \u00e9quipement');
+      });
+    }).catch(rattrape);
+
+    /* ===== R9 : LES DEUX LIFTS A LA CEINTURE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('R9. Les deux lifts \u00e0 la ceinture sont-ils l\u00e0, et cherchables ?',
+          'MB : \u00ab tu peux les rajouter comme gestes je pense \u00bb. Ils vivent donc \u00e0 '
+        + 'l\u2019\u00e9tage 2 de \u00ab Rising \u00bb et de \u00ab Pronation \u00bb.\n'
+        + 'UN GESTE N\u2019EST CHERCHABLE QUE S\u2019IL EST AUSSI UNE \u00c9CRITURE de sa fiche \u2014 la '
+        + 'r\u00e8gle que \u00ab Spider curl \u00bb et \u00ab D\u00e9velopp\u00e9 nuque \u00bb suivent d\u00e9j\u00e0. Mesur\u00e9 le '
+        + '10/11 : sans elle, l\u2019\u00e9tage 2 les montrait et taper leur nom ne menait nulle part.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(400);
+      }).then(function () {
+        var e = A.App.store.etat(), m = A.App.m;
+        var gR = (m.gestesDuNom('Rising', e) || []).map(function (g) { return g.nom; });
+        var gP = (m.gestesDuNom('Pronation', e) || []).map(function (g) { return g.nom; });
+        dit('gestes de Rising : ' + (gR.join(', ') || '(aucun)'));
+        dit('gestes de Pronation : ' + (gP.join(', ') || '(aucun)'));
+        egal(gR.indexOf('Rising lift \u00e0 la ceinture') >= 0 ? 'l\u00e0' : 'absent', 'l\u00e0',
+             'le rising lift est un geste de \u00ab Rising \u00bb');
+        egal(gP.indexOf('Pronation lift \u00e0 la ceinture') >= 0 ? 'l\u00e0' : 'absent', 'l\u00e0',
+             'le pronation lift est un geste de \u00ab Pronation \u00bb');
+        function trouve(q, attendu) {
+          var r = (m.fichesDuDictionnaire(e, q) || []).map(function (x) { return x.nom; });
+          egal(r.indexOf(attendu) >= 0 ? 'trouv\u00e9' : 'rien', 'trouv\u00e9',
+               'taper \u00ab ' + q + ' \u00bb m\u00e8ne \u00e0 \u00ab ' + attendu + ' \u00bb');
+        }
+        trouve('riser lift', 'Rising');
+        trouve('rising lift', 'Rising');
+        trouve('pronation lift', 'Pronation');
+        trouve('ceinture de judo', 'Rising');
+        /* ET CHACUN DIT EN QUOI IL DIFFERE DE SA FICHE : la fiche
+           « Rising » est une deviation radiale, le lift est biceps +
+           pronation. Un geste qui ne dit pas sa nuance n'apprend rien. */
+        var g = (m.gestesDuNom('Rising', e) || []).filter(function (x) {
+          return /lift/i.test(x.nom); })[0];
+        egal(g && /biceps/i.test(g.change || '') ? 'dit' : 'tu', 'dit',
+             'et le geste dit en quoi il diff\u00e8re de la d\u00e9viation radiale de sa fiche');
+        egal(g && (g.source || '').length > 40 ? 'sourc\u00e9' : 'sans source', 'sourc\u00e9',
+             'il cite ses sources, comme les 38 autres');
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = bons + ' / ' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = bons + '/' + total + ' — retour du 10/11';
+    });
+  }
+
+  jouer();
+})();
+</script></body></html>

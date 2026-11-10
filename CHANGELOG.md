@@ -15,6 +15,37 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.85.0
+
+**Le matériel de salle n'entre plus dans ton équipement.** Une poulie, un banc,
+une barre : on les trouve partout, on ne les possède pas. Ils restent sur la
+séance, mais ils cessent de remplir « Le mien ». Seul ce qui se possède —
+Fat Gripz, Iron Wrist, Multi-Tool — fait ton inventaire. *Ce qui y était déjà
+y reste : tu peux le retirer dans Réglages ▸ Équipement.*
+
+**L'étage 3 commence par ce que tu choisis le plus**, avec le nombre de séances
+qui le portent. Les cinq catégories tenaient 19 entrées repliées dont deux
+seulement étaient atteignables sans déplier.
+
+**Choisir un exercice dans la liste remet les étages à jour.** Taper un nom puis
+cliquer une suggestion laissait l'écran sur le mouvement précédent : pas d'accès
+au Matériel, ou pire, les gestes d'un autre mouvement affichés sous le nom de
+celui-ci.
+
+**Le dictionnaire reste cherchable, et s'ouvre sous son bouton.** Il se filtrait
+sur le nom de l'exercice en cours : une fois un exercice choisi, il ne proposait
+plus qu'une ligne. Il a maintenant sa propre recherche, et il se déplie juste
+sous « Parcourir le dictionnaire » au lieu d'apparaître après tout le matériel.
+Le bouton dit enfin qu'il peut refermer.
+
+**La table de bras de fer** entre dans *Matériel ▸ Appuis*.
+
+**Deux gestes de plus** : le **rising lift** et le **pronation lift** à la
+ceinture, sous *Rising* et *Pronation*. Coude contre le genou, ceinture lestée ;
+ce qui les sépare est l'endroit où la sangle passe sur la main.
+
+---
+
 ## 1.83.0
 
 **Les muscles du Suivi sont rangés par groupes, repliés.** La liste en comptait
