@@ -365,6 +365,111 @@
       });
     }).catch(rattrape);
 
+    /* ===== E5 : LE MEME DEFAUT, PAR LES PROGRAMMES ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E5. Et par les Programmes, le m\u00eame menu s\u2019ouvre-t-il devant ?',
+          'MB l\u2019a rencontr\u00e9 une seconde fois, ailleurs : un programme en cours de '
+        + 'cr\u00e9ation, plusieurs exercices, et \u00ab quand je clique sur modifier l\u2019exercice, '
+        + 'rien ne se passe \u00bb.\n'
+        + 'Mesur\u00e9 sur les deux versions : en 1.86.0 le menu est cr\u00e9\u00e9 mais NON atteint, en '
+        + '1.87.0 il l\u2019est. M\u00eame cause, m\u00eame correctif.\n'
+        + 'CE CAS EXISTE POUR LA PORTEE : l\u2019\u00e9preuve AFFIRMAIT que le d\u00e9faut n\u2019\u00e9tait pas '
+        + 'propre \u00e0 R\u00e9cup, elle ne le MONTRAIT pas.');
+      var A, pan;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(500);
+      }).then(function () {
+        A.App.app.aller('programmes');
+        return attendre(900);
+      }).then(function () {
+        var d = A.document;
+        var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+          return /Nouveau programme/.test(x.textContent); })[0];
+        egal(b ? 'l\u00e0' : 'absent', 'l\u00e0', '[temoin] on peut cr\u00e9er un programme');
+        if (b) b.click();
+        return attendre(1000);
+      }).then(function () {
+        var d = A.document;
+        pan = [].slice.call(d.querySelectorAll('.panneau')).pop();
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return /Ajouter un exercice/.test(x.textContent); })[0];
+        if (b) b.click();
+        return attendre(900);
+      }).then(function () {
+        var d = A.document;
+        var p2 = [].slice.call(d.querySelectorAll('.panneau')).pop();
+        var c = [].slice.call(p2.querySelectorAll('input')).filter(function (i) {
+          return /Curl marteau/.test(i.placeholder || ''); })[0];
+        c.focus(); c.value = 'Curl pronation';
+        c.dispatchEvent(new A.Event('input', { bubbles: true }));
+        return attendre(600).then(function () {
+          c.blur();
+          return attendre(300);
+        }).then(function () {
+          var e = [].slice.call(p2.querySelectorAll('button')).filter(function (x) {
+            return x.textContent.trim() === 'Enregistrer'; })[0];
+          if (e) e.click();
+          return attendre(1000);
+        });
+      }).then(function () {
+        var d = A.document;
+        pan = [].slice.call(d.querySelectorAll('.panneau')).pop();
+        var pts = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return x.textContent.trim() === '\u22ef'; });
+        egal(pts.length, 1, '[temoin] l\u2019exercice ajout\u00e9 porte son bouton d\u2019options');
+        if (pts.length) pts[0].click();
+        return attendre(800);
+      }).then(function () {
+        var d = A.document;
+        var fe = d.querySelector('.popo-feuille');
+        egal(fe ? 'ouvert' : 'absent', 'ouvert',
+             '[temoin] le menu est bien CR\u00c9\u00c9 \u2014 en 1.86.0 aussi, et c\u2019est tout le point');
+        if (!fe) return;
+        var v = devant(A, fe);
+        dit('au centre du menu, on touche : ' + v.quoi);
+        egal(v.ok ? 'le menu' : v.quoi, 'le menu',
+             'et on l\u2019atteint \u2014 le d\u00e9faut n\u2019\u00e9tait pas propre \u00e0 R\u00e9cup');
+        /* ET « MODIFIER L'EXERCICE » OUVRE BIEN SON PANNEAU, par-dessus
+           celui du programme. C'est le geste que MB n'arrivait pas a
+           faire : sans le menu atteignable, il n'y avait aucun chemin. */
+        var bm = [].slice.call(fe.querySelectorAll('button')).filter(function (x) {
+          return /Modifier l\u2019exercice/.test(x.textContent); })[0];
+        if (bm) bm.click();
+        return attendre(1100);
+      }).then(function () {
+        var d = A.document;
+        var ps = [].slice.call(d.querySelectorAll('.panneau'));
+        /* LES TROIS QUI SUIVENT TIENNENT DES DEUX COTES, et c'est ce
+           qui dit exactement ce qui etait casse.
+
+           Le panneau « Modifier l'exercice » n'a JAMAIS ete casse : une
+           fois ouvert il se place au premier plan et porte le bon
+           exercice. Ce qui l'etait, c'est l'ACCES — le menu qui y mene
+           passait derriere celui du programme.
+
+           Cette epreuve clique le menu PAR SCRIPT, ce qui passe outre le
+           recouvrement ; un doigt humain, non. Ces trois-la gardent donc
+           que le panneau d'edition reste correct — ils ne prouvent rien
+           sur le correctif d'empilement. */
+        egal(ps.length, 2,
+             '[temoin] le panneau d’édition s’ouvre par-dessus celui du '
+           + 'programme — vrai des deux côtés : c’est l’ACCÈS qui était '
+           + 'cassé, pas lui');
+        var dernier = ps[ps.length - 1];
+        var champ = [].slice.call(dernier.querySelectorAll('input')).filter(function (i) {
+          return /Curl marteau/.test(i.placeholder || ''); })[0];
+        egal(champ ? champ.value : '(aucun champ)', 'Curl pronation',
+             '[temoin] et il porte bien l’exercice qu’on a choisi — vrai des '
+           + 'deux côtés');
+        var v = devant(A, dernier);
+        egal(v.ok ? 'devant' : v.quoi, 'devant',
+             '[temoin] au premier plan, pas derrière le précédent — vrai '
+           + 'des deux côtés');
+      });
+    }).catch(rattrape);
+
     ch.then(function () {
       scoreN.textContent = bons + ' / ' + total;
       scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
