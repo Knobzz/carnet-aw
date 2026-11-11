@@ -15,6 +15,16 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.90.0
+
+**« Modifier l'exercice » fonctionne de nouveau.** Depuis la 1.85.0, le panneau
+ne s'ouvrait pas quand l'exercice portait un équipement — une poulie, un banc —
+*et* que son nom venait du dictionnaire. Les deux conditions à la fois, ce qui
+l'a rendu difficile à voir. L'erreur était silencieuse jusqu'à la 1.89.0 : c'est
+le message d'échec livré la veille qui l'a nommée.
+
+---
+
 ## 1.89.0
 
 **Quand une action échoue, le carnet le dit.** Jusqu'ici, si une entrée de menu

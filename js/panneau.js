@@ -732,7 +732,13 @@
            degre, la poulie sa hauteur. Une barre n'a rien a regler. */
         mat.forEach(function (x) {
           var base = x.split(' · ')[0];
-          var def = TOUT_MATERIEL[base];
+          /* LA DEFINITION VIENT DU MODELE — correctif du 11/11.
+
+             Cette ligne lisait `TOUT_MATERIEL`, l'index local supprime la
+             veille en remontant la table dans le modele. Elle jetait donc
+             un `ReferenceError` des que l'exercice portait un materiel,
+             et « Modifier l'exercice » ne s'ouvrait pas. */
+          var def = A.m.materielDeSalle(base);
           if (!def || !def.reglages) return;
           var courant = x.indexOf(' · ') > 0 ? x.split(' · ')[1] : null;
           zoneVariantes.appendChild(h('div', { class: 'equip-cat',

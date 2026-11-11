@@ -4049,10 +4049,27 @@
     g.items.forEach(function (it) { _indexMateriel[it.nom] = it; });
   });
 
-  /* UN NOM PORTE PARFOIS SON REGLAGE : « Poulie · basse », « Banc ·
-     incliné 30° ». C'est l'objet AVANT le « · » qui decide. */
+  /* CE QU'EST UN MATERIEL, pas seulement S'IL en est un.
+
+     UN NOM PORTE PARFOIS SON REGLAGE : « Poulie · basse », « Banc ·
+     incliné 30° ». C'est l'objet AVANT le « · » qui decide, et c'est sa
+     definition qui dit s'il a des reglages a proposer.
+
+     ELLE EST ICI PARCE QUE LA TABLE EST ICI. L'ecran en gardait un index
+     a lui (`TOUT_MATERIEL`) ; le 10/11 la table est montee dans le
+     modele et cet index a disparu — mais un usage y pointait encore,
+     300 lignes plus bas, et « Modifier l'exercice » jetait un
+     `ReferenceError` des que l'exercice portait une poulie. Defaut
+     MUET jusqu'au 11/11, trouve parce que MB a pu LIRE le message.
+
+     En rendre un second index a l'ecran referait le doublon qu'on
+     venait de retirer. */
+  function materielDeSalle(nom) {
+    return _indexMateriel[String(nom).split(' · ')[0]] || null;
+  }
+
   function estMaterielDeSalle(nom) {
-    return !!_indexMateriel[String(nom).split(' · ')[0]];
+    return !!materielDeSalle(nom);
   }
 
   /* LE MATERIEL LE PLUS CHOISI, compte sur les seances. Idee de MB,
@@ -7347,6 +7364,7 @@
     trouverCatalogue: trouverCatalogue, majCatalogue: majCatalogue, suggestions: suggestions,
     trouverOutil: trouverOutil, majCatalogueOutils: majCatalogueOutils, suggestionsOutils: suggestionsOutils,
     MATERIEL_SALLE: MATERIEL_SALLE, estMaterielDeSalle: estMaterielDeSalle,
+    materielDeSalle: materielDeSalle,
     materielLePlusChoisi: materielLePlusChoisi,
     categoriesOutils: categoriesOutils, outilsParCategorie: outilsParCategorie,
     outilAMoi: outilAMoi, SANS_CATEGORIE: SANS_CATEGORIE,

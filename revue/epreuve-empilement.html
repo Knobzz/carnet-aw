@@ -580,6 +580,75 @@
       });
     }).catch(rattrape);
 
+    /* ===== E8 : UN EXERCICE QUI PORTE UN MATERIEL S'EDITE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E8. Un exercice qui PORTE un matériel s’édite-t-il ?',
+          'Le défaut que MB a vu, et c’est moi qui l’avais posé la veille : en remontant la '
+        + 'table du matériel dans le modèle, j’ai supprimé l’index local `TOUT_MATERIEL` '
+        + 'et laissé UN usage qui y pointait, 300 lignes plus bas. '
+        + '« Modifier l’exercice » jetait un ReferenceError dès que l’exercice portait une '
+        + 'poulie — et l’écran se taisait. '
+        + 'AUCUNE épreuve, AUCUN banc n’éditait un exercice qui porte un matériel : c’est '
+        + 'ce trou-là que ce cas ferme.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(450);
+      }).then(function () {
+        var d = A.document, m = A.App.m;
+        egal(typeof m.materielDeSalle, 'function',
+             'le modèle sait rendre la définition d’un matériel');
+        var def = m.materielDeSalle && m.materielDeSalle('Poulie · basse');
+        egal(def && def.reglages ? 'avec réglages' : 'sans', 'avec réglages',
+             'et une poulie réglée porte bien ses réglages — le « · » ne la cache pas');
+        /* L'EFFET : le panneau s'ouvre vraiment, pour chaque forme. */
+        /* LE NOM DOIT ETRE UNE FICHE DU DICTIONNAIRE, et c'est la
+           condition que mon premier decor ratait.
+
+           `rendreVariantes` sort sur `if (!ficheOuverte) return;` AVANT
+           l'etage 3. Un exercice nomme « Essai » n'atteint donc jamais la
+           ligne fautive, et le controle passait au vert sur le code
+           bogue : « 4 materiels essayes : tous ouvrent ».
+
+           LE DEFAUT NE FRAPPE QUE LA CONJONCTION : un nom reconnu par le
+           dictionnaire ET un materiel porte. C'est pour ca qu'il a
+           survecu a huit chemins de reproduction — et « Elevation
+           laterale · Poulie · basse », c'est exactement l'ecran que MB a
+           photographie. */
+        var essais = ['Poulie · basse', 'Banc · incliné 30°', 'Barre', 'Fat Gripz'];
+        var echecs = [];
+        essais.forEach(function (o) {
+          var ex = m.exerciceProgramme({ nom: 'Élévation latérale' });
+          ex.outils = [o];
+          try {
+            A.App.panneau.editerExercice(ex, {}, function () {});
+            var p0 = d.querySelector('.panneau');
+            if (!p0) echecs.push(o + ' (pas de panneau)');
+            /* ET L'ETAGE 3 EST RENDU. Sur le code bogue, le panneau
+               s'ouvrait quand meme : l'exception frappait `rendreVariantes`,
+               qui s'arretait avant le Materiel. Mesurer la seule presence
+               du panneau laissait donc passer le defaut. */
+            else if (!/3 — Matériel/.test(p0.textContent)) {
+              echecs.push(o + ' (étage 3 manquant)');
+            }
+          } catch (err) {
+            echecs.push(o + ' → ' + err.name);
+          }
+          var p = d.querySelector('.panneau');
+          if (p) {
+            var x = [].slice.call(p.querySelectorAll('button')).filter(function (b) {
+              return b.textContent.trim() === '✕'; })[0];
+            if (x) x.click();
+          }
+        });
+        dit(essais.length + ' matériels essayés : '
+          + (echecs.length ? echecs.join(' · ') : 'tous ouvrent'));
+        egal(echecs.join(' · '), '',
+             'et chacun ouvre son panneau d’édition, sans exception');
+      });
+    }).catch(rattrape);
+
     ch.then(function () {
       scoreN.textContent = bons + ' / ' + total;
       scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
