@@ -683,7 +683,19 @@ select.champ { appearance: none; background-image: none; }
 .popo {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* AU-DESSUS DU PANNEAU (80), ET C'EST UN CORRECTIF DU 11/11.
+
+     Il valait 60, donc SOUS le panneau. Une feuille ouverte depuis un
+     panneau — le menu d'un exercice, le type de serie, une suppression :
+     les six appels de vue-programmes.js — s'ouvrait DERRIERE lui.
+
+     Elle n'etait pas cachee au sens CSS : `display: block`, `opacity: 1`,
+     297 px de haut. Elle etait RECOUVERTE, et `elementFromPoint` rendait
+     un champ du panneau en plein milieu. D'ou le symptome de MB : « rien
+     ne se passe », et l'overlay qui reapparait des qu'on quitte l'ecran.
+
+     Ce qu'on ouvre PAR-DESSUS doit passer par-dessus. */
+  z-index: 90;
   background: rgba(10, 16, 22, .45);
   display: grid;
   place-items: end center;
@@ -1087,7 +1099,19 @@ body.chrono-ouvert .app { padding-bottom: calc(var(--barre) + 104px + env(safe-a
   position: fixed;
   left: 12px; right: 12px;
   bottom: calc(var(--barre) + 76px + env(safe-area-inset-bottom));
-  z-index: 70;
+  /* AU-DESSUS DU PANNEAU ET DES FEUILLES — meme cause que `.popo`,
+     trouvee en mesurant celle-la le 11/11.
+
+     Il valait 70 : un toast declenche pendant qu'un panneau est ouvert
+     passait donc derriere lui. Mesure : `elementFromPoint` au centre du
+     toast rendait le fond du panneau.
+
+     CE N'EST PAS COSMETIQUE. Les toasts disent depuis le 04/11 si une
+     saisie a ETE ENREGISTREE OU NON — « PAS enregistree : le stockage a
+     refuse ». Un message d'echec invisible est pire que pas de message :
+     il laisse croire que tout va bien. Seul le bandeau de panne (201)
+     reste au-dessus. */
+  z-index: 100;
   max-width: 400px;
   margin: 0 auto;
   background: var(--texte);

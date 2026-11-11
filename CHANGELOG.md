@@ -15,6 +15,21 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.87.0
+
+**Le menu d'un exercice s'ouvre enfin, depuis Récup.** Déplier une séance de
+récup, « Modifier », puis le « ⋯ » d'un exercice : le menu s'ouvrait **derrière**
+l'écran d'édition. Il était bien là, invisible et intouchable, et il réapparaissait
+dès qu'on quittait la page. Ce n'était pas propre à Récup : partout où un menu
+s'ouvre depuis un écran d'édition, il passait dessous.
+
+**Les messages de confirmation aussi.** Même cause, trouvée en réparant la
+première : un message affiché pendant qu'un écran d'édition est ouvert passait
+derrière lui. Ceux qui disent « PAS enregistrée » quand le stockage refuse
+étaient donc invisibles au moment où ils comptent le plus.
+
+---
+
 ## 1.86.0
 
 **Les explications des gestes sont plus courtes.** Le bloc « Ce que ça change »

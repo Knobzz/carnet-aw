@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — ce qui s'ouvre par-dessus</title>
+<!--
+  LE BUG DE RECUP, 2026-11-11.
+
+  MB : « j'ai un bug recurrent dans l'onglet Recup, quand je veux
+  modifier un exo, rien ne se passe, je suis oblige de quitter la page
+  recup pour avoir l'overlay qui me donne l'acces aux options de l'exo ».
+
+  REPRODUIT : Recup > deplier une seance > « Modifier » > le « ⋯ » d'un
+  exercice. La feuille s'ouvre bel et bien — `display: block`,
+  `opacity: 1`, 297 px de haut — mais `elementFromPoint` en son centre
+  rend un `input.serie-saisie` DU PANNEAU. Elle est RECOUVERTE, pas
+  cachee, et elle reapparait des qu'on ferme le panneau : c'est le
+  « quitter la page recup » de MB.
+
+  LA CAUSE, lue dans le CSS :
+
+      .entete 20 · .onglets 30 · .chrono 40 · .auto-liste 50
+      .popo 60 · .toast 70 · .panneau 80 · .bandeau-panne 201
+
+  `.popo` porte les feuilles, et il etait SOUS `.panneau`. Or une feuille
+  s'ouvre presque toujours DEPUIS un panneau — les six appels de
+  vue-programmes.js sont tous dans ce cas. Ce n'est donc pas un defaut de
+  Recup : c'est partout, et Recup est l'endroit ou MB l'a rencontre.
+
+  LE TOAST AVAIT LE MEME DEFAUT, trouve en mesurant celui-ci. Il n'etait
+  pas signale, et il rend muets les messages « PAS enregistree » livres
+  le 04/11 : un echec invisible est pire qu'une absence de message.
+
+  === LE PIEGE DE CETTE MESURE, ET IL M'A COUTE UN FAUX DIAGNOSTIC ===
+
+  `elementFromPoint` IGNORE les elements en `pointer-events: none`. Le
+  toast en porte un — c'est voulu, il ne doit pas bloquer les clics.
+  Ma premiere mesure le declarait donc « recouvert » APRES correctif,
+  alors qu'il etait parfaitement visible : je mesurais sa capture des
+  clics, pas sa visibilite.
+
+  LE GESTE : neutraliser `pointer-events` LE TEMPS de la mesure, puis le
+  remettre. C'est la seule facon de demander « qu'est-ce qui est peint
+  devant » a une API qui repond « qu'est-ce qui recevrait le clic ».
+
+  LA CHUTE SE JOUE EN REPOSANT L'ANCIEN z-index sur l'element vivant,
+  pas sur un arbre monte a part : ces deux nombres SONT le defaut, et
+  les rejouer mesure exactement ce qui a change.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:400px;height:820px}
+ iframe{width:400px;height:820px;border:0}
+</style></head><body>
+<h1>Ce qui s’ouvre par-dessus</h1>
+<p class="pourquoi">Le bug de Récup : la feuille d’options s’ouvrait derrière le panneau.</p>
+<p class="pourquoi" id="quoi">…</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+
+  var RACINE = (function () {
+    var m = /[?&]racine=([^&]+)/.exec(location.search);
+    if (!m) return '../';
+    var v;
+    try { v = decodeURIComponent(m[1]); } catch (e) { return '../'; }
+    if (!/^\.\.\/[A-Za-z0-9_\-]+\/$/.test(v)) return '../';
+    try {
+      if (new URL(v, location.href).origin !== location.origin) return '../';
+    } catch (e) { return '../'; }
+    return v;
+  })();
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch(RACINE + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + RACINE + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 300);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        [CLE, CLE + '-filet', CLE + '-illisible'].forEach(function (k) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+        ok();
+      }, 400);
+    });
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  /* ======================================================================
+     QU'EST-CE QUI EST PEINT DEVANT CE POINT ?
+
+     `elementFromPoint` repond « qu'est-ce qui recevrait le clic », pas
+     « qu'est-ce qui est visible » : il IGNORE les elements en
+     `pointer-events: none`. Le toast en porte un, et c'est voulu.
+
+     Ma premiere mesure, le 11/11, declarait donc le toast « recouvert »
+     APRES correctif, alors qu'il etait parfaitement visible. Fausse
+     piste, et un outil employe sans verifier qu'il convient ICI.
+
+     On neutralise donc `pointer-events` LE TEMPS de la mesure, puis on
+     le remet — l'element n'en garde rien.
+     ====================================================================== */
+  function devant(A, el) {
+    var d = A.document;
+    var r = el.getBoundingClientRect();
+    if (!r.height) return { ok: false, quoi: '(hauteur nulle)' };
+    var cx = Math.round(r.left + r.width / 2);
+    var cy = Math.round(r.top + Math.min(40, r.height / 2));
+    var memo = el.style.pointerEvents;
+    el.style.pointerEvents = 'auto';
+    var dessus = d.elementFromPoint(cx, cy);
+    el.style.pointerEvents = memo;
+    return { ok: !!dessus && (el === dessus || el.contains(dessus)),
+             quoi: dessus ? String(dessus.className || dessus.tagName).slice(0, 28) : '(rien)' };
+  }
+
+  /* LE DECOR DE MB : Recup > une seance depliee > Modifier > le « ⋯ ». */
+  function decorRecup(A) {
+    var d = A.document;
+    var e = A.App.store.vide();
+    e.routinesRecup = [{ id: 'r1', nom: 'Avant-bras du soir', exercices: [
+      { id: 'x1', nom: 'Side pressure', typeCharge: 'kg', series: [{}] },
+      { id: 'x2', nom: 'Extension poignet', typeCharge: 'kg', series: [{}] }] }];
+    A.App.store.remplacer(e);
+    return attendre(500).then(function () {
+      A.App.app.aller('recup');
+      return attendre(900);
+    }).then(function () {
+      var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+        return /Avant-bras du soir/.test(x.textContent); })[0];
+      if (b) b.click();
+      return attendre(700);
+    }).then(function () {
+      var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+        return x.textContent.trim() === 'Modifier'; })[0];
+      if (b) b.click();
+      return attendre(1000);
+    }).then(function () { return d.querySelector('.panneau'); });
+  }
+
+  function jouer() {
+    document.getElementById('quoi').textContent =
+      RACINE === '../' ? 'App mesurée : le code COURANT (../).'
+                       : 'App mesurée : ' + RACINE + ' — c’est la CHUTE, jouée sur un arbre antérieur.';
+    var ch = Promise.resolve();
+
+    /* ===== E1 : LA FEUILLE D'OPTIONS, DEPUIS RECUP ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E1. Le menu d’un exercice s’ouvre-t-il DEVANT le panneau ?',
+          'Le chemin exact de MB : Récup → déplier une séance → Modifier → le « ⋯ » d’un '
+        + 'exercice.\n'
+        + 'La feuille s’ouvrait bel et bien — `display: block`, `opacity: 1`, 297 px de haut. '
+        + 'Elle était RECOUVERTE par le panneau : au centre, c’est un champ de saisie qu’on '
+        + 'touchait. « Rien ne se passe. »');
+      var A, pan;
+      return monter().then(function (w) { A = w; return decorRecup(A); }).then(function (p) {
+        pan = p;
+        egal(pan ? 'ouvert' : 'fermé', 'ouvert',
+             '[temoin] l’éditeur de séance s’ouvre bien depuis Récup');
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return x.textContent.trim() === '⋯'; })[0];
+        egal(b ? 'là' : 'absent', 'là',
+             '[temoin] un exercice porte bien son bouton d’options');
+        if (b) b.click();
+        return attendre(800);
+      }).then(function () {
+        var fe = A.document.querySelector('.popo-feuille');
+        egal(fe ? 'ouverte' : 'absente', 'ouverte',
+             '[temoin] la feuille est bien CRÉÉE — ce n’est pas elle qui manquait');
+        if (!fe) return;
+        dit('elle porte : ' + fe.textContent.replace(/\s+/g, ' ').slice(0, 64));
+        var v = devant(A, fe);
+        dit('au centre de la feuille, on touche : ' + v.quoi);
+        egal(v.ok ? 'la feuille' : v.quoi, 'la feuille',
+             'et c’est ELLE qu’on touche en son centre — pas le panneau derrière');
+      });
+    }).catch(rattrape);
+
+    /* ===== E2 : LA CHUTE, EN REPOSANT LES ANCIENS NOMBRES ===== */
+    ch = ch.then(function () {
+      cas('E2. En reposant les anciens z-index, le défaut revient-il ?',
+          'Ces deux nombres SONT le défaut : `.popo` à 60 et `.toast` à 70, sous `.panneau` '
+        + 'à 80. On les repose sur l’élément vivant, et on remesure.\n'
+        + 'Un correctif dont on n’a pas vu revenir le défaut ne prouve rien.');
+      var A, pan;
+      return monter().then(function (w) { A = w; return decorRecup(A); }).then(function (p) {
+        pan = p;
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return x.textContent.trim() === '⋯'; })[0];
+        if (b) b.click();
+        return attendre(800);
+      }).then(function () {
+        var d = A.document;
+        var fe = d.querySelector('.popo-feuille'), po = d.querySelector('.popo');
+        egal(fe && po ? 'oui' : 'non', 'oui', '[temoin] la feuille et son fond sont là');
+        if (!fe || !po) return;
+        var z = A.getComputedStyle(po).zIndex;
+        dit('`.popo` vaut aujourd’hui : ' + z + '  ·  `.panneau` : '
+          + A.getComputedStyle(pan).zIndex);
+        egal(+z > +A.getComputedStyle(pan).zIndex ? 'au-dessus' : 'au-dessous', 'au-dessus',
+             'la feuille est déclarée au-dessus du panneau');
+        /* ET ON REJOUE 60 : le defaut doit REVENIR. */
+        po.style.zIndex = '60';
+        var v = devant(A, fe);
+        po.style.zIndex = '';
+        dit('avec l’ancien 60, on touche : ' + v.quoi);
+        /* IL TIENT DES DEUX COTES, POUR DEUX RAISONS DIFFERENTES.
+
+           Sur le code COURANT il etablit la CAUSALITE : reposer 60 sur
+           un element qui vaut 90 fait revenir le defaut, donc c'est
+           bien ce nombre qui le causait. Sur l'arbre d'avant, `.popo`
+           vaut DEJA 60 — on ne rejoue rien, on constate l'etat natif. */
+        egal(v.ok ? 'encore la feuille' : 'le panneau revient devant',
+             'le panneau revient devant',
+             '[temoin] avec 60, le panneau est devant — vrai des deux côtés : ici '
+           + 'c’est la CAUSALITÉ qu’il établit, là-bas l’état natif');
+        /* LA FEUILLE RETROUVE SA PLACE : sans ca, le cas suivant
+           mesurerait un decor qu'on vient d'abimer. */
+        var r = devant(A, fe);
+        /* CE TEMOIN TOMBE SUR L'ARBRE D'AVANT, et c'est normal : rendre
+           sa valeur y rend 60. Son decor suppose le correctif — il
+           garde que la mesure precedente n'a rien abime, pas que le
+           produit est juste. */
+        egal(r.ok ? 'rétablie' : r.quoi, 'rétablie',
+             '[temoin] et elle repasse devant dès qu’on rend sa valeur — décor '
+           + 'neuf, il tombe sur l’ancien code');
+      });
+    }).catch(rattrape);
+
+    /* ===== E3 : LE TOAST, LE MEME DEFAUT, NON SIGNALE ===== */
+    ch = ch.then(function () {
+      cas('E3. Un toast déclenché pendant un panneau se voit-il ?',
+          'Trouvé en mesurant E1, et jamais signalé. `.toast` valait 70, donc sous le '
+        + 'panneau à 80.\n'
+        + 'CE N’EST PAS COSMÉTIQUE : depuis le 04/11, les toasts disent si une saisie a été '
+        + 'enregistrée OU NON. Un « PAS enregistrée » invisible est pire que pas de message.\n'
+        + 'ATTENTION À L’OUTIL : `elementFromPoint` ignore `pointer-events: none`, que le '
+        + 'toast porte. On le neutralise le temps de la mesure.');
+      var A, pan;
+      return monter().then(function (w) { A = w; return decorRecup(A); }).then(function (p) {
+        pan = p;
+        A.App.ui.toast('mesure de l’épreuve');
+        return attendre(500);
+      }).then(function () {
+        var d = A.document;
+        var t = d.querySelector('.toast');
+        egal(t ? 'affiché' : 'absent', 'affiché', '[temoin] le toast est bien créé');
+        if (!t) return;
+        egal(A.getComputedStyle(t).pointerEvents, 'none',
+             '[temoin] il porte `pointer-events: none` — c’est voulu, et c’est le piège de '
+           + 'la mesure');
+        var v = devant(A, t);
+        dit('au centre du toast, on touche : ' + v.quoi);
+        egal(v.ok ? 'le toast' : v.quoi, 'le toast',
+             'il est peint DEVANT le panneau');
+        /* LA CHUTE : on repose 70. */
+        t.style.zIndex = '70';
+        var av = devant(A, t);
+        t.style.zIndex = '';
+        dit('avec l’ancien 70, on touche : ' + av.quoi);
+        /* MEME LECTURE QU'EN E2 : causalite ici, etat natif la-bas. */
+        egal(av.ok ? 'encore le toast' : 'le panneau revient devant',
+             'le panneau revient devant',
+             '[temoin] avec 70, le panneau est devant — vrai des deux côtés, et '
+           + 'c’est ce qui montre que ce nombre causait le défaut');
+      });
+    }).catch(rattrape);
+
+    /* ===== E4 : L'ORDRE COMPLET, LU DANS LA FEUILLE DE STYLE ===== */
+    ch = ch.then(function () {
+      cas('E4. L’ordre des couches se lit-il comme une phrase ?',
+          'Ce qu’on ouvre PAR-DESSUS passe par-dessus. Le bandeau de panne reste au sommet : '
+        + 'il dit que le carnet n’a pas été enregistré, et rien ne doit le couvrir.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        return attendre(300);
+      }).then(function () {
+        return fetch(RACINE + 'css/app.css?t=' + Date.now()).then(function (r) { return r.text(); });
+      }).then(function (css) {
+        function z(sel) {
+          var i = css.indexOf('\n' + sel + ' {');
+          if (i < 0) return null;
+          var m = /z-index:\s*(\d+)/.exec(css.slice(i, i + 1400));
+          return m ? +m[1] : null;
+        }
+        var p = z('.panneau'), po = z('.popo'), t = z('.toast'), b = z('.bandeau-panne');
+        dit('panneau ' + p + ' · popo ' + po + ' · toast ' + t + ' · bandeau ' + b);
+        /* VRAI AVANT (70 > 60) COMME APRES (100 > 90) : un invariant
+           preserve, pas une nouveaute. Il garde qu'un futur
+           reordonnancement ne glisse pas la feuille par-dessus le
+           toast. */
+        egal(po > p ? 'oui' : 'non', 'oui', 'une feuille passe au-dessus d’un panneau');
+        egal(t > po ? 'oui' : 'non', 'oui',
+             '[temoin] un toast passe au-dessus d’une feuille — invariant, vrai '
+           + 'des deux côtés');
+        egal(b > t ? 'oui' : 'non', 'oui',
+             '[temoin] et le bandeau de panne reste au-dessus de tout — invariant du 03/11');
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = bons + ' / ' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = bons + '/' + total + ' — empilement';
+    });
+  }
+
+  jouer();
+})();
+</script></body></html>
