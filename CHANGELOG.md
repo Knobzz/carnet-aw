@@ -15,6 +15,17 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.91.0
+
+**Plus aucun échec silencieux, nulle part.** La 1.89.0 faisait parler les menus ;
+désormais c'est toute l'application. Si quelque chose échoue — un bouton, une
+saisie, une sauvegarde de fichier — le carnet le dit au lieu de ne rien faire.
+
+Il reste discret : un seul message même si l'erreur se répète, rien sur une
+image qui n'a pas chargé, et **aucun mot en usage normal**.
+
+---
+
 ## 1.90.0
 
 **« Modifier l'exercice » fonctionne de nouveau.** Depuis la 1.85.0, le panneau

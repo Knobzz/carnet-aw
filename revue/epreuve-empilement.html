@@ -649,6 +649,67 @@
       });
     }).catch(rattrape);
 
+    /* ===== E9 : LE FILET, AUCUN ECHEC MUET ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E9. Le filet attrape-t-il ce qu’aucune garde ne couvre ?',
+          'MB, après deux jours sur un ReferenceError que l’écran ne disait pas : « oui, '
+        + 'étends ». Compté avant d’écrire : ~175 gestionnaires (116 clics, 29 saisies, '
+        + '13 touches…). Les entourer un par un serait 175 éditions, et ne couvrirait pas '
+        + 'ceux qu’on écrira demain. '
+        + 'UN FILET DOIT SE TAIRE POUR ÊTRE LU : les quatre contrôles ci-dessous mesurent '
+        + 'autant son silence que sa parole.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(450);
+      }).then(function () {
+        /* 1. IL SE TAIT EN USAGE NORMAL — on passe les six ecrans. */
+        var ecrans = ['seance', 'recup', 'programmes', 'journal', 'suivi', 'reglages'];
+        var p = Promise.resolve();
+        ecrans.forEach(function (e) {
+          p = p.then(function () { A.App.app.aller(e); return attendre(500); });
+        });
+        return p;
+      }).then(function () {
+        var t = A.document.querySelector('.toast');
+        var crie = t && /visible/.test(t.className);
+        egal(crie ? 'a crié : ' + t.textContent.slice(0, 40) : 'silencieux', 'silencieux',
+        /* IL TIENT DES DEUX COTES, ET IL FAUT LE DIRE : sans filet,
+           l'ecran se tait aussi. Ce controle ne prouve donc pas que le
+           filet existe — il garde qu'en AYANT un filet, on ne crie pas
+           pour rien. C'est la moitie qui rend l'autre lisible : un
+           filet bavard cesse d'etre lu, et les trois controles qui
+           suivent ne vaudraient plus rien. */
+             '[temoin] il se tait sur les six écrans — vrai des deux côtés : sans '
+           + 'filet on se tait aussi. Ce qu’il garde, c’est qu’en AYANT un filet on '
+           + 'ne crie pas pour rien');
+        /* 2. IL PARLE QUAND UNE ERREUR SURVIENT. L'erreur doit NAITRE
+           dans le cadre : une fonction creee ici n'y remonterait pas,
+           et le controle passerait pour muet. */
+        A.eval('setTimeout(function(){ null.x; }, 0);');
+        return attendre(800);
+      }).then(function () {
+        var t = A.document.querySelector('.toast');
+        var txt = t ? t.textContent : '';
+        dit('ce que l’écran dit : ' + txt.slice(0, 80));
+        egal(t && /visible/.test(t.className) ? 'annoncé' : 'muet', 'annoncé',
+             'une erreur qu’aucune garde ne couvre est ANNONCÉE');
+        egal(/TypeError/.test(txt) ? 'typée' : 'anonyme', 'typée',
+             'avec son type — c’est ce qui dira où chercher');
+        /* 3. IL NE CRIE PAS EN BOUCLE : dix erreurs d'affilee. */
+        var avant = txt;
+        A.eval('for(var i=0;i<10;i++){ setTimeout(function(){ pasDefini(); },0); }');
+        return attendre(900).then(function () {
+          var t2 = A.document.querySelector('.toast');
+          egal(t2 && t2.textContent === avant ? 'un seul' : 'répété',
+               'un seul',
+               'et dix erreurs d’affilée ne donnent QU’UN message — un toast qui '
+             + 'clignote cesse d’être lu');
+        });
+      });
+    }).catch(rattrape);
+
     ch.then(function () {
       scoreN.textContent = bons + ' / ' + total;
       scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');

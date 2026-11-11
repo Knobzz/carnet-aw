@@ -130,6 +130,57 @@
   }
   var CHEMIN_OK = 'M4 12.8 9.2 18 20 6.6';
 
+  /* ---------- LE FILET : AUCUN ECHEC NE RESTE MUET ----------
+
+     MB, 11/11, apres deux jours passes sur un `ReferenceError` que
+     l'ecran ne disait pas : « oui, etends ».
+
+     POURQUOI UN FILET ET PAS 175 GARDES. L'app porte ~175 gestionnaires
+     (116 `click`, 29 `input`, 13 `keydown`…). Les entourer un par un
+     serait autant d'editions et d'occasions de se tromper, et ca ne
+     couvrirait pas ceux qu'on ecrira demain. Celui-ci les couvre tous.
+
+     IL NE REMPLACE PAS LA GARDE DES MENUS : elle nomme l'ACTION, lui ne
+     connait que l'erreur. Le menu en dit plus, donc il garde la main.
+
+     TROIS PRECAUTIONS, chacune pour une raison :
+       - un echec de CHARGEMENT DE RESSOURCE n'a pas d'objet `error` et
+         ne vient pas d'un geste : on le laisse passer, sinon une image
+         absente crierait a l'utilisateur ;
+       - UNE SEULE ANNONCE toutes les 3 s : une erreur dans une boucle de
+         rendu se repeterait a chaque image, et un message qui clignote
+         cesse d'etre lu ;
+       - le message reste COURT. La pile est en console.
+
+     EN USAGE NORMAL IL SE TAIT : mesure du 04/11, les six ecrans rendent
+     zero erreur. C'est ce silence qui le rend lisible quand il parle. */
+  var dernierCri = 0;
+
+  function crier(quoi, err) {
+    var t = Date.now();
+    if (t - dernierCri < 3000) return;
+    dernierCri = t;
+    var nom = (err && err.name) || 'erreur';
+    toast(quoi + ' a échoué (' + nom + '). Dis-le-moi : '
+        + 'le carnet n’aurait pas dû se taire.');
+  }
+
+  window.addEventListener('error', function (ev) {
+    /* PAS D'OBJET `error` = une ressource qui n'a pas charge, pas un
+       geste qui a echoue. Ce n'est pas a l'utilisateur de le savoir. */
+    if (!ev || !ev.error) return;
+    try { console.error('Filet :', ev.error); } catch (e) {}
+    crier('Une action', ev.error);
+  });
+
+  window.addEventListener('unhandledrejection', function (ev) {
+    /* UNE PROMESSE REJETEE NE PASSE PAS PAR `error`, et le carnet en
+       emploie — le fichier de sauvegarde, la place disponible. */
+    var r = ev && ev.reason;
+    try { console.error('Filet (promesse) :', r); } catch (e) {}
+    crier('Une opération', r && r.name ? r : { name: 'promesse rejetée' });
+  });
+
   /* ---------- toast ---------- */
   var toastN = null, toastT = null;
   function toast(msg) {
