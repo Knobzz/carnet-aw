@@ -175,7 +175,33 @@
       var b = h('button', { class: 'bt bt-large' + (o.classe ? ' ' + o.classe : '') });
       if (o.lettre != null) b.appendChild(h('span', { class: 'popo-lettre', text: o.lettre }));
       b.appendChild(h('span', { text: o.nom }));
-      b.addEventListener('click', function () { fermer(); o.action && o.action(); });
+      /* UNE ACTION QUI ECHOUE LE DIT — 11/11.
+
+         Sans ce garde-fou, une exception dans `o.action()` remonte au
+         gestionnaire d'evenement : le navigateur l'ecrit en console, et
+         l'ecran ne montre RIEN. Pour qui emploie le carnet, « rien ne se
+         passe » EST ce qu'il affiche quand il echoue — c'est le piege
+         n° 1, sous sa forme la plus discrete : pas de `catch` qui avale,
+         juste un echec qui ne remonte nulle part.
+
+         Ne pas confondre avec une action qui ne FAIT rien volontairement
+         (« Annuler ») : celle-la ne jette pas.
+
+         LA FEUILLE SE FERME D'ABORD, et c'est voulu : si l'action ouvre
+         un panneau, il ne doit pas s'ouvrir sous un menu encore la. */
+      b.addEventListener('click', function () {
+        fermer();
+        if (!o.action) return;
+        try {
+          o.action();
+        } catch (err) {
+          /* LA CONSOLE GARDE LA PILE, l'ecran garde le nom. */
+          try { console.error('Action « ' + o.nom +' » :', err); } catch (e2) {}
+          toast('« ' + o.nom + ' » n\u2019a pas abouti ('
+              + ((err && err.name) || 'erreur') + '). Dis-le-moi : le carnet '
+              + 'n\u2019aurait pas d\u00fb se taire.');
+        }
+      });
       boite.appendChild(b);
     });
     var annul = h('button', { class: 'bt bt-large bt-fantome', text: 'Annuler' });

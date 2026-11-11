@@ -15,6 +15,22 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.89.0
+
+**Quand une action échoue, le carnet le dit.** Jusqu'ici, si une entrée de menu
+— « Modifier l'exercice », par exemple — se heurtait à une erreur, l'écran ne
+montrait rien du tout. « Rien ne se passe » était donc, sans qu'on puisse le
+savoir, ce que le carnet affichait quand il échouait. Il nomme maintenant
+l'action et le type d'erreur, pour qu'on puisse le signaler.
+
+**Un écran ouvert par-dessus un autre passe devant.** Deux écrans ouverts en
+même temps — l'éditeur d'un programme, puis « Modifier l'exercice » — se
+départageaient par le seul ordre d'affichage interne. Ça fonctionnait, mais
+rien ne le garantissait : le second pouvait s'ouvrir derrière le premier, et
+donner l'impression que le bouton ne répond pas.
+
+---
+
 ## 1.87.0
 
 **Le menu d'un exercice s'ouvre enfin, depuis Récup.** Déplier une séance de

@@ -42,6 +42,22 @@
   remettre. C'est la seule facon de demander « qu'est-ce qui est peint
   devant » a une API qui repond « qu'est-ce qui recevrait le clic ».
 
+  === LIRE LA CHUTE SELON L'ARBRE QU'ON LUI DONNE ===
+
+  Cette epreuve couvre DEUX changements d'un jour a l'autre : les
+  menus et les toasts passes au-dessus du panneau (1.87.0), puis les
+  panneaux empiles entre eux (1.88.0). La chute ne dit donc pas la
+  meme chose selon l'arbre :
+
+      contre la 1.86.0   16/22 — les menus et les toasts tombent
+      contre la 1.87.0   24/25 — seul E6 tombe, les autres y sont
+                                 deja corriges, et c'est voulu
+
+  Six verts sans etiquette contre la 1.87.0 ne sont donc PAS des
+  controles complaisants : ils mesurent le changement de la veille,
+  qui est dans cet arbre-la. Les lire autrement enverrait chercher
+  un defaut dans du code juste.
+
   LA CHUTE SE JOUE EN REPOSANT L'ANCIEN z-index sur l'element vivant,
   pas sur un arbre monte a part : ces deux nombres SONT le defaut, et
   les rejouer mesure exactement ce qui a change.
@@ -467,6 +483,100 @@
         egal(v.ok ? 'devant' : v.quoi, 'devant',
              '[temoin] au premier plan, pas derrière le précédent — vrai '
            + 'des deux côtés');
+      });
+    }).catch(rattrape);
+
+    /* ===== E6 : DEUX PANNEAUX EMPILES ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E6. Un panneau ouvert sur un autre passe-t-il devant ?',
+          'Mesuré le 11/11 en cherchant le défaut des Programmes : deux panneaux ouverts '
+        + 'en même temps portaient le MÊME z-index, 80. Ils se départageaient par le seul '
+        + 'ordre du document — ça marchait, et par accident. '
+        + 'La règle est celle du menu, un cran plus loin : ce qu’on ouvre par-dessus passe '
+        + 'par-dessus.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        A.App.store.remplacer(A.App.store.vide());
+        return attendre(500);
+      }).then(function () {
+        A.App.app.aller('programmes');
+        return attendre(800);
+      }).then(function () {
+        var d = A.document;
+        var b = [].slice.call(d.querySelectorAll('button')).filter(function (x) {
+          return /Nouveau programme/.test(x.textContent); })[0];
+        if (b) b.click();
+        return attendre(1000);
+      }).then(function () {
+        var d = A.document;
+        var z1 = A.getComputedStyle(d.querySelector('.panneau')).zIndex;
+        dit('le premier panneau vaut : ' + z1);
+        var pan = [].slice.call(d.querySelectorAll('.panneau')).pop();
+        var b = [].slice.call(pan.querySelectorAll('button')).filter(function (x) {
+          return /Ajouter un exercice/.test(x.textContent); })[0];
+        if (b) b.click();
+        return attendre(1000);
+      }).then(function () {
+        var d = A.document;
+        var ps = [].slice.call(d.querySelectorAll('.panneau'));
+        egal(ps.length, 2, '[temoin] deux panneaux sont bien ouverts');
+        if (ps.length < 2) return;
+        var z = ps.map(function (p) { return +A.getComputedStyle(p).zIndex; });
+        dit('leurs z-index : ' + z.join(' puis '));
+        egal(z[1] > z[0] ? 'croissant' : z.join('='), 'croissant',
+             'le second passe AU-DESSUS du premier, et pas par ordre du DOM');
+        /* ET LES MENUS RESTENT AU-DESSUS DE TOUT : sans cette marge, empiler
+           des panneaux finirait par recouvrir les feuilles qu'on vient de
+           remettre devant. */
+        egal(Math.max.apply(null, z) < 90 ? 'sous 90' : Math.max.apply(null, z),
+             'sous 90',
+             'et ils restent sous les menus — la marge tient');
+      });
+    }).catch(rattrape);
+
+    /* ===== E7 : UNE ACTION DE MENU QUI ECHOUE LE DIT ===== */
+    ch = ch.then(vider).then(function () {
+      cas('E7. Une action de menu qui échoue le dit-elle ?',
+          'MB : « quand je clique sur modifier l’exercice, rien ne se passe », puis « Non, '
+        + 'rien du tout » — le panneau ne s’ouvre JAMAIS. Non reproduit en huit chemins. '
+        + 'Ce qui reste est une erreur que le carnet MANGE : une exception dans l’action '
+        + 'remonte au gestionnaire, la console la garde, et l’écran ne montre rien. '
+        + '« Rien ne se passe » EST ce que le carnet affiche quand il échoue. '
+        + 'Ce contrôle ne répare pas son défaut : il garantit que le prochain se NOMME.');
+      var A;
+      return monter().then(function (w) {
+        A = w;
+        return attendre(400);
+      }).then(function () {
+        var d = A.document;
+        /* UNE FEUILLE DONT L'ACTION JETTE, comme le ferait un defaut reel. */
+        A.App.ui.feuille('Essai', [
+          { nom: 'Action qui échoue', action: function () {
+              var e = new Error('panne simulée'); e.name = 'TypeError'; throw e; } }
+        ]);
+        return attendre(600);
+      }).then(function () {
+        var d = A.document;
+        var fe = d.querySelector('.popo-feuille');
+        egal(fe ? 'ouverte' : 'absente', 'ouverte', '[temoin] la feuille d’essai est là');
+        var b = [].slice.call(fe.querySelectorAll('button')).filter(function (x) {
+          return /Action qui/.test(x.textContent); })[0];
+        if (b) b.click();
+        return attendre(700);
+      }).then(function () {
+        var d = A.document;
+        egal(d.querySelector('.popo') ? 'ouverte' : 'fermée', 'fermée',
+             '[temoin] la feuille s’est bien refermée — l’échec ne la bloque pas');
+        var t = d.querySelector('.toast');
+        var txt = t ? t.textContent : '';
+        dit('ce que l’écran dit : ' + txt.slice(0, 90));
+        egal(t && /visible/.test(t.className) ? 'affiché' : 'muet', 'affiché',
+             'l’échec est ANNONCÉ, au lieu de passer pour « rien ne se passe »');
+        egal(/Action qui/.test(txt) ? 'nommée' : 'anonyme', 'nommée',
+             'et le message NOMME l’action qui a échoué');
+        egal(/TypeError/.test(txt) ? 'dit' : 'tu', 'dit',
+             'avec le type d’erreur — c’est ce qui dira où chercher');
       });
     }).catch(rattrape);
 

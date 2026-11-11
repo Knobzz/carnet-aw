@@ -14,6 +14,23 @@
       h('div', { class: 'panneau-entete' }, fermerBt, h('h2', { text: titre })),
       corps);
 
+    /* CHAQUE PANNEAU PASSE AU-DESSUS DE CEUX QUI SONT DEJA OUVERTS.
+
+       `.panneau` vaut 80 pour tous : deux panneaux ouverts en meme temps
+       — l'editeur d'un programme, puis « Modifier l'exercice » — se
+       departagent alors par le seul ordre du document. Ca marche, et ca
+       marche par accident : un re-rendu qui reinsere le premier apres le
+       second l'inverserait sans bruit, et le panneau qu'on vient
+       d'ouvrir s'afficherait DERRIERE celui qu'on regarde.
+
+       MESURE DU 11/11, en cherchant le defaut que MB voit dans les
+       Programmes : les deux portaient bien 80 et 80.
+
+       LA MARGE EST TENUE : la profondeur depasse rarement deux, et
+       `.popo` vaut 90 — les menus restent donc au-dessus de tous les
+       panneaux tant qu'on n'en empile pas dix, ce que rien ne fait. */
+    pan.style.zIndex = String(80 + document.querySelectorAll('.panneau').length);
+
     var ferme = false;
     var entree = null;
 
