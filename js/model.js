@@ -5570,6 +5570,125 @@
     return p;
   }
 
+  /* ---------- LE REPORT D'UNE SEANCE SUR SON PROGRAMME ----------
+
+     Demande de MB le 18/11 : un programme cree sans valeurs doit se
+     remplir tout seul quand on l'a fait, « afin d'avoir un suivi ».
+
+     SA REGLE, ET C'EST LA MEME QUE `programmeDepuisSeance` : le reel
+     devient la cible ; une serie dont RIEN n'a ete saisi garde la cible
+     d'origine.
+
+     LE ✓ N'ENTRE PAS EN COMPTE, et c'est delibere : ni cette fonction ni
+     `programmeDepuisSeance` ne regardent `faite`. Une serie remplie puis
+     terminee sans etre cochee est reportee comme les autres — l'app
+     previent deja (« N serie(s) non validee(s) ») et laisse passer. Ce
+     qui compte est ce qu'on a ECRIT, pas la case.
+     MB a tranche le cas ou la cible etait DEJA remplie : « le reel
+     remplace, mais vu qu'on a le suivi des seances dans "suivi", je peux
+     voir si ca descend ou pas ». Donc pas de garde « seulement si c'est
+     mieux » — le programme montre la derniere seance, l'historique vit
+     ailleurs et ne bouge pas.
+
+     L'APPARIEMENT NE PEUT PAS SE DEVINER. `exerciceSeanceDepuisProgramme`
+     cree un id neuf et ne garde aucun lien vers l'exercice d'origine : il
+     n'existe AUCUNE identite commune. On apparie par POSITION et on
+     VERIFIE le nom (par slug, donc insensible a la casse et aux
+     accents). Au moindre desaccord on laisse la ligne et le bilan la
+     nomme — ecraser les cibles du mauvais exercice en silence serait
+     pire que ne rien reporter.
+
+     LE BILAN SE REND. Un report automatique qui ne dit pas ce qu'il a
+     ecrase est un ecrasement sans trace. */
+  function reporterSeanceSurProgramme(etat, seance) {
+    var bilan = { possible: false, programme: null, exercices: 0,
+                  series: 0, ignores: [] };
+    if (!etat || !seance || !seance.programmeId) return bilan;
+
+    var prog = (etat.programmes || []).filter(function (p) {
+      return p.id === seance.programmeId;
+    })[0];
+    /* Le programme a pu etre supprime depuis : il n'y a alors rien a
+       reporter, et ce n'est pas une erreur. */
+    if (!prog) return bilan;
+
+    bilan.possible = true;
+    bilan.programme = prog.nom;
+
+    var exos = seance.exercices || [];
+
+    /* L'APPARIEMENT SE FAIT PAR NOM, et la position n'est qu'un recours.
+
+       Mesure du 18/11, sur la question de MB (« si je retire un exo et le
+       remplace par un autre ? ») : apparier par POSITION rendait quatre
+       resultats, dont deux mauvais. Retirer un exercice decalait tout, et
+       l'exercice RESTANT n'etait alors ni reporte ni nomme — un echec
+       silencieux sur une valeur que MB avait bel et bien saisie. Inverser
+       l'ordre ne reportait rien du tout.
+
+       Le NOM est une identite bien meilleure que le rang : c'est lui que
+       MB lit, et il ne bouge pas quand l'ordre bouge. On ne s'en remet a
+       la position que lorsque le nom ne tranche pas — les HOMONYMES, que
+       ce carnet a pour de vrai (deux « Curl a la poulie » dans un meme
+       programme) : leur rang est alors la seule chose qui les distingue. */
+    function compte(liste) {
+      var n = {};
+      (liste || []).forEach(function (x) {
+        var c = slug(x.nom || '');
+        n[c] = (n[c] || 0) + 1;
+      });
+      return n;
+    }
+    var nProg = compte(prog.exercices), nSeance = compte(exos);
+
+    (prog.exercices || []).forEach(function (ep, i) {
+      var c = slug(ep.nom || '');
+      var es = null;
+      if (nProg[c] === 1 && nSeance[c] === 1) {
+        /* unique des deux cotes : le nom suffit, l'ordre n'importe pas */
+        es = exos.filter(function (x) { return slug(x.nom || '') === c; })[0];
+      } else if (exos[i] && slug(exos[i].nom || '') === c) {
+        /* homonymes, ou nom absent : le rang, et seulement s'il concorde */
+        es = exos[i];
+      }
+      if (!es) {
+        /* NOMME, JAMAIS MUET. Un exercice du programme qu'on n'a pas su
+           retrouver dans la seance garde ses cibles — et on le dit, pour
+           que « 1 exercice mis a jour » sur un programme qui en compte
+           trois ne se lise pas comme « tout est a jour ». */
+        bilan.ignores.push(ep.nom || '(sans nom)');
+        return;
+      }
+      var avant = JSON.stringify(ep.series || []);
+      /* LES SERIES DE LA SEANCE FONT FOI, y compris leur NOMBRE : en
+         ajouter une pendant la seance, c'est decider que le programme en
+         compte une de plus. C'est ce que fait deja
+         `programmeDepuisSeance`, et MB l'emploie justement pour ca. */
+      ep.series = (es.series || []).map(function (ss) {
+        return serieProgramme({
+          type: ss.type,
+          repsCible: String(ss.repsReel || '').trim() || ss.repsCible || '',
+          chargeCible: String(ss.chargeReel || '').trim() || ss.chargeCible || '',
+          dureeCible: String(ss.dureeReel || '').trim() || ss.dureeCible || ''
+        });
+      });
+      /* On ne compte que ce qui a VRAIMENT change : une seance ouverte et
+         refermee sans rien saisir ne doit pas annoncer un report. Les
+         `id` des series etant neufs a chaque fois, on compare les seules
+         cibles. */
+      function cibles(l) {
+        return (l || []).map(function (x) {
+          return [x.type, x.repsCible, x.chargeCible, x.dureeCible].join('|');
+        }).join(';');
+      }
+      if (cibles(JSON.parse(avant)) !== cibles(ep.series)) {
+        bilan.exercices += 1;
+        bilan.series += ep.series.length;
+      }
+    });
+    return bilan;
+  }
+
   function dupliquerProgramme(p, nom) {
     var c = programme(nom || (p.nom + ' (copie)'));
     c.description = p.description;
@@ -7394,6 +7513,7 @@
     resumeSeriesFaites: resumeSeriesFaites,
     exerciceSeanceVierge: exerciceSeanceVierge, serieSeanceVierge: serieSeanceVierge,
     programmeDepuisSeance: programmeDepuisSeance, dupliquerProgramme: dupliquerProgramme,
+    reporterSeanceSurProgramme: reporterSeanceSurProgramme,
     volumeSeance: volumeSeance, texteHorsTonnage: texteHorsTonnage,
     texteSerie: texteSerie,
     texteTempsSousTension: texteTempsSousTension,

@@ -15,6 +15,16 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.92.0
+
+**Une séance remplit le programme qui l'a lancée.** Un programme créé sans poids ni répétitions se remplit tout seul à la fin de la séance : ce que tu as saisi devient la cible. Plus besoin de dupliquer la séance puis de supprimer le programme d'origine.
+
+La dernière séance fait foi, même plus basse que la précédente — le programme montre où tu en es, l'historique reste dans **Suivi**. Une série laissée vide garde sa cible, et le message de fin de séance nomme le programme touché.
+
+Tu peux **retirer, ajouter ou réordonner** un exercice pendant la séance : chacun retrouve sa place par son nom. Un exercice du programme que tu n'as pas fait garde ses cibles, et le carnet le **nomme** — il ne devine pas. Un exercice improvisé n'entre pas au programme : le report met à jour tes cibles, il ne redessine pas ton plan.
+
+---
+
 ## 1.91.0
 
 **Plus aucun échec silencieux, nulle part.** La 1.89.0 faisait parler les menus ;

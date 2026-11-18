@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épreuve — le report sur le programme</title>
+<!--
+  UNE SEANCE REPORTE SES VALEURS SUR SON PROGRAMME. 2026-11-18.
+
+  MB : « quand je cree des programmes et que j'ai mis aucune valeur dans
+  les poids / reps / temps [...] ces valeurs ne se repercutent pas sur le
+  programme [...] je dois dupliquer ma seance et supprimer le programme
+  d'origine. Il faudrait que chaque seance qui utilise un programme
+  enregistre repercute ses resultats sur le programme afin d'avoir un
+  suivi. »
+
+  LA REGLE EXISTAIT, dans `programmeDepuisSeance` : « les valeurs REELLES
+  deviennent les cibles ; a defaut, on reprend la cible d'origine ». Elle
+  creait un programme NEUF — d'ou le contournement. Ce qui manquait etait
+  de l'appliquer AU PROGRAMME D'ORIGINE.
+
+  LES DEUX DECISIONS SONT DE MB, 18/11 :
+    « le reel remplace, mais vu qu'on a le suivi des seances dans
+      "suivi", je peux voir si ca descend ou pas » ;
+    « a la fin de la seance ».
+
+  LE POINT DUR EST L'APPARIEMENT, et il est mesure :
+  `exerciceSeanceDepuisProgramme` cree un `uid('es')` neuf et ne garde
+  AUCUN lien vers `ep.id`. Il n'existe pas d'identite commune. On
+  apparie donc par POSITION en VERIFIANT le nom (par slug) ; au moindre
+  desaccord on laisse la ligne et le bilan la nomme. Ecraser les cibles
+  du mauvais exercice en silence serait pire que ne rien reporter.
+
+  CE QUE CETTE EPREUVE MESURE EN PLUS DU CAS HEUREUX : les six etats
+  qu'un report automatique peut rencontrer et qui n'arrivent jamais sur
+  le chemin que MB a decrit — rien de saisi, serie non faite, exercice
+  insere, programme supprime, seance libre.
+-->
+<style>
+ body{font:14px/1.5 system-ui,sans-serif;margin:0;padding:14px;background:#111;color:#eee}
+ h1{font-size:17px;margin:0 0 4px}
+ .score{font:600 20px/1.3 system-ui;margin:10px 0;padding:8px 10px;border-radius:6px;background:#222}
+ .score.ok{color:#7ee08a} .score.ko{color:#ff8d8d}
+ .cas{margin:14px 0;padding:10px;border-left:3px solid #444;background:#191919}
+ .cas h3{font-size:14px;margin:0 0 4px}
+ .pourquoi{color:#aaa;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+ .ligne{font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;margin:2px 0}
+ .ok{color:#7ee08a} .ko{color:#ff8d8d}
+ #cadres{position:fixed;left:-9999px;top:0;width:400px;height:800px}
+ iframe{width:400px;height:800px;border:0}
+</style></head><body>
+<h1>Le report sur le programme</h1>
+<p class="pourquoi">Une séance faite depuis un programme y reporte ses valeurs — et dit ce qu’elle a laissé.</p>
+<p class="pourquoi" id="quoi">…</p>
+<div class="score" id="score">en cours…</div>
+<div id="sortie"></div>
+<div id="cadres"></div>
+<script>
+(function () {
+  'use strict';
+  var sortie = document.getElementById('sortie');
+  var scoreN = document.getElementById('score');
+  var cadres = document.getElementById('cadres');
+  var total = 0, bons = 0, casCourant = null;
+
+  function cas(titre, pourquoi) {
+    casCourant = document.createElement('div');
+    casCourant.className = 'cas';
+    var h = document.createElement('h3'); h.textContent = titre;
+    var p = document.createElement('p'); p.className = 'pourquoi'; p.textContent = pourquoi;
+    casCourant.appendChild(h); casCourant.appendChild(p);
+    sortie.appendChild(casCourant);
+  }
+  function egal(obtenu, attendu, quoi) {
+    total += 1;
+    var ok = String(obtenu) === String(attendu);
+    if (ok) bons += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ' + (ok ? 'ok' : 'ko');
+    d.textContent = (ok ? '✓ ' : '✗ ') + quoi
+                  + (ok ? '' : '\n      attendu ' + attendu + ' · obtenu ' + obtenu);
+    casCourant.appendChild(d);
+  }
+  function dit(t) {
+    var d = document.createElement('div'); d.className = 'ligne';
+    d.textContent = '   ' + t; casCourant.appendChild(d);
+  }
+  function rattrape(e) {
+    total += 1;
+    var d = document.createElement('div');
+    d.className = 'ligne ko';
+    d.textContent = '✗ CE CAS A PLANTE : ' + (e && e.message ? e.message : e);
+    (casCourant || sortie).appendChild(d);
+  }
+
+  var CLE = 'carnet-aw-bac';
+
+  var RACINE = (function () {
+    var m = /[?&]racine=([^&]+)/.exec(location.search);
+    if (!m) return '../';
+    var v;
+    try { v = decodeURIComponent(m[1]); } catch (e) { return '../'; }
+    if (!/^\.\.\/[A-Za-z0-9_\-]+\/$/.test(v)) return '../';
+    try {
+      if (new URL(v, location.href).origin !== location.origin) return '../';
+    } catch (e) { return '../'; }
+    return v;
+  })();
+
+  var source = null;
+  function monter() {
+    return (source ? Promise.resolve(source)
+                   : fetch(RACINE + 'index.html?t=' + Date.now()).then(function (x) { return x.text(); })
+                       .then(function (h) { source = h; return h; }))
+      .then(function (html) {
+        html = html.replace(/<script[^>]*serviceWorker[\s\S]*?<\/script>/gi, '');
+        html = html.replace(/\?v=[^"'&]*/g, '?v=' + Date.now() + '.' + Math.random().toString(36).slice(2, 7));
+        var tete = '<base href="' + RACINE + '">'
+                 + '<scr' + 'ipt>window.__BAC_A_SABLE = 1;</scr' + 'ipt>';
+        html = html.replace(/<head([^>]*)>/i, '<head$1>' + tete);
+        var f = document.createElement('iframe');
+        cadres.appendChild(f);
+        return new Promise(function (ok) {
+          f.addEventListener('load', function once() {
+            f.removeEventListener('load', once);
+            setTimeout(function () { ok(f.contentWindow); }, 300);
+          });
+          f.setAttribute('srcdoc', html);
+        });
+      });
+  }
+  function vider() {
+    cadres.innerHTML = '';
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        [CLE, CLE + '-filet', CLE + '-illisible'].forEach(function (k) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+        ok();
+      }, 380);
+    });
+  }
+  function attendre(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
+
+  /* LE DECOR DE MB : un programme SANS aucune valeur. */
+  function decor(A, nbSeries) {
+    var m = A.App.m;
+    var e = A.App.store.vide();
+    var p = m.programme('Biceps + Épaules');
+    var series = [];
+    for (var i = 0; i < (nbSeries || 3); i++) series.push({});
+    p.exercices = [m.exerciceProgramme({ nom: 'Curl pronation', series: series }),
+                   m.exerciceProgramme({ nom: 'Élévation latérale', series: [{}, {}] })];
+    m.renumeroter(p.exercices);
+    e.programmes = [p];
+    A.App.store.remplacer(e);
+    return attendre(400);
+  }
+  function cibles(ep) {
+    return (ep.series || []).map(function (s) {
+      return (s.chargeCible || '-') + '/' + (s.repsCible || '-');
+    }).join(' ');
+  }
+
+  function jouer() {
+    document.getElementById('quoi').textContent =
+      RACINE === '../' ? 'App mesurée : le code COURANT (../).'
+                       : 'App mesurée : ' + RACINE + ' — c’est la CHUTE, jouée sur un arbre antérieur.';
+    var ch = Promise.resolve();
+
+    /* ===== P1 : LE CAS DE MB ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P1. Un programme sans valeurs se remplit-il après la séance ?',
+          'Le cas exact de MB : programme créé sans poids ni reps, séance faite, valeurs '
+        + 'saisies. Aujourd’hui il doit dupliquer la séance puis supprimer le programme '
+        + 'd’origine pour les garder.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        var prog = et.programmes[0];
+        egal(cibles(prog.exercices[0]), '-/- -/- -/-',
+             '[temoin] le programme part bien SANS aucune valeur');
+        var se = m.seanceMuscu(prog);
+        se.exercices[0].series.forEach(function (s, i) {
+          s.chargeReel = String(20 + i * 2); s.repsReel = '10'; s.faite = true;
+        });
+        se.exercices[1].series.forEach(function (s) {
+          s.chargeReel = '12'; s.repsReel = '15'; s.faite = true;
+        });
+        et.seances.push(se);
+        var b = m.reporterSeanceSurProgramme(et, se);
+        dit('bilan : ' + b.exercices + ' exercice(s), ' + b.series + ' série(s), programme « '
+          + b.programme + ' »');
+        egal(cibles(et.programmes[0].exercices[0]), '20/10 22/10 24/10',
+             'les valeurs saisies sont devenues les cibles du programme');
+        egal(cibles(et.programmes[0].exercices[1]), '12/15 12/15',
+             'sur les deux exercices');
+        egal(b.exercices, 2, 'et le bilan compte ce qui a bougé');
+        egal((b.ignores || []).length, 0, 'sans rien laisser de côté');
+      });
+    }).catch(rattrape);
+
+    /* ===== P2 : RIEN DE SAISI N'ECRASE RIEN ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P2. Une séance où l’on n’a rien saisi annonce-t-elle un report ?',
+          'Ouvrir une séance et la refermer sans rien faire ne doit RIEN prétendre. Sans '
+        + 'cette garde, l’écran annoncerait une mise à jour qui n’a pas eu lieu — et on '
+        + 'apprendrait à ne plus lire le message.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        var se = m.seanceMuscu(et.programmes[0]);
+        et.seances.push(se);
+        var b = m.reporterSeanceSurProgramme(et, se);
+        egal(b.exercices, 0, 'aucun exercice annoncé — rien n’a été saisi');
+        egal(cibles(et.programmes[0].exercices[0]), '-/- -/- -/-',
+             'et le programme n’a pas bougé');
+      });
+    }).catch(rattrape);
+
+    /* ===== P3 : LA DECISION DE MB — LE REEL REMPLACE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P3. Une cible déjà remplie est-elle remplacée ?',
+          'MB, 18/11 : « le réel remplace, mais vu qu’on a le suivi des séances dans "suivi", '
+        + 'je peux voir si ça descend ou pas. »\n'
+        + 'Donc PAS de garde « seulement si c’est mieux » : même une séance en dessous '
+        + 's’inscrit. C’est sa décision, et ce contrôle la tient.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        var prog = et.programmes[0];
+        prog.exercices[0].series.forEach(function (s) { s.chargeCible = '40'; s.repsCible = '8'; });
+        var se = m.seanceMuscu(prog);
+        /* EN DESSOUS de la cible : le cas qui distingue les trois règles. */
+        se.exercices[0].series.forEach(function (s) {
+          s.chargeReel = '35'; s.repsReel = '6'; s.faite = true;
+        });
+        et.seances.push(se);
+        m.reporterSeanceSurProgramme(et, se);
+        dit('cible avant 40/8, séance à 35/6');
+        egal(cibles(et.programmes[0].exercices[0]), '35/6 35/6 35/6',
+             'le réel remplace, même en dessous — décision de MB');
+      });
+    }).catch(rattrape);
+
+    /* ===== P4 : UNE SERIE NON FAITE GARDE SA CIBLE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P4. Une série où l’on n’a RIEN saisi garde-t-elle sa cible ?',
+          'C’est la moitié de la règle d’origine, et la plus facile à perdre : « à défaut, '
+        + 'on reprend la cible d’origine ». Sans elle, une séance arrêtée en cours '
+        + 'EFFACERAIT les cibles des séries non remplies. '
+        + 'Le titre disait « jamais faite » jusqu’au 18/11 — or dans cette app « faite » '
+        + 'se lit « cochée », et ce n’est pas ce qui est mesuré ici. Le ✓ fait l’objet '
+        + 'du contrôle suivant.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        var prog = et.programmes[0];
+        prog.exercices[0].series.forEach(function (s) { s.chargeCible = '40'; s.repsCible = '8'; });
+        var se = m.seanceMuscu(prog);
+        /* LA PREMIERE SEULEMENT : les deux autres restent vierges. */
+        se.exercices[0].series[0].chargeReel = '42';
+        se.exercices[0].series[0].repsReel = '8';
+        se.exercices[0].series[0].faite = true;
+        et.seances.push(se);
+        m.reporterSeanceSurProgramme(et, se);
+        egal(cibles(et.programmes[0].exercices[0]), '42/8 40/8 40/8',
+             'la série remplie remplace, les deux vides gardent leur cible');
+      });
+    }).catch(rattrape);
+
+    /* ===== P4bis : LE ✓ N'ENTRE PAS EN COMPTE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P4 bis. Une série saisie mais NON VALIDÉE est-elle reportée ?',
+          'Rencontré en jouant le geste réel : après avoir rempli les cinq séries sans '
+        + 'cocher, l’app demande « 5 série(s) non validée(s) — terminer quand même ? ». '
+        + 'Elle laisse donc passer, et ce cas arrivera. '
+        + 'Ni cette fonction ni `programmeDepuisSeance` ne regardent `faite` : ce qui compte '
+        + 'est ce qu’on a ÉCRIT, pas la case. Sans ce contrôle, un `if (ss.faite)` '
+        + 'ajouté de bonne foi ferait perdre à MB les jours où il oublie de cocher.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        var se = m.seanceMuscu(et.programmes[0]);
+        /* SAISI, et `faite` laisse a false — exactement l'etat du geste reel. */
+        se.exercices[0].series.forEach(function (s) {
+          s.chargeReel = '30'; s.repsReel = '12';
+        });
+        egal(se.exercices[0].series.filter(function (s) { return s.faite; }).length, 0,
+             '[temoin] aucune des séries n’est cochée — c’est la condition du cas');
+        et.seances.push(se);
+        var b = m.reporterSeanceSurProgramme(et, se);
+        egal(cibles(et.programmes[0].exercices[0]), '30/12 30/12 30/12',
+             'les valeurs remontent quand même');
+        egal(b.exercices, 1, 'et le report est annoncé');
+      });
+    }).catch(rattrape);
+
+    /* ===== P5 : RETIRER, REMPLACER, REORDONNER ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P5. Retirer, remplacer ou réordonner un exercice pendant la séance',
+          'Question de MB, 18/11 : « si je modifie une séance programmée en retirant un '
+        + 'exo et en le remplaçant par un autre ? » Les quatre gestes sont joués ici.\n'
+        + 'Jusqu’à cette mesure l’appariement se faisait par POSITION, et deux gestes '
+        + 'sur quatre étaient mauvais : RETIRER un exercice décalait tout et l’exercice '
+        + 'RESTANT n’était ni reporté ni nommé — un échec muet sur une valeur saisie ; '
+        + 'INVERSER l’ordre ne reportait rien.\n'
+        + 'On apparie désormais par NOM, l’ordre n’important plus. Ce qui n’est pas '
+        + 'retrouvé garde ses cibles et EST NOMMÉ : écraser le mauvais exercice en '
+        + 'silence serait pire que ne rien reporter.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; }).then(function () {
+        /* SON PROPRE DECOR, une seule serie par exercice : chaque valeur
+           attendue se lit alors d'un coup d'oeil. Le decor commun en donne
+           une au premier exercice et deux au second, ce qui rendait les
+           attentes de ce cas illisibles — et trois d'entre elles sont
+           tombees sur un produit juste avant qu'on le voie. */
+        var depart = A.App.store.vide();
+        var p = m.programme('Biceps + Épaules');
+        p.exercices = [m.exerciceProgramme({ nom: 'Curl pronation', series: [{ chargeCible: '40' }] }),
+                       m.exerciceProgramme({ nom: 'Élévation latérale', series: [{ chargeCible: '50' }] })];
+        m.renumeroter(p.exercices);
+        depart.programmes = [p];
+        A.App.store.remplacer(depart);
+        egal(cibles(p.exercices[0]) + ' ' + cibles(p.exercices[1]), '40/- 50/-',
+             '[temoin] une seule série par exercice, cibles distinctes — le décor du cas');
+        var frais = JSON.stringify(p);
+
+        /* Chaque geste repart du MEME programme : sans ca, le second
+           mesurerait ce que le premier a laisse. */
+        function geste(transforme) {
+          var et = A.App.store.etat();
+          et.programmes = [JSON.parse(frais)];
+          var se = m.seanceMuscu(et.programmes[0]);
+          transforme(se, m);
+          se.exercices.forEach(function (ex, k) {
+            (ex.series || []).forEach(function (s) { s.chargeReel = String(90 + k); });
+          });
+          et.seances = [se];
+          var b = m.reporterSeanceSurProgramme(et, se);
+          return { bilan: b, prog: et.programmes[0] };
+        }
+
+        /* A. REMPLACER : « Curl pronation » devient « Dips ». */
+        var a = geste(function (se, m) {
+          se.exercices[0] = m.exerciceSeanceVierge({ nom: 'Dips' });
+        });
+        egal(cibles(a.prog.exercices[1]), '91/-',
+             'A. on REMPLACE un exercice : l’autre est quand même reporté');
+        egal(cibles(a.prog.exercices[0]), '40/-',
+             '   et le remplacé garde ses cibles');
+        egal((a.bilan.ignores || []).join(','), 'Curl pronation',
+             '   il est NOMMÉ, pas laissé en silence');
+
+        /* B. RETIRER : le trou d'avant le 18/11. */
+        var b2 = geste(function (se) { se.exercices.splice(0, 1); });
+        egal(cibles(b2.prog.exercices[1]), '90/-',
+             'B. on RETIRE un exercice : le restant est reporté — il ne l’était PAS');
+        egal((b2.bilan.ignores || []).join(','), 'Curl pronation',
+             '   et le retiré est nommé');
+
+        /* C. AJOUTER a la fin. */
+        var c = geste(function (se, m) {
+          se.exercices.push(m.exerciceSeanceVierge({ nom: 'Dips' }));
+        });
+        egal(c.bilan.exercices, 2,
+             'C. on AJOUTE un exercice : les deux du programme sont reportés');
+        egal((c.bilan.ignores || []).length, 0,
+             '   et rien n’est annoncé comme perdu');
+
+        /* D. INVERSER l'ordre : l'autre geste qui ne marchait pas. */
+        var d = geste(function (se) { se.exercices.reverse(); });
+        egal(cibles(d.prog.exercices[0]) + ' ' + cibles(d.prog.exercices[1]),
+             '91/- 90/-',
+             'D. on INVERSE l’ordre : chacun reçoit SA valeur — rien ne passait avant');
+        egal((d.bilan.ignores || []).length, 0,
+             '   et rien n’est annoncé comme perdu');
+      });
+    }).catch(rattrape);
+
+    /* ===== P5 bis : LES HOMONYMES, SEUL CAS OU LA POSITION TRANCHE ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P5 bis. Deux exercices de MÊME NOM dans un programme',
+          'Le carnet en a pour de vrai — le bac à sable annonce « 1 homonyme à arbitrer ». '
+        + 'Quand un nom apparaît deux fois, il ne peut plus identifier personne : leur RANG '
+        + 'est alors la seule chose qui les distingue, et on y revient.\n'
+        + 'Sans ce cas, l’appariement par nom choisirait toujours le premier des deux et '
+        + 'écraserait le second avec les valeurs du premier.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; }).then(function () {
+        var et = A.App.store.vide();
+        var p = m.programme('Deux fois le même');
+        p.exercices = [m.exerciceProgramme({ nom: 'Curl à la poulie', series: [{ chargeCible: '40' }] }),
+                       m.exerciceProgramme({ nom: 'Curl à la poulie', series: [{ chargeCible: '50' }] })];
+        m.renumeroter(p.exercices);
+        et.programmes = [p];
+        egal(p.exercices[0].nom === p.exercices[1].nom ? 'oui' : 'non', 'oui',
+             '[temoin] les deux portent bien le MÊME nom — c’est la condition du cas');
+
+        var se = m.seanceMuscu(p);
+        se.exercices.forEach(function (ex, k) {
+          ex.series.forEach(function (s) { s.chargeReel = String(90 + k); });
+        });
+        et.seances = [se];
+        m.reporterSeanceSurProgramme(et, se);
+        egal(cibles(et.programmes[0].exercices[0]) + ' ' + cibles(et.programmes[0].exercices[1]),
+             '90/- 91/-',
+             'chacun reçoit la sienne — le second n’est pas écrasé par le premier');
+      });
+    }).catch(rattrape);
+
+    /* ===== P6 : SANS PROGRAMME, ET PROGRAMME SUPPRIME ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P6. Une séance libre, ou un programme supprimé, font-ils une erreur ?',
+          'Deux états qui arrivent pour de vrai : une séance démarrée sans programme, et un '
+        + 'programme effacé après coup. Aucun des deux n’est une faute — il n’y a '
+        + 'simplement rien à reporter, et ça ne doit ni planter ni annoncer quoi que ce soit.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; return decor(A); }).then(function () {
+        var et = A.App.store.etat();
+        /* 1. une seance LIBRE */
+        var libre = m.seanceMuscu(null);
+        libre.exercices = [m.exerciceSeanceVierge({ nom: 'Curl' })];
+        var b1 = m.reporterSeanceSurProgramme(et, libre);
+        egal(b1.possible ? 'oui' : 'non', 'non',
+             'une séance libre n’a rien à reporter, et le dit');
+        egal(b1.exercices, 0, 'sans rien annoncer');
+        /* 2. le programme SUPPRIME depuis */
+        var se = m.seanceMuscu(et.programmes[0]);
+        se.exercices[0].series[0].chargeReel = '30';
+        se.exercices[0].series[0].faite = true;
+        et.programmes = [];
+        var b2 = m.reporterSeanceSurProgramme(et, se);
+        egal(b2.possible ? 'oui' : 'non', 'non',
+             'un programme supprimé non plus — et ce n’est pas une erreur');
+        /* 3. et rien ne plante sur un etat vide */
+        var b3 = m.reporterSeanceSurProgramme(null, null);
+        egal(b3 && b3.exercices === 0 ? 'rend un bilan vide' : 'plante',
+             'rend un bilan vide',
+             '[temoin] et l’appel sans rien rend un bilan, jamais une exception');
+      });
+    }).catch(rattrape);
+
+    ch.then(function () {
+      scoreN.textContent = bons + ' / ' + total;
+      scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');
+      document.title = bons + '/' + total + ' — report sur le programme';
+    });
+  }
+
+  jouer();
+})();
+</script></body></html>

@@ -623,11 +623,46 @@
            n'existait nulle part. On va au Journal dans les deux cas : la
            seance est bien la sous les yeux. Ce qui change, c'est qu'on dit
            la verite sur ce qui est ecrit. */
+        /* LE REPORT SUR LE PROGRAMME — demande de MB, 18/11.
+
+           « Il faudrait que chaque seance qui utilise un programme
+             enregistre repercute ses resultats sur le programme afin
+             d'avoir un suivi. »
+
+           AVANT L'ECRITURE, pour que les deux partent ensemble : reporter
+           puis echouer a sauver laisserait le programme modifie en memoire
+           et pas sur le disque. */
+        var report = A.m.reporterSeanceSurProgramme
+                   ? A.m.reporterSeanceSurProgramme(etat(), seance)
+                   : { exercices: 0 };
+
         var ecrit = A.store.sauver(true);
-        A.ui.toast(ecrit
+
+        /* UN SEUL TOAST : le second effacerait le premier, et c'est
+           l'enregistrement qui compte le plus — il dit si la seance
+           existe. Le report s'y ajoute. */
+        var dit = ecrit
           ? 'Séance enregistrée dans le journal.'
           : 'PAS enregistrée : ' + (A.store.panne() || 'le stockage a refusé')
-            + '. Exporte avant de fermer l’app.');
+            + '. Exporte avant de fermer l’app.';
+        /* ON NE L'ANNONCE QUE SI QUELQUE CHOSE A BOUGE : une seance
+           ouverte et refermee sans rien saisir ne doit pas pretendre
+           avoir mis un programme a jour. */
+        if (ecrit && report.exercices) {
+          dit += ' Report sur « ' + report.programme + ' » : '
+               + report.exercices + ' exercice(s) mis à jour.';
+        }
+        /* CE QU'ON N'A PAS PU REPORTER SE DIT AUSSI, et on dit le FAIT,
+           pas une cause qu'on ne connait pas. Ce message annoncait
+           « l'ordre des exercices a change » : vrai du seul cas mesure
+           au depart (un exercice insere), faux des qu'on en retire un,
+           qu'on le remplace ou qu'on le renomme. Un message qui affirme
+           une cause fausse envoie chercher au mauvais endroit. */
+        if (ecrit && report.ignores && report.ignores.length) {
+          dit += ' Pas retrouvé(s) dans la séance : ' + report.ignores.join(', ')
+               + ' — ces cibles n’ont pas bougé.';
+        }
+        A.ui.toast(dit);
         A.app.aller('journal');
       };
       if (v.seriesFaites < v.series) {
