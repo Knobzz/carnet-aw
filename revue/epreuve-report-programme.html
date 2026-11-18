@@ -439,6 +439,148 @@
       });
     }).catch(rattrape);
 
+    /* ===== P7 : LES CHARGES DANS LE RESUME D'UN PROGRAMME ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P7. Le résumé d’un programme montre-t-il les charges ?',
+          'MB, 18/11 : « affiche les charges aussi ». La carte ne lisait que '
+        + '`repsCible` — les charges étaient enregistrées et invisibles, et un exercice '
+        + 'en DURÉE affichait « ?/?/? » alors que ses secondes étaient saisies.\n'
+        + 'L’écriture est celle que MB a choisie sur simulation : la charge d’abord, en '
+        + 'plage. Les trois derniers cas sont ceux qu’une écriture naïve casse — ils sont '
+        + 'tous permis par le modèle.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; }).then(function () {
+        function ex(o) { return m.exerciceProgramme(o); }
+        function dit2(q, obtenu, attendu) { egal(obtenu, attendu, q + ' → « ' + attendu + ' »'); }
+
+        dit2('charges qui montent',
+             m.resumeCiblesExercice(ex({ nom: 'Curl', series: [
+               { chargeCible: '20', repsCible: '10' },
+               { chargeCible: '22', repsCible: '9' },
+               { chargeCible: '24', repsCible: '8' }] })),
+             '20-24 kg · 10/9/8');
+
+        dit2('charge constante : pas de plage',
+             m.resumeCiblesExercice(ex({ nom: 'X', series: [
+               { chargeCible: '12', repsCible: '15' },
+               { chargeCible: '12', repsCible: '15' }] })),
+             '12 kg · 15/15');
+
+        dit2('cinq séries et une décimale',
+             m.resumeCiblesExercice(ex({ nom: 'X', series: [
+               { chargeCible: '100', repsCible: '8' }, { chargeCible: '102.5', repsCible: '6' },
+               { chargeCible: '105', repsCible: '5' }, { chargeCible: '105', repsCible: '5' },
+               { chargeCible: '95', repsCible: '8' }] })),
+             '95-105 kg · 8/6/5/5/8');
+
+        /* ÉLASTIQUE : la charge est du TEXTE. Aucune plage n’a de sens entre
+           « rouge » et « noire », et un `Math.min` y rendrait NaN. */
+        dit2('élastique : du texte, et on ne compare pas des couleurs',
+             m.resumeCiblesExercice(ex({ nom: 'X', typeCharge: 'elastique', series: [
+               { chargeCible: 'rouge', repsCible: '15' },
+               { chargeCible: 'rouge', repsCible: '15' },
+               { chargeCible: 'noire', repsCible: '12' }] })),
+             'rouge… · 15/15/12');
+
+        dit2('élastique, une seule bande : pas de « … » de trop',
+             m.resumeCiblesExercice(ex({ nom: 'X', typeCharge: 'elastique', series: [
+               { chargeCible: 'rouge', repsCible: '15' },
+               { chargeCible: 'rouge', repsCible: '15' }] })),
+             'rouge · 15/15');
+
+        /* DURÉE : elle remplace les reps. Avant le 18/11 ce cas rendait
+           « 3×  ?/?/? » alors que les secondes étaient saisies. */
+        dit2('durée à la place des reps',
+             m.resumeCiblesExercice(ex({ nom: 'X', colonnes: ['charge', 'duree'], series: [
+               { chargeCible: '16', dureeCible: '30' }, { chargeCible: '16', dureeCible: '30' },
+               { chargeCible: '16', dureeCible: '25' }] })),
+             '16 kg · 30/30/25 s');
+
+        /* POIDS DU CORPS : sans le « + », « 10 kg » laisserait croire que
+           les trois séries étaient lestées. */
+        dit2('poids du corps : le « + » dit qu’une série est sans lest',
+             m.resumeCiblesExercice(ex({ nom: 'X', typeCharge: 'poids_corps', series: [
+               { chargeCible: '', repsCible: '8' }, { chargeCible: '10', repsCible: '6' },
+               { chargeCible: '10', repsCible: '5' }] })),
+             '10 kg+ · 8/6/5');
+
+        dit2('programme neuf : la forme d’avant, qui dit le nombre de séries',
+             m.resumeCiblesExercice(ex({ nom: 'X', series: [{}, {}, {}] })),
+             '3×  ?/?/?');
+      });
+    }).catch(rattrape);
+
+    /* ===== P7 bis : ET CA RESTE VISIBLE A L'ECRAN ===== */
+    ch = ch.then(vider).then(function () {
+      cas('P7 bis. « Faut que ça reste visible » — à l’écran, pas dans une chaîne',
+          'La contrainte de MB porte sur le RENDU. La ligne est un flex où le nom se '
+        + 'tronque et où les chiffres ne se coupent jamais : chaque caractère ajouté à '
+        + 'droite est un caractère de nom en moins. On monte donc le vrai écran '
+        + 'Programmes et on mesure.\n'
+        + 'La mesure se fait HORS FLUX, et c’est payé : `scrollWidth` se plafonne à '
+        + '`clientWidth` sous `text-overflow: ellipsis`, et un `Range` est borné par '
+        + 'l’overflow du parent — les deux disaient « aucun nom coupé » là où il '
+        + 'manquait 200 px. L’ÉTALON garde la mesure.\n'
+        + '⚠ CE CAS TIENT SUR LA 1.92.0, et ce n’est pas une preuve : la carte n’y '
+        + 'montrait AUCUNE charge, donc le nom avait toute la place. Ce qui le fait '
+        + 'tomber est l’écriture « B » (série par série), celle que la simulation a '
+        + 'mesurée à −9 caractères de nom — jouée sur `?racine=../_avant_ecritureB/`, '
+        + 'elle rend 30/39.');
+      var A, m;
+      return monter().then(function (w) { A = w; m = A.App.m; }).then(function () {
+        var et = A.App.store.vide();
+        var p = m.programme('Biceps + Épaules');
+        /* LE PIRE CAS REEL : le nom le plus long du dictionnaire, en cinq
+           series a decimale. Plus un ETALON qui ne peut pas tenir. */
+        p.exercices = [
+          m.exerciceProgramme({ nom: 'Extension verticale des triceps', series: [
+            { chargeCible: '30', repsCible: '12' }, { chargeCible: '32.5', repsCible: '10' },
+            { chargeCible: '35', repsCible: '8' }, { chargeCible: '35', repsCible: '8' },
+            { chargeCible: '30', repsCible: '12' }] }),
+          m.exerciceProgramme({ nom: 'Nom volontairement démesuré pour éprouver la mesure elle-même',
+            series: [{ chargeCible: '20', repsCible: '10' }] })
+        ];
+        m.renumeroter(p.exercices);
+        et.programmes = [p];
+        A.App.store.remplacer(et);
+        A.App.app.aller('programmes');
+        return attendre(600).then(function () {
+          var d = A.document;
+          var bs = [].slice.call(d.querySelectorAll('.item-lignes .item-ligne b'));
+          egal(bs.length >= 2 ? 'rendues' : 'absentes', 'rendues',
+               '[temoin] les lignes du programme sont bien rendues à l’écran');
+
+          /* LARGEUR NATURELLE, hors de toute contrainte. */
+          function naturelle(el) {
+            var cs = A.getComputedStyle(el);
+            var sp = d.createElement('span');
+            sp.style.cssText = 'position:absolute;left:-99999px;white-space:nowrap;visibility:hidden;';
+            sp.style.font = cs.font; sp.style.fontWeight = cs.fontWeight;
+            sp.style.fontSize = cs.fontSize; sp.style.fontFamily = cs.fontFamily;
+            sp.textContent = el.textContent;
+            d.body.appendChild(sp);
+            var w2 = sp.getBoundingClientRect().width;
+            sp.parentNode.removeChild(sp);
+            return w2;
+          }
+          function coupe(el) { return naturelle(el) > el.getBoundingClientRect().width + 1; }
+
+          var vrai = bs.filter(function (b) { return !/démesuré/.test(b.textContent); });
+          var etalon = bs.filter(function (b) { return /démesuré/.test(b.textContent); })[0];
+
+          egal(etalon && coupe(etalon) ? 'vu coupé' : 'PAS vu coupé', 'vu coupé',
+               '[temoin] l’étalon, dont le nom ne PEUT pas tenir, est vu coupé — '
+             + 'sinon la mesure qui suit ne vaudrait rien');
+
+          var coupes = vrai.filter(coupe);
+          dit('ligne rendue : « ' + vrai[0].textContent + ' » + « '
+            + vrai[0].parentNode.querySelector('span').textContent + ' »');
+          egal(coupes.length, 0,
+               'le nom le plus long du dictionnaire, en cinq séries, n’est PAS tronqué');
+        });
+      });
+    }).catch(rattrape);
+
     ch.then(function () {
       scoreN.textContent = bons + ' / ' + total;
       scoreN.className = 'score ' + (bons === total ? 'ok' : 'ko');

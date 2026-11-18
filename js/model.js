@@ -5570,6 +5570,81 @@
     return p;
   }
 
+  /* ---------- LE RESUME DES CIBLES D'UN EXERCICE DE PROGRAMME ----------
+
+     MB, 18/11 : « affiche les charges aussi, mais faut que ca reste
+     visible ». Jusqu'ici la carte d'un programme ne montrait que les reps
+     (« 3x  10/9/8 ») : les charges etaient enregistrees et invisibles.
+
+     L'ECRITURE EST CELLE QUE MB A CHOISIE sur simulation (« D ») :
+
+         30-35 kg · 12/10/8/8/12
+
+     POURQUOI CELLE-LA, ET C'EST MESURE. La ligne est un flex ou le nom se
+     tronque (`text-overflow: ellipsis`) et ou les chiffres ne se coupent
+     jamais : chaque caractere ajoute a droite est un caractere de NOM en
+     moins. Sur le pire cas reel — « Extension verticale des triceps »,
+     31 caracteres, en cinq series — a 390 px avec le vrai CSS :
+     l'ecriture serie par serie amputait le nom de 9 caracteres, celle-ci
+     de ZERO. Page de mesure : `revue/simulation-charges-programme.html`.
+
+     SON PRIX : on perd le « Nx » et le detail serie par serie de la
+     charge. Le nombre de series reste lisible (autant que de reps), et la
+     charge devient une PLAGE quand elle bouge — ce qui dit la
+     progression sans la detailler.
+
+     TROIS CAS QU'UNE ECRITURE NAIVE CASSE, tous permis par le modele :
+       l'ELASTIQUE porte du TEXTE libre (« rouge ») : pas de plage
+         possible, on montre la premiere et « … » s'il y en a d'autres ;
+       la DUREE remplace les reps : suffixe « s » ;
+       le POIDS DU CORPS a un lest souvent VIDE sur la premiere serie :
+         on ne compte que les series lestees et un « + » le dit, sinon
+         « 10 kg » laisserait croire que tout etait leste. */
+  function resumeCiblesExercice(ep) {
+    var series = (ep && ep.series) || [];
+    var cols = colonnes(ep);
+    var champ = cols.indexOf('duree') >= 0 && cols.indexOf('reps') < 0
+              ? 'dureeCible' : 'repsCible';
+    var suffixe = champ === 'dureeCible' ? ' s' : '';
+
+    var reps = series.map(function (x) {
+      return String((x && x[champ]) || '').trim() || '?';
+    }).join('/');
+    /* Rien de saisi : on garde la forme d'avant, « 3x  ?/?/? », qui dit au
+       moins combien de series le programme compte. */
+    var rien = series.length + '\u00d7  ' + reps;
+
+    if (cols.indexOf('charge') < 0) return rien;
+
+    var brutes = series.map(function (x) {
+      return String((x && x.chargeCible) || '').trim();
+    });
+    var pleines = brutes.filter(function (x) { return x; });
+    if (!pleines.length) return rien;
+
+    var tc = typeCharge(ep && ep.typeCharge);
+    var u = tc.unite ? ' ' + tc.unite : '';
+    /* LE « + » DES SERIES SANS CHARGE : au poids du corps, la premiere
+       serie se fait souvent sans lest. Sans cette marque, « 10 kg »
+       laisserait croire que les trois series l'etaient. */
+    var plus = pleines.length < series.length ? '+' : '';
+
+    var chiffres = pleines.map(nombre);
+    var toutesNombres = chiffres.every(function (n) { return n != null; });
+
+    var charge;
+    if (!toutesNombres) {
+      /* ELASTIQUE : du texte. On ne compare pas des couleurs. */
+      var distinctes = pleines.filter(function (x, i) { return pleines.indexOf(x) === i; });
+      charge = pleines[0] + (distinctes.length > 1 ? '\u2026' : '');
+    } else {
+      var mini = Math.min.apply(null, chiffres);
+      var maxi = Math.max.apply(null, chiffres);
+      charge = (mini === maxi ? String(mini) : mini + '-' + maxi) + u;
+    }
+    return charge + plus + ' \u00b7 ' + reps + suffixe;
+  }
+
   /* ---------- LE REPORT D'UNE SEANCE SUR SON PROGRAMME ----------
 
      Demande de MB le 18/11 : un programme cree sans valeurs doit se
@@ -7514,6 +7589,7 @@
     exerciceSeanceVierge: exerciceSeanceVierge, serieSeanceVierge: serieSeanceVierge,
     programmeDepuisSeance: programmeDepuisSeance, dupliquerProgramme: dupliquerProgramme,
     reporterSeanceSurProgramme: reporterSeanceSurProgramme,
+    resumeCiblesExercice: resumeCiblesExercice,
     volumeSeance: volumeSeance, texteHorsTonnage: texteHorsTonnage,
     texteSerie: texteSerie,
     texteTempsSousTension: texteTempsSousTension,

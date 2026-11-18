@@ -15,6 +15,14 @@ qui disparaît, pas la donnée.
 
 ---
 
+## 1.93.0
+
+**La carte d'un programme montre les charges.** Elle n'affichait que les répétitions : « 3× 10/9/8 ». Elle dit maintenant « 20-24 kg · 10/9/8 » — la charge d'abord, en plage quand elle monte d'une série à l'autre.
+
+Un exercice en **durée** affichait « ?/?/? » alors que ses secondes étaient saisies : il montre ses secondes. Un **élastique** montre sa bande, et un exercice au **poids du corps** dont une série se fait sans lest porte un « + » pour le dire.
+
+---
+
 ## 1.92.0
 
 **Une séance remplit le programme qui l'a lancée.** Un programme créé sans poids ni répétitions se remplit tout seul à la fin de la séance : ce que tu as saisi devient la cible. Plus besoin de dupliquer la séance puis de supprimer le programme d'origine.

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulation — afficher les charges dans le résumé d’un programme</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--fond-3); color: var(--texte);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .page { max-width: 1500px; margin: 0 auto; }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .sous { color: var(--texte-2); font-size: .9rem; margin: 0 0 6px; max-width: 70ch; }
+  .garde { border: 2px solid var(--laiton); border-radius: 10px; padding: 11px 13px;
+           margin: 12px 0 18px; font-size: .88rem; background: var(--laiton-doux); max-width: 100ch; }
+  h2 { font-size: .95rem; margin: 22px 0 8px; text-transform: uppercase;
+       letter-spacing: .04em; color: var(--texte-2); }
+  .quoi { color: var(--texte-2); font-size: .85rem; margin: 0 0 10px; max-width: 80ch; }
+  .rangee { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+  .option { flex: 0 0 auto; }
+  .etiquette { font-size: .82rem; margin: 0 0 5px; font-weight: 600; }
+  .etiquette .code { color: var(--texte-2); font-weight: 400; }
+  /* LE CADRE FAIT 390 px, la largeur du telephone de MB, et le contenu
+     reprend la structure REELLE d'une carte de programme. */
+  /* LA VRAIE `.item-ligne` fait 340 px dans l'app a 390 px — mesure prise
+     dans le bac a sable. Ce padding est regle POUR QUE LA LIGNE TOMBE A 340,
+     et un temoin le verifie plus bas : une simulation plus serree que la
+     realite condamnerait des ecritures qui passent. */
+  .tel { width: 390px; border: 8px solid var(--trait-fort); border-radius: 20px;
+         background: var(--fond); padding: 4px; box-sizing: border-box; }
+  .verdict { font-size: .78rem; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .ok { color: #7ee08a; } .ko { color: #ff8d8d; } .mou { color: var(--texte-2); }
+  table.bilan { border-collapse: collapse; margin-top: 10px; font-size: .84rem; }
+  table.bilan th, table.bilan td { border: 1px solid var(--bord); padding: 4px 9px; text-align: left; }
+  table.bilan th { color: var(--texte-2); font-weight: 600; }
+  table.bilan td.n { text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head><body>
+<div class="page">
+
+<h1>Afficher les charges dans le résumé d’un programme</h1>
+<p class="sous">Demande de MB, 18/11 : « affiche les charges aussi, mais faut que ça reste
+   visible ». Six écritures, dans un cadre de <b>390 px</b>, avec le <b>vrai CSS</b> de
+   l’app et la structure réelle d’une carte de programme.</p>
+
+<div class="garde">
+  <b>Ce que chaque écriture COÛTE, et c’est le seul point qui tranche.</b>
+  La ligne est un <code>flex</code> : le nom (<code>.item-ligne b</code>) prend la place
+  restante et <b>se tronque à l’ellipse</b> ; les chiffres (<code>span</code>) sont en
+  <code>white-space: nowrap</code> et ne se coupent jamais. <b>Chaque caractère ajouté à
+  droite est un caractère de NOM en moins.</b>
+  <br><br>
+  Mesuré dans le dictionnaire réel : <b>157 fiches</b>, dont <b>153 en charge + reps</b>
+  et <b>4 en charge + durée</b> ; les noms d’exercice montent à <b>32 caractères</b>
+  (« Tourner le bras vers l’extérieur »). Le verdict sous chaque cadre dit, pour la
+  ligne la plus serrée, combien de pixels il reste au nom et <b>s’il est coupé</b>.
+</div>
+
+<div id="sortie"></div>
+
+<h2>Le bilan, écriture par écriture</h2>
+<div id="bilan"></div>
+
+</div>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- LES CAS, pris du dictionnaire et des usages reels ----------
+
+     On ne simule pas des valeurs commodes : on prend un nom LONG (le pire
+     cas mesure du dictionnaire), le cas DOMINANT (charge+reps, kg), et les
+     trois cas que le modele autorise et qu'une ecriture peut casser —
+     l'elastique dont la charge est du TEXTE libre, la duree, et le
+     programme NEUF dont les cibles sont vides. */
+  var CAS = [
+    { nom: 'Curl pronation', cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['20', '22', '24'], rp: ['10', '9', '8'],
+      note: 'le cas courant : charges qui montent' },
+
+    { nom: 'Tourner le bras vers l’extérieur', cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['12', '12', '12'], rp: ['15', '15', '15'],
+      note: 'LE PIRE NOM du dictionnaire (32 car.), charges constantes' },
+
+    { nom: 'Développé couché', cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['100', '102.5', '105', '105', '95'], rp: ['8', '6', '5', '5', '8'],
+      note: 'cinq séries, trois chiffres et une décimale' },
+
+    { nom: 'Élévation latérale', cols: ['charge', 'reps'], tc: 'elastique',
+      ch: ['rouge', 'rouge', 'noire'], rp: ['15', '15', '12'],
+      note: 'ÉLASTIQUE : la charge est du TEXTE libre, pas un nombre' },
+
+    { nom: 'Cup hold', cols: ['charge', 'duree'], tc: 'kg',
+      ch: ['16', '16', '16'], du: ['30', '30', '25'],
+      note: 'charge + DURÉE (4 fiches au dictionnaire)' },
+
+    { nom: 'Traction', cols: ['charge', 'reps'], tc: 'poids_corps',
+      ch: ['', '10', '10'], rp: ['8', '6', '5'],
+      note: 'poids du corps : le LEST, souvent vide sur la 1re série' },
+
+    { nom: 'Curl pronation', cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['', '', ''], rp: ['', '', ''],
+      note: 'programme NEUF : rien de saisi — ce que MB crée au départ' },
+
+    /* LE PIRE CAS REALISTE, et il manquait : la simulation avait un nom
+       LONG a trois series, et cinq series a nom COURT — jamais les deux
+       ensemble. Celui-ci existe pour de vrai : « Extension verticale des
+       triceps » est au dictionnaire (31 car.), et un exercice lourd se
+       travaille en cinq series. C'est lui qui departage les ecritures. */
+    { nom: 'Extension verticale des triceps', cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['30', '32.5', '35', '35', '30'], rp: ['12', '10', '8', '8', '12'],
+      note: 'PIRE CAS : nom long (31 car.) ET cinq séries à décimale' },
+
+    /* ÉTALON — IL N'EXISTE PAS DANS LE CARNET, il est là pour mesurer LA
+       MESURE. Son nom ne tient dans aucune écriture : s'il n'est pas
+       signalé coupé, c'est la détection qui est cassée, et la page doit
+       le dire en rouge plutôt que de rassurer. Deux outils l'ont manqué
+       avant celui-ci — `scrollWidth`, puis `Range`, tous deux bornés par
+       l'overflow du parent. */
+    { etalon: true, nom: 'Nom volontairement démesuré pour éprouver la mesure elle-même',
+      cols: ['charge', 'reps'], tc: 'kg',
+      ch: ['20', '22', '24'], rp: ['10', '9', '8'],
+      note: 'ÉTALON : doit TOUJOURS être signalé coupé' }
+  ];
+
+  function val(c, k) {
+    if (k === 'charge') return c.ch || [];
+    if (k === 'duree') return c.du || [];
+    return c.rp || [];
+  }
+  function unite(c) { return c.tc === 'elastique' ? '' : 'kg'; }
+  function tous(l) { return l.length && l.every(function (x) { return x === l[0] && x !== ''; }); }
+  function vide(l) { return !l.length || l.every(function (x) { return !x; }); }
+  function second(c) { return c.cols.indexOf('duree') >= 0 ? 'duree' : 'reps'; }
+  function sfx(c) { return c.cols.indexOf('duree') >= 0 ? ' s' : ''; }
+
+  /* ---------- LES SIX ECRITURES ----------
+     Chacune rend la chaine du `span`. Aucune ne touche au nom. */
+  var ECRITURES = [
+
+    { cle: 'A', titre: 'Aujourd’hui', code: '3×  10/9/8',
+      pourquoi: 'La référence : les reps seules. Les charges sont enregistrées mais '
+               + 'invisibles — c’est ce que MB veut changer.',
+      rend: function (c) {
+        var l = val(c, second(c));
+        return c.ch.length + '×  ' + l.map(function (x) { return x || '?'; }).join('/');
+      } },
+
+    { cle: 'B', titre: 'Tout, série par série', code: '20×10 22×9 24×8',
+      pourquoi: 'Rien n’est perdu : on lit chaque série. C’est aussi la plus longue, '
+               + 'et elle grandit avec le nombre de séries.',
+      rend: function (c) {
+        var ch = val(c, 'charge'), l = val(c, second(c));
+        if (vide(ch) && vide(l)) return c.ch.length + '×  ?';
+        return l.map(function (x, i) {
+          var g = ch[i] || '', r = x || '?';
+          return (g ? g + '×' : '') + r + sfx(c);
+        }).join(' ');
+      } },
+
+    { cle: 'C', titre: 'Charge groupée à droite', code: '3×  10/9/8 · 20-24 kg',
+      pourquoi: 'Les reps restent lisibles comme aujourd’hui, la charge s’ajoute en une '
+               + 'plage. Court quand la charge ne bouge pas.',
+      rend: function (c) {
+        var ch = val(c, 'charge'), l = val(c, second(c));
+        var g = c.ch.length + '×  ' + l.map(function (x) { return x || '?'; }).join('/') + sfx(c);
+        if (vide(ch)) return g;
+        var u = unite(c) ? ' ' + unite(c) : '';
+        var pleins = ch.filter(function (x) { return x; });
+        if (tous(pleins) || pleins.length === 1) return g + ' · ' + pleins[0] + u;
+        var num = pleins.every(function (x) { return !isNaN(parseFloat(x)); });
+        if (!num) return g + ' · ' + pleins[0] + '…';   /* élastique : texte */
+        var n = pleins.map(parseFloat);
+        return g + ' · ' + Math.min.apply(null, n) + '-' + Math.max.apply(null, n) + u;
+      } },
+
+    { cle: 'D', titre: 'Charge d’abord', code: '20-24 kg · 10/9/8',
+      pourquoi: 'Met la charge en avant, ce qui est l’information d’un programme de force. '
+               + 'Le « 3× » disparaît : il se déduit des reps.',
+      rend: function (c) {
+        var ch = val(c, 'charge'), l = val(c, second(c));
+        var reps = l.map(function (x) { return x || '?'; }).join('/') + sfx(c);
+        if (vide(ch)) return c.ch.length + '×  ' + reps;
+        var u = unite(c) ? ' ' + unite(c) : '';
+        var pleins = ch.filter(function (x) { return x; });
+        var num = pleins.every(function (x) { return !isNaN(parseFloat(x)); });
+        var g;
+        if (tous(pleins) || pleins.length === 1) g = pleins[0] + u;
+        else if (!num) g = pleins[0] + '…';
+        else { var n = pleins.map(parseFloat);
+               g = Math.min.apply(null, n) + '-' + Math.max.apply(null, n) + u; }
+        return g + ' · ' + reps;
+      } },
+
+    { cle: 'E', titre: 'La plus lourde seulement', code: '3×  10/9/8 @ 24 kg',
+      pourquoi: 'Une seule charge : la plus lourde. La plus courte des écritures qui '
+               + 'montrent une charge — mais elle PERD la progression 20→24.',
+      rend: function (c) {
+        var ch = val(c, 'charge'), l = val(c, second(c));
+        var g = c.ch.length + '×  ' + l.map(function (x) { return x || '?'; }).join('/') + sfx(c);
+        var pleins = ch.filter(function (x) { return x; });
+        if (!pleins.length) return g;
+        var u = unite(c) ? ' ' + unite(c) : '';
+        var num = pleins.every(function (x) { return !isNaN(parseFloat(x)); });
+        if (!num) return g + ' @ ' + pleins[pleins.length - 1];
+        return g + ' @ ' + Math.max.apply(null, pleins.map(parseFloat)) + u;
+      } },
+
+    { cle: 'F', titre: 'Sur deux lignes', code: 'nom\\n3×  10/9/8 · 20-24 kg',
+      pourquoi: 'Le nom n’est plus en concurrence : il a la ligne entière, les chiffres '
+               + 'ont la leur. Coût : la carte devient deux fois plus haute.',
+      deuxLignes: true,
+      rend: function (c) {
+        return ECRITURES[2].rend(c);   /* la meme chaine que C */
+      } }
+  ];
+
+  /* ---------- LA MESURE DE LARGEUR, hors de toute contrainte ----------
+     Un élément détaché du flux, avec la MÊME police et le même poids que
+     la cible, sans largeur imposée : sa largeur EST celle du texte. */
+  var regle = null;
+  function largeurNaturelle(el) {
+    if (!regle) {
+      regle = document.createElement('span');
+      regle.style.cssText = 'position:absolute;left:-99999px;top:0;'
+                          + 'white-space:nowrap;visibility:hidden;';
+      document.body.appendChild(regle);
+    }
+    var cs = getComputedStyle(el);
+    regle.style.font = cs.font;
+    regle.style.fontWeight = cs.fontWeight;
+    regle.style.fontSize = cs.fontSize;
+    regle.style.fontFamily = cs.fontFamily;
+    regle.style.letterSpacing = cs.letterSpacing;
+    regle.textContent = el.textContent;
+    return regle.getBoundingClientRect().width;
+  }
+
+  /* ---------- RENDU ---------- */
+  var sortie = document.getElementById('sortie');
+  var mesures = {};
+
+  ECRITURES.forEach(function (ec) {
+    var h2 = document.createElement('h2');
+    h2.textContent = ec.cle + '. ' + ec.titre;
+    sortie.appendChild(h2);
+
+    var q = document.createElement('p');
+    q.className = 'quoi';
+    q.textContent = ec.pourquoi;
+    sortie.appendChild(q);
+
+    var rangee = document.createElement('div');
+    rangee.className = 'rangee';
+
+    var opt = document.createElement('div');
+    opt.className = 'option';
+    var tel = document.createElement('div');
+    tel.className = 'tel';
+
+    /* LA STRUCTURE REELLE d'une carte de programme. */
+    var item = document.createElement('div');
+    item.className = 'item';
+    var tete = document.createElement('div');
+    tete.className = 'item-titre';
+    var h3 = document.createElement('h3');
+    h3.textContent = 'Biceps + Épaules';
+    tete.appendChild(h3);
+    item.appendChild(tete);
+    var resume = document.createElement('div');
+    resume.className = 'item-resume';
+    resume.textContent = CAS.length + ' exercices · 24 séries';
+    item.appendChild(resume);
+
+    var lignes = document.createElement('div');
+    lignes.className = 'item-lignes';
+    var refs = [];
+
+    CAS.forEach(function (c) {
+      var texte = ec.rend(c);
+      if (ec.deuxLignes) {
+        var l1 = document.createElement('div');
+        l1.className = 'item-ligne';
+        var b1 = document.createElement('b');
+        b1.textContent = c.nom;
+        l1.appendChild(b1);
+        lignes.appendChild(l1);
+        var l2 = document.createElement('div');
+        l2.className = 'item-ligne';
+        var s2 = document.createElement('span');
+        s2.textContent = texte;
+        s2.style.marginLeft = '0';
+        l2.appendChild(s2);
+        l2.style.marginBottom = '3px';
+        lignes.appendChild(l2);
+        refs.push({ cas: c, b: b1, span: s2, texte: texte });
+      } else {
+        var li = document.createElement('div');
+        li.className = 'item-ligne';
+        var b = document.createElement('b');
+        b.textContent = c.nom;
+        var sp = document.createElement('span');
+        sp.textContent = texte;
+        li.appendChild(b); li.appendChild(sp);
+        lignes.appendChild(li);
+        refs.push({ cas: c, b: b, span: sp, texte: texte });
+      }
+    });
+
+    item.appendChild(lignes);
+    tel.appendChild(item);
+    opt.appendChild(tel);
+
+    var v = document.createElement('div');
+    v.className = 'verdict';
+    opt.appendChild(v);
+    rangee.appendChild(opt);
+    sortie.appendChild(rangee);
+
+    /* MESURE APRES RENDU : on lit les rectangles reels, pas une estimation. */
+    setTimeout(function () {
+      var coupes = 0, pireReste = 1e9, pireNom = '', maxSpan = 0, pirePerte = 0;
+      var etalonVu = false;
+      refs.forEach(function (r) {
+        /* DEUX OUTILS ONT MENTI AVANT CELUI-CI, et tous deux rendaient
+           « aucun nom coupé » sur toutes les écritures :
+             `scrollWidth` se plafonne à `clientWidth` sous
+               `text-overflow: ellipsis` ;
+             `Range.getBoundingClientRect()` est borné par l'overflow du
+               parent.
+           On mesure donc HORS FLUX, dans un témoin sans contrainte. */
+        var place = r.b.getBoundingClientRect().width;
+        var naturelle = largeurNaturelle(r.b);
+        var coupe = naturelle > place + 1;
+        /* L'ÉTALON ne compte pas dans le verdict de l'écriture : il juge
+           la MESURE. S'il n'est pas vu coupé, la détection est cassée. */
+        if (r.cas.etalon) { etalonVu = coupe; return; }
+        if (coupe) {
+          coupes += 1;
+          /* COMBIEN DE CARACTERES PERDUS : c'est la question de MB. */
+          var perdus = Math.round(r.cas.nom.length * (1 - place / naturelle));
+          if (perdus > pirePerte) pirePerte = perdus;
+        }
+        var sw = Math.round(r.span.getBoundingClientRect().width);
+        if (sw > maxSpan) maxSpan = sw;
+        var reste = Math.round(r.b.getBoundingClientRect().width);
+        if (!ec.deuxLignes && reste < pireReste) { pireReste = reste; pireNom = r.cas.nom; }
+        if (coupe) r.b.style.color = '#ff8d8d';
+      });
+      mesures[ec.cle] = { titre: ec.titre, coupes: coupes, maxSpan: maxSpan,
+                          pireReste: ec.deuxLignes ? null : pireReste,
+                          pirePerte: pirePerte, deux: !!ec.deuxLignes,
+                          etalon: etalonVu };
+      if (!etalonVu) {
+        v.className = 'verdict ko';
+        v.textContent = '✗ MESURE CASSÉE : l’étalon, dont le nom ne peut PAS tenir, '
+                      + 'n’a pas été vu coupé. Ne rien conclure de cette ligne.';
+        bilan();
+        return;
+      }
+      v.className = 'verdict ' + (coupes ? 'ko' : 'ok');
+      v.textContent = (coupes ? '✗ ' + coupes + ' nom(s) coupé(s), jusqu’à '
+                                + pirePerte + ' caractère(s) perdus'
+                              : '✓ aucun nom coupé')
+        + ' · chiffres jusqu’à ' + maxSpan + ' px'
+        + (ec.deuxLignes ? ' · carte deux fois plus haute'
+                         : ' · il reste ' + pireReste + ' px au nom le plus serré');
+      bilan();
+    }, 60);
+  });
+
+  /* TEMOIN DE FIDELITE. Une simulation plus serree que la realite
+     condamnerait des ecritures qui passent ; plus large, elle en laisserait
+     passer qui debordent. On le DIT, au lieu de l'esperer. */
+  function fidelite() {
+    var l = document.querySelector('.item-lignes .item-ligne');
+    if (!l) return;
+    var w = Math.round(l.getBoundingClientRect().width);
+    var juste = Math.abs(w - 340) <= 2;
+    var d = document.createElement('div');
+    d.className = 'verdict ' + (juste ? 'ok' : 'ko');
+    d.style.margin = '10px 0 0';
+    d.textContent = (juste ? '✓' : '✗')
+      + ' [témoin] la ligne simulée fait ' + w + ' px — la vraie, mesurée dans '
+      + 'l’app à 390 px, en fait 340.';
+    document.getElementById('bilan').appendChild(d);
+  }
+
+  function bilan() {
+    if (Object.keys(mesures).length < ECRITURES.length) return;
+    var d = document.getElementById('bilan');
+    d.innerHTML = '';
+    var t = document.createElement('table');
+    t.className = 'bilan';
+    var entete = document.createElement('tr');
+    ['', 'Écriture', 'Noms coupés sur ' + CAS.length, 'Chiffres (px max)',
+     'Place restante au nom', 'Ce que ça coûte'].forEach(function (x) {
+      var th = document.createElement('th'); th.textContent = x; entete.appendChild(th);
+    });
+    t.appendChild(entete);
+
+    var cout = {
+      A: 'les charges restent invisibles — le défaut que MB veut corriger',
+      B: 'la plus longue ; illisible dès 5 séries',
+      C: 'perd le détail série par série (garde la plage)',
+      D: 'perd le « N× » et le détail série par série',
+      E: 'perd la progression : 20→24 devient « 24 »',
+      F: 'double la hauteur de la carte'
+    };
+
+    ECRITURES.forEach(function (ec) {
+      var m = mesures[ec.cle];
+      var tr = document.createElement('tr');
+      function td(x, cls) {
+        var e = document.createElement('td');
+        e.textContent = x; if (cls) e.className = cls; tr.appendChild(e);
+      }
+      td(ec.cle);
+      td(ec.titre);
+      var c = document.createElement('td');
+      c.className = 'n ' + (m.coupes ? 'ko' : 'ok');
+      c.textContent = m.coupes + (m.coupes ? ' (−' + m.pirePerte + ' car.)' : '');
+      tr.appendChild(c);
+      td(m.maxSpan + ' px', 'n');
+      td(m.deux ? 'toute la ligne' : m.pireReste + ' px', 'n');
+      td(cout[ec.cle] || '');
+      t.appendChild(tr);
+    });
+    d.appendChild(t);
+    fidelite();
+  }
+})();
+</script>
+</body></html>

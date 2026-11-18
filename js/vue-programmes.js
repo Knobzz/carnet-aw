@@ -306,10 +306,15 @@
       if (nExos) {
         var lignes = h('div', { class: 'item-lignes' });
         p.exercices.slice(0, 4).forEach(function (ep) {
-          var cibles = ep.series.map(function (s) { return s.repsCible || '?'; }).join('/');
+          /* LE RESUME VIENT DU MODELE depuis le 18/11 : il lisait ici les
+             seuls `repsCible`, ce qui rendait les charges invisibles et
+             affichait « ?/?/? » sur un exercice en duree. L'ecriture — la
+             charge d'abord, en plage — est celle que MB a choisie sur
+             simulation, parce qu'elle est la seule a montrer les charges
+             SANS amputer le nom : `revue/simulation-charges-programme.html`. */
           lignes.appendChild(h('div', { class: 'item-ligne' },
             h('b', { text: ep.nom }),
-            h('span', { text: ep.series.length + '×  ' + cibles })));
+            h('span', { text: A.m.resumeCiblesExercice(ep) })));
         });
         if (nExos > 4) lignes.appendChild(h('div', { class: 'item-ligne' },
           h('b', { text: '+ ' + (nExos - 4) + ' autre(s)' })));
